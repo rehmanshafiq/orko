@@ -13,10 +13,6 @@ ios/Flutter/Generated.xcconfig
 ios/.symlinks/
 ios/Pods/
 ios/Runner.xcworkspace/
-ios/Runner/
-ios/RunnerTests/
-ios/Flutter/
-ios/Runner.xcodeproj/
 macos/Flutter/ephemeral/
 web/.dart_tool/
 macos
@@ -67,7 +63,7 @@ pubspec.lock
 
 # Flutter/Dart/Pub related
 **/doc/api/
-**/ios/Flutter/.last_build_id
+#**/ios/Flutter/.last_build_id
 .pub-cache/
 .pub/
 /build/
