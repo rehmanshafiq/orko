@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:orko_hubco/features/splash/view/splash_mobile_view.dart';
-import '../../../core/utils/responsive_view_widget.dart';
+import '../../../../core/utils/responsive_view_widget.dart';
+import '../view/splash_mobile_view.dart';
 
 class SplashPage extends StatelessWidget {
   const SplashPage({super.key});

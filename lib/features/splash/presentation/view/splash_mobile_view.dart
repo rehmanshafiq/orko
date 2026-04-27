@@ -5,10 +5,11 @@ import 'package:orko_hubco/core/constants/app_images.dart';
 import 'package:orko_hubco/core/global_bloc/bloc/user_bloc.dart'
     show UserBloc, OnLoadCustomerFromCache, UserInitial, UserLoading;
 
-import '../../../core/utils/app_routing/app_navigations.dart';
-import '../../../core/utils/app_storage/app_storage.dart';
-import '../../../core/utils/enums/app_enums.dart';
-import '../../../core/utils/widgets/image_view/app_image_view.dart';
+import '../../../../core/utils/app_routing/app_navigations.dart';
+import '../../../../core/utils/app_storage/app_storage.dart';
+import '../../../../core/utils/widgets/image_view/app_image_view.dart';
+
+
 
 class SplashMobileView extends StatefulWidget {
   const SplashMobileView({super.key});
@@ -41,11 +42,12 @@ class _SplashMobileViewState extends State<SplashMobileView> {
     if (!mounted || _hasNavigated) return;
 
     _hasNavigated = true;
-    final nextRoute = AppStorage.isOnboardingCompleted
-        ? AppRoute.bottomNavigation
-        : AppRoute.onboarding;
+    if (AppStorage.isOnboardingCompleted) {
+      AppNavigations.navigateToBottomNavigation(context);
+      return;
+    }
 
-    AppNavigations.replace(context, nextRoute);
+    AppNavigations.navigateToOnBoarding(context);
   }
 
   @override

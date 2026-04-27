@@ -12,7 +12,7 @@ import 'package:orko_hubco/features/bottom_navigation/presentation/screens/home_
 import 'package:orko_hubco/features/bottom_navigation/presentation/screens/settings_screen.dart';
 import 'package:orko_hubco/features/profile/presentation/cubit/profile_cubit.dart';
 import 'package:orko_hubco/features/profile/presentation/screens/profile_screen.dart';
-import 'package:orko_hubco/features/splash/page/splash_page.dart';
+import '../../features/splash/presentation/page/splash_page.dart';
 
 /// App-wide router configuration using go_router.
 ///
@@ -111,15 +111,5 @@ class AppRouter {
       ),
     ],
 
-    // ── Redirect Logic ──────────────────────────────────────────────
-    // redirect: (context, state) {
-    //   final isLoggedIn = sl<LocalStorageService>().isLoggedIn;
-    //   final isAuthRoute = state.matchedLocation == '/login' ||
-    //       state.matchedLocation == '/register';
-    //
-    //   if (!isLoggedIn && !isAuthRoute) return '/login';
-    //   if (isLoggedIn && isAuthRoute) return '/home';
-    //   return null;
-    // },
   );
 }
