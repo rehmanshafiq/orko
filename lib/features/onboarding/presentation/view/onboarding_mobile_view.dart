@@ -12,8 +12,27 @@ import 'package:orko_hubco/features/onboarding/domain/entities/onboarding_item_e
 import 'package:orko_hubco/features/onboarding/presentation/bloc/onboarding_cubit.dart';
 import 'package:orko_hubco/features/onboarding/presentation/bloc/onboarding_state.dart';
 
-class OnboardingMobileView extends StatelessWidget {
+class OnboardingMobileView extends StatefulWidget {
   const OnboardingMobileView({super.key});
+
+  @override
+  State<OnboardingMobileView> createState() => _OnboardingMobileViewState();
+}
+
+class _OnboardingMobileViewState extends State<OnboardingMobileView> {
+  late final PageController _pageController;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController();
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
 
   Future<void> _onSkipOrGetStarted(BuildContext context) async {
     await context.read<OnboardingCubit>().complete();
@@ -56,9 +75,13 @@ class OnboardingMobileView extends StatelessWidget {
               padding: AppUtils.horizontal20Padding,
               child: Column(
                 children: [
-                  if (!state.isLastPage)
-                    Align(
-                      alignment: Alignment.topRight,
+                  Align(
+                    alignment: Alignment.topRight,
+                    child: Visibility(
+                      visible: !state.isLastPage,
+                      maintainAnimation: true,
+                      maintainState: true,
+                      maintainSize: true,
                       child: TextButton(
                         onPressed:
                             state.isCompleting
@@ -71,9 +94,10 @@ class OnboardingMobileView extends StatelessWidget {
                         ),
                       ),
                     ),
-                  if (state.isLastPage) 8.verticalSpace,
+                  ),
                   Expanded(
                     child: PageView.builder(
+                      controller: _pageController,
                       itemCount: state.items.length,
                       onPageChanged:
                           context.read<OnboardingCubit>().setCurrentIndex,
