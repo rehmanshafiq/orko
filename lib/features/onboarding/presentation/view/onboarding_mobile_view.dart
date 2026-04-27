@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
+import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/utils/app_routing/app_navigations.dart';
+import 'package:orko_hubco/core/utils/app_ui.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
 import 'package:orko_hubco/core/utils/widgets/image_view/app_image_view.dart';
 import 'package:orko_hubco/core/utils/widgets/primary_button_widget.dart';
@@ -42,16 +44,16 @@ class OnboardingMobileView extends StatelessWidget {
             }
 
             if (state.items.isEmpty) {
-              return const Center(
+              return Center(
                 child: AppText(
                   'No onboarding data found',
-                  color: Colors.white70,
+                  color: AppColors.whiteColor.withValues(alpha: 0.7),
                 ),
               );
             }
 
             return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              padding: AppUtils.horizontal20Padding,
               child: Column(
                 children: [
                   if (!state.isLastPage)
@@ -62,10 +64,10 @@ class OnboardingMobileView extends StatelessWidget {
                             state.isCompleting
                                 ? null
                                 : () => _onSkipOrGetStarted(context),
-                        child: const AppText(
+                        child: AppText(
                           'Skip',
-                          color: Colors.white70,
-                          fontWeight: FontWeight.w500,
+                          color: AppColors.whiteColor.withValues(alpha: 0.7),
+                          fontWeight: FontWeights.weight500,
                         ),
                       ),
                     ),
@@ -94,10 +96,10 @@ class OnboardingMobileView extends StatelessWidget {
                     PrimaryButtonWidget(
                       text: 'Get Started',
                       buttonHeight: 56,
-                      buttonColor: const Color(0xFF29E6B2),
-                      textColor: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
+                      buttonColor: AppColors.primaryLightColor,
+                      textColor: AppColors.whiteColor,
+                      fontSize: FontSizes.font16Sp,
+                      fontWeight: FontWeights.weight600,
                       isEnabled: !state.isCompleting,
                       onPress:
                           state.isCompleting
@@ -143,19 +145,19 @@ class _OnboardingSlide extends StatelessWidget {
         AppText(
           item.title,
           textAlign: TextAlign.center,
-          color: Colors.white,
-          fontSize: 46 / 2,
+          color: AppColors.whiteColor,
+          fontSize: FontSizes.font24Sp,
           height: 1.15,
-          fontWeight: FontWeight.w700,
+          fontWeight: FontWeights.weight700,
         ),
         14.verticalSpace,
         AppText(
           item.description,
           textAlign: TextAlign.center,
-          color: Colors.white70,
-          fontSize: 18 / 2,
+          color: AppColors.whiteColor.withValues(alpha: 0.7),
+          fontSize: FontSizes.font10Sp,
           height: 1.45,
-          fontWeight: FontWeight.w400,
+          fontWeight: FontWeights.weight400,
         ),
       ],
     );
@@ -185,8 +187,8 @@ class _PageIndicator extends StatelessWidget {
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: index == activeIndex
-                ? const Color(0xFF29E6B2)
-                : Colors.white.withValues(alpha: 0.35),
+                ? AppColors.primaryLightColor
+                : AppColors.whiteColor.withValues(alpha: 0.35),
           ),
         ),
       ),

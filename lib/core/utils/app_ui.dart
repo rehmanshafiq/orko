@@ -11,9 +11,12 @@ class AppUtils {
   static EdgeInsets get all24Padding => EdgeInsets.all(24.r);
   static EdgeInsets get all4Padding => EdgeInsets.all(4.r);
   static EdgeInsets get horizontal24Padding => EdgeInsets.symmetric(horizontal: 24.w);
+  static EdgeInsets get horizontal20Padding => EdgeInsets.symmetric(horizontal: 20.w);
   static EdgeInsets get horizontal39Padding => EdgeInsets.symmetric(horizontal: 39.w);
   static EdgeInsets get horizontal36Padding => EdgeInsets.symmetric(horizontal: 36.w);
   static EdgeInsets get horizontal14Padding => EdgeInsets.symmetric(horizontal: 14.w);
+  static EdgeInsets get horizontal16Padding => EdgeInsets.symmetric(horizontal: 16.w);
+  static EdgeInsets get horizontal18Padding => EdgeInsets.symmetric(horizontal: 18.w);
   static EdgeInsets get horizontal24Vertical25Padding =>
       EdgeInsets.symmetric(horizontal: 24.w, vertical: 25.h);
   static EdgeInsets get left20Right12Padding => EdgeInsets.only(left: 20.w, right: 12.w);
