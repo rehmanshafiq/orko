@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class ButtonSizes {
-  static double? buttonHeight = 45.sp; // last was 70
+  static double? buttonHeight = 45.sp;
 }
 
 class FontWeights {

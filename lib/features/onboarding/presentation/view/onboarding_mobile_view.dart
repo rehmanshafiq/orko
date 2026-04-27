@@ -3,7 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/utils/app_routing/app_navigations.dart';
+import 'package:orko_hubco/core/utils/widgets/app_text.dart';
 import 'package:orko_hubco/core/utils/widgets/image_view/app_image_view.dart';
+import 'package:orko_hubco/core/utils/widgets/primary_button_widget.dart';
 import 'package:orko_hubco/features/onboarding/domain/entities/onboarding_item_entity.dart';
 import 'package:orko_hubco/features/onboarding/presentation/bloc/onboarding_cubit.dart';
 import 'package:orko_hubco/features/onboarding/presentation/bloc/onboarding_state.dart';
@@ -26,7 +28,7 @@ class OnboardingMobileView extends StatelessWidget {
           listener: (context, state) {
             if (state.errorMessage != null && state.errorMessage!.isNotEmpty) {
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(state.errorMessage!)),
+                SnackBar(content: AppText(state.errorMessage!)),
               );
             }
 
@@ -41,9 +43,9 @@ class OnboardingMobileView extends StatelessWidget {
 
             if (state.items.isEmpty) {
               return const Center(
-                child: Text(
+                child: AppText(
                   'No onboarding data found',
-                  style: TextStyle(color: Colors.white70),
+                  color: Colors.white70,
                 ),
               );
             }
@@ -60,12 +62,10 @@ class OnboardingMobileView extends StatelessWidget {
                             state.isCompleting
                                 ? null
                                 : () => _onSkipOrGetStarted(context),
-                        child: const Text(
+                        child: const AppText(
                           'Skip',
-                          style: TextStyle(
-                            color: Colors.white70,
-                            fontWeight: FontWeight.w500,
-                          ),
+                          color: Colors.white70,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ),
@@ -91,47 +91,18 @@ class OnboardingMobileView extends StatelessWidget {
                   ),
                   18.verticalSpace,
                   if (state.isLastPage)
-                    SizedBox(
-                      width: double.infinity,
-                      height: 56,
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(30),
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFF29E6B2), Color(0xFF1DBA97)],
-                          ),
-                        ),
-                        child: ElevatedButton(
-                          onPressed:
-                              state.isCompleting
-                                  ? null
-                                  : () => _onSkipOrGetStarted(context),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.transparent,
-                            shadowColor: Colors.transparent,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30),
-                            ),
-                          ),
-                          child: state.isCompleting
-                              ? const SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: Colors.white,
-                                  ),
-                                )
-                              : const Text(
-                                  'Get Started',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                        ),
-                      ),
+                    PrimaryButtonWidget(
+                      text: 'Get Started',
+                      buttonHeight: 56,
+                      buttonColor: const Color(0xFF29E6B2),
+                      textColor: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      isEnabled: !state.isCompleting,
+                      onPress:
+                          state.isCompleting
+                              ? null
+                              : () => _onSkipOrGetStarted(context),
                     )
                   else
                     56.verticalSpace,
@@ -169,26 +140,22 @@ class _OnboardingSlide extends StatelessWidget {
           ),
         ),
         28.verticalSpace,
-        Text(
+        AppText(
           item.title,
           textAlign: TextAlign.center,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 46 / 2,
-            height: 1.15,
-            fontWeight: FontWeight.w700,
-          ),
+          color: Colors.white,
+          fontSize: 46 / 2,
+          height: 1.15,
+          fontWeight: FontWeight.w700,
         ),
         14.verticalSpace,
-        Text(
+        AppText(
           item.description,
           textAlign: TextAlign.center,
-          style: const TextStyle(
-            color: Colors.white70,
-            fontSize: 18 / 2,
-            height: 1.45,
-            fontWeight: FontWeight.w400,
-          ),
+          color: Colors.white70,
+          fontSize: 18 / 2,
+          height: 1.45,
+          fontWeight: FontWeight.w400,
         ),
       ],
     );
