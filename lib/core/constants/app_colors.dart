@@ -22,5 +22,6 @@ class AppColors {
   static const sandColor = Color(0xFFE8E6DC);
   static const myAccountBorderColor = Color(0xFFE2E2E2);
   static const colorsOutlineColor = Color(0xFFEBEBEB);
-
+  static const primaryLightColor = Color(0xFF8FC84D);
+  static const primaryDarkColor = Color(0xFF329748);
 }
