@@ -49,7 +49,7 @@ class AppRouter {
         path: '/onboarding',
         name: 'onboarding',
         builder: (context, state) => BlocProvider(
-          create: (_) => sl<OnboardingCubit>(),
+          create: (_) => sl<OnboardingCubit>()..loadSlides(),
           child: const OnboardingPage(),
         ),
       ),

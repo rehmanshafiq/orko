@@ -8,30 +8,10 @@ import 'package:orko_hubco/features/onboarding/domain/entities/onboarding_item_e
 import 'package:orko_hubco/features/onboarding/presentation/bloc/onboarding_cubit.dart';
 import 'package:orko_hubco/features/onboarding/presentation/bloc/onboarding_state.dart';
 
-class OnboardingMobileView extends StatefulWidget {
+class OnboardingMobileView extends StatelessWidget {
   const OnboardingMobileView({super.key});
 
-  @override
-  State<OnboardingMobileView> createState() => _OnboardingMobileViewState();
-}
-
-class _OnboardingMobileViewState extends State<OnboardingMobileView> {
-  late final PageController _pageController;
-
-  @override
-  void initState() {
-    super.initState();
-    _pageController = PageController();
-    context.read<OnboardingCubit>().loadSlides();
-  }
-
-  @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _onSkipOrGetStarted() async {
+  Future<void> _onSkipOrGetStarted(BuildContext context) async {
     await context.read<OnboardingCubit>().complete();
   }
 
@@ -72,23 +52,26 @@ class _OnboardingMobileViewState extends State<OnboardingMobileView> {
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
               child: Column(
                 children: [
-                  Align(
-                    alignment: Alignment.topRight,
-                    child: TextButton(
-                      onPressed:
-                          state.isCompleting ? null : _onSkipOrGetStarted,
-                      child: const Text(
-                        'Skip',
-                        style: TextStyle(
-                          color: Colors.white70,
-                          fontWeight: FontWeight.w500,
+                  if (!state.isLastPage)
+                    Align(
+                      alignment: Alignment.topRight,
+                      child: TextButton(
+                        onPressed:
+                            state.isCompleting
+                                ? null
+                                : () => _onSkipOrGetStarted(context),
+                        child: const Text(
+                          'Skip',
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                       ),
                     ),
-                  ),
+                  if (state.isLastPage) 8.verticalSpace,
                   Expanded(
                     child: PageView.builder(
-                      controller: _pageController,
                       itemCount: state.items.length,
                       onPageChanged:
                           context.read<OnboardingCubit>().setCurrentIndex,
@@ -120,7 +103,9 @@ class _OnboardingMobileViewState extends State<OnboardingMobileView> {
                         ),
                         child: ElevatedButton(
                           onPressed:
-                              state.isCompleting ? null : _onSkipOrGetStarted,
+                              state.isCompleting
+                                  ? null
+                                  : () => _onSkipOrGetStarted(context),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.transparent,
                             shadowColor: Colors.transparent,
