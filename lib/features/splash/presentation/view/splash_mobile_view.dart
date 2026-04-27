@@ -3,7 +3,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_images.dart';
 import 'package:orko_hubco/core/global_bloc/bloc/user_bloc.dart'
-    show UserBloc, OnLoadCustomerFromCache, UserInitial, UserLoading;
+    show
+        UserBloc,
+        OnLoadCustomerFromCache,
+        UserInitial,
+        UserLoading,
+        UserLoaded;
 
 import '../../../../core/utils/app_routing/app_navigations.dart';
 import '../../../../core/utils/app_storage/app_storage.dart';
@@ -42,12 +47,17 @@ class _SplashMobileViewState extends State<SplashMobileView> {
     if (!mounted || _hasNavigated) return;
 
     _hasNavigated = true;
-    if (AppStorage.isOnboardingCompleted) {
+    if (!AppStorage.isOnboardingCompleted) {
+      AppNavigations.navigateToOnBoarding(context);
+      return;
+    }
+
+    if (userBloc.state is UserLoaded) {
       AppNavigations.navigateToBottomNavigation(context);
       return;
     }
 
-    AppNavigations.navigateToOnBoarding(context);
+    AppNavigations.navigateToLogin(context);
   }
 
   @override

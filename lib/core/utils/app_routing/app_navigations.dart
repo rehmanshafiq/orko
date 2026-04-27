@@ -27,6 +27,8 @@ class AppNavigations {
       case AppRoute.splash:
         return 'splash';
       case AppRoute.onboarding:
+        return 'onboarding';
+      case AppRoute.login:
         return 'login';
       case AppRoute.bottomNavigation:
         return 'home';
@@ -46,5 +48,16 @@ class AppNavigations {
 
   static void navigateToBottomNavigation(BuildContext context) {
     replace(context, AppRoute.bottomNavigation);
+  }
+
+  static void navigateToLogin(BuildContext context) {
+    replace(context, AppRoute.login);
+  }
+
+  static void navigateToRegister(BuildContext context) {
+    _BasicAppRoute.replaceToNewScreen(
+      context: context,
+      path: 'register',
+    );
   }
 }

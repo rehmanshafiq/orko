@@ -10,9 +10,11 @@ import 'package:orko_hubco/features/auth/presentation/screens/register_screen.da
 import 'package:orko_hubco/features/bottom_navigation/presentation/screens/bottom_nav_shell.dart';
 import 'package:orko_hubco/features/bottom_navigation/presentation/screens/home_screen.dart';
 import 'package:orko_hubco/features/bottom_navigation/presentation/screens/settings_screen.dart';
+import 'package:orko_hubco/features/onboarding/presentation/bloc/onboarding_cubit.dart';
+import 'package:orko_hubco/features/onboarding/presentation/page/onboarding_page.dart';
 import 'package:orko_hubco/features/profile/presentation/cubit/profile_cubit.dart';
 import 'package:orko_hubco/features/profile/presentation/screens/profile_screen.dart';
-import '../../features/splash/presentation/page/splash_page.dart';
+import 'package:orko_hubco/features/splash/presentation/page/splash_page.dart';
 
 /// App-wide router configuration using go_router.
 ///
@@ -40,6 +42,15 @@ class AppRouter {
         builder: (context, state) => BlocProvider(
           create: (_) => UserBloc(localDataSource: sl<AuthLocalDataSource>()),
           child: const SplashPage(),
+        ),
+      ),
+
+      GoRoute(
+        path: '/onboarding',
+        name: 'onboarding',
+        builder: (context, state) => BlocProvider(
+          create: (_) => sl<OnboardingCubit>(),
+          child: const OnboardingPage(),
         ),
       ),
 
@@ -110,6 +121,5 @@ class AppRouter {
         ],
       ),
     ],
-
   );
 }

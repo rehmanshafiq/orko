@@ -158,7 +158,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       children: [
                         const Text('Already have an account?'),
                         TextButton(
-                          onPressed: () => context.pop(),
+                          onPressed: () => context.go('/login'),
                           child: const Text(
                             'Sign In',
                             style: TextStyle(fontWeight: FontWeight.bold),
