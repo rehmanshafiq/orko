@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:orko_hubco/core/di/injection_container.dart';
+import 'package:orko_hubco/core/global_bloc/bloc/user_bloc.dart';
+import 'package:orko_hubco/features/auth/data/datasources/local/auth_local_datasource.dart';
 import 'package:orko_hubco/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:orko_hubco/features/auth/presentation/screens/login_screen.dart';
 import 'package:orko_hubco/features/auth/presentation/screens/register_screen.dart';
@@ -10,6 +12,7 @@ import 'package:orko_hubco/features/bottom_navigation/presentation/screens/home_
 import 'package:orko_hubco/features/bottom_navigation/presentation/screens/settings_screen.dart';
 import 'package:orko_hubco/features/profile/presentation/cubit/profile_cubit.dart';
 import 'package:orko_hubco/features/profile/presentation/screens/profile_screen.dart';
+import 'package:orko_hubco/features/splash/page/splash_page.dart';
 
 /// App-wide router configuration using go_router.
 ///
@@ -27,9 +30,19 @@ class AppRouter {
 
   static final GoRouter router = GoRouter(
     navigatorKey: _rootNavigatorKey,
-    initialLocation: '/login',
+    initialLocation: '/splash',
     debugLogDiagnostics: true,
     routes: [
+      // ── Splash Route ────────────────────────────────────────────────
+      GoRoute(
+        path: '/splash',
+        name: 'splash',
+        builder: (context, state) => BlocProvider(
+          create: (_) => UserBloc(localDataSource: sl<AuthLocalDataSource>()),
+          child: const SplashPage(),
+        ),
+      ),
+
       // ── Auth Routes ─────────────────────────────────────────────────
       GoRoute(
         path: '/login',
