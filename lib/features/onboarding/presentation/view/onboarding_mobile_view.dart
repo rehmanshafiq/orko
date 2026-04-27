@@ -90,6 +90,7 @@ class _OnboardingMobileViewState extends State<OnboardingMobileView> {
                         child: AppText(
                           'Skip',
                           color: AppColors.whiteColor.withValues(alpha: 0.7),
+                          fontSize: FontSizes.font15Sp,
                           fontWeight: FontWeights.weight500,
                         ),
                       ),
@@ -119,7 +120,7 @@ class _OnboardingMobileViewState extends State<OnboardingMobileView> {
                   if (state.isLastPage)
                     PrimaryButtonWidget(
                       text: 'Get Started',
-                      buttonHeight: 56,
+                      buttonHeight: 56.h,
                       buttonColor: AppColors.primaryLightColor,
                       textColor: AppColors.whiteColor,
                       fontSize: FontSizes.font16Sp,
@@ -170,17 +171,15 @@ class _OnboardingSlide extends StatelessWidget {
           item.title,
           textAlign: TextAlign.center,
           color: AppColors.whiteColor,
-          fontSize: FontSizes.font24Sp,
-          height: 1.15,
-          fontWeight: FontWeights.weight700,
+          fontSize: FontSizes.font30Sp,
+          fontWeight: FontWeight.bold,
         ),
         14.verticalSpace,
         AppText(
           item.description,
           textAlign: TextAlign.center,
-          color: AppColors.whiteColor.withValues(alpha: 0.7),
-          fontSize: FontSizes.font10Sp,
-          height: 1.45,
+          color: AppColors.whiteColor.withValues(alpha: 0.6),
+          fontSize: FontSizes.font16Sp,
           fontWeight: FontWeights.weight400,
         ),
       ],
