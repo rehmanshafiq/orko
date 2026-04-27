@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/utils/app_routing/app_navigations.dart';
 import 'package:orko_hubco/core/utils/widgets/image_view/app_image_view.dart';
@@ -100,12 +101,12 @@ class _OnboardingMobileViewState extends State<OnboardingMobileView> {
                       },
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  12.verticalSpace,
                   _PageIndicator(
                     count: state.items.length,
                     activeIndex: state.currentIndex,
                   ),
-                  const SizedBox(height: 18),
+                  18.verticalSpace,
                   if (state.isLastPage)
                     SizedBox(
                       width: double.infinity,
@@ -148,8 +149,8 @@ class _OnboardingMobileViewState extends State<OnboardingMobileView> {
                       ),
                     )
                   else
-                    const SizedBox(height: 56),
-                  const SizedBox(height: 12),
+                    56.verticalSpace,
+                  12.verticalSpace,
                 ],
               ),
             );
@@ -179,10 +180,10 @@ class _OnboardingSlide extends StatelessWidget {
             appImagePath: item.imagePath,
             height: imageHeight,
             width: double.infinity,
-            fit: BoxFit.cover,
+            fit: BoxFit.fill,
           ),
         ),
-        const SizedBox(height: 28),
+        28.verticalSpace,
         Text(
           item.title,
           textAlign: TextAlign.center,
@@ -193,7 +194,7 @@ class _OnboardingSlide extends StatelessWidget {
             fontWeight: FontWeight.w700,
           ),
         ),
-        const SizedBox(height: 14),
+        14.verticalSpace,
         Text(
           item.description,
           textAlign: TextAlign.center,
