@@ -38,8 +38,12 @@ class AppText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final localizedContent = LocalCache.currentLocalizeContent;
+    final hasLocalizedText =
+        localizedContent != null && localizedContent.containsKey(text);
+
     return Text(
-      LocalCache.currentLocalizeContent!.containsKey(text) ? tr(text) : text,
+      hasLocalizedText ? tr(text) : text,
       overflow: overflow,
       textAlign: textAlign,
       maxLines: maxLines,
