@@ -111,8 +111,8 @@ class BottomNavShell extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, color: itemColor, size: 16),
-              1.verticalSpace,
+              Icon(icon, color: itemColor, size: 23),
+              2.verticalSpace,
               AppText(
                 label,
                 color: itemColor,

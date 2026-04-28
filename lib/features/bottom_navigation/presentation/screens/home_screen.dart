@@ -130,32 +130,34 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             child: Row(
               children: [
-                Icon(Icons.search, color: AppColors.whiteColor.withValues(alpha: 0.75), size: 18),
+                Icon(Icons.search, color: AppColors.whiteColor.withValues(alpha: 0.4), size: 22),
                 8.horizontalSpace,
-                AppText(
-                  'Search stations or locations',
-                  color: AppColors.whiteColor.withValues(alpha: 0.7),
-                  fontSize: FontSizes.font12Sp,
-                  fontWeight: FontWeights.weight400,
+                Expanded(
+                  child: AppText(
+                    'Search stations or locations',
+                    color: AppColors.whiteColor.withValues(alpha: 0.4),
+                    fontSize: FontSizes.font14Sp,
+                    fontWeight: FontWeights.weight400,
+                  ),
                 ),
+                8.horizontalSpace,
+                _topActionIcon(Icons.tune_rounded, isPrimary: true, isCompact: true),
               ],
             ),
           ),
         ),
         10.horizontalSpace,
-        _topActionIcon(Icons.tune_rounded, isPrimary: true),
-        8.horizontalSpace,
         _topActionIcon(Icons.notifications_none_rounded),
       ],
     );
   }
 
-  Widget _topActionIcon(IconData icon, {bool isPrimary = false}) {
+  Widget _topActionIcon(IconData icon, {bool isPrimary = false, bool isCompact = false}) {
     return Container(
-      height: 36.h,
-      width: 36.w,
+      height: isCompact ? 30.h : 52.h,
+      width: isCompact ? 30.w : 52.w,
       decoration: BoxDecoration(
-        color: isPrimary ? AppColors.primaryDarkColor : AppColors.blackColor.withValues(alpha: 0.62),
+        color: isPrimary ? AppColors.primaryDarkColor : AppColors.greyColor.withValues(alpha: 0.20),
         borderRadius: BorderRadius.circular(8.r),
         border: Border.all(
           color: isPrimary
@@ -165,7 +167,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       child: Icon(
         icon,
-        size: 18,
+        size: isCompact ? 15 : 26,
         color: AppColors.whiteColor,
       ),
     );

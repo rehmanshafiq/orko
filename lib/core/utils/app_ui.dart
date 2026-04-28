@@ -49,7 +49,7 @@ class AppUtils {
   static EdgeInsetsDirectional get start14Padding => EdgeInsetsDirectional.only(start: 14.w);
   static EdgeInsets get all12Padding => EdgeInsets.all(12.r);
   static EdgeInsets get homeTopSearchPadding =>
-      EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h);
+      EdgeInsets.symmetric(horizontal: 12.w, vertical: 11.h);
   static EdgeInsets get homeBottomSheetPadding =>
       EdgeInsets.fromLTRB(14.w, 10.h, 14.w, 14.h);
   static EdgeInsets get homeFilterChipPadding =>
