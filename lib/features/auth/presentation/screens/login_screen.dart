@@ -273,7 +273,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   10.horizontalSpace,
                   const Icon(Icons.phone_outlined, color: AppColors.hintColor, size: 18),
-                  8.horizontalSpace,
                 ],
               ),
             ),
@@ -329,7 +328,6 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
           decoration: _inputDecoration(
             hintText: '**********',
-            prefixIcon: const Icon(Icons.lock_outline, color: AppColors.hintColor, size: 20),
             suffixIcon: IconButton(
               onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
               icon: Icon(
@@ -346,7 +344,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   InputDecoration _inputDecoration({
     required String hintText,
-    required Widget prefixIcon,
+    Widget? prefixIcon,
     Widget? suffixIcon,
   }) {
     return InputDecoration(
