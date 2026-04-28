@@ -76,16 +76,16 @@ class _HomeScreenState extends State<HomeScreen> {
               markers: _markers,
             ),
             SafeArea(
-              child: Padding(
-                padding: AppUtils.horizontal16Padding,
-                child: Column(
-                  children: [
-                    10.verticalSpace,
-                    _buildTopActions(),
-                    const Spacer(),
-                    _buildBottomSheetMock(),
-                  ],
-                ),
+              child: Column(
+                children: [
+                  10.verticalSpace,
+                  Padding(
+                    padding: AppUtils.horizontal16Padding,
+                    child: _buildTopActions(),
+                  ),
+                  const Spacer(),
+                  _buildBottomSheetMock(),
+                ],
               ),
             ),
             Center(
@@ -176,7 +176,10 @@ class _HomeScreenState extends State<HomeScreen> {
       padding: AppUtils.homeBottomSheetPadding,
       decoration: BoxDecoration(
         color: AppColors.blackColor.withValues(alpha: 0.9),
-        borderRadius: BorderRadius.circular(22.r),
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(22.r),
+          topRight: Radius.circular(22.r),
+        ),
         border: Border.all(color: AppColors.whiteColor.withValues(alpha: 0.08)),
       ),
       child: Column(
