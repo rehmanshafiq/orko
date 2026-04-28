@@ -51,6 +51,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.blackColor,
       body: BlocConsumer<AuthCubit, AuthState>(
         listener: (context, state) {
           if (state is AuthAuthenticated) {
@@ -60,90 +61,85 @@ class _LoginScreenState extends State<LoginScreen> {
           }
         },
         builder: (context, state) {
-          return Container(
-            decoration: const BoxDecoration(
-              color: AppColors.blackColor,
-            ),
-            child: SafeArea(
-              child: SingleChildScrollView(
-                padding: AppUtils.horizontal24Padding,
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      50.verticalSpace,
-                      _buildHeader(),
-                      40.verticalSpace,
-                      _buildPhoneNumberField(),
-                      14.verticalSpace,
-                      _buildPasswordField(),
-                      8.verticalSpace,
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: TextButton(
-                          onPressed: () {},
-                          style: TextButton.styleFrom(
-                            padding: AppUtils.zeroPadding,
-                            minimumSize: Size.zero,
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          ),
-                          child: AppText(
-                            'Forgot Password?',
-                            color: AppColors.primaryDarkColor,
-                            fontSize: FontSizes.font12Sp,
-                            fontWeight: FontWeights.weight500,
-                          ),
+          return SafeArea(
+            child: SingleChildScrollView(
+              padding: AppUtils.horizontal24Padding,
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    50.verticalSpace,
+                    _buildHeader(),
+                    30.verticalSpace,
+                    _buildPhoneNumberField(),
+                    14.verticalSpace,
+                    _buildPasswordField(),
+                    8.verticalSpace,
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: () {},
+                        style: TextButton.styleFrom(
+                          padding: AppUtils.zeroPadding,
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
+                        child: AppText(
+                          'Forgot Password?',
+                          color: AppColors.primaryDarkColor,
+                          fontSize: FontSizes.font12Sp,
+                          fontWeight: FontWeights.weight500,
                         ),
                       ),
-                      20.verticalSpace,
-                      _buildSignInButton(state),
-                      28.verticalSpace,
-                      _buildContinueWith(),
-                      18.verticalSpace,
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _SocialButton(
-                              icon: Icons.g_mobiledata_rounded,
-                              text: 'Google',
-                              onTap: () {},
-                            ),
+                    ),
+                    20.verticalSpace,
+                    _buildSignInButton(state),
+                    28.verticalSpace,
+                    _buildContinueWith(),
+                    18.verticalSpace,
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _SocialButton(
+                            icon: Icons.g_mobiledata_rounded,
+                            text: 'Google',
+                            onTap: () {},
                           ),
-                          14.horizontalSpace,
-                          Expanded(
-                            child: _SocialButton(
-                              icon: Icons.apple,
-                              text: 'Apple',
-                              onTap: () {},
-                            ),
+                        ),
+                        14.horizontalSpace,
+                        Expanded(
+                          child: _SocialButton(
+                            icon: Icons.apple,
+                            text: 'Apple',
+                            onTap: () {},
                           ),
-                        ],
-                      ),
-                      56.verticalSpace,
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          AppText(
-                            "Don't have an account? ",
-                            color: AppColors.whiteColor.withValues(alpha: 0.6),
+                        ),
+                      ],
+                    ),
+                    56.verticalSpace,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        AppText(
+                          "Don't have an account? ",
+                          color: AppColors.whiteColor.withValues(alpha: 0.6),
+                          fontSize: FontSizes.font12Sp,
+                          fontWeight: FontWeights.weight400,
+                        ),
+                        GestureDetector(
+                          onTap: () => context.push('/register'),
+                          child: AppText(
+                            'Sign Up',
+                            color: AppColors.primaryDarkColor,
                             fontSize: FontSizes.font12Sp,
-                            fontWeight: FontWeights.weight400,
+                            fontWeight: FontWeights.weight600,
                           ),
-                          GestureDetector(
-                            onTap: () => context.push('/register'),
-                            child: AppText(
-                              'Sign Up',
-                              color: AppColors.primaryDarkColor,
-                              fontSize: FontSizes.font12Sp,
-                              fontWeight: FontWeights.weight600,
-                            ),
-                          ),
-                        ],
-                      ),
-                      24.verticalSpace,
-                    ],
-                  ),
+                        ),
+                      ],
+                    ),
+                    24.verticalSpace,
+                  ],
                 ),
               ),
             ),
@@ -204,13 +200,19 @@ class _LoginScreenState extends State<LoginScreen> {
           fontSize: FontSizes.font24Sp,
           fontWeight: FontWeights.weight400,
         ),
+        AppText(
+          'HUBCO Green Limited',
+          color: AppColors.whiteColor.withValues(alpha: 0.6),
+          fontSize: FontSizes.font4Sp,
+          fontWeight: FontWeights.weight400,
+        ),
         20.verticalSpace,
         AppText(
           'Welcome Back',
           textAlign: TextAlign.center,
           color: AppColors.whiteColor,
           fontSize: FontSizes.font28Sp,
-          fontWeight: FontWeights.weight700,
+          fontWeight: FontWeights.weight600,
         ),
         2.verticalSpace,
         AppText(
