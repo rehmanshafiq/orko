@@ -19,6 +19,7 @@ class PrimaryButtonWidget extends StatelessWidget {
   final bool isEnabled;
   final double? iconHeight;
   final double? iconWidth;
+  final double? cornerRadius;
 
   const PrimaryButtonWidget({
     super.key,
@@ -34,7 +35,8 @@ class PrimaryButtonWidget extends StatelessWidget {
     this.icon,
     this.isEnabled = true,
     this.iconHeight,
-    this.iconWidth
+    this.iconWidth,
+    this.cornerRadius,
   });
 
   @override
@@ -47,6 +49,11 @@ class PrimaryButtonWidget extends StatelessWidget {
           backgroundColor: isEnabled
               ? (buttonColor ?? AppColors.kPrimaryColor)
               : AppColors.thumbBarGreyColor,
+          shape: cornerRadius != null
+              ? RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(cornerRadius!),
+                )
+              : null,
           side: strokeColor != null
               ? BorderSide(
               color: isEnabled
