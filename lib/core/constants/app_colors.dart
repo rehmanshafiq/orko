@@ -25,4 +25,6 @@ class AppColors {
   static const primaryLightColor = Color(0xFF8FC84D);
   static const primaryDarkColor = Color(0xFF329748);
   static const fieldBackgroundColor = Color(0xFF202221);
+  static const mapPinBlueColor = Color(0xFF2A83FF);
+  static const bottomNavBackgroundColor = Color(0xFF191919);
 }

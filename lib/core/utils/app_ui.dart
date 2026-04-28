@@ -48,4 +48,17 @@ class AppUtils {
   static EdgeInsetsDirectional get end14Padding => EdgeInsetsDirectional.only(end: 14.w);
   static EdgeInsetsDirectional get start14Padding => EdgeInsetsDirectional.only(start: 14.w);
   static EdgeInsets get all12Padding => EdgeInsets.all(12.r);
+  static EdgeInsets get homeTopSearchPadding =>
+      EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h);
+  static EdgeInsets get homeBottomSheetPadding =>
+      EdgeInsets.fromLTRB(14.w, 10.h, 14.w, 14.h);
+  static EdgeInsets get homeFilterChipPadding =>
+      EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h);
+  static EdgeInsets get homeStationCardPadding => EdgeInsets.all(10.r);
+  static EdgeInsets get bottomNavOuterPadding =>
+      EdgeInsets.only(left: 6.w, right: 6.w, bottom: 8.h);
+  static EdgeInsets get bottomNavInnerPadding =>
+      EdgeInsets.symmetric(horizontal: 6.w, vertical: 4.h);
+  static EdgeInsets get bottomNavItemVerticalPadding =>
+      EdgeInsets.symmetric(vertical: 2.h);
 }
