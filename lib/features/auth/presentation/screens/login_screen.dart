@@ -163,17 +163,45 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget _buildHeader() {
     return Column(
       children: [
-        Container(
-          height: 48,
-          width: 48,
-          decoration: BoxDecoration(
-            color: AppColors.primaryDarkColor.withOpacity(0.15),
-            shape: BoxShape.circle,
-          ),
-          child: const Icon(
-            Icons.bolt,
-            color: AppColors.primaryDarkColor,
-            size: 40,
+        SizedBox(
+          height: 56,
+          width: 56,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              Container(
+                height: 20,
+                width: 20,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      AppColors.primaryDarkColor.withOpacity(0.28),
+                      AppColors.primaryDarkColor.withOpacity(0.02),
+                    ],
+                  ),
+                ),
+              ),
+              Container(
+                height: 20,
+                width: 20,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primaryDarkColor.withOpacity(0.45),
+                      blurRadius: 22,
+                      spreadRadius: 3,
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(
+                Icons.bolt,
+                color: AppColors.primaryDarkColor,
+                size: 42,
+              ),
+            ],
           ),
         ),
         8.verticalSpace,
@@ -308,16 +336,34 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Widget _buildSignInButton(AuthState state) {
-    return PrimaryButtonWidget(
-      text: state is AuthLoading ? 'Signing In...' : 'Sign In',
-      onPress: _onLogin,
-      isEnabled: state is! AuthLoading,
-      buttonHeight: 52.h,
-      cornerRadius: 12.r,
-      buttonColor: AppColors.primaryDarkColor,
-      textColor: AppColors.whiteColor,
-      fontSize: FontSizes.font16Sp,
-      fontWeight: FontWeights.weight600,
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12.r),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primaryDarkColor.withOpacity(0.35),
+            blurRadius: 14,
+            spreadRadius: 1,
+            offset: const Offset(0, 6),
+          ),
+          BoxShadow(
+            color: AppColors.blackColor.withOpacity(0.45),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: PrimaryButtonWidget(
+        text: state is AuthLoading ? 'Signing In...' : 'Sign In',
+        onPress: _onLogin,
+        isEnabled: state is! AuthLoading,
+        buttonHeight: 52.h,
+        cornerRadius: 12.r,
+        buttonColor: AppColors.primaryDarkColor,
+        textColor: AppColors.whiteColor,
+        fontSize: FontSizes.font16Sp,
+        fontWeight: FontWeights.weight400,
+      ),
     );
   }
 
@@ -373,7 +419,7 @@ class _SocialButton extends StatelessWidget {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
       ),
-      icon: Icon(icon, size: 18),
+      icon: Icon(icon, size: 26),
       label: AppText(
         text,
         color: AppColors.whiteColor,
