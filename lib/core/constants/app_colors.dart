@@ -24,4 +24,5 @@ class AppColors {
   static const colorsOutlineColor = Color(0xFFEBEBEB);
   static const primaryLightColor = Color(0xFF8FC84D);
   static const primaryDarkColor = Color(0xFF329748);
+  static const fieldBackgroundColor = Color(0xFF202221);
 }

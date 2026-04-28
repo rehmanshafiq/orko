@@ -7,6 +7,7 @@ import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/utils/helpers.dart';
 import 'package:orko_hubco/core/utils/app_ui.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
+import 'package:orko_hubco/core/utils/widgets/image_view/app_image_view.dart';
 import 'package:orko_hubco/core/utils/widgets/primary_button_widget.dart';
 import 'package:orko_hubco/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:orko_hubco/features/auth/presentation/cubit/auth_state.dart';
@@ -102,7 +103,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       children: [
                         Expanded(
                           child: _SocialButton(
-                            icon: Icons.g_mobiledata_rounded,
+                              imagePath: 'assets/icons/google_logo.png',
                             text: 'Google',
                             onTap: () {},
                           ),
@@ -117,7 +118,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ],
                     ),
-                    56.verticalSpace,
+                    60.verticalSpace,
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -249,7 +250,7 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
           decoration: InputDecoration(
             filled: true,
-            fillColor: AppColors.whiteColor.withOpacity(0.06),
+            fillColor: AppColors.fieldBackgroundColor,
             contentPadding: EdgeInsets.zero,
             prefixIconConstraints: BoxConstraints(minWidth: 0.w, minHeight: 0.h),
             prefixIcon: Padding(
@@ -357,7 +358,7 @@ class _LoginScreenState extends State<LoginScreen> {
       prefixIcon: prefixIcon,
       suffixIcon: suffixIcon,
       filled: true,
-      fillColor: AppColors.whiteColor.withOpacity(0.06),
+      fillColor: AppColors.fieldBackgroundColor,
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: BorderSide(color: AppColors.whiteColor.withOpacity(0.16)),
@@ -439,29 +440,40 @@ class _LoginScreenState extends State<LoginScreen> {
 }
 
 class _SocialButton extends StatelessWidget {
-  final IconData icon;
+  final IconData? icon;
+  final String? imagePath;
   final String text;
   final VoidCallback onTap;
 
   const _SocialButton({
-    required this.icon,
+    this.icon,
+    this.imagePath,
     required this.text,
     required this.onTap,
-  });
+  }) : assert(icon != null || imagePath != null, 'Provide icon or imagePath');
 
   @override
   Widget build(BuildContext context) {
+    final Widget leadingIcon =
+        imagePath != null
+            ? AppPngImageView(
+                appImagePath: imagePath!,
+                height: 22.h,
+                width: 22.w,
+              )
+            : Icon(icon, size: 24.r);
+
     return OutlinedButton.icon(
       onPressed: onTap,
       style: OutlinedButton.styleFrom(
         foregroundColor: AppColors.whiteColor,
         side: BorderSide(
-          color: AppColors.whiteColor.withOpacity(0.5),
+          color: AppColors.whiteColor,
         ),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
       ),
-      icon: Icon(icon, size: 26),
+      icon: leadingIcon,
       label: AppText(
         text,
         color: AppColors.whiteColor,
