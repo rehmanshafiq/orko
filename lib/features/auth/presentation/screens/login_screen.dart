@@ -62,14 +62,7 @@ class _LoginScreenState extends State<LoginScreen> {
         builder: (context, state) {
           return Container(
             decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Color(0xFF0A1C1A),
-                  AppColors.blackColor,
-                ],
-              ),
+              color: AppColors.blackColor,
             ),
             child: SafeArea(
               child: SingleChildScrollView(
@@ -133,7 +126,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         children: [
                           AppText(
                             "Don't have an account? ",
-                            color: AppColors.hintColor,
+                            color: AppColors.whiteColor.withValues(alpha: 0.6),
                             fontSize: FontSizes.font12Sp,
                             fontWeight: FontWeights.weight400,
                           ),
@@ -204,27 +197,27 @@ class _LoginScreenState extends State<LoginScreen> {
             ],
           ),
         ),
-        8.verticalSpace,
+        2.verticalSpace,
         AppText(
           'HGL',
           color: AppColors.whiteColor,
           fontSize: FontSizes.font24Sp,
           fontWeight: FontWeights.weight400,
         ),
-        24.verticalSpace,
+        20.verticalSpace,
         AppText(
           'Welcome Back',
           textAlign: TextAlign.center,
           color: AppColors.whiteColor,
-          fontSize: FontSizes.font32Sp,
+          fontSize: FontSizes.font28Sp,
           fontWeight: FontWeights.weight700,
         ),
-        8.verticalSpace,
+        2.verticalSpace,
         AppText(
           'Sign in to continue charging.',
           textAlign: TextAlign.center,
-          color: AppColors.hintColor,
-          fontSize: FontSizes.font14Sp,
+          color: AppColors.whiteColor.withValues(alpha: 0.6),
+          fontSize: FontSizes.font12Sp,
           fontWeight: FontWeights.weight400,
         ),
       ],
@@ -380,7 +373,7 @@ class _LoginScreenState extends State<LoginScreen> {
           padding: AppUtils.horizontal14Padding,
           child: AppText(
             'or continue with',
-            color: AppColors.hintColor,
+            color: AppColors.whiteColor.withValues(alpha: 0.6),
             fontSize: FontSizes.font12Sp,
             fontWeight: FontWeights.weight400,
           ),
