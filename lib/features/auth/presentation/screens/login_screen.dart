@@ -21,7 +21,7 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController(text: '+92 300 1234567');
+  final _emailController = TextEditingController(text: '300 1234567');
   final _passwordController = TextEditingController(text: 'password123');
   bool _obscurePassword = true;
 
@@ -247,9 +247,58 @@ class _LoginScreenState extends State<LoginScreen> {
             fontSize: FontSizes.font14Sp,
             fontWeight: FontWeights.weight500,
           ),
-          decoration: _inputDecoration(
-            hintText: '+92',
-            prefixIcon: const Icon(Icons.phone_outlined, color: AppColors.hintColor, size: 20),
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: AppColors.whiteColor.withOpacity(0.06),
+            contentPadding: EdgeInsets.zero,
+            prefixIconConstraints: BoxConstraints(minWidth: 0.w, minHeight: 0.h),
+            prefixIcon: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 10.w),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text('🇵🇰', style: TextStyle(fontSize: 14)),
+                  6.horizontalSpace,
+                  AppText(
+                    '+92',
+                    color: AppColors.whiteColor.withValues(alpha: 0.9),
+                    fontSize: FontSizes.font12Sp,
+                    fontWeight: FontWeights.weight500,
+                  ),
+                  10.horizontalSpace,
+                  Container(
+                    height: 16.h,
+                    width: 1,
+                    color: AppColors.whiteColor.withOpacity(0.2),
+                  ),
+                  10.horizontalSpace,
+                  const Icon(Icons.phone_outlined, color: AppColors.hintColor, size: 18),
+                  8.horizontalSpace,
+                ],
+              ),
+            ),
+            hintText: '300 1234567',
+            hintStyle: TextStyle(
+              color: AppColors.hintColor,
+              fontSize: FontSizes.font14Sp,
+              fontWeight: FontWeights.weight400,
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: AppColors.whiteColor.withOpacity(0.16)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.primaryDarkColor),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.redColor),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.redColor),
+            ),
           ),
         ),
       ],
