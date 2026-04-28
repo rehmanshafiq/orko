@@ -124,7 +124,7 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Container(
             padding: AppUtils.homeTopSearchPadding,
             decoration: BoxDecoration(
-              color: AppColors.blackColor.withValues(alpha: 0.62),
+              color: AppColors.greyColor.withValues(alpha: 0.20),
               borderRadius: BorderRadius.circular(10.r),
               border: Border.all(color: AppColors.whiteColor.withValues(alpha: 0.12)),
             ),
