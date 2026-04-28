@@ -251,7 +251,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         fontWeight: FontWeights.weight600,
                       ),
                     ),
-                    18.verticalSpace,
+                    32.verticalSpace,
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
