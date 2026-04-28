@@ -19,6 +19,26 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   static const LatLng _center = LatLng(24.8607, 67.0011);
+  static const String _darkMapStyle = '''
+[
+  {"elementType":"geometry","stylers":[{"color":"#101828"}]},
+  {"elementType":"labels.text.fill","stylers":[{"color":"#6b7280"}]},
+  {"elementType":"labels.text.stroke","stylers":[{"color":"#101828"}]},
+  {"featureType":"administrative","elementType":"geometry","stylers":[{"color":"#1f2937"}]},
+  {"featureType":"poi","elementType":"labels.text.fill","stylers":[{"color":"#6b7280"}]},
+  {"featureType":"road","elementType":"geometry","stylers":[{"color":"#1f2937"}]},
+  {"featureType":"road.arterial","elementType":"geometry","stylers":[{"color":"#243244"}]},
+  {"featureType":"road.highway","elementType":"geometry","stylers":[{"color":"#2f3f55"}]},
+  {"featureType":"road.highway","elementType":"geometry.stroke","stylers":[{"color":"#1f2b3a"}]},
+  {"featureType":"transit","elementType":"geometry","stylers":[{"color":"#1f2937"}]},
+  {"featureType":"water","elementType":"geometry","stylers":[{"color":"#0b1220"}]}
+]
+''';
+  static const List<({String title, String availability, String price})> _nearbyStations = [
+    (title: 'HGL Liberty Market', availability: '4/6 Available', price: 'Rs 75/kWh'),
+    (title: 'HGL Packages Mall', availability: '0/4 Available', price: 'Rs 80/kWh'),
+    (title: 'HGL Johar Town', availability: '3/5 Available', price: 'Rs 78/kWh'),
+  ];
 
   final Set<Marker> _markers = {
     const Marker(markerId: MarkerId('1'), position: LatLng(24.8660, 67.0082)),
@@ -45,6 +65,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 target: _center,
                 zoom: 13.8,
               ),
+              onMapCreated: (controller) {
+                controller.setMapStyle(_darkMapStyle);
+              },
               compassEnabled: false,
               mapToolbarEnabled: false,
               myLocationButtonEnabled: false,
@@ -61,7 +84,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     _buildTopActions(),
                     const Spacer(),
                     _buildBottomSheetMock(),
-                    12.verticalSpace,
                   ],
                 ),
               ),
@@ -188,12 +210,24 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
           12.verticalSpace,
-          Row(
-            children: [
-              Expanded(child: _stationCard('HGL Liberty Market', '4/6 Available', 'Rs 75/kWh')),
-              8.horizontalSpace,
-              Expanded(child: _stationCard('HGL Packages Mall', '0/4 Available', 'Rs 80/kWh')),
-            ],
+          SizedBox(
+            height: 92.h,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: _nearbyStations.length,
+              separatorBuilder: (_, __) => 8.horizontalSpace,
+              itemBuilder: (context, index) {
+                final station = _nearbyStations[index];
+                return SizedBox(
+                  width: 156.w,
+                  child: _stationCard(
+                    station.title,
+                    station.availability,
+                    station.price,
+                  ),
+                );
+              },
+            ),
           ),
         ],
       ),
