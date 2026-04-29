@@ -62,8 +62,8 @@ class BottomNavShell extends StatelessWidget {
                 _buildNavItem(
                   icon: Icons.alt_route_rounded,
                   label: 'Trip',
-                  isActive: false,
-                  onTap: null,
+                  isActive: navigationShell.currentIndex == 3,
+                  onTap: () => _onTapBranch(3),
                 ),
                 _buildNavItem(
                   icon: Icons.person_outline_rounded,

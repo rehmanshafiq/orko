@@ -332,20 +332,28 @@ class BookASlotScreen extends StatelessWidget {
       builder: (context, constraints) {
         final crossAxisCount = 4;
         final spacing = 8.w;
-        final itemWidth = (constraints.maxWidth - spacing * (crossAxisCount - 1)) / crossAxisCount;
+        final itemWidth = ((constraints.maxWidth - spacing * (crossAxisCount - 1)) / crossAxisCount) - 18.w;
+        final itemHeight = 30.h;
+        final childAspectRatio = itemWidth / itemHeight;
 
-        return Wrap(
-          spacing: spacing,
-          runSpacing: 8.h,
-          children: slots
-              .map(
-                (s) => _timeChip(
-                  s.time,
-                  s.style,
-                  width: itemWidth,
-                ),
-              )
-              .toList(),
+        return GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: slots.length,
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: crossAxisCount,
+            crossAxisSpacing: spacing,
+            mainAxisSpacing: 8.h,
+            childAspectRatio: childAspectRatio,
+          ),
+          itemBuilder: (context, index) {
+            final s = slots[index];
+            return _timeChip(
+              s.time,
+              s.style,
+              width: itemWidth,
+            );
+          },
         );
       },
     );
@@ -391,8 +399,8 @@ class BookASlotScreen extends StatelessWidget {
       child: AppText(
         time,
         color: textColor,
-        fontSize: FontSizes.font14Sp,
-        fontWeight: FontWeights.weight600,
+        fontSize: FontSizes.font12Sp,
+        fontWeight: FontWeights.weight400,
       ),
     );
   }

@@ -14,6 +14,7 @@ import 'package:orko_hubco/features/onboarding/presentation/bloc/onboarding_cubi
 import 'package:orko_hubco/features/onboarding/presentation/page/onboarding_page.dart';
 import 'package:orko_hubco/features/search/presentation/screens/search_screen.dart';
 import 'package:orko_hubco/features/splash/presentation/page/splash_page.dart';
+import 'package:orko_hubco/features/trip/presentation/screens/trip_planner_screen.dart';
 
 /// App-wide router configuration using go_router.
 ///
@@ -23,7 +24,8 @@ import 'package:orko_hubco/features/splash/presentation/page/splash_page.dart';
 ///   /home       → BottomNavShell
 ///     ├── /home          → HomeScreen     (tab 0)
 ///     ├── /search        → SearchScreen   (tab 1)
-///     └── /bookings      → BookASlotScreen (tab 2)
+///     ├── /bookings      → BookASlotScreen (tab 2)
+///     └── /trip          → TripPlannerScreen (tab 3)
 class AppRouter {
   AppRouter._();
 
@@ -111,6 +113,16 @@ class AppRouter {
                 path: '/bookings',
                 name: 'bookings',
                 builder: (context, state) => const BookASlotScreen(),
+              ),
+            ],
+          ),
+          // Tab 3: Trip
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/trip',
+                name: 'trip',
+                builder: (context, state) => const TripPlannerScreen(),
               ),
             ],
           ),
