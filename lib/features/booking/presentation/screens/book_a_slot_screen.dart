@@ -45,9 +45,7 @@ class BookASlotScreen extends StatelessWidget {
                     12.verticalSpace,
                     _timeSlotGrid(),
                     20.verticalSpace,
-                    _sectionTitle('Duration'),
-                    12.verticalSpace,
-                    _durationRow(),
+                    _durationSection(),
                     24.verticalSpace,
                     _bottomSummary(context),
                     16.verticalSpace,
@@ -255,37 +253,31 @@ class BookASlotScreen extends StatelessWidget {
 
   Widget _dateSelectorRow() {
     return Container(
-      padding: AppUtils.vertical10Horizontal12Padding,
+      width: double.infinity,
+      padding: AppUtils.horizontal8Vertical4Padding,
       decoration: BoxDecoration(
         color: AppColors.fieldBackgroundColor,
         borderRadius: BorderRadius.circular(14.r),
-        border: Border.all(color: AppColors.whiteColor.withValues(alpha: 0.08)),
       ),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          children: [
-            _todayDateChip(),
-            14.horizontalSpace,
-            _datePill('Mon', '21'),
-            14.horizontalSpace,
-            _datePill('Tue', '22'),
-            14.horizontalSpace,
-            _datePill('Wed', '23'),
-            14.horizontalSpace,
-            _datePill('Thu', '24'),
-            14.horizontalSpace,
-            _datePill('Fri', '25'),
-          ],
-        ),
+      child: Row(
+        children: [
+          _todayDateChip(),
+          8.horizontalSpace,
+          Expanded(child: Center(child: _datePill('Mon', '21'))),
+          Expanded(child: Center(child: _datePill('Tue', '22'))),
+          Expanded(child: Center(child: _datePill('Wed', '23'))),
+          Expanded(child: Center(child: _datePill('Thu', '24'))),
+          Expanded(child: Center(child: _datePill('Fri', '25'))),
+          Expanded(child: Center(child: _datePill('Sat', '26'))),
+        ],
       ),
     );
   }
 
   Widget _todayDateChip() {
     return Container(
-      width: 64.w,
-      height: 64.w,
+      width: 46.w,
+      height: 46.w,
       alignment: Alignment.center,
       decoration: BoxDecoration(
         color: AppColors.primaryLightColor,
@@ -294,7 +286,7 @@ class BookASlotScreen extends StatelessWidget {
       child: AppText(
         'Today',
         color: AppColors.blackColor,
-        fontSize: FontSizes.font12Sp,
+        fontSize: FontSizes.font8Sp,
         fontWeight: FontWeights.weight700,
       ),
     );
@@ -306,16 +298,16 @@ class BookASlotScreen extends StatelessWidget {
       children: [
         AppText(
           day,
-          color: AppColors.iconsGreyColor,
-          fontSize: FontSizes.font12Sp,
+          color: AppColors.whiteColor.withValues(alpha: 0.55),
+          fontSize: FontSizes.font8Sp,
           fontWeight: FontWeights.weight500,
         ),
-        4.verticalSpace,
+        1.verticalSpace,
         AppText(
           date,
           color: AppColors.whiteColor,
-          fontSize: FontSizes.font16Sp,
-          fontWeight: FontWeights.weight700,
+          fontSize: FontSizes.font12Sp,
+          fontWeight: FontWeights.weight600,
         ),
       ],
     );
@@ -392,7 +384,7 @@ class BookASlotScreen extends StatelessWidget {
       padding: EdgeInsets.symmetric(vertical: 10.h),
       decoration: BoxDecoration(
         color: bg,
-        borderRadius: BorderRadius.circular(10.r),
+        borderRadius: BorderRadius.circular(34.r),
         border: Border.all(color: border, width: style == _SlotStyle.available ? 1.5 : 1),
       ),
       alignment: Alignment.center,
@@ -405,36 +397,40 @@ class BookASlotScreen extends StatelessWidget {
     );
   }
 
-  Widget _durationRow() {
+  Widget _durationSection() {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        _roundIconButton(icon: Icons.remove),
-        24.horizontalSpace,
-        AppText(
-          '1 hour',
-          color: AppColors.whiteColor,
-          fontSize: FontSizes.font16Sp,
-          fontWeight: FontWeights.weight600,
+        _sectionTitle('Duration'),
+        Row(
+          children: [
+            _roundIconButton(icon: Icons.remove),
+            10.horizontalSpace,
+            AppText(
+              '1 hour',
+              color: AppColors.whiteColor,
+              fontSize: FontSizes.font12Sp,
+              fontWeight: FontWeights.weight500,
+            ),
+            10.horizontalSpace,
+            _roundIconButton(icon: Icons.add),
+          ],
         ),
-        24.horizontalSpace,
-        _roundIconButton(icon: Icons.add),
       ],
     );
   }
 
   Widget _roundIconButton({required IconData icon}) {
-    return Material(
-      color: AppColors.fieldBackgroundColor,
-      shape: const CircleBorder(),
-      child: InkWell(
-        customBorder: const CircleBorder(),
-        onTap: () {},
-        child: Padding(
-          padding: AppUtils.all12Padding,
-          child: Icon(icon, color: AppColors.whiteColor, size: 20.sp),
-        ),
+    return Container(
+      width: 22.w,
+      height: 22.w,
+      decoration: BoxDecoration(
+        color: AppColors.fieldBackgroundColor,
+        shape: BoxShape.circle,
+        border: Border.all(color: AppColors.whiteColor.withValues(alpha: 0.08)),
       ),
+      alignment: Alignment.center,
+      child: Icon(icon, color: AppColors.whiteColor.withValues(alpha: 0.92), size: 12.sp),
     );
   }
 
