@@ -7,9 +7,9 @@ import 'package:orko_hubco/features/auth/data/datasources/local/auth_local_datas
 import 'package:orko_hubco/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:orko_hubco/features/auth/presentation/screens/login_screen.dart';
 import 'package:orko_hubco/features/auth/presentation/screens/register_screen.dart';
+import 'package:orko_hubco/features/booking/presentation/screens/book_a_slot_screen.dart';
 import 'package:orko_hubco/features/bottom_navigation/presentation/screens/bottom_nav_shell.dart';
 import 'package:orko_hubco/features/bottom_navigation/presentation/screens/home_screen.dart';
-import 'package:orko_hubco/features/bottom_navigation/presentation/screens/settings_screen.dart';
 import 'package:orko_hubco/features/onboarding/presentation/bloc/onboarding_cubit.dart';
 import 'package:orko_hubco/features/onboarding/presentation/page/onboarding_page.dart';
 import 'package:orko_hubco/features/profile/presentation/cubit/profile_cubit.dart';
@@ -24,7 +24,7 @@ import 'package:orko_hubco/features/splash/presentation/page/splash_page.dart';
 ///   /home       → BottomNavShell
 ///     ├── /home          → HomeScreen     (tab 0)
 ///     ├── /home/profile  → ProfileScreen  (tab 1)
-///     └── /home/settings → SettingsScreen (tab 2)
+///     └── /bookings      → BookASlotScreen (tab 2)
 class AppRouter {
   AppRouter._();
 
@@ -108,13 +108,13 @@ class AppRouter {
             ],
           ),
 
-          // Tab 2: Settings
+          // Tab 2: Bookings
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: '/settings',
-                name: 'settings',
-                builder: (context, state) => const SettingsScreen(),
+                path: '/bookings',
+                name: 'bookings',
+                builder: (context, state) => const BookASlotScreen(),
               ),
             ],
           ),
