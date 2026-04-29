@@ -46,7 +46,7 @@ class BookASlotScreen extends StatelessWidget {
                     _timeSlotGrid(),
                     20.verticalSpace,
                     _durationSection(),
-                    24.verticalSpace,
+                    18.verticalSpace,
                     _bottomSummary(context),
                     16.verticalSpace,
                   ],
@@ -97,7 +97,7 @@ class BookASlotScreen extends StatelessWidget {
           AppText(
             _stationTitle,
             color: AppColors.whiteColor,
-            fontSize: FontSizes.font16Sp,
+            fontSize: FontSizes.font14Sp,
             fontWeight: FontWeights.weight700,
             maxLines: 2,
           ),
@@ -143,7 +143,7 @@ class BookASlotScreen extends StatelessWidget {
     return AppText(
       title,
       color: AppColors.whiteColor,
-      fontSize: FontSizes.font16Sp,
+      fontSize: FontSizes.font14Sp,
       fontWeight: FontWeights.weight700,
     );
   }
@@ -211,7 +211,7 @@ class BookASlotScreen extends StatelessWidget {
                 portLabel,
                 color: selected ? AppColors.primaryLightColor : AppColors.whiteColor,
                 fontSize: FontSizes.font14Sp,
-                fontWeight: FontWeights.weight700,
+                fontWeight: FontWeights.weight400,
               ),
               Icon(
                 Icons.electric_bolt_rounded,
@@ -225,7 +225,7 @@ class BookASlotScreen extends StatelessWidget {
             specs,
             color: selected ? AppColors.primaryLightColor : AppColors.whiteColor.withValues(alpha: 0.85),
             fontSize: FontSizes.font12Sp,
-            fontWeight: FontWeights.weight500,
+            fontWeight: FontWeights.weight400,
           ),
           const Spacer(),
           Align(
@@ -242,7 +242,7 @@ class BookASlotScreen extends StatelessWidget {
                 'Available',
                 color: selected ? AppColors.primaryLightColor : AppColors.primaryLightColor.withValues(alpha: 0.9),
                 fontSize: FontSizes.font10Sp,
-                fontWeight: FontWeights.weight600,
+                fontWeight: FontWeights.weight400,
               ),
             ),
           ),
@@ -299,7 +299,7 @@ class BookASlotScreen extends StatelessWidget {
         AppText(
           day,
           color: AppColors.whiteColor.withValues(alpha: 0.55),
-          fontSize: FontSizes.font8Sp,
+          fontSize: FontSizes.font10Sp,
           fontWeight: FontWeights.weight500,
         ),
         1.verticalSpace,
@@ -307,7 +307,7 @@ class BookASlotScreen extends StatelessWidget {
           date,
           color: AppColors.whiteColor,
           fontSize: FontSizes.font12Sp,
-          fontWeight: FontWeights.weight600,
+          fontWeight: FontWeights.weight400,
         ),
       ],
     );
@@ -460,8 +460,8 @@ class BookASlotScreen extends StatelessWidget {
           AppText(
             'Estimated Cost',
             color: AppColors.whiteColor,
-            fontSize: FontSizes.font16Sp,
-            fontWeight: FontWeights.weight700,
+            fontSize: FontSizes.font14Sp,
+            fontWeight: FontWeights.weight500,
           ),
           6.verticalSpace,
           AppText(
