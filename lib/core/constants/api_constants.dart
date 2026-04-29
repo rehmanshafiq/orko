@@ -13,4 +13,8 @@ class ApiConstants {
   // Profile endpoints
   static const String profile = '/get';
   static const String updateProfile = '/post';
+
+  // Map endpoints
+  static const String hubcoLocations =
+      'https://staging-python.orkofleet.com/portal/api/v1/charging-station/hubco-locations';
 }

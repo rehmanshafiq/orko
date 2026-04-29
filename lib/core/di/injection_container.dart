@@ -5,6 +5,7 @@ import 'package:orko_hubco/core/network/network_info.dart';
 import 'package:orko_hubco/core/services/analytics_service.dart';
 import 'package:orko_hubco/core/services/local_storage_service.dart';
 import 'package:orko_hubco/features/auth/di/auth_injection.dart';
+import 'package:orko_hubco/features/map/di/map_injection.dart';
 import 'package:orko_hubco/features/onboarding/di/onboarding_injection.dart';
 import 'package:orko_hubco/features/profile/di/profile_injection.dart';
 import 'package:orko_hubco/features/remote_config/di/remote_config_injection.dart';
@@ -28,6 +29,7 @@ Future<void> initDependencies() async {
   // ── Features ──────────────────────────────────────────────────────────
 
   initAuthDependencies();
+  initMapDependencies();
   initOnboardingDependencies();
   initProfileDependencies();
   initRemoteConfigDependencies();

@@ -9,7 +9,8 @@ import 'package:orko_hubco/features/auth/presentation/screens/login_screen.dart'
 import 'package:orko_hubco/features/auth/presentation/screens/register_screen.dart';
 import 'package:orko_hubco/features/booking/presentation/screens/book_a_slot_screen.dart';
 import 'package:orko_hubco/features/bottom_navigation/presentation/screens/bottom_nav_shell.dart';
-import 'package:orko_hubco/features/bottom_navigation/presentation/screens/home_screen.dart';
+import 'package:orko_hubco/features/map/presentation/home_screen.dart';
+import 'package:orko_hubco/features/map/presentation/cubit/map_cubit.dart';
 import 'package:orko_hubco/features/onboarding/presentation/bloc/onboarding_cubit.dart';
 import 'package:orko_hubco/features/onboarding/presentation/page/onboarding_page.dart';
 import 'package:orko_hubco/features/profile/presentation/screens/charging_status_screen.dart';
@@ -92,7 +93,10 @@ class AppRouter {
               GoRoute(
                 path: '/home',
                 name: 'home',
-                builder: (context, state) => const HomeScreen(),
+                builder: (context, state) => BlocProvider(
+                  create: (_) => sl<MapCubit>()..loadHubcoLocations(),
+                  child: const HomeScreen(),
+                ),
               ),
             ],
           ),
