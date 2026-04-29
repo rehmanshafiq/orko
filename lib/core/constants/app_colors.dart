@@ -27,4 +27,8 @@ class AppColors {
   static const fieldBackgroundColor = Color(0xFF202221);
   static const mapPinBlueColor = Color(0xFF2A83FF);
   static const bottomNavBackgroundColor = Color(0xFF191919);
+  /// Busy / warning time slots (mustard on dark UI).
+  static const slotBusyYellowColor = Color(0xFF9A7B1E);
+  /// Booked / unavailable slot chip background.
+  static const slotBookedBackgroundColor = Color(0xFF5C2424);
 }

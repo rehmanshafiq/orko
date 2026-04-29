@@ -9,6 +9,7 @@ import 'package:orko_hubco/core/utils/app_ui.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
 import 'package:orko_hubco/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:orko_hubco/features/auth/presentation/cubit/auth_state.dart';
+import 'package:orko_hubco/features/booking/presentation/screens/book_a_slot_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -226,6 +227,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 return SizedBox(
                   width: 156.w,
                   child: _stationCard(
+                    context,
                     station.title,
                     station.availability,
                     station.price,
@@ -258,40 +260,54 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _stationCard(String title, String availability, String price) {
-    return Container(
-      padding: AppUtils.homeStationCardPadding,
-      decoration: BoxDecoration(
-        color: AppColors.fieldBackgroundColor,
-        borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: AppColors.whiteColor.withValues(alpha: 0.08)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          AppText(
-            title,
-            color: AppColors.whiteColor,
-            fontSize: FontSizes.font12Sp,
-            fontWeight: FontWeights.weight600,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+  Widget _stationCard(
+    BuildContext context,
+    String title,
+    String availability,
+    String price,
+  ) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (_) => const BookASlotScreen(),
           ),
-          4.verticalSpace,
-          AppText(
-            availability,
-            color: AppColors.primaryDarkColor,
-            fontSize: FontSizes.font10Sp,
-            fontWeight: FontWeights.weight500,
-          ),
-          6.verticalSpace,
-          AppText(
-            price,
-            color: AppColors.whiteColor.withValues(alpha: 0.75),
-            fontSize: FontSizes.font10Sp,
-            fontWeight: FontWeights.weight400,
-          ),
-        ],
+        );
+      },
+      child: Container(
+        padding: AppUtils.homeStationCardPadding,
+        decoration: BoxDecoration(
+          color: AppColors.fieldBackgroundColor,
+          borderRadius: BorderRadius.circular(12.r),
+          border: Border.all(color: AppColors.whiteColor.withValues(alpha: 0.08)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            AppText(
+              title,
+              color: AppColors.whiteColor,
+              fontSize: FontSizes.font12Sp,
+              fontWeight: FontWeights.weight600,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            4.verticalSpace,
+            AppText(
+              availability,
+              color: AppColors.primaryDarkColor,
+              fontSize: FontSizes.font10Sp,
+              fontWeight: FontWeights.weight500,
+            ),
+            6.verticalSpace,
+            AppText(
+              price,
+              color: AppColors.whiteColor.withValues(alpha: 0.75),
+              fontSize: FontSizes.font10Sp,
+              fontWeight: FontWeights.weight400,
+            ),
+          ],
+        ),
       ),
     );
   }
