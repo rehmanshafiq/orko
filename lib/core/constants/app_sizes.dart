@@ -32,6 +32,8 @@ class FontSizes {
   static double? font28Sp = 28.sp;
   static double? font30Sp = 30.sp;
   static double? font32Sp = 32.sp;
+  static double? font34Sp = 34.sp;
+  static double? font36Sp = 36.sp;
 }
 
 class AppFonts {

@@ -12,6 +12,7 @@ import 'package:orko_hubco/features/bottom_navigation/presentation/screens/botto
 import 'package:orko_hubco/features/bottom_navigation/presentation/screens/home_screen.dart';
 import 'package:orko_hubco/features/onboarding/presentation/bloc/onboarding_cubit.dart';
 import 'package:orko_hubco/features/onboarding/presentation/page/onboarding_page.dart';
+import 'package:orko_hubco/features/profile/presentation/screens/charging_status_screen.dart';
 import 'package:orko_hubco/features/search/presentation/screens/search_screen.dart';
 import 'package:orko_hubco/features/splash/presentation/page/splash_page.dart';
 import 'package:orko_hubco/features/trip/presentation/screens/trip_planner_screen.dart';
@@ -25,7 +26,8 @@ import 'package:orko_hubco/features/trip/presentation/screens/trip_planner_scree
 ///     ├── /home          → HomeScreen     (tab 0)
 ///     ├── /search        → SearchScreen   (tab 1)
 ///     ├── /bookings      → BookASlotScreen (tab 2)
-///     └── /trip          → TripPlannerScreen (tab 3)
+///     ├── /trip          → TripPlannerScreen (tab 3)
+///     └── /profile       → ChargingStatusScreen (tab 4)
 class AppRouter {
   AppRouter._();
 
@@ -123,6 +125,16 @@ class AppRouter {
                 path: '/trip',
                 name: 'trip',
                 builder: (context, state) => const TripPlannerScreen(),
+              ),
+            ],
+          ),
+          // Tab 4: Profile (Charging Status)
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/profile',
+                name: 'profile',
+                builder: (context, state) => const ChargingStatusScreen(),
               ),
             ],
           ),

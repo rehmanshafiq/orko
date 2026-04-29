@@ -70,9 +70,9 @@ class BottomNavShell extends StatelessWidget {
                 ),
                 _buildNavItem(
                   icon: Icons.person_outline_rounded,
-                  label: 'Profile',
-                  isActive: false,
-                  onTap: null,
+                  label: 'Charging',
+                  isActive: navigationShell.currentIndex == 4,
+                  onTap: () => _onTapBranch(4),
                   activeBackground: true,
                 ),
               ],
