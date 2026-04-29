@@ -231,53 +231,62 @@ class ChargingStatusScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.fieldBackgroundColor.withValues(alpha: 0.9),
         borderRadius: BorderRadius.circular(8.r),
-        border: Border.all(color: AppColors.whiteColor.withValues(alpha: 0.08)),
+        border: Border.all(color: AppColors.whiteColor.withValues(alpha: 0.05)),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          Row(
-            children: [
-              Container(
-                padding: AppUtils.all4Padding,
-                decoration: BoxDecoration(
-                  color: AppColors.whiteColor.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(5.r),
-                ),
-                child: Icon(icon, size: 11.sp, color: AppColors.whiteColor.withValues(alpha: 0.75)),
+          Container(
+            width: 24.w,
+            height: 24.w,
+            padding: AppUtils.all4Padding,
+            decoration: BoxDecoration(
+              color: AppColors.whiteColor.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(5.r),
+              border: Border.all(color: AppColors.whiteColor.withValues(alpha: 0.10), width: 1),
+            ),
+            child: Center(
+              child: Icon(
+                icon,
+                size: 14.sp,
+                color: AppColors.whiteColor.withValues(alpha: 0.70),
               ),
-              6.horizontalSpace,
-              Expanded(
-                child: AppText(
+            ),
+          ),
+          8.horizontalSpace,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                AppText(
                   label,
                   color: AppColors.whiteColor.withValues(alpha: 0.55),
-                  fontSize: FontSizes.font8Sp,
+                  fontSize: FontSizes.font10Sp,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-              ),
-            ],
-          ),
-          6.verticalSpace,
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              AppText(
-                value,
-                color: AppColors.whiteColor,
-                fontSize: FontSizes.font22Sp,
-                fontWeight: FontWeights.weight700,
-              ),
-              if (unit.isNotEmpty) ...[
-                4.horizontalSpace,
-                AppText(
-                  unit,
-                  color: AppColors.whiteColor.withValues(alpha: 0.85),
-                  fontSize: FontSizes.font12Sp,
-                  fontWeight: FontWeights.weight600,
+                2.verticalSpace,
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    AppText(
+                      value,
+                      color: AppColors.whiteColor,
+                      fontSize: FontSizes.font16Sp,
+                      fontWeight: FontWeights.weight700,
+                    ),
+                    if (unit.isNotEmpty) ...[
+                      4.horizontalSpace,
+                      AppText(
+                        unit,
+                        color: AppColors.whiteColor.withValues(alpha: 0.85),
+                        fontSize: FontSizes.font12Sp,
+                        fontWeight: FontWeights.weight600,
+                      ),
+                    ],
+                  ],
                 ),
               ],
-            ],
+            ),
           ),
         ],
       ),
