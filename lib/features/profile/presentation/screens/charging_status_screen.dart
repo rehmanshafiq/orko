@@ -41,11 +41,11 @@ class ChargingStatusScreen extends StatelessWidget {
               _chargingGauge(),
               16.verticalSpace,
               _metricsGrid(),
-              14.verticalSpace,
+              16.verticalSpace,
               Container(
-                padding: AppUtils.all12Padding,
+                padding: AppUtils.all18Padding,
                 decoration: BoxDecoration(
-                  color: AppColors.fieldBackgroundColor.withValues(alpha: 0.85),
+                  color: AppColors.whiteColor.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(10.r),
                   border: Border.all(color: AppColors.whiteColor.withValues(alpha: 0.08)),
                 ),
@@ -83,9 +83,9 @@ class ChargingStatusScreen extends StatelessWidget {
               ),
               12.verticalSpace,
               Container(
-                padding: AppUtils.vertical10Horizontal12Padding,
+                padding: AppUtils.vertical10Horizontal8Padding,
                 decoration: BoxDecoration(
-                  color: AppColors.fieldBackgroundColor.withValues(alpha: 0.9),
+                  color: AppColors.whiteColor.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(8.r),
                   border: Border.all(color: AppColors.whiteColor.withValues(alpha: 0.08)),
                 ),
@@ -114,7 +114,7 @@ class ChargingStatusScreen extends StatelessWidget {
                 strokeColor: AppColors.removeColor,
                 textColor: AppColors.removeColor,
                 fontWeight: FontWeights.weight600,
-                cornerRadius: 22.r,
+                cornerRadius: 12.r,
               ),
               10.verticalSpace,
               Container(
@@ -227,9 +227,9 @@ class ChargingStatusScreen extends StatelessWidget {
 
   Widget _metricCard(String label, String value, String unit, IconData icon) {
     return Container(
-      padding: AppUtils.horizontal8Vertical4Padding,
+      padding: AppUtils.horizontal8Vertical8Padding,
       decoration: BoxDecoration(
-        color: AppColors.fieldBackgroundColor.withValues(alpha: 0.9),
+        color: AppColors.whiteColor.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(8.r),
         border: Border.all(color: AppColors.whiteColor.withValues(alpha: 0.05)),
       ),

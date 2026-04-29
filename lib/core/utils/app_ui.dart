@@ -23,6 +23,8 @@ class AppUtils {
   static EdgeInsets get bottom34Padding => EdgeInsets.only(bottom: 34.h);
   static EdgeInsets get horizontal8Vertical4Padding =>
       EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h);
+  static EdgeInsets get horizontal8Vertical8Padding =>
+      EdgeInsets.symmetric(horizontal: 8.w, vertical: 8.h);
   static EdgeInsets get vertical8Padding => EdgeInsets.symmetric(vertical: 8.h);
   static EdgeInsets get vertical9Padding => EdgeInsets.symmetric(vertical: 9.h);
   static EdgeInsets get left4right8Padding => EdgeInsets.only(left: 4.w, right: 6.w);
@@ -42,12 +44,14 @@ class AppUtils {
   static EdgeInsets get left8Bottom7Padding => EdgeInsets.only(left: 8.h, bottom: 7.h);
   static EdgeInsets get right4Padding => EdgeInsets.only(right: 4.w);
   static EdgeInsets get vertical10Horizontal12Padding => EdgeInsets.symmetric(vertical: 10.h, horizontal: 12.w);
+  static EdgeInsets get vertical10Horizontal8Padding => EdgeInsets.symmetric(vertical: 8.h, horizontal: 12.w);
   static EdgeInsetsDirectional get start24Padding => EdgeInsetsDirectional.only(start: 24.w);
   static EdgeInsetsDirectional get end8Padding => EdgeInsetsDirectional.only(end: 8.w);
   static EdgeInsetsDirectional get end24Padding => EdgeInsetsDirectional.only(end: 24.w);
   static EdgeInsetsDirectional get end14Padding => EdgeInsetsDirectional.only(end: 14.w);
   static EdgeInsetsDirectional get start14Padding => EdgeInsetsDirectional.only(start: 14.w);
   static EdgeInsets get all12Padding => EdgeInsets.all(12.r);
+  static EdgeInsets get all18Padding => EdgeInsets.all(18.r);
   static EdgeInsets get homeTopSearchPadding =>
       EdgeInsets.symmetric(horizontal: 12.w, vertical: 11.h);
   static EdgeInsets get homeBottomSheetPadding =>
