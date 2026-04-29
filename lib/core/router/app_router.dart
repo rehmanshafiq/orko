@@ -12,8 +12,7 @@ import 'package:orko_hubco/features/bottom_navigation/presentation/screens/botto
 import 'package:orko_hubco/features/bottom_navigation/presentation/screens/home_screen.dart';
 import 'package:orko_hubco/features/onboarding/presentation/bloc/onboarding_cubit.dart';
 import 'package:orko_hubco/features/onboarding/presentation/page/onboarding_page.dart';
-import 'package:orko_hubco/features/profile/presentation/cubit/profile_cubit.dart';
-import 'package:orko_hubco/features/profile/presentation/screens/profile_screen.dart';
+import 'package:orko_hubco/features/search/presentation/screens/search_screen.dart';
 import 'package:orko_hubco/features/splash/presentation/page/splash_page.dart';
 
 /// App-wide router configuration using go_router.
@@ -23,7 +22,7 @@ import 'package:orko_hubco/features/splash/presentation/page/splash_page.dart';
 ///   /register   → RegisterScreen
 ///   /home       → BottomNavShell
 ///     ├── /home          → HomeScreen     (tab 0)
-///     ├── /home/profile  → ProfileScreen  (tab 1)
+///     ├── /search        → SearchScreen   (tab 1)
 ///     └── /bookings      → BookASlotScreen (tab 2)
 class AppRouter {
   AppRouter._();
@@ -94,16 +93,13 @@ class AppRouter {
             ],
           ),
 
-          // Tab 1: Profile
+          // Tab 1: Search
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: '/profile',
-                name: 'profile',
-                builder: (context, state) => BlocProvider(
-                  create: (_) => sl<ProfileCubit>(),
-                  child: const ProfileScreen(),
-                ),
+                path: '/search',
+                name: 'search',
+                builder: (context, state) => const SearchScreen(),
               ),
             ],
           ),
