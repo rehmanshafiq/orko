@@ -300,6 +300,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       keyboardType: TextInputType.phone,
       textInputAction: TextInputAction.next,
       validator: (value) => (value == null || value.trim().isEmpty) ? 'Phone number is required' : null,
+      maxLength: 11,
       style: TextStyle(
         color: AppColors.whiteColor,
         fontSize: FontSizes.font14Sp,
@@ -358,7 +359,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  Widget _buildField({
+  Widget  _buildField({
     required String hintText,
     required TextEditingController controller,
     String? Function(String?)? validator,
@@ -376,6 +377,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       obscureText: obscureText,
       validator: validator,
       onFieldSubmitted: onFieldSubmitted,
+      maxLength: 40,
       style: TextStyle(
         color: AppColors.whiteColor,
         fontSize: FontSizes.font14Sp,

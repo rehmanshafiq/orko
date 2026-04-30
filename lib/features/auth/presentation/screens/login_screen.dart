@@ -243,6 +243,7 @@ class _LoginScreenState extends State<LoginScreen> {
           keyboardType: TextInputType.phone,
           textInputAction: TextInputAction.next,
           validator: _validatePhoneNumber,
+          maxLength: 11,
           style: TextStyle(
             color: AppColors.whiteColor,
             fontSize: FontSizes.font14Sp,
@@ -322,6 +323,7 @@ class _LoginScreenState extends State<LoginScreen> {
           textInputAction: TextInputAction.done,
           validator: AppHelpers.validatePassword,
           onFieldSubmitted: (_) => _onLogin(),
+          maxLength: 40,
           style: TextStyle(
             color: AppColors.whiteColor,
             fontSize: FontSizes.font14Sp,
