@@ -7,10 +7,25 @@ import 'package:orko_hubco/core/utils/app_ui.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
 import 'package:orko_hubco/core/utils/widgets/primary_button_widget.dart';
 
-class TripPlannerScreen extends StatelessWidget {
+class TripPlannerScreen extends StatefulWidget {
   const TripPlannerScreen({super.key});
 
+  @override
+  State<TripPlannerScreen> createState() => _TripPlannerScreenState();
+}
+
+class _TripPlannerScreenState extends State<TripPlannerScreen> {
   static const LatLng _mapCenter = LatLng(32.1156, 73.2707);
+
+  final TextEditingController _startLocationController = TextEditingController(text: 'Karachi');
+  final TextEditingController _endLocationController = TextEditingController(text: 'Islamabad');
+
+  @override
+  void dispose() {
+    _startLocationController.dispose();
+    _endLocationController.dispose();
+    super.dispose();
+  }
   static const String _darkMapStyle = '''
 [
   {"elementType":"geometry","stylers":[{"color":"#101828"}]},
@@ -38,9 +53,9 @@ class TripPlannerScreen extends StatelessWidget {
             10.verticalSpace,
             _header(context),
             16.verticalSpace,
-            _locationField(context, 'Lahore', isStart: true),
+            _locationField(context, controller: _startLocationController, isStart: true),
             8.verticalSpace,
-            _locationField(context, 'Islamabad', isStart: false),
+            _locationField(context, controller: _endLocationController, isStart: false),
             14.verticalSpace,
             _sectionTitle(context, 'EV Details'),
             10.verticalSpace,
@@ -99,7 +114,11 @@ class TripPlannerScreen extends StatelessWidget {
     );
   }
 
-  Widget _locationField(BuildContext context, String value, {required bool isStart}) {
+  Widget _locationField(
+    BuildContext context, {
+    required TextEditingController controller,
+    required bool isStart,
+  }) {
     final ui = AppUiColors.of(context);
     return Container(
       padding: AppUtils.vertical10Horizontal12Padding,
@@ -116,11 +135,26 @@ class TripPlannerScreen extends StatelessWidget {
             color: isStart ? AppColors.primaryDarkColor : AppColors.removeColor,
           ),
           8.horizontalSpace,
-          AppText(
-            value,
-            color: ui.textPrimary.withValues(alpha: 0.9),
-            fontSize: FontSizes.font12Sp,
-            fontWeight: FontWeights.weight500,
+          Expanded(
+            child: TextField(
+              controller: controller,
+              textInputAction: isStart ? TextInputAction.next : TextInputAction.done,
+              keyboardType: TextInputType.streetAddress,
+              style: TextStyle(
+                color: ui.textPrimary.withValues(alpha: 0.9),
+                fontSize: FontSizes.font12Sp,
+                fontWeight: FontWeights.weight500,
+              ),
+              cursorColor: AppColors.primaryDarkColor,
+              decoration: const InputDecoration(
+                isDense: true,
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                contentPadding: EdgeInsets.zero,
+                filled: false,
+              ),
+            ),
           ),
         ],
       ),
