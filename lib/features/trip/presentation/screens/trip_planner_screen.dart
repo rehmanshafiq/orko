@@ -91,12 +91,13 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
               _mapCard(context),
               16.verticalSpace,
               _chargingStopsSection(context),
+              16.verticalSpace,
+              _routeSuggestionCard(context),
               22.verticalSpace,
               _sectionTitle(context, 'Trip Summary'),
               8.verticalSpace,
               _tripSummaryCard(context),
               22.verticalSpace,
-              _mapListToggle(context),
             ],
             24.verticalSpace,
           ],
@@ -669,6 +670,52 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
     );
   }
 
+  Widget _routeSuggestionCard(BuildContext context) {
+    final ui = AppUiColors.of(context);
+    return Container(
+      padding: AppUtils.vertical10Horizontal12Padding,
+      decoration: BoxDecoration(
+        color: ui.chargingPatternsBg,
+        borderRadius: BorderRadius.circular(10.r),
+        border: Border.all(color: ui.chargingPatternsBorder),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: EdgeInsets.only(top: 2.h),
+            child: Icon(
+              Icons.info_outline_rounded,
+              size: 15.sp,
+              color: AppColors.mapPinBlueColor,
+            ),
+          ),
+          10.horizontalSpace,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                AppText(
+                  'Route Suggestions',
+                  color: ui.textPrimary,
+                  fontSize: FontSizes.font12Sp,
+                  fontWeight: FontWeights.weight700,
+                ),
+                4.verticalSpace,
+                AppText(
+                  'Consider the economical route to save PKR 550 on the scenic route for a more enjoyable journey with better amenities.',
+                  color: ui.textSecondary,
+                  fontSize: FontSizes.font10Sp,
+                  fontWeight: FontWeights.weight400,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _chargingStopsTimeline(
     BuildContext context, {
     required Color lineColor,
@@ -1171,88 +1218,127 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
   }
 
   Widget _tripSummaryCard(BuildContext context) {
-    return Row(
-      children: [
-        _summaryItem(context, title: 'Total Distance', value: '380 km'),
-        _summaryItem(context, title: 'Total Time', value: '4h 20min'),
-        _summaryItem(context, title: 'Total Charging Cost', value: 'Rs 750'),
-      ],
-    );
-  }
-
-  Widget _summaryItem(BuildContext context, {required String title, required String value}) {
     final ui = AppUiColors.of(context);
-    return Expanded(
+    return Container(
+      padding: AppUtils.all12Padding,
+      decoration: BoxDecoration(
+        color: ui.cardBackground,
+        borderRadius: BorderRadius.circular(10.r),
+        border: Border.all(color: AppColors.mapPinBlueColor.withValues(alpha: 0.8)),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Icons.circle, size: 5.sp, color: ui.textMuted),
-              4.horizontalSpace,
               Expanded(
-                child: AppText(
-                  title,
-                  color: ui.textMuted,
-                  fontSize: FontSizes.font8Sp,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                child: _tripSummaryMetric(
+                  context,
+                  icon: Icons.near_me_outlined,
+                  label: 'Distance',
+                  value: '1214 km',
+                ),
+              ),
+              16.horizontalSpace,
+              Expanded(
+                child: _tripSummaryMetric(
+                  context,
+                  icon: Icons.schedule_rounded,
+                  label: 'Duration',
+                  value: '13h 0m',
                 ),
               ),
             ],
           ),
-          4.verticalSpace,
-          AppText(
-            value,
-            color: ui.textPrimary,
-            fontSize: FontSizes.font12Sp,
-            fontWeight: FontWeights.weight600,
+          12.verticalSpace,
+          Row(
+            children: [
+              Expanded(
+                child: _tripSummaryMetric(
+                  context,
+                  icon: Icons.bolt_rounded,
+                  label: 'Charging Stops',
+                  value: '2',
+                ),
+              ),
+              16.horizontalSpace,
+              Expanded(
+                child: _tripSummaryMetric(
+                  context,
+                  icon: Icons.attach_money_rounded,
+                  label: 'Total Cost',
+                  value: 'PKR 3200',
+                ),
+              ),
+            ],
+          ),
+          14.verticalSpace,
+          Container(
+            padding: AppUtils.vertical10Horizontal12Padding,
+            decoration: BoxDecoration(
+              color: ui.efficiencyTipBg,
+              borderRadius: BorderRadius.circular(8.r),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.eco_outlined,
+                  size: 14.sp,
+                  color: AppColors.primaryLightColor,
+                ),
+                8.horizontalSpace,
+                Expanded(
+                  child: AppText(
+                    "You'll save 145 kg CO₂ compared to petrol vehicles",
+                    color: ui.textPrimary,
+                    fontSize: FontSizes.font10Sp,
+                    fontWeight: FontWeights.weight600,
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _mapListToggle(BuildContext context) {
+  Widget _tripSummaryMetric(
+    BuildContext context, {
+    required IconData icon,
+    required String label,
+    required String value,
+  }) {
     final ui = AppUiColors.of(context);
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        AppText(
-          'Map View',
-          color: AppColors.primaryDarkColor,
-          fontSize: FontSizes.font10Sp,
-          fontWeight: FontWeights.weight600,
-        ),
-        8.horizontalSpace,
-        Container(
-          width: 30.w,
-          height: 16.h,
-          padding: AppUtils.all4Padding,
-          decoration: BoxDecoration(
-            color: AppColors.primaryDarkColor.withValues(alpha: 0.35),
-            borderRadius: BorderRadius.circular(20.r),
-          ),
-          child: Align(
-            alignment: Alignment.centerRight,
-            child: Container(
-              width: 10.w,
-              height: 10.w,
-              decoration: const BoxDecoration(
-                color: AppColors.primaryLightColor,
-                shape: BoxShape.circle,
+        Row(
+          children: [
+            Icon(icon, size: 12.sp, color: AppColors.mapPinBlueColor),
+            6.horizontalSpace,
+            Expanded(
+              child: AppText(
+                label,
+                color: ui.textMuted,
+                fontSize: FontSizes.font8Sp,
+                fontWeight: FontWeights.weight400,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
-          ),
+          ],
         ),
-        8.horizontalSpace,
+        4.verticalSpace,
         AppText(
-          'List View',
-          color: ui.textSecondary,
-          fontSize: FontSizes.font10Sp,
-          fontWeight: FontWeights.weight500,
+          value,
+          color: ui.textPrimary,
+          fontSize: FontSizes.font14Sp,
+          fontWeight: FontWeights.weight700,
         ),
       ],
     );
   }
+
+
 }
