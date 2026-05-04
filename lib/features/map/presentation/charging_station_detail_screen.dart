@@ -27,6 +27,8 @@ class ChargingStationDetailScreen extends StatefulWidget {
 class _ChargingStationDetailScreenState
     extends State<ChargingStationDetailScreen> {
   bool _favorite = false;
+  /// Highlighted port row (matches design: first row selected by default).
+  int _selectedPortIndex = 0;
 
   static const List<_ChargerPort> _ports = [
     _ChargerPort(label: 'CCS, 150 kW', price: 'Rs 45 per kWh', available: true),
@@ -126,7 +128,7 @@ class _ChargingStationDetailScreenState
                           fontWeight: FontWeights.weight700,
                         ),
                         12.verticalSpace,
-                        ..._ports.map(_chargerPortTile),
+                        _buildChargerPortsList(),
                         22.verticalSpace,
                         AppText(
                           'Amenities',
@@ -356,59 +358,99 @@ class _ChargingStationDetailScreenState
     );
   }
 
-  Widget _chargerPortTile(_ChargerPort port) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: 10.h),
-      child: Container(
-        width: double.infinity,
-        padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
-        decoration: BoxDecoration(
-          color: AppColors.fieldBackgroundColor,
-          borderRadius: BorderRadius.circular(12.r),
-          border: Border.all(
-            color: AppColors.whiteColor.withValues(alpha: 0.06),
+  /// Charger Ports: flat list, selection highlight, divider inset past icon.
+  Widget _buildChargerPortsList() {
+    final iconSize = 44.r;
+    final iconGap = 12.w;
+    final dividerLeft = iconSize + iconGap;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (var i = 0; i < _ports.length; i++) ...[
+          Material(
+            color: AppColors.transparentColor,
+            child: InkWell(
+              onTap: () => setState(() => _selectedPortIndex = i),
+              splashColor: AppColors.whiteColor.withValues(alpha: 0.06),
+              highlightColor: AppColors.whiteColor.withValues(alpha: 0.04),
+              child: Container(
+                width: double.infinity,
+                padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 10.w),
+                decoration: BoxDecoration(
+                  color: i == _selectedPortIndex
+                      ? AppColors.whiteColor.withValues(alpha: 0.07)
+                      : AppColors.transparentColor,
+                  borderRadius: BorderRadius.circular(8.r),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    _portPlugIcon(iconSize),
+                    iconGap.horizontalSpace,
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Expanded(
+                                child: AppText(
+                                  _ports[i].label,
+                                  color: AppColors.whiteColor,
+                                  fontSize: FontSizes.font14Sp,
+                                  fontWeight: FontWeights.weight600,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              8.horizontalSpace,
+                              _portStatusChip(_ports[i].available),
+                            ],
+                          ),
+                          4.verticalSpace,
+                          AppText(
+                            _ports[i].price,
+                            color: AppColors.iconsGreyColor,
+                            fontSize: FontSizes.font12Sp,
+                            fontWeight: FontWeights.weight400,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Container(
-              height: 44.r,
-              width: 44.r,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.greyColor.withValues(alpha: 0.25),
-              ),
-              child: Icon(
-                Icons.ev_station_rounded,
-                color: AppColors.whiteColor.withValues(alpha: 0.75),
-                size: 22.r,
+          if (i < _ports.length - 1)
+            Padding(
+              padding: EdgeInsets.only(left: dividerLeft),
+              child: Divider(
+                height: 1,
+                thickness: 1,
+                color: AppColors.whiteColor.withValues(alpha: 0.08),
               ),
             ),
-            12.horizontalSpace,
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  AppText(
-                    port.label,
-                    color: AppColors.whiteColor,
-                    fontSize: FontSizes.font14Sp,
-                    fontWeight: FontWeights.weight600,
-                  ),
-                  4.verticalSpace,
-                  AppText(
-                    port.price,
-                    color: AppColors.iconsGreyColor,
-                    fontSize: FontSizes.font12Sp,
-                    fontWeight: FontWeights.weight400,
-                  ),
-                ],
-              ),
-            ),
-            _portStatusChip(port.available),
-          ],
-        ),
+        ],
+      ],
+    );
+  }
+
+  Widget _portPlugIcon(double diameter) {
+    return Container(
+      height: diameter,
+      width: diameter,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: AppColors.whiteColor.withValues(alpha: 0.10),
+      ),
+      child: Icon(
+        Icons.ev_station_rounded,
+        color: AppColors.whiteColor.withValues(alpha: 0.88),
+        size: 22.r,
       ),
     );
   }
@@ -418,13 +460,13 @@ class _ChargingStationDetailScreenState
       padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
       decoration: BoxDecoration(
         color: available
-            ? AppColors.primaryDarkColor.withValues(alpha: 0.2)
-            : AppColors.slotBusyYellowColor.withValues(alpha: 0.22),
-        borderRadius: BorderRadius.circular(16.r),
+            ? AppColors.primaryDarkColor.withValues(alpha: 0.14)
+            : AppColors.slotBusyYellowColor.withValues(alpha: 0.16),
+        borderRadius: BorderRadius.circular(20.r),
         border: Border.all(
           color: available
-              ? AppColors.primaryDarkColor
-              : AppColors.slotBusyYellowColor,
+              ? AppColors.primaryDarkColor.withValues(alpha: 0.45)
+              : AppColors.slotBusyYellowColor.withValues(alpha: 0.5),
         ),
       ),
       child: AppText(
