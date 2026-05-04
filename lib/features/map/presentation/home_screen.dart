@@ -17,6 +17,7 @@ import 'package:orko_hubco/features/auth/presentation/cubit/auth_state.dart';
 import 'package:orko_hubco/features/map/domain/entities/hubco_location_entity.dart';
 import 'package:orko_hubco/features/map/presentation/cubit/map_state.dart';
 import 'package:orko_hubco/features/map/presentation/cubit/map_cubit.dart';
+import 'package:orko_hubco/features/map/presentation/widgets/map_filters_bottom_sheet.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -443,6 +444,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   Icons.tune_rounded,
                   isPrimary: true,
                   isCompact: true,
+                  onTap: () => MapFiltersBottomSheet.show(
+                    context,
+                    stationCount: _locations.length,
+                  ),
                 ),
               ],
             ),
@@ -455,28 +460,42 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _topActionIcon(
-      IconData icon, {
-        bool isPrimary = false,
-        bool isCompact = false,
-      }) {
-    return Container(
+    IconData icon, {
+    bool isPrimary = false,
+    bool isCompact = false,
+    VoidCallback? onTap,
+  }) {
+    final radius = BorderRadius.circular(8.r);
+    final child = Container(
       height: isCompact ? 30.h : 52.h,
       width: isCompact ? 30.w : 52.w,
       decoration: BoxDecoration(
         color: isPrimary
             ? AppColors.primaryDarkColor
             : AppColors.greyColor.withValues(alpha: 0.20),
-        borderRadius: BorderRadius.circular(8.r),
+        borderRadius: radius,
         border: Border.all(
           color: isPrimary
               ? AppColors.primaryDarkColor
               : AppColors.whiteColor.withValues(alpha: 0.12),
         ),
       ),
+      alignment: Alignment.center,
       child: Icon(
         icon,
         size: isCompact ? 15 : 26,
         color: AppColors.whiteColor,
+      ),
+    );
+
+    if (onTap == null) return child;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: radius,
+        child: child,
       ),
     );
   }
