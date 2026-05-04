@@ -647,10 +647,7 @@ class _ChargingStationDetailScreenState
             Expanded(
               child: OutlinedButton(
                 onPressed: () {
-                  AppHelpers.showSnackBar(
-                    context,
-                    'Opening directions…',
-                  );
+
                 },
                 style: OutlinedButton.styleFrom(
                   foregroundColor: ui.textPrimary,
