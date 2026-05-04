@@ -63,12 +63,15 @@ class _SplashMobileViewState extends State<SplashMobileView> {
   @override
   Widget build(BuildContext context) {
     final logoWidth = MediaQuery.sizeOf(context).width * 0.45;
+    final ui = AppUiColors.of(context);
 
     return Scaffold(
-      backgroundColor: AppUiColors.of(context).scaffoldBackground,
+      backgroundColor: ui.scaffoldBackground,
       body: Center(
         child: AppPngImageView(
-          appImagePath: AppImages.hubcoLogo,
+          appImagePath: ui.isLight
+              ? AppImages.hubcoLogoLight
+              : AppImages.hubcoLogo,
           width: logoWidth,
         ),
       ),
