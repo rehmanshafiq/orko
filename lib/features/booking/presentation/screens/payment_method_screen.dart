@@ -121,7 +121,10 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
               ),
               child: PrimaryButtonWidget(
                 text: 'Proceed to Pay Rs ${total.toInt()}',
-                onPress: () {},
+                onPress: () => context.push(
+                  '/booking-confirmation',
+                  extra: total.toInt(),
+                ),
                 buttonWidth: double.infinity,
                 buttonHeight: 52.h,
                 cornerRadius: 12.r,
