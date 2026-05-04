@@ -565,12 +565,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   final station = nearbyStations[index];
                   return SizedBox(
                     width: 176.w,
-                    child: _stationCard(
-                      context,
-                      station.name,
-                      station.status ? 'Available' : 'Unavailable',
-                      station.address,
-                    ),
+                    child: _stationCard(context, station),
                   );
                 },
               ),
@@ -615,47 +610,51 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _stationCard(
-    BuildContext context,
-    String title,
-    String availability,
-    String price,
-  ) {
-    return Container(
-      padding: AppUtils.homeStationCardPadding,
-      decoration: BoxDecoration(
-        color: AppColors.fieldBackgroundColor,
+  Widget _stationCard(BuildContext context, HubcoLocationEntity station) {
+    return Material(
+      color: AppColors.transparentColor,
+      child: InkWell(
+        onTap: () => context.push('/station-detail', extra: station),
         borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: AppColors.whiteColor.withValues(alpha: 0.08)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          AppText(
-            title,
-            color: AppColors.whiteColor,
-            fontSize: FontSizes.font12Sp,
-            fontWeight: FontWeights.weight600,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
+        child: Ink(
+          padding: AppUtils.homeStationCardPadding,
+          decoration: BoxDecoration(
+            color: AppColors.fieldBackgroundColor,
+            borderRadius: BorderRadius.circular(12.r),
+            border: Border.all(
+              color: AppColors.whiteColor.withValues(alpha: 0.08),
+            ),
           ),
-          4.verticalSpace,
-          AppText(
-            availability,
-            color: AppColors.primaryDarkColor,
-            fontSize: FontSizes.font10Sp,
-            fontWeight: FontWeights.weight500,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              AppText(
+                station.name,
+                color: AppColors.whiteColor,
+                fontSize: FontSizes.font12Sp,
+                fontWeight: FontWeights.weight600,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              4.verticalSpace,
+              AppText(
+                station.status ? 'Available' : 'Unavailable',
+                color: AppColors.primaryDarkColor,
+                fontSize: FontSizes.font10Sp,
+                fontWeight: FontWeights.weight500,
+              ),
+              6.verticalSpace,
+              AppText(
+                station.address,
+                color: AppColors.whiteColor.withValues(alpha: 0.75),
+                fontSize: FontSizes.font10Sp,
+                fontWeight: FontWeights.weight400,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
           ),
-          6.verticalSpace,
-          AppText(
-            price,
-            color: AppColors.whiteColor.withValues(alpha: 0.75),
-            fontSize: FontSizes.font10Sp,
-            fontWeight: FontWeights.weight400,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
+        ),
       ),
     );
   }
