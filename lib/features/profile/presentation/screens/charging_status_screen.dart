@@ -12,18 +12,24 @@ class ChargingStatusScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ui = AppUiColors.of(context);
     return Scaffold(
-      backgroundColor: AppUiColors.of(context).scaffoldBackground,
+      backgroundColor: ui.scaffoldBackground,
       body: SafeArea(
         child: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [
-                const Color(0xFF0A1220),
-                AppColors.blackColor,
-              ],
+              colors: ui.isLight
+                  ? [
+                      AppColors.scaffoldColor,
+                      AppColors.shimmerGreyColor,
+                    ]
+                  : [
+                      const Color(0xFF0A1220),
+                      AppColors.blackColor,
+                    ],
             ),
           ),
           child: ListView(
@@ -33,21 +39,21 @@ class ChargingStatusScreen extends StatelessWidget {
               AppText(
                 'HGL Charging Hub M2 Port 2 CCS',
                 textAlign: TextAlign.center,
-                color: AppColors.whiteColor.withValues(alpha: 0.55),
+                color: ui.textMuted,
                 fontSize: FontSizes.font12Sp,
                 fontWeight: FontWeights.weight400,
               ),
               18.verticalSpace,
-              _chargingGauge(),
+              _chargingGauge(context),
               16.verticalSpace,
-              _metricsGrid(),
+              _metricsGrid(context),
               16.verticalSpace,
               Container(
                 padding: AppUtils.all18Padding,
                 decoration: BoxDecoration(
-                  color: AppColors.whiteColor.withValues(alpha: 0.15),
+                  color: ui.cardBackground.withValues(alpha: ui.isLight ? 1 : 0.65),
                   borderRadius: BorderRadius.circular(10.r),
-                  border: Border.all(color: AppColors.whiteColor.withValues(alpha: 0.08)),
+                  border: Border.all(color: ui.borderSubtle),
                 ),
                 child: Column(
                   children: [
@@ -62,7 +68,7 @@ class ChargingStatusScreen extends StatelessWidget {
                       data: SliderTheme.of(context).copyWith(
                         trackHeight: 3.h,
                         activeTrackColor: AppColors.primaryDarkColor,
-                        inactiveTrackColor: AppColors.whiteColor.withValues(alpha: 0.2),
+                        inactiveTrackColor: ui.progressTrack,
                         thumbColor: AppColors.primaryLightColor,
                         thumbShape: RoundSliderThumbShape(enabledThumbRadius: 6.r),
                         overlayShape: SliderComponentShape.noOverlay,
@@ -74,7 +80,7 @@ class ChargingStatusScreen extends StatelessWidget {
                     ),
                     AppText(
                       '80% Target',
-                      color: AppColors.whiteColor.withValues(alpha: 0.7),
+                      color: ui.textSecondary,
                       fontSize: FontSizes.font10Sp,
                       fontWeight: FontWeights.weight500,
                     ),
@@ -85,16 +91,16 @@ class ChargingStatusScreen extends StatelessWidget {
               Container(
                 padding: AppUtils.vertical10Horizontal8Padding,
                 decoration: BoxDecoration(
-                  color: AppColors.whiteColor.withValues(alpha: 0.15),
+                  color: ui.cardBackground.withValues(alpha: ui.isLight ? 1 : 0.65),
                   borderRadius: BorderRadius.circular(8.r),
-                  border: Border.all(color: AppColors.whiteColor.withValues(alpha: 0.08)),
+                  border: Border.all(color: ui.borderSubtle),
                 ),
                 child: Row(
                   children: [
                     Expanded(
                       child: AppText(
                         'Station Info - HGL Charging Hub M2',
-                        color: AppColors.whiteColor.withValues(alpha: 0.75),
+                        color: ui.textSecondary,
                         fontSize: FontSizes.font10Sp,
                         fontWeight: FontWeights.weight400,
                         maxLines: 1,
@@ -102,7 +108,10 @@ class ChargingStatusScreen extends StatelessWidget {
                       ),
                     ),
                     8.horizontalSpace,
-                    Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.whiteColor.withValues(alpha: 0.7)),
+                    Icon(
+                      Icons.keyboard_arrow_down_rounded,
+                      color: ui.textSecondary,
+                    ),
                   ],
                 ),
               ),
@@ -141,7 +150,8 @@ class ChargingStatusScreen extends StatelessWidget {
     );
   }
 
-  Widget _chargingGauge() {
+  Widget _chargingGauge(BuildContext context) {
+    final ui = AppUiColors.of(context);
     return Container(
       padding: AppUtils.vertical8Padding,
       child: Stack(
@@ -179,13 +189,13 @@ class ChargingStatusScreen extends StatelessWidget {
               children: [
                 AppText(
                   '67%',
-                  color: AppColors.whiteColor,
+                  color: ui.textPrimary,
                   fontSize: FontSizes.font34Sp,
                   fontWeight: FontWeight.bold,
                 ),
                 AppText(
                   'Charging',
-                  color: AppColors.whiteColor.withValues(alpha: 0.8),
+                  color: ui.textSecondary,
                   fontSize: FontSizes.font12Sp,
                   fontWeight: FontWeights.weight400,
                 ),
@@ -203,35 +213,74 @@ class ChargingStatusScreen extends StatelessWidget {
     );
   }
 
-  Widget _metricsGrid() {
+  Widget _metricsGrid(BuildContext context) {
     return Column(
       children: [
         Row(
           children: [
-            Expanded(child: _metricCard('Energy Delivered', '8.4', 'kWh', Icons.battery_4_bar_rounded)),
+            Expanded(
+              child: _metricCard(
+                context,
+                'Energy Delivered',
+                '8.4',
+                'kWh',
+                Icons.battery_4_bar_rounded,
+              ),
+            ),
             8.horizontalSpace,
-            Expanded(child: _metricCard('Charging Speed', '150', 'kW', Icons.bolt_rounded)),
+            Expanded(
+              child: _metricCard(
+                context,
+                'Charging Speed',
+                '150',
+                'kW',
+                Icons.bolt_rounded,
+              ),
+            ),
           ],
         ),
         8.verticalSpace,
         Row(
           children: [
-            Expanded(child: _metricCard('Session Time', '00:33:42', '', Icons.access_time_rounded)),
+            Expanded(
+              child: _metricCard(
+                context,
+                'Session Time',
+                '00:33:42',
+                '',
+                Icons.access_time_rounded,
+              ),
+            ),
             8.horizontalSpace,
-            Expanded(child: _metricCard('Current Cost', 'Rs 378', '', Icons.payments_outlined)),
+            Expanded(
+              child: _metricCard(
+                context,
+                'Current Cost',
+                'Rs 378',
+                '',
+                Icons.payments_outlined,
+              ),
+            ),
           ],
         ),
       ],
     );
   }
 
-  Widget _metricCard(String label, String value, String unit, IconData icon) {
+  Widget _metricCard(
+    BuildContext context,
+    String label,
+    String value,
+    String unit,
+    IconData icon,
+  ) {
+    final ui = AppUiColors.of(context);
     return Container(
       padding: AppUtils.horizontal8Vertical8Padding,
       decoration: BoxDecoration(
-        color: AppColors.whiteColor.withValues(alpha: 0.15),
+        color: ui.cardBackground.withValues(alpha: ui.isLight ? 1 : 0.65),
         borderRadius: BorderRadius.circular(8.r),
-        border: Border.all(color: AppColors.whiteColor.withValues(alpha: 0.05)),
+        border: Border.all(color: ui.borderSubtle),
       ),
       child: Row(
         children: [
@@ -240,15 +289,15 @@ class ChargingStatusScreen extends StatelessWidget {
             height: 24.w,
             padding: AppUtils.all4Padding,
             decoration: BoxDecoration(
-              color: AppColors.whiteColor.withValues(alpha: 0.08),
+              color: ui.innerCardBg,
               borderRadius: BorderRadius.circular(5.r),
-              border: Border.all(color: AppColors.whiteColor.withValues(alpha: 0.10), width: 1),
+              border: Border.all(color: ui.borderSubtle, width: 1),
             ),
             child: Center(
               child: Icon(
                 icon,
                 size: 14.sp,
-                color: AppColors.whiteColor.withValues(alpha: 0.70),
+                color: ui.textSecondary,
               ),
             ),
           ),
@@ -259,7 +308,7 @@ class ChargingStatusScreen extends StatelessWidget {
               children: [
                 AppText(
                   label,
-                  color: AppColors.whiteColor.withValues(alpha: 0.55),
+                  color: ui.textMuted,
                   fontSize: FontSizes.font10Sp,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -270,7 +319,7 @@ class ChargingStatusScreen extends StatelessWidget {
                   children: [
                     AppText(
                       value,
-                      color: AppColors.whiteColor,
+                      color: ui.textPrimary,
                       fontSize: FontSizes.font16Sp,
                       fontWeight: FontWeights.weight700,
                     ),
@@ -278,7 +327,7 @@ class ChargingStatusScreen extends StatelessWidget {
                       4.horizontalSpace,
                       AppText(
                         unit,
-                        color: AppColors.whiteColor.withValues(alpha: 0.85),
+                        color: ui.textSecondary,
                         fontSize: FontSizes.font12Sp,
                         fontWeight: FontWeights.weight600,
                       ),
