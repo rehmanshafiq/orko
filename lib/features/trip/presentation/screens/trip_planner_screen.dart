@@ -16,9 +16,14 @@ class TripPlannerScreen extends StatefulWidget {
 
 class _TripPlannerScreenState extends State<TripPlannerScreen> {
   static const LatLng _mapCenter = LatLng(32.1156, 73.2707);
+  /// 100% state of charge = 380 km usable range.
+  static const double _kmPerPercentCharge = 3.8;
 
   final TextEditingController _startLocationController = TextEditingController(text: 'Karachi');
   final TextEditingController _endLocationController = TextEditingController(text: 'Islamabad');
+
+  double _currentBatteryPercent = 60;
+  double _targetArrivalBatteryPercent = 20;
 
   @override
   void dispose() {
@@ -60,7 +65,9 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
             _sectionTitle(context, 'EV Details'),
             10.verticalSpace,
             _evDetailsCard(context),
-            12.verticalSpace,
+            14.verticalSpace,
+            _batteryChargeSliders(context),
+            14.verticalSpace,
             PrimaryButtonWidget(
               text: 'Plan Trip',
               onPress: () {},
@@ -187,12 +194,121 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
             _metric(
               context,
               icon: Icons.battery_6_bar_rounded,
-              value: '60%',
+              value: '${_currentBatteryPercent.round()}%',
               label: 'current charge',
             ),
           ],
         ),
       ],
+    );
+  }
+
+  Widget _batteryChargeSliders(BuildContext context) {
+    final ui = AppUiColors.of(context);
+    final usableRangeKm = (_currentBatteryPercent * _kmPerPercentCharge).round();
+
+    return Container(
+      padding: AppUtils.horizontal8Vertical8Padding,
+      decoration: BoxDecoration(
+        color: ui.cardBackground,
+        borderRadius: BorderRadius.circular(8.r),
+        border: Border.all(color: ui.borderSubtle),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: AppText(
+                  'Current Battery',
+                  color: ui.textPrimary,
+                  fontSize: FontSizes.font12Sp,
+                  fontWeight: FontWeights.weight500,
+                ),
+              ),
+              8.horizontalSpace,
+              AppText(
+                '${_currentBatteryPercent.round()}%',
+                color: AppColors.primaryDarkColor,
+                fontSize: FontSizes.font12Sp,
+                fontWeight: FontWeights.weight600,
+              ),
+            ],
+          ),
+          6.verticalSpace,
+          _batterySliderTheme(
+            context,
+            child: Slider(
+              value: _currentBatteryPercent.clamp(0, 100),
+              min: 0,
+              max: 100,
+              divisions: 100,
+              onChanged: (v) => setState(() => _currentBatteryPercent = v),
+            ),
+          ),
+          4.verticalSpace,
+          AppText(
+            '≈ $usableRangeKm km usable range (100% = 380 km)',
+            color: ui.textMuted,
+            fontSize: FontSizes.font10Sp,
+            fontWeight: FontWeights.weight400,
+          ),
+          18.verticalSpace,
+          Row(
+            children: [
+              Expanded(
+                child: AppText(
+                  'Target Arrival Battery',
+                  color: ui.textPrimary,
+                  fontSize: FontSizes.font12Sp,
+                  fontWeight: FontWeights.weight500,
+                ),
+              ),
+              8.horizontalSpace,
+              AppText(
+                '${_targetArrivalBatteryPercent.round()}%',
+                color: AppColors.primaryDarkColor,
+                fontSize: FontSizes.font12Sp,
+                fontWeight: FontWeights.weight600,
+              ),
+            ],
+          ),
+          6.verticalSpace,
+          _batterySliderTheme(
+            context,
+            child: Slider(
+              value: _targetArrivalBatteryPercent.clamp(0, 100),
+              min: 0,
+              max: 100,
+              divisions: 100,
+              onChanged: (v) => setState(() => _targetArrivalBatteryPercent = v),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _batterySliderTheme(BuildContext context, {required Widget child}) {
+    final ui = AppUiColors.of(context);
+    return SliderTheme(
+      data: SliderTheme.of(context).copyWith(
+        trackHeight: 4.h,
+        activeTrackColor: AppColors.primaryDarkColor,
+        inactiveTrackColor: ui.progressTrack,
+        thumbColor: AppColors.whiteColor,
+        thumbShape: RoundSliderThumbShape(
+          enabledThumbRadius: 10.r,
+          elevation: 0,
+          pressedElevation: 0,
+        ),
+        overlayShape: RoundSliderOverlayShape(overlayRadius: 18.r),
+        overlayColor: WidgetStateColor.resolveWith(
+          (_) => AppColors.primaryDarkColor.withValues(alpha: 0.16),
+        ),
+      ),
+      child: child,
     );
   }
 
