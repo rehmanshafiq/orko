@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
+import 'package:orko_hubco/core/utils/widgets/primary_button_widget.dart';
 
 /// EV map filters — matches product UI (dark sheet, green accents).
 class MapFiltersBottomSheet extends StatefulWidget {
@@ -20,7 +21,7 @@ class MapFiltersBottomSheet extends StatefulWidget {
     return showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      useSafeArea: true,
+      useSafeArea: false,
       backgroundColor: Colors.transparent,
       barrierColor: Colors.black.withValues(alpha: 0.55),
       builder: (context) => MapFiltersBottomSheet(stationCount: stationCount),
@@ -474,37 +475,17 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
     final count = widget.stationCount;
     final suffix = count == 1 ? 'station' : 'stations';
 
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () => Navigator.of(context).pop(),
-        borderRadius: BorderRadius.circular(26.r),
-        child: Ink(
-          padding: EdgeInsets.symmetric(vertical: 16.h),
-          decoration: BoxDecoration(
-            color: AppColors.primaryDarkColor,
-            borderRadius: BorderRadius.circular(26.r),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              AppText(
-                'Apply Filters',
-                color: AppColors.whiteColor,
-                fontSize: FontSizes.font16Sp,
-                fontWeight: FontWeights.weight700,
-              ),
-              4.verticalSpace,
-              AppText(
-                '$count $suffix found',
-                color: AppColors.whiteColor.withValues(alpha: 0.92),
-                fontSize: FontSizes.font12Sp,
-                fontWeight: FontWeights.weight400,
-              ),
-            ],
-          ),
-        ),
-      ),
+    return PrimaryButtonWidget(
+      text: 'Apply Filters',
+      subtitle: '$count $suffix found',
+      onPress: () => Navigator.of(context).pop(),
+      buttonWidth: double.infinity,
+      buttonHeight: 64.h,
+      cornerRadius: 16.r,
+      buttonColor: AppColors.primaryDarkColor,
+      textColor: AppColors.whiteColor,
+      fontSize: FontSizes.font14Sp,
+      fontWeight: FontWeights.weight700,
     );
   }
 }

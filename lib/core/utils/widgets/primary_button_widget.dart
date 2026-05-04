@@ -20,6 +20,11 @@ class PrimaryButtonWidget extends StatelessWidget {
   final double? iconHeight;
   final double? iconWidth;
   final double? cornerRadius;
+  /// Optional second line (e.g. helper text), centered under [text].
+  final String? subtitle;
+  final Color? subtitleColor;
+  final double? subtitleFontSize;
+  final FontWeight? subtitleFontWeight;
 
   const PrimaryButtonWidget({
     super.key,
@@ -37,6 +42,10 @@ class PrimaryButtonWidget extends StatelessWidget {
     this.iconHeight,
     this.iconWidth,
     this.cornerRadius,
+    this.subtitle,
+    this.subtitleColor,
+    this.subtitleFontSize,
+    this.subtitleFontWeight,
   });
 
   @override
@@ -63,31 +72,54 @@ class PrimaryButtonWidget extends StatelessWidget {
               : BorderSide.none,
           disabledBackgroundColor: AppColors.thumbBarGreyColor,
           disabledForegroundColor: AppColors.thumbBarGreyColor,
+          padding: subtitle != null
+              ? EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h)
+              : null,
         ),
         onPressed: isEnabled ? onPress : null,
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
+        child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            if (icon != null) ...[
-              AppSvgImageView(
-                height: iconHeight?.h,
-                width: iconWidth?.w,
-                appImagePath: icon,
-                color: isEnabled
-                    ? (textColor ?? AppColors.whiteColor)
-                    : AppColors.greyColor,
-              ),
-              9.horizontalSpace,
-            ],
-            AppText(
-              text,
-              color: isEnabled
-                  ? (textColor ?? AppColors.whiteColor)
-                  : AppColors.greyColor,
-              fontSize: fontSize ?? FontSizes.font12Sp,
-              fontWeight: fontWeight,
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (icon != null) ...[
+                  AppSvgImageView(
+                    height: iconHeight?.h,
+                    width: iconWidth?.w,
+                    appImagePath: icon,
+                    color: isEnabled
+                        ? (textColor ?? AppColors.whiteColor)
+                        : AppColors.greyColor,
+                  ),
+                  9.horizontalSpace,
+                ],
+                AppText(
+                  text,
+                  color: isEnabled
+                      ? (textColor ?? AppColors.whiteColor)
+                      : AppColors.greyColor,
+                  fontSize: fontSize ?? FontSizes.font12Sp,
+                  fontWeight: fontWeight,
+                ),
+              ],
             ),
+            if (subtitle != null) ...[
+              4.verticalSpace,
+              AppText(
+                subtitle!,
+                textAlign: TextAlign.center,
+                color: isEnabled
+                    ? (subtitleColor ??
+                        (textColor ?? AppColors.whiteColor)
+                            .withValues(alpha: 0.92))
+                    : AppColors.greyColor,
+                fontSize: subtitleFontSize ?? FontSizes.font12Sp,
+                fontWeight: subtitleFontWeight ?? FontWeights.weight400,
+              ),
+            ],
           ],
         ),
       ),
