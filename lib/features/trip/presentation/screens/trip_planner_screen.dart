@@ -27,6 +27,7 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
 
   bool _tripPlanned = false;
   int _selectedRouteIndex = 0;
+  final List<bool> _chargingStopExpanded = [false, false];
 
   @override
   void dispose() {
@@ -84,6 +85,8 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
               _routeOptionsSection(context),
               12.verticalSpace,
               _mapCard(context),
+              16.verticalSpace,
+              _chargingStopsSection(context),
               16.verticalSpace,
               _sectionTitle(context, 'Trip Summary'),
               8.verticalSpace,
@@ -531,7 +534,7 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
     ];
 
     return Container(
-      height: 132.h,
+      height: 172.h,
       decoration: BoxDecoration(
         color: ui.cardBackground,
         borderRadius: BorderRadius.circular(12.r),
@@ -629,6 +632,362 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
         fontSize: FontSizes.font8Sp,
         fontWeight: FontWeights.weight500,
       ),
+    );
+  }
+
+  String _chargingPlaceTitle(String raw) {
+    final t = raw.trim();
+    if (t.isEmpty) return 'Karachi, Pakistan';
+    if (t.contains(',')) return t;
+    return '$t, Pakistan';
+  }
+
+  Widget _chargingStopsSection(BuildContext context) {
+    final ui = AppUiColors.of(context);
+    final lineColor = AppColors.mapPinBlueColor.withValues(alpha: ui.isLight ? 0.42 : 0.55);
+    final startRaw = _startLocationController.text.trim();
+    final destRaw = _endLocationController.text.trim();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _sectionTitle(context, 'Charging Stops'),
+        14.verticalSpace,
+        _chargingStopsTimeline(
+          context,
+          lineColor: lineColor,
+          startTitle: _chargingPlaceTitle(startRaw),
+          destTitle: destRaw.isEmpty ? 'Islamabad' : destRaw,
+          startBattery: _currentBatteryPercent.round(),
+          destBattery: _targetArrivalBatteryPercent.round(),
+        ),
+      ],
+    );
+  }
+
+  Widget _chargingStopsTimeline(
+    BuildContext context, {
+    required Color lineColor,
+    required String startTitle,
+    required String destTitle,
+    required int startBattery,
+    required int destBattery,
+  }) {
+    final ui = AppUiColors.of(context);
+    final rail = 38.w;
+    final node = 24.w;
+
+    Widget connector(double height) {
+      return Center(
+        child: Container(
+          width: 2.w,
+          height: height,
+          decoration: BoxDecoration(
+            color: lineColor,
+            borderRadius: BorderRadius.circular(2.r),
+          ),
+        ),
+      );
+    }
+
+    Widget circleNode({
+      required Color backgroundColor,
+      required Widget child,
+    }) {
+      return Container(
+        width: node,
+        height: node,
+        decoration: BoxDecoration(
+          color: backgroundColor,
+          shape: BoxShape.circle,
+        ),
+        alignment: Alignment.center,
+        child: child,
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: rail,
+              alignment: Alignment.topCenter,
+              child: Column(
+                children: [
+                  circleNode(
+                    backgroundColor: AppColors.primaryDarkColor,
+                    child: Icon(Icons.location_on_rounded, size: 12.sp, color: AppColors.whiteColor),
+                  ),
+                  connector(16.h),
+                ],
+              ),
+            ),
+            10.horizontalSpace,
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  AppText(
+                    startTitle,
+                    color: ui.textPrimary,
+                    fontSize: FontSizes.font14Sp,
+                    fontWeight: FontWeights.weight700,
+                  ),
+                  4.verticalSpace,
+                  AppText(
+                    'Starting point • $startBattery% battery',
+                    color: ui.textMuted,
+                    fontSize: FontSizes.font10Sp,
+                    fontWeight: FontWeights.weight400,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: rail,
+              alignment: Alignment.topCenter,
+              child: Column(
+                children: [
+                  connector(12.h),
+                  circleNode(
+                    backgroundColor: AppColors.ratingStarColor,
+                    child: Icon(Icons.bolt_rounded, size: 12.sp, color: AppColors.whiteColor),
+                  ),
+                  connector(12.h),
+                ],
+              ),
+            ),
+            10.horizontalSpace,
+            Expanded(
+              child: _chargingStopCard(
+                context,
+                stopIndex: 0,
+                stationName: 'HUBCO Hyderabad Station',
+                address: 'M-9 Motorway, Hyderabad',
+                arrive: '25%',
+                depart: '80%',
+                time: '35 min',
+                cost: 'PKR 1400',
+              ),
+            ),
+          ],
+        ),
+        18.verticalSpace,
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: rail,
+              alignment: Alignment.topCenter,
+              child: Column(
+                children: [
+                  connector(12.h),
+                  circleNode(
+                    backgroundColor: AppColors.ratingStarColor,
+                    child: Icon(Icons.bolt_rounded, size: 12.sp, color: AppColors.whiteColor),
+                  ),
+                  connector(12.h),
+                ],
+              ),
+            ),
+            10.horizontalSpace,
+            Expanded(
+              child: _chargingStopCard(
+                context,
+                stopIndex: 1,
+                stationName: 'HUBCO Sukkur Station',
+                address: 'N-5 National Highway, Sukkur',
+                arrive: '18%',
+                depart: '85%',
+                time: '40 min',
+                cost: 'PKR 1800',
+              ),
+            ),
+          ],
+        ),
+        18.verticalSpace,
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: rail,
+              alignment: Alignment.topCenter,
+              child: Column(
+                children: [
+                  connector(12.h),
+                  circleNode(
+                    backgroundColor: AppColors.primaryLightColor,
+                    child: Icon(Icons.navigation_rounded, size: 11.sp, color: AppColors.whiteColor),
+                  ),
+                ],
+              ),
+            ),
+            10.horizontalSpace,
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  AppText(
+                    destTitle,
+                    color: ui.textPrimary,
+                    fontSize: FontSizes.font14Sp,
+                    fontWeight: FontWeights.weight700,
+                  ),
+                  4.verticalSpace,
+                  AppText(
+                    'Destination • $destBattery% battery remaining',
+                    color: ui.textMuted,
+                    fontSize: FontSizes.font10Sp,
+                    fontWeight: FontWeights.weight400,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _chargingStopCard(
+    BuildContext context, {
+    required int stopIndex,
+    required String stationName,
+    required String address,
+    required String arrive,
+    required String depart,
+    required String time,
+    required String cost,
+  }) {
+    final ui = AppUiColors.of(context);
+    final expanded = _chargingStopExpanded[stopIndex];
+
+    return Container(
+      padding: AppUtils.vertical10Horizontal12Padding,
+      decoration: BoxDecoration(
+        color: ui.cardBackground,
+        borderRadius: BorderRadius.circular(14.r),
+        border: Border.all(color: ui.borderSubtle),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    AppText(
+                      stationName,
+                      color: ui.textPrimary,
+                      fontSize: FontSizes.font12Sp,
+                      fontWeight: FontWeights.weight700,
+                    ),
+                    4.verticalSpace,
+                    AppText(
+                      address,
+                      color: ui.textMuted,
+                      fontSize: FontSizes.font10Sp,
+                      fontWeight: FontWeights.weight400,
+                    ),
+                  ],
+                ),
+              ),
+              4.horizontalSpace,
+              GestureDetector(
+                onTap: () => setState(() {
+                  _chargingStopExpanded[stopIndex] = !_chargingStopExpanded[stopIndex];
+                }),
+                behavior: HitTestBehavior.opaque,
+                child: Padding(
+                  padding: AppUtils.all4Padding,
+                  child: Icon(
+                    expanded ? Icons.expand_less_rounded : Icons.expand_more_rounded,
+                    size: 22.sp,
+                    color: ui.textSecondary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          12.verticalSpace,
+          Row(
+            children: [
+              Expanded(
+                child: _chargingStopMetric(
+                  context,
+                  label: 'Arrive',
+                  value: arrive,
+                  valueColor: AppColors.ratingStarColor,
+                ),
+              ),
+              Expanded(
+                child: _chargingStopMetric(
+                  context,
+                  label: 'Depart',
+                  value: depart,
+                  valueColor: AppColors.primaryDarkColor,
+                ),
+              ),
+              Expanded(
+                child: _chargingStopMetric(
+                  context,
+                  label: 'Time',
+                  value: time,
+                  valueColor: ui.textPrimary,
+                ),
+              ),
+              Expanded(
+                child: _chargingStopMetric(
+                  context,
+                  label: 'Cost',
+                  value: cost,
+                  valueColor: ui.textPrimary,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _chargingStopMetric(
+    BuildContext context, {
+    required String label,
+    required String value,
+    required Color valueColor,
+  }) {
+    final ui = AppUiColors.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        AppText(
+          label,
+          color: ui.textMuted,
+          fontSize: FontSizes.font8Sp,
+          fontWeight: FontWeights.weight400,
+        ),
+        4.verticalSpace,
+        AppText(
+          value,
+          color: valueColor,
+          fontSize: FontSizes.font10Sp,
+          fontWeight: FontWeights.weight700,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ],
     );
   }
 
