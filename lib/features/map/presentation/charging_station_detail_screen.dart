@@ -94,8 +94,53 @@ class _ChargingStationDetailScreenState
         children: [
           Expanded(
             child: CustomScrollView(
+              physics: const BouncingScrollPhysics(
+                parent: AlwaysScrollableScrollPhysics(),
+              ),
               slivers: [
-                SliverToBoxAdapter(child: _buildHero(context)),
+                SliverAppBar(
+                  expandedHeight: 280.h,
+                  pinned: true,
+                  stretch: true,
+                  backgroundColor: AppColors.blackColor,
+                  surfaceTintColor: AppColors.transparentColor,
+                  elevation: 0,
+                  scrolledUnderElevation: 0,
+                  automaticallyImplyLeading: false,
+                  leadingWidth: 56.w,
+                  leading: Padding(
+                    padding: EdgeInsets.only(left: 8.w),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: _glassCircleButton(
+                        icon: Icons.arrow_back_rounded,
+                        onTap: () => context.pop(),
+                      ),
+                    ),
+                  ),
+                  actions: [
+                    Padding(
+                      padding: EdgeInsets.only(right: 8.w),
+                      child: _glassCircleButton(
+                        icon: _favorite
+                            ? Icons.favorite_rounded
+                            : Icons.favorite_border_rounded,
+                        onTap: () => setState(() => _favorite = !_favorite),
+                        iconColor: _favorite
+                            ? AppColors.primaryDarkColor
+                            : AppColors.whiteColor,
+                      ),
+                    ),
+                  ],
+                  flexibleSpace: FlexibleSpaceBar(
+                    collapseMode: CollapseMode.parallax,
+                    stretchModes: const [
+                      StretchMode.zoomBackground,
+                      StretchMode.blurBackground,
+                    ],
+                    background: _bannerBackground(),
+                  ),
+                ),
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: AppUtils.horizontal16Padding,
@@ -194,14 +239,12 @@ class _ChargingStationDetailScreenState
     );
   }
 
-  Widget _buildHero(BuildContext context) {
-    final top = MediaQuery.paddingOf(context).top;
+  /// Banner only — [SliverAppBar] + [FlexibleSpaceBar] drive collapse / parallax.
+  Widget _bannerBackground() {
     return Stack(
-      clipBehavior: Clip.none,
+      fit: StackFit.expand,
       children: [
-        Container(
-          height: 280.h,
-          width: double.infinity,
+        DecoratedBox(
           decoration: BoxDecoration(
             image: DecorationImage(
               image: AssetImage(AppImages.chargingStationBanner),
@@ -210,9 +253,7 @@ class _ChargingStationDetailScreenState
             ),
           ),
         ),
-        Container(
-          height: 280.h,
-          width: double.infinity,
+        DecoratedBox(
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topCenter,
@@ -222,27 +263,6 @@ class _ChargingStationDetailScreenState
                 AppColors.blackColor.withValues(alpha: 0.72),
               ],
             ),
-          ),
-        ),
-        Positioned(
-          top: top + 8.h,
-          left: 16.w,
-          right: 16.w,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _glassCircleButton(
-                icon: Icons.arrow_back_rounded,
-                onTap: () => context.pop(),
-              ),
-              _glassCircleButton(
-                icon: _favorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-                onTap: () => setState(() => _favorite = !_favorite),
-                iconColor: _favorite
-                    ? AppColors.primaryDarkColor
-                    : AppColors.whiteColor,
-              ),
-            ],
           ),
         ),
       ],
