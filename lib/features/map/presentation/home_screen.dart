@@ -7,7 +7,6 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
-import 'package:orko_hubco/core/constants/app_images.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/utils/app_ui.dart';
 import 'package:orko_hubco/core/utils/helpers.dart';
@@ -168,33 +167,29 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       final dpr = MediaQuery.devicePixelRatioOf(context);
       final size = _chargingStationMarkerSize * dpr;
-
-      // Load the raw image data
-      final assetImage = AssetImage(AppImages.icChargingStation);
-      final imageStream = assetImage.resolve(
-        ImageConfiguration(devicePixelRatio: dpr),
-      );
-      final completer = Completer<ui.Image>();
-      imageStream.addListener(
-        ImageStreamListener((info, _) => completer.complete(info.image)),
-      );
-      final sourceImage = await completer.future;
-
-      // Paint onto canvas with primaryDarkColor tint
       final pictureRecorder = ui.PictureRecorder();
       final canvas = Canvas(pictureRecorder);
-      final paint = Paint()
-        ..colorFilter = ColorFilter.mode(
-          AppColors.primaryDarkColor,
-          BlendMode.srcIn,
-        );
+      final iconData = Icons.bolt_outlined;
 
-      canvas.drawImageRect(
-        sourceImage,
-        Rect.fromLTWH(0, 0, sourceImage.width.toDouble(), sourceImage.height.toDouble()),
-        Rect.fromLTWH(0, 0, size, size),
-        paint,
+      final iconPainter = TextPainter(
+        textDirection: TextDirection.ltr,
+        text: TextSpan(
+          text: String.fromCharCode(iconData.codePoint),
+          style: TextStyle(
+            fontSize: size * 0.88,
+            fontFamily: iconData.fontFamily,
+            package: iconData.fontPackage,
+            color: AppColors.primaryDarkColor,
+          ),
+        ),
       );
+      iconPainter.layout();
+
+      final iconOffset = Offset(
+        (size - iconPainter.width) / 2,
+        (size - iconPainter.height) / 2,
+      );
+      iconPainter.paint(canvas, iconOffset);
 
       final picture = pictureRecorder.endRecording();
       final image = await picture.toImage(size.toInt(), size.toInt());
