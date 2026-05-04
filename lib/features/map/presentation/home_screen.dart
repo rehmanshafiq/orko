@@ -44,9 +44,15 @@ class _HomeScreenState extends State<HomeScreen> {
 ''';
 
   GoogleMapController? _mapController;
+  Brightness? _lastAppliedBrightness;
 
-  bool _isDarkMode(BuildContext context) =>
-      Theme.of(context).brightness == Brightness.dark;
+  Future<void> _applyMapStyleForTheme(Brightness brightness) async {
+    final controller = _mapController;
+    if (controller == null) return;
+    await controller.setMapStyle(
+      brightness == Brightness.dark ? _darkMapStyle : null,
+    );
+  }
 
   /// True only after the dark style has been confirmed painted.
   /// The black cover overlay is shown whenever this is false,
@@ -71,6 +77,15 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final brightness = Theme.of(context).brightness;
+    if (_lastAppliedBrightness == brightness) return;
+    _lastAppliedBrightness = brightness;
+    unawaited(_applyMapStyleForTheme(brightness));
+  }
+
   // ── Map callbacks ─────────────────────────────────────────────────────────
 
   Future<void> _onMapCreated(GoogleMapController controller) async {
@@ -81,7 +96,9 @@ class _HomeScreenState extends State<HomeScreen> {
     await Future.delayed(const Duration(milliseconds: 50));
     if (!mounted) return;
 
-    await controller.setMapStyle(_isDarkMode(context) ? _darkMapStyle : null);
+    final brightness = Theme.of(context).brightness;
+    _lastAppliedBrightness = brightness;
+    await _applyMapStyleForTheme(brightness);
     if (!mounted) return;
 
     setState(() => _mapReady = true);
@@ -137,7 +154,7 @@ class _HomeScreenState extends State<HomeScreen> {
     });
 
     // Step 4 ── Reapply dark style; the SDK reverted it on redraw.
-    await _mapController?.setMapStyle(_isDarkMode(context) ? _darkMapStyle : null);
+    await _applyMapStyleForTheme(Theme.of(context).brightness);
     if (!mounted) return;
 
     // Step 5 ── Animate camera to first location.
