@@ -27,7 +27,8 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
 
   bool _tripPlanned = false;
   int _selectedRouteIndex = 0;
-  final List<bool> _chargingStopExpanded = [false, false];
+  /// At most one charging-stop card expanded (accordion).
+  int? _expandedChargingStopIndex;
 
   @override
   void dispose() {
@@ -644,7 +645,7 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
 
   Widget _chargingStopsSection(BuildContext context) {
     final ui = AppUiColors.of(context);
-    final lineColor = AppColors.mapPinBlueColor.withValues(alpha: ui.isLight ? 0.42 : 0.55);
+    final lineColor = AppColors.primaryDarkColor.withValues(alpha: ui.isLight ? 0.42 : 0.72);
     final startRaw = _startLocationController.text.trim();
     final destRaw = _endLocationController.text.trim();
 
@@ -803,8 +804,8 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
               child: _chargingStopCard(
                 context,
                 stopIndex: 1,
-                stationName: 'HUBCO Sukkur Station',
-                address: 'N-5 National Highway, Sukkur',
+                stationName: 'HUBCO Sukkur Fast Charge',
+                address: 'National Highway N-5, Sukkur',
                 arrive: '18%',
                 depart: '85%',
                 time: '40 min',
@@ -868,14 +869,24 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
     required String cost,
   }) {
     final ui = AppUiColors.of(context);
-    final expanded = _chargingStopExpanded[stopIndex];
+    final expanded = _expandedChargingStopIndex == stopIndex;
+
+    void toggleAccordion() {
+      setState(() {
+        _expandedChargingStopIndex =
+            expanded ? null : stopIndex;
+      });
+    }
 
     return Container(
       padding: AppUtils.vertical10Horizontal12Padding,
       decoration: BoxDecoration(
         color: ui.cardBackground,
         borderRadius: BorderRadius.circular(14.r),
-        border: Border.all(color: ui.borderSubtle),
+        border: Border.all(
+          color: AppColors.ratingStarColor.withValues(alpha: 0.95),
+          width: 1,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -890,7 +901,7 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
                     AppText(
                       stationName,
                       color: ui.textPrimary,
-                      fontSize: FontSizes.font12Sp,
+                      fontSize: FontSizes.font14Sp,
                       fontWeight: FontWeights.weight700,
                     ),
                     4.verticalSpace,
@@ -905,9 +916,7 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
               ),
               4.horizontalSpace,
               GestureDetector(
-                onTap: () => setState(() {
-                  _chargingStopExpanded[stopIndex] = !_chargingStopExpanded[stopIndex];
-                }),
+                onTap: toggleAccordion,
                 behavior: HitTestBehavior.opaque,
                 child: Padding(
                   padding: AppUtils.all4Padding,
@@ -956,6 +965,89 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
                 ),
               ),
             ],
+          ),
+          if (expanded) ...[
+            14.verticalSpace,
+            AppText(
+              'Amenities',
+              color: ui.textPrimary,
+              fontSize: FontSizes.font10Sp,
+              fontWeight: FontWeights.weight600,
+            ),
+            8.verticalSpace,
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  _chargingAmenityChip(context, icon: Icons.wifi_rounded, label: 'WiFi'),
+                  8.horizontalSpace,
+                  _chargingAmenityChip(context, icon: Icons.wc_rounded, label: 'Restroom'),
+                  8.horizontalSpace,
+                  _chargingAmenityChip(context, icon: Icons.local_cafe_rounded, label: 'Food'),
+                  8.horizontalSpace,
+                  _chargingAmenityChip(context, icon: Icons.shopping_bag_outlined, label: 'Shopping'),
+                ],
+              ),
+            ),
+            14.verticalSpace,
+            Row(
+              children: [
+                Expanded(
+                  child: PrimaryButtonWidget(
+                    text: 'View Details',
+                    onPress: () {},
+                    buttonWidth: double.infinity,
+                    buttonHeight: 40.h,
+                    cornerRadius: 8.r,
+                    buttonColor: ui.cardBackground,
+                    strokeColor: ui.inputBorder,
+                    textColor: ui.textPrimary,
+                    fontSize: FontSizes.font10Sp,
+                    fontWeight: FontWeights.weight600,
+                  ),
+                ),
+                8.horizontalSpace,
+                Expanded(
+                  child: PrimaryButtonWidget(
+                    text: 'Pre-book',
+                    onPress: () {},
+                    buttonWidth: double.infinity,
+                    buttonHeight: 40.h,
+                    cornerRadius: 8.r,
+                    buttonColor: ui.cardBackground,
+                    strokeColor: ui.inputBorder,
+                    textColor: ui.textPrimary,
+                    fontSize: FontSizes.font10Sp,
+                    fontWeight: FontWeights.weight600,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _chargingAmenityChip(BuildContext context, {required IconData icon, required String label}) {
+    final ui = AppUiColors.of(context);
+    return Container(
+      padding: AppUtils.homeStationCardPadding,
+      decoration: BoxDecoration(
+        color: ui.vehicleStatBoxBg,
+        borderRadius: BorderRadius.circular(20.r),
+        border: Border.all(color: ui.borderSubtle),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14.sp, color: ui.textPrimary),
+          6.horizontalSpace,
+          AppText(
+            label,
+            color: ui.textPrimary,
+            fontSize: FontSizes.font8Sp,
+            fontWeight: FontWeights.weight600,
           ),
         ],
       ),
