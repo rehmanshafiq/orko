@@ -5,5 +5,6 @@ class AppImages {
   static final String onboarding1 = '${imagePath}onboarding_1.png';
   static final String onboarding2 = '${imagePath}onboarding_2.png';
   static final String onboarding3 = '${imagePath}onboarding_3.png';
+  static final String icChargingStation = '${imagePath}ic_charging_station.png';
   static final String nawaTextIcon = '${iconPath}nawa_text_icon.svg';
 }

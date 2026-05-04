@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -5,6 +7,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
+import 'package:orko_hubco/core/constants/app_images.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/utils/app_ui.dart';
 import 'package:orko_hubco/core/utils/helpers.dart';
@@ -47,8 +50,15 @@ class _HomeScreenState extends State<HomeScreen> {
   /// hiding any white flash from the Google Maps SDK.
   bool _mapReady = false;
 
+  /// Drives [GoogleMap.myLocationEnabled]. Kept in sync with runtime permission
+  /// so the SDK actually paints the blue dot (it often ignores `true` until
+  /// after permission is granted and the widget rebuilds).
+  bool _mapMyLocationEnabled = false;
+
   Set<Marker> _markers = const <Marker>{};
   List<HubcoLocationEntity> _locations = const [];
+
+  BitmapDescriptor? _chargingStationIcon;
 
   // ── Lifecycle ─────────────────────────────────────────────────────────────
 
@@ -72,6 +82,30 @@ class _HomeScreenState extends State<HomeScreen> {
     if (!mounted) return;
 
     setState(() => _mapReady = true);
+
+    // Blue dot: enable native layer once location permission is known/granted.
+    unawaited(_syncMapMyLocationLayer());
+  }
+
+  /// Updates [GoogleMap.myLocationEnabled] from current Geolocator permission so
+  /// the blue “current location” dot can render.
+  Future<void> _syncMapMyLocationLayer() async {
+    if (!mounted) return;
+
+    final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      if (mounted) setState(() => _mapMyLocationEnabled = false);
+      return;
+    }
+
+    var permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+    }
+
+    final show = permission == LocationPermission.whileInUse ||
+        permission == LocationPermission.always;
+    if (mounted) setState(() => _mapMyLocationEnabled = show);
   }
 
   /// Called by BlocConsumer listener on every [MapLoaded] event.
@@ -90,10 +124,13 @@ class _HomeScreenState extends State<HomeScreen> {
     await Future.delayed(const Duration(milliseconds: 50));
     if (!mounted) return;
 
+    final stationIcon = await _resolveChargingStationIcon();
+    if (!mounted) return;
+
     // Step 3 ── Update markers. The SDK flashes white here — it's hidden.
     setState(() {
       _locations = locations;
-      _markers = locations.map(_toMarker).toSet();
+      _markers = locations.map((s) => _toMarker(s, stationIcon)).toSet();
     });
 
     // Step 4 ── Reapply dark style; the SDK reverted it on redraw.
@@ -117,6 +154,60 @@ class _HomeScreenState extends State<HomeScreen> {
 
     // Step 6 ── Reveal the now-dark map.
     setState(() => _mapReady = true);
+
+    // Map rebuild can drop the my-location layer; re-apply if still permitted.
+    unawaited(_syncMapMyLocationLayer());
+  }
+
+  static const double _chargingStationMarkerSize = 34;
+
+  Future<BitmapDescriptor?> _resolveChargingStationIcon() async {
+    if (_chargingStationIcon != null) return _chargingStationIcon;
+    if (!mounted) return null;
+    try {
+      final dpr = MediaQuery.devicePixelRatioOf(context);
+      final size = _chargingStationMarkerSize * dpr;
+
+      // Load the raw image data
+      final assetImage = AssetImage(AppImages.icChargingStation);
+      final imageStream = assetImage.resolve(
+        ImageConfiguration(devicePixelRatio: dpr),
+      );
+      final completer = Completer<ui.Image>();
+      imageStream.addListener(
+        ImageStreamListener((info, _) => completer.complete(info.image)),
+      );
+      final sourceImage = await completer.future;
+
+      // Paint onto canvas with primaryDarkColor tint
+      final pictureRecorder = ui.PictureRecorder();
+      final canvas = Canvas(pictureRecorder);
+      final paint = Paint()
+        ..colorFilter = ColorFilter.mode(
+          AppColors.primaryDarkColor,
+          BlendMode.srcIn,
+        );
+
+      canvas.drawImageRect(
+        sourceImage,
+        Rect.fromLTWH(0, 0, sourceImage.width.toDouble(), sourceImage.height.toDouble()),
+        Rect.fromLTWH(0, 0, size, size),
+        paint,
+      );
+
+      final picture = pictureRecorder.endRecording();
+      final image = await picture.toImage(size.toInt(), size.toInt());
+      final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+
+      if (byteData == null) return null;
+
+      final icon = BitmapDescriptor.fromBytes(byteData.buffer.asUint8List());
+      _chargingStationIcon = icon;
+      return icon;
+    } catch (e, st) {
+      debugPrint('❌ Marker icon failed: $e\n$st');
+      return null;
+    }
   }
 
   /// Centers the map on the device location (same idea as Google Maps’ target button).
@@ -151,6 +242,8 @@ class _HomeScreenState extends State<HomeScreen> {
       }
       return;
     }
+
+    if (mounted) setState(() => _mapMyLocationEnabled = true);
 
     try {
       final position = await Geolocator.getCurrentPosition();
@@ -210,7 +303,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     compassEnabled: false,
                     mapToolbarEnabled: false,
                     myLocationButtonEnabled: false,
-                    myLocationEnabled: true,
+                    myLocationEnabled: _mapMyLocationEnabled,
                     zoomControlsEnabled: false,
                     buildingsEnabled: true,
                     markers: _markers,
@@ -468,10 +561,11 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Marker _toMarker(HubcoLocationEntity station) {
+  Marker _toMarker(HubcoLocationEntity station, BitmapDescriptor? icon) {
     return Marker(
       markerId: MarkerId(station.id.toString()),
       position: LatLng(station.latitude, station.longitude),
+      icon: icon ?? BitmapDescriptor.defaultMarker,
       infoWindow: InfoWindow(title: station.name),
       onTap: () => _showStationDialog(station),
     );
