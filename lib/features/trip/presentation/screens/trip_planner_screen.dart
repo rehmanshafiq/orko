@@ -171,13 +171,27 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
   }
 
   Widget _evDetailsCard(BuildContext context) {
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _metric(context, icon: Icons.battery_6_bar_rounded, value: '60%', label: 'current charge'),
-        12.horizontalSpace,
-        _metric(context, icon: Icons.electric_car_rounded, value: 'Tesla', label: 'Model 3'),
-        12.horizontalSpace,
-        _metric(context, icon: Icons.route_rounded, value: '280 km', label: 'range'),
+        Row(
+          children: [
+            _metric(context, icon: Icons.electric_car_rounded, value: 'BYD', label: 'Atto 3'),
+            8.horizontalSpace,
+            _metric(context, icon: Icons.route_rounded, value: '280 km', label: 'range'),
+          ],
+        ),
+        12.verticalSpace,
+        Row(
+          children: [
+            _metric(
+              context,
+              icon: Icons.battery_6_bar_rounded,
+              value: '60%',
+              label: 'current charge',
+            ),
+          ],
+        ),
       ],
     );
   }
