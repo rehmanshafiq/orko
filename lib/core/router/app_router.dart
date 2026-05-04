@@ -17,7 +17,9 @@ import 'package:orko_hubco/features/map/presentation/home_screen.dart';
 import 'package:orko_hubco/features/map/presentation/cubit/map_cubit.dart';
 import 'package:orko_hubco/features/onboarding/presentation/bloc/onboarding_cubit.dart';
 import 'package:orko_hubco/features/onboarding/presentation/page/onboarding_page.dart';
+import 'package:orko_hubco/features/profile/presentation/cubit/profile_cubit.dart';
 import 'package:orko_hubco/features/profile/presentation/screens/charging_status_screen.dart';
+import 'package:orko_hubco/features/profile/presentation/screens/profile_screen.dart';
 import 'package:orko_hubco/features/search/presentation/screens/search_screen.dart';
 import 'package:orko_hubco/features/splash/presentation/page/splash_page.dart';
 import 'package:orko_hubco/features/trip/presentation/screens/trip_planner_screen.dart';
@@ -29,10 +31,11 @@ import 'package:orko_hubco/features/trip/presentation/screens/trip_planner_scree
 ///   /register   → RegisterScreen
 ///   /home       → BottomNavShell
 ///     ├── /home          → HomeScreen     (tab 0)
-///     ├── /search        → SearchScreen   (tab 1)
+///     ├── /account       → ProfileScreen  (tab 1)
 ///     ├── /bookings      → BookASlotScreen (tab 2)
 ///     ├── /trip          → TripPlannerScreen (tab 3)
 ///     └── /profile       → ChargingStatusScreen (tab 4)
+///   /search              → SearchScreen (modal stack from map search bar)
 class AppRouter {
   AppRouter._();
 
@@ -110,6 +113,13 @@ class AppRouter {
         },
       ),
 
+      GoRoute(
+        path: '/search',
+        name: 'search',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const SearchScreen(),
+      ),
+
       // ── Main Shell (Bottom Nav) ─────────────────────────────────────
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {
@@ -135,13 +145,16 @@ class AppRouter {
             ],
           ),
 
-          // Tab 1: Search
+          // Tab 1: Profile (account)
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: '/search',
-                name: 'search',
-                builder: (context, state) => const SearchScreen(),
+                path: '/account',
+                name: 'account',
+                builder: (context, state) => BlocProvider(
+                  create: (_) => sl<ProfileCubit>()..loadProfile(),
+                  child: const ProfileScreen(),
+                ),
               ),
             ],
           ),

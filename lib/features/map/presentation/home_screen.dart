@@ -414,42 +414,49 @@ class _HomeScreenState extends State<HomeScreen> {
     return Row(
       children: [
         Expanded(
-          child: Container(
-            padding: AppUtils.homeTopSearchPadding,
-            decoration: BoxDecoration(
-              color: AppColors.greyColor.withValues(alpha: 0.20),
+          child: Material(
+            color: AppColors.transparentColor,
+            child: InkWell(
+              onTap: () => context.push('/search'),
               borderRadius: BorderRadius.circular(10.r),
-              border: Border.all(
-                color: AppColors.whiteColor.withValues(alpha: 0.12),
+              child: Ink(
+                padding: AppUtils.homeTopSearchPadding,
+                decoration: BoxDecoration(
+                  color: AppColors.greyColor.withValues(alpha: 0.20),
+                  borderRadius: BorderRadius.circular(10.r),
+                  border: Border.all(
+                    color: AppColors.whiteColor.withValues(alpha: 0.12),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.search,
+                      color: AppColors.whiteColor.withValues(alpha: 0.4),
+                      size: 22,
+                    ),
+                    8.horizontalSpace,
+                    Expanded(
+                      child: AppText(
+                        'Search stations or locations',
+                        color: AppColors.whiteColor.withValues(alpha: 0.4),
+                        fontSize: FontSizes.font14Sp,
+                        fontWeight: FontWeights.weight400,
+                      ),
+                    ),
+                    8.horizontalSpace,
+                    _topActionIcon(
+                      Icons.tune_rounded,
+                      isPrimary: true,
+                      isCompact: true,
+                      onTap: () => MapFiltersBottomSheet.show(
+                        context,
+                        stationCount: _locations.length,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.search,
-                  color: AppColors.whiteColor.withValues(alpha: 0.4),
-                  size: 22,
-                ),
-                8.horizontalSpace,
-                Expanded(
-                  child: AppText(
-                    'Search stations or locations',
-                    color: AppColors.whiteColor.withValues(alpha: 0.4),
-                    fontSize: FontSizes.font14Sp,
-                    fontWeight: FontWeights.weight400,
-                  ),
-                ),
-                8.horizontalSpace,
-                _topActionIcon(
-                  Icons.tune_rounded,
-                  isPrimary: true,
-                  isCompact: true,
-                  onTap: () => MapFiltersBottomSheet.show(
-                    context,
-                    stationCount: _locations.length,
-                  ),
-                ),
-              ],
             ),
           ),
         ),

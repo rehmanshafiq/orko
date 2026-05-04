@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/utils/app_ui.dart';
@@ -17,7 +18,7 @@ class SearchScreen extends StatelessWidget {
           padding: AppUtils.horizontal16Padding,
           children: [
             8.verticalSpace,
-            _searchBar(),
+            _searchBar(context),
             16.verticalSpace,
             _sectionTitle('Recent Searches'),
             10.verticalSpace,
@@ -61,7 +62,7 @@ class SearchScreen extends StatelessWidget {
     );
   }
 
-  Widget _searchBar() {
+  Widget _searchBar(BuildContext context) {
     return Container(
       padding: AppUtils.vertical10Horizontal12Padding,
       decoration: BoxDecoration(
@@ -78,8 +79,17 @@ class SearchScreen extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(Icons.arrow_back_rounded, color: AppColors.whiteColor.withValues(alpha: 0.8), size: 18.sp),
-          10.horizontalSpace,
+          IconButton(
+            padding: EdgeInsets.zero,
+            constraints: BoxConstraints.tightFor(width: 32.w, height: 32.h),
+            onPressed: () => context.pop(),
+            icon: Icon(
+              Icons.arrow_back_rounded,
+              color: AppColors.whiteColor.withValues(alpha: 0.8),
+              size: 18.sp,
+            ),
+          ),
+          4.horizontalSpace,
           Expanded(
             child: AppText(
               'Search stations or locations',
@@ -88,8 +98,17 @@ class SearchScreen extends StatelessWidget {
               fontWeight: FontWeights.weight400,
             ),
           ),
-          10.horizontalSpace,
-          Icon(Icons.close_rounded, color: AppColors.whiteColor.withValues(alpha: 0.65), size: 18.sp),
+          4.horizontalSpace,
+          IconButton(
+            padding: EdgeInsets.zero,
+            constraints: BoxConstraints.tightFor(width: 32.w, height: 32.h),
+            onPressed: () => context.pop(),
+            icon: Icon(
+              Icons.close_rounded,
+              color: AppColors.whiteColor.withValues(alpha: 0.65),
+              size: 18.sp,
+            ),
+          ),
         ],
       ),
     );

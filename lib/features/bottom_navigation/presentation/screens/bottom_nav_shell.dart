@@ -48,13 +48,6 @@ class BottomNavShell extends StatelessWidget {
                   activeBackground: true,
                 ),
                 _buildNavItem(
-                  icon: Icons.search_rounded,
-                  label: 'Search',
-                  isActive: navigationShell.currentIndex == 1,
-                  onTap: () => _onTapBranch(1),
-                  activeBackground: true,
-                ),
-                _buildNavItem(
                   icon: Icons.calendar_today_outlined,
                   label: 'Bookings',
                   isActive: navigationShell.currentIndex == 2,
@@ -69,10 +62,17 @@ class BottomNavShell extends StatelessWidget {
                   activeBackground: true,
                 ),
                 _buildNavItem(
-                  icon: Icons.person_outline_rounded,
+                  icon: Icons.bolt_outlined,
                   label: 'Charging',
                   isActive: navigationShell.currentIndex == 4,
                   onTap: () => _onTapBranch(4),
+                  activeBackground: true,
+                ),
+                _buildNavItem(
+                  icon: Icons.person_outline_rounded,
+                  label: 'Profile',
+                  isActive: navigationShell.currentIndex == 1,
+                  onTap: () => _onTapBranch(1),
                   activeBackground: true,
                 ),
               ],
