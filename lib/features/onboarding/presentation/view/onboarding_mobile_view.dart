@@ -41,9 +41,10 @@ class _OnboardingMobileViewState extends State<OnboardingMobileView> {
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.sizeOf(context).height;
+    final ui = AppUiColors.of(context);
 
     return Scaffold(
-      backgroundColor: AppUiColors.of(context).scaffoldBackground,
+      backgroundColor: ui.scaffoldBackground,
       body: SafeArea(
         child: BlocConsumer<OnboardingCubit, OnboardingState>(
           listener: (context, state) {
@@ -66,7 +67,7 @@ class _OnboardingMobileViewState extends State<OnboardingMobileView> {
               return Center(
                 child: AppText(
                   'No onboarding data found',
-                  color: AppColors.whiteColor.withValues(alpha: 0.7),
+                  color: ui.textMuted,
                 ),
               );
             }
@@ -89,7 +90,7 @@ class _OnboardingMobileViewState extends State<OnboardingMobileView> {
                                 : () => _onSkipOrGetStarted(context),
                         child: AppText(
                           'Skip',
-                          color: AppColors.whiteColor.withValues(alpha: 0.7),
+                          color: ui.textMuted,
                           fontSize: FontSizes.font15Sp,
                           fontWeight: FontWeights.weight500,
                         ),
@@ -107,6 +108,8 @@ class _OnboardingMobileViewState extends State<OnboardingMobileView> {
                         return _OnboardingSlide(
                           item: item,
                           imageHeight: screenHeight * 0.42,
+                          textColor: ui.textPrimary,
+                          descriptionColor: ui.textMuted,
                         );
                       },
                     ),
@@ -148,10 +151,14 @@ class _OnboardingSlide extends StatelessWidget {
   const _OnboardingSlide({
     required this.item,
     required this.imageHeight,
+    required this.textColor,
+    required this.descriptionColor,
   });
 
   final OnboardingItemEntity item;
   final double imageHeight;
+  final Color textColor;
+  final Color descriptionColor;
 
   @override
   Widget build(BuildContext context) {
@@ -170,7 +177,7 @@ class _OnboardingSlide extends StatelessWidget {
         AppText(
           item.title,
           textAlign: TextAlign.center,
-          color: AppColors.whiteColor,
+          color: textColor,
           fontSize: FontSizes.font30Sp,
           fontWeight: FontWeight.bold,
         ),
@@ -178,7 +185,7 @@ class _OnboardingSlide extends StatelessWidget {
         AppText(
           item.description,
           textAlign: TextAlign.center,
-          color: AppColors.whiteColor.withValues(alpha: 0.6),
+          color: descriptionColor,
           fontSize: FontSizes.font16Sp,
           fontWeight: FontWeights.weight400,
         ),
@@ -198,6 +205,7 @@ class _PageIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ui = AppUiColors.of(context);
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: List.generate(
@@ -211,7 +219,7 @@ class _PageIndicator extends StatelessWidget {
             shape: BoxShape.circle,
             color: index == activeIndex
                 ? AppColors.primaryLightColor
-                : AppColors.whiteColor.withValues(alpha: 0.35),
+                : ui.textSecondary.withValues(alpha: 0.45),
           ),
         ),
       ),

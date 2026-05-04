@@ -167,8 +167,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      AppColors.primaryDarkColor.withOpacity(0.28),
-                      AppColors.primaryDarkColor.withOpacity(0.02),
+                      AppColors.primaryDarkColor.withValues(alpha: 0.28),
+                      AppColors.primaryDarkColor.withValues(alpha: 0.02),
                     ],
                   ),
                 ),
@@ -180,7 +180,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.primaryDarkColor.withOpacity(0.45),
+                      color: AppColors.primaryDarkColor.withValues(alpha: 0.45),
                       blurRadius: 22,
                       spreadRadius: 3,
                     ),
@@ -389,7 +389,7 @@ class _LoginScreenState extends State<LoginScreen> {
         borderRadius: BorderRadius.circular(12.r),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primaryDarkColor.withOpacity(0.35),
+            color: AppColors.primaryDarkColor.withValues(alpha: 0.35),
             blurRadius: 14,
             spreadRadius: 1,
             offset: const Offset(0, 6),
