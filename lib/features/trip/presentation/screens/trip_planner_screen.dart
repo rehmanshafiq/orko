@@ -19,17 +19,21 @@ class TripPlannerScreen extends StatefulWidget {
 
 class _TripPlannerScreenState extends State<TripPlannerScreen> {
   static const LatLng _mapCenter = LatLng(32.1156, 73.2707);
+
   /// 100% state of charge = 380 km usable range.
   static const double _kmPerPercentCharge = 3.8;
 
-  final TextEditingController _startLocationController = TextEditingController(text: 'Karachi');
-  final TextEditingController _endLocationController = TextEditingController(text: 'Islamabad');
+  final TextEditingController _startLocationController =
+      TextEditingController(text: 'Karachi');
+  final TextEditingController _endLocationController =
+      TextEditingController(text: 'Islamabad');
 
   double _currentBatteryPercent = 60;
   double _targetArrivalBatteryPercent = 20;
 
   bool _tripPlanned = false;
   int _selectedRouteIndex = 0;
+
   /// At most one charging-stop card expanded (accordion).
   int? _expandedChargingStopIndex;
 
@@ -39,6 +43,7 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
     _endLocationController.dispose();
     super.dispose();
   }
+
   static const String _darkMapStyle = '''
 [
   {"elementType":"geometry","stylers":[{"color":"#101828"}]},
@@ -66,9 +71,11 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
             10.verticalSpace,
             _header(context),
             16.verticalSpace,
-            _locationField(context, controller: _startLocationController, isStart: true),
+            _locationField(context,
+                controller: _startLocationController, isStart: true),
             8.verticalSpace,
-            _locationField(context, controller: _endLocationController, isStart: false),
+            _locationField(context,
+                controller: _endLocationController, isStart: false),
             14.verticalSpace,
             _sectionTitle(context, 'EV Details'),
             10.verticalSpace,
@@ -146,7 +153,8 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
           Expanded(
             child: TextField(
               controller: controller,
-              textInputAction: isStart ? TextInputAction.next : TextInputAction.done,
+              textInputAction:
+                  isStart ? TextInputAction.next : TextInputAction.done,
               keyboardType: TextInputType.streetAddress,
               style: TextStyle(
                 color: ui.textPrimary.withValues(alpha: 0.9),
@@ -184,9 +192,13 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
       children: [
         Row(
           children: [
-            _metric(context, icon: Icons.electric_car_rounded, value: 'BYD', label: 'Atto 3'),
+            _metric(context,
+                icon: Icons.electric_car_rounded,
+                value: 'BYD',
+                label: 'Atto 3'),
             8.horizontalSpace,
-            _metric(context, icon: Icons.route_rounded, value: '280 km', label: 'range'),
+            _metric(context,
+                icon: Icons.route_rounded, value: '280 km', label: 'range'),
           ],
         ),
         12.verticalSpace,
@@ -206,7 +218,8 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
 
   Widget _batteryChargeSliders(BuildContext context) {
     final ui = AppUiColors.of(context);
-    final usableRangeKm = (_currentBatteryPercent * _kmPerPercentCharge).round();
+    final usableRangeKm =
+        (_currentBatteryPercent * _kmPerPercentCharge).round();
 
     return Container(
       padding: AppUtils.horizontal8Vertical8Padding,
@@ -283,7 +296,8 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
               min: 0,
               max: 100,
               divisions: 100,
-              onChanged: (v) => setState(() => _targetArrivalBatteryPercent = v),
+              onChanged: (v) =>
+                  setState(() => _targetArrivalBatteryPercent = v),
             ),
           ),
         ],
@@ -389,7 +403,8 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
                     shape: BoxShape.circle,
                   ),
                   alignment: Alignment.center,
-                  child: Icon(leadingIcon, color: leadingIconColor, size: 20.sp),
+                  child:
+                      Icon(leadingIcon, color: leadingIconColor, size: 20.sp),
                 ),
                 10.horizontalSpace,
                 Expanded(
@@ -492,7 +507,8 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
     );
   }
 
-  Widget _metric(BuildContext context, {required IconData icon, required String value, required String label}) {
+  Widget _metric(BuildContext context,
+      {required IconData icon, required String value, required String label}) {
     final ui = AppUiColors.of(context);
     return Expanded(
       child: Container(
@@ -539,7 +555,7 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
     ];
 
     return Container(
-      height: 172.h,
+      height: 212.h,
       decoration: BoxDecoration(
         color: ui.cardBackground,
         borderRadius: BorderRadius.circular(12.r),
@@ -566,20 +582,17 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
                 zoomGesturesEnabled: false,
                 markers: {
                   Marker(
-                    markerId: const MarkerId('start'),
-                    position: routePoints.first,
-                    icon: BitmapDescriptor.defaultMarker
-                  ),
+                      markerId: const MarkerId('start'),
+                      position: routePoints.first,
+                      icon: BitmapDescriptor.defaultMarker),
                   Marker(
-                    markerId: const MarkerId('stop-1'),
-                    position: routePoints[1],
-                    icon: BitmapDescriptor.defaultMarker
-                  ),
+                      markerId: const MarkerId('stop-1'),
+                      position: routePoints[1],
+                      icon: BitmapDescriptor.defaultMarker),
                   Marker(
-                    markerId: const MarkerId('stop-2'),
-                    position: routePoints[2],
-                    icon: BitmapDescriptor.defaultMarker
-                  ),
+                      markerId: const MarkerId('stop-2'),
+                      position: routePoints[2],
+                      icon: BitmapDescriptor.defaultMarker),
                 },
                 polylines: {
                   Polyline(
@@ -649,7 +662,8 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
 
   Widget _chargingStopsSection(BuildContext context) {
     final ui = AppUiColors.of(context);
-    final lineColor = AppColors.primaryDarkColor.withValues(alpha: ui.isLight ? 0.42 : 0.72);
+    final lineColor =
+        AppColors.primaryDarkColor.withValues(alpha: ui.isLight ? 0.42 : 0.72);
     final startRaw = _startLocationController.text.trim();
     final destRaw = _endLocationController.text.trim();
 
@@ -768,45 +782,46 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
       children: [
         IntrinsicHeight(
           child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: rail,
-              alignment: Alignment.topCenter,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  circleNode(
-                    backgroundColor: AppColors.primaryDarkColor,
-                    child: Icon(Icons.location_on_rounded, size: 12.sp, color: AppColors.whiteColor),
-                  ),
-                  4.verticalSpace,
-                  flexibleConnector(),
-                ],
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: rail,
+                alignment: Alignment.topCenter,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    circleNode(
+                      backgroundColor: AppColors.primaryDarkColor,
+                      child: Icon(Icons.location_on_rounded,
+                          size: 12.sp, color: AppColors.whiteColor),
+                    ),
+                    4.verticalSpace,
+                    flexibleConnector(),
+                  ],
+                ),
               ),
-            ),
-            10.horizontalSpace,
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  AppText(
-                    startTitle,
-                    color: ui.textPrimary,
-                    fontSize: FontSizes.font14Sp,
-                    fontWeight: FontWeights.weight700,
-                  ),
-                  4.verticalSpace,
-                  AppText(
-                    'Starting point • $startBattery% battery',
-                    color: ui.textMuted,
-                    fontSize: FontSizes.font10Sp,
-                    fontWeight: FontWeights.weight400,
-                  ),
-                ],
+              10.horizontalSpace,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    AppText(
+                      startTitle,
+                      color: ui.textPrimary,
+                      fontSize: FontSizes.font14Sp,
+                      fontWeight: FontWeights.weight700,
+                    ),
+                    4.verticalSpace,
+                    AppText(
+                      'Starting point • $startBattery% battery',
+                      color: ui.textMuted,
+                      fontSize: FontSizes.font10Sp,
+                      fontWeight: FontWeights.weight400,
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
           ),
         ),
         Row(
@@ -822,37 +837,38 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
         ),
         IntrinsicHeight(
           child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: rail,
-              alignment: Alignment.topCenter,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  flexibleConnector(),
-                  circleNode(
-                    backgroundColor: AppColors.ratingStarColor,
-                    child: Icon(Icons.bolt_rounded, size: 12.sp, color: AppColors.whiteColor),
-                  ),
-                  flexibleConnector(),
-                ],
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: rail,
+                alignment: Alignment.topCenter,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    flexibleConnector(),
+                    circleNode(
+                      backgroundColor: AppColors.ratingStarColor,
+                      child: Icon(Icons.bolt_rounded,
+                          size: 12.sp, color: AppColors.whiteColor),
+                    ),
+                    flexibleConnector(),
+                  ],
+                ),
               ),
-            ),
-            10.horizontalSpace,
-            Expanded(
-              child: _chargingStopCard(
-                context,
-                stopIndex: 0,
-                stationName: 'HUBCO Hyderabad Station',
-                address: 'M-9 Motorway, Hyderabad',
-                arrive: '25%',
-                depart: '80%',
-                time: '35 min',
-                cost: 'PKR 1400',
+              10.horizontalSpace,
+              Expanded(
+                child: _chargingStopCard(
+                  context,
+                  stopIndex: 0,
+                  stationName: 'HUBCO Hyderabad Station',
+                  address: 'M-9 Motorway, Hyderabad',
+                  arrive: '25%',
+                  depart: '80%',
+                  time: '35 min',
+                  cost: 'PKR 1400',
+                ),
               ),
-            ),
-          ],
+            ],
           ),
         ),
         Row(
@@ -868,37 +884,38 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
         ),
         IntrinsicHeight(
           child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: rail,
-              alignment: Alignment.topCenter,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  flexibleConnector(),
-                  circleNode(
-                    backgroundColor: AppColors.ratingStarColor,
-                    child: Icon(Icons.bolt_rounded, size: 12.sp, color: AppColors.whiteColor),
-                  ),
-                  flexibleConnector(),
-                ],
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: rail,
+                alignment: Alignment.topCenter,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    flexibleConnector(),
+                    circleNode(
+                      backgroundColor: AppColors.ratingStarColor,
+                      child: Icon(Icons.bolt_rounded,
+                          size: 12.sp, color: AppColors.whiteColor),
+                    ),
+                    flexibleConnector(),
+                  ],
+                ),
               ),
-            ),
-            10.horizontalSpace,
-            Expanded(
-              child: _chargingStopCard(
-                context,
-                stopIndex: 1,
-                stationName: 'HUBCO Sukkur Fast Charge',
-                address: 'National Highway N-5, Sukkur',
-                arrive: '18%',
-                depart: '85%',
-                time: '40 min',
-                cost: 'PKR 1800',
+              10.horizontalSpace,
+              Expanded(
+                child: _chargingStopCard(
+                  context,
+                  stopIndex: 1,
+                  stationName: 'HUBCO Sukkur Fast Charge',
+                  address: 'National Highway N-5, Sukkur',
+                  arrive: '18%',
+                  depart: '85%',
+                  time: '40 min',
+                  cost: 'PKR 1800',
+                ),
               ),
-            ),
-          ],
+            ],
           ),
         ),
         Row(
@@ -914,44 +931,45 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
         ),
         IntrinsicHeight(
           child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: rail,
-              alignment: Alignment.topCenter,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  flexibleConnector(),
-                  circleNode(
-                    backgroundColor: AppColors.primaryLightColor,
-                    child: Icon(Icons.navigation_rounded, size: 11.sp, color: AppColors.whiteColor),
-                  ),
-                ],
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: rail,
+                alignment: Alignment.topCenter,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    flexibleConnector(),
+                    circleNode(
+                      backgroundColor: AppColors.primaryLightColor,
+                      child: Icon(Icons.navigation_rounded,
+                          size: 11.sp, color: AppColors.whiteColor),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            10.horizontalSpace,
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  AppText(
-                    destTitle,
-                    color: ui.textPrimary,
-                    fontSize: FontSizes.font14Sp,
-                    fontWeight: FontWeights.weight700,
-                  ),
-                  4.verticalSpace,
-                  AppText(
-                    'Destination • $destBattery% battery remaining',
-                    color: ui.textMuted,
-                    fontSize: FontSizes.font10Sp,
-                    fontWeight: FontWeights.weight400,
-                  ),
-                ],
+              10.horizontalSpace,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    AppText(
+                      destTitle,
+                      color: ui.textPrimary,
+                      fontSize: FontSizes.font14Sp,
+                      fontWeight: FontWeights.weight700,
+                    ),
+                    4.verticalSpace,
+                    AppText(
+                      'Destination • $destBattery% battery remaining',
+                      color: ui.textMuted,
+                      fontSize: FontSizes.font10Sp,
+                      fontWeight: FontWeights.weight400,
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
           ),
         ),
       ],
@@ -973,8 +991,7 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
 
     void toggleAccordion() {
       setState(() {
-        _expandedChargingStopIndex =
-            expanded ? null : stopIndex;
+        _expandedChargingStopIndex = expanded ? null : stopIndex;
       });
     }
 
@@ -1021,7 +1038,9 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
                 child: Padding(
                   padding: AppUtils.all4Padding,
                   child: Icon(
-                    expanded ? Icons.expand_less_rounded : Icons.expand_more_rounded,
+                    expanded
+                        ? Icons.expand_less_rounded
+                        : Icons.expand_more_rounded,
                     size: 22.sp,
                     color: ui.textSecondary,
                   ),
@@ -1079,13 +1098,17 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
               scrollDirection: Axis.horizontal,
               child: Row(
                 children: [
-                  _chargingAmenityChip(context, icon: Icons.wifi_rounded, label: 'WiFi'),
+                  _chargingAmenityChip(context,
+                      icon: Icons.wifi_rounded, label: 'WiFi'),
                   8.horizontalSpace,
-                  _chargingAmenityChip(context, icon: Icons.wc_rounded, label: 'Restroom'),
+                  _chargingAmenityChip(context,
+                      icon: Icons.wc_rounded, label: 'Restroom'),
                   8.horizontalSpace,
-                  _chargingAmenityChip(context, icon: Icons.local_cafe_rounded, label: 'Food'),
+                  _chargingAmenityChip(context,
+                      icon: Icons.local_cafe_rounded, label: 'Food'),
                   8.horizontalSpace,
-                  _chargingAmenityChip(context, icon: Icons.shopping_bag_outlined, label: 'Shopping'),
+                  _chargingAmenityChip(context,
+                      icon: Icons.shopping_bag_outlined, label: 'Shopping'),
                 ],
               ),
             ),
@@ -1163,7 +1186,8 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
     );
   }
 
-  Widget _chargingAmenityChip(BuildContext context, {required IconData icon, required String label}) {
+  Widget _chargingAmenityChip(BuildContext context,
+      {required IconData icon, required String label}) {
     final ui = AppUiColors.of(context);
     return Container(
       padding: AppUtils.homeStationCardPadding,
@@ -1224,7 +1248,8 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
       decoration: BoxDecoration(
         color: ui.cardBackground,
         borderRadius: BorderRadius.circular(10.r),
-        border: Border.all(color: AppColors.mapPinBlueColor.withValues(alpha: 0.8)),
+        border:
+            Border.all(color: AppColors.mapPinBlueColor.withValues(alpha: 0.8)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1339,6 +1364,4 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
       ],
     );
   }
-
-
 }
