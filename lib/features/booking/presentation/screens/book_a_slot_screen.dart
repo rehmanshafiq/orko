@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/utils/app_ui.dart';
@@ -473,7 +474,7 @@ class BookASlotScreen extends StatelessWidget {
           16.verticalSpace,
           PrimaryButtonWidget(
             text: 'Continue to Payment',
-            onPress: () {},
+            onPress: () => context.push('/payment-method'),
             buttonColor: AppColors.primaryLightColor,
             fontWeight: FontWeights.weight700,
             fontSize: FontSizes.font15Sp,
