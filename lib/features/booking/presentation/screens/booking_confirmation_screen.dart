@@ -23,8 +23,9 @@ class BookingConfirmationScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ui = AppUiColors.of(context);
     return Scaffold(
-      backgroundColor: AppUiColors.of(context).scaffoldBackground,
+      backgroundColor: ui.scaffoldBackground,
       body: SafeArea(
         child: Column(
           children: [
@@ -54,7 +55,7 @@ class BookingConfirmationScreen extends StatelessWidget {
                     22.verticalSpace,
                     AppText(
                       'Booking Confirmed!',
-                      color: AppColors.whiteColor,
+                      color: ui.textPrimary,
                       fontSize: FontSizes.font24Sp,
                       fontWeight: FontWeights.weight700,
                       textAlign: TextAlign.center,
@@ -62,7 +63,7 @@ class BookingConfirmationScreen extends StatelessWidget {
                     10.verticalSpace,
                     AppText(
                       'Your charging slot is reserved. A receipt has been sent to your email.',
-                      color: AppColors.iconsGreyColor,
+                      color: ui.textSecondary,
                       fontSize: FontSizes.font14Sp,
                       fontWeight: FontWeights.weight400,
                       textAlign: TextAlign.center,
@@ -72,30 +73,35 @@ class BookingConfirmationScreen extends StatelessWidget {
                       width: double.infinity,
                       padding: AppUtils.all18Padding,
                       decoration: BoxDecoration(
-                        color: AppColors.fieldBackgroundColor,
+                        color: ui.cardBackground,
                         borderRadius: BorderRadius.circular(14.r),
                         border: Border.all(
-                          color: AppColors.whiteColor.withValues(alpha: 0.08),
+                          color: ui.borderSubtle,
                         ),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _detailRow('Booking ID', _bookingRef, emphasizeValue: true),
+                          _detailRow(
+                            context,
+                            'Booking ID',
+                            _bookingRef,
+                            emphasizeValue: true,
+                          ),
                           14.verticalSpace,
                           Divider(
                             height: 1,
                             thickness: 1,
-                            color: AppColors.whiteColor.withValues(alpha: 0.08),
+                            color: ui.borderSubtle,
                           ),
                           14.verticalSpace,
-                          _detailRow('Station', _stationName),
+                          _detailRow(context, 'Station', _stationName),
                           12.verticalSpace,
-                          _detailRow('Slot', _slotLabel),
+                          _detailRow(context, 'Slot', _slotLabel),
                           12.verticalSpace,
-                          _detailRow('Amount paid', 'Rs $amountPaid'),
+                          _detailRow(context, 'Amount paid', 'Rs $amountPaid'),
                           12.verticalSpace,
-                          _detailRow('Payment', _paymentLabel),
+                          _detailRow(context, 'Payment', _paymentLabel),
                         ],
                       ),
                     ),
@@ -124,7 +130,7 @@ class BookingConfirmationScreen extends StatelessWidget {
                           Expanded(
                             child: AppText(
                               'Arrive 5 minutes early. You can modify or cancel from Bookings before your slot starts.',
-                              color: AppColors.whiteColor.withValues(alpha: 0.88),
+                              color: ui.textPrimary.withValues(alpha: 0.88),
                               fontSize: FontSizes.font12Sp,
                               fontWeight: FontWeights.weight400,
                             ),
@@ -160,10 +166,12 @@ class BookingConfirmationScreen extends StatelessWidget {
   }
 
   Widget _detailRow(
+    BuildContext context,
     String label,
     String value, {
     bool emphasizeValue = false,
   }) {
+    final ui = AppUiColors.of(context);
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -171,7 +179,7 @@ class BookingConfirmationScreen extends StatelessWidget {
           flex: 2,
           child: AppText(
             label,
-            color: AppColors.iconsGreyColor,
+            color: ui.textSecondary,
             fontSize: FontSizes.font12Sp,
             fontWeight: FontWeights.weight500,
           ),
@@ -183,7 +191,7 @@ class BookingConfirmationScreen extends StatelessWidget {
             value,
             color: emphasizeValue
                 ? AppColors.primaryDarkColor
-                : AppColors.whiteColor,
+                : ui.textPrimary,
             fontSize: FontSizes.font14Sp,
             fontWeight: emphasizeValue
                 ? FontWeights.weight700

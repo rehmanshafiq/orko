@@ -129,7 +129,7 @@ class _ChargingStationDetailScreenState
                         onTap: () => setState(() => _favorite = !_favorite),
                         iconColor: _favorite
                             ? AppColors.primaryDarkColor
-                            : AppColors.whiteColor,
+                            : ui.textPrimary,
                       ),
                     ),
                   ],
@@ -151,14 +151,14 @@ class _ChargingStationDetailScreenState
                         16.verticalSpace,
                         AppText(
                           station.name,
-                          color: AppColors.whiteColor,
+                          color: ui.textPrimary,
                           fontSize: FontSizes.font22Sp,
                           fontWeight: FontWeights.weight700,
                         ),
                         6.verticalSpace,
                         AppText(
                           station.address,
-                          color: AppColors.iconsGreyColor,
+                          color: ui.textSecondary,
                           fontSize: FontSizes.font12Sp,
                           fontWeight: FontWeights.weight400,
                           maxLines: 2,
@@ -169,7 +169,7 @@ class _ChargingStationDetailScreenState
                         22.verticalSpace,
                         AppText(
                           'Charger Ports',
-                          color: AppColors.whiteColor,
+                          color: ui.textPrimary,
                           fontSize: FontSizes.font16Sp,
                           fontWeight: FontWeights.weight700,
                         ),
@@ -178,7 +178,7 @@ class _ChargingStationDetailScreenState
                         22.verticalSpace,
                         AppText(
                           'Amenities',
-                          color: AppColors.whiteColor,
+                          color: ui.textPrimary,
                           fontSize: FontSizes.font16Sp,
                           fontWeight: FontWeights.weight700,
                         ),
@@ -187,40 +187,40 @@ class _ChargingStationDetailScreenState
                         22.verticalSpace,
                         AppText(
                           'Operating Hours',
-                          color: AppColors.whiteColor,
+                          color: ui.textPrimary,
                           fontSize: FontSizes.font16Sp,
                           fontWeight: FontWeights.weight700,
                         ),
                         6.verticalSpace,
                         AppText(
                           '24 hours 7 days',
-                          color: AppColors.iconsGreyColor,
+                          color: ui.textSecondary,
                           fontSize: FontSizes.font14Sp,
                           fontWeight: FontWeights.weight400,
                         ),
                         16.verticalSpace,
                         Divider(
                           height: 1,
-                          color: AppColors.whiteColor.withValues(alpha: 0.08),
+                          color: ui.borderSubtle,
                         ),
                         16.verticalSpace,
                         AppText(
                           'Pricing',
-                          color: AppColors.whiteColor,
+                          color: ui.textPrimary,
                           fontSize: FontSizes.font16Sp,
                           fontWeight: FontWeights.weight700,
                         ),
                         6.verticalSpace,
                         AppText(
                           'Rs 45 per kWh, minimum 30 minutes',
-                          color: AppColors.iconsGreyColor,
+                          color: ui.textSecondary,
                           fontSize: FontSizes.font14Sp,
                           fontWeight: FontWeights.weight400,
                         ),
                         22.verticalSpace,
                         AppText(
                           'Reviews',
-                          color: AppColors.whiteColor,
+                          color: ui.textPrimary,
                           fontSize: FontSizes.font16Sp,
                           fontWeight: FontWeights.weight700,
                         ),
@@ -242,6 +242,7 @@ class _ChargingStationDetailScreenState
 
   /// Banner only — [SliverAppBar] + [FlexibleSpaceBar] drive collapse / parallax.
   Widget _bannerBackground() {
+    final ui = AppUiColors.of(context);
     return Stack(
       fit: StackFit.expand,
       children: [
@@ -260,8 +261,8 @@ class _ChargingStationDetailScreenState
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                AppColors.blackColor.withValues(alpha: 0.25),
-                AppColors.blackColor.withValues(alpha: 0.72),
+                AppColors.blackColor.withValues(alpha: ui.isLight ? 0.15 : 0.25),
+                AppColors.blackColor.withValues(alpha: ui.isLight ? 0.45 : 0.72),
               ],
             ),
           ),
@@ -275,6 +276,7 @@ class _ChargingStationDetailScreenState
     required VoidCallback onTap,
     Color? iconColor,
   }) {
+    final ui = AppUiColors.of(context);
     return Material(
       color: AppColors.transparentColor,
       child: InkWell(
@@ -285,14 +287,14 @@ class _ChargingStationDetailScreenState
           width: 44.r,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: AppColors.blackColor.withValues(alpha: 0.35),
+            color: ui.cardBackground.withValues(alpha: ui.isLight ? 0.88 : 0.35),
             border: Border.all(
-              color: AppColors.whiteColor.withValues(alpha: 0.14),
+              color: ui.borderSubtle,
             ),
           ),
           child: Icon(
             icon,
-            color: iconColor ?? AppColors.whiteColor,
+            color: iconColor ?? ui.textPrimary,
             size: 22.r,
           ),
         ),
@@ -305,6 +307,7 @@ class _ChargingStationDetailScreenState
     int availableCount,
     int totalPorts,
   ) {
+    final ui = AppUiColors.of(context);
     return Wrap(
       spacing: 8.w,
       runSpacing: 8.h,
@@ -317,7 +320,7 @@ class _ChargingStationDetailScreenState
             4.horizontalSpace,
             AppText(
               '4.8 (127 reviews)',
-              color: AppColors.iconsGreyColor,
+              color: ui.textSecondary,
               fontSize: FontSizes.font12Sp,
               fontWeight: FontWeights.weight500,
             ),
@@ -381,6 +384,7 @@ class _ChargingStationDetailScreenState
 
   /// Charger Ports: flat list, selection highlight, divider inset past icon.
   Widget _buildChargerPortsList() {
+    final ui = AppUiColors.of(context);
     final iconSize = 44.r;
     final iconGap = 12.w;
     final dividerLeft = iconSize + iconGap;
@@ -393,14 +397,14 @@ class _ChargingStationDetailScreenState
             color: AppColors.transparentColor,
             child: InkWell(
               onTap: () => setState(() => _selectedPortIndex = i),
-              splashColor: AppColors.whiteColor.withValues(alpha: 0.06),
-              highlightColor: AppColors.whiteColor.withValues(alpha: 0.04),
+              splashColor: ui.textPrimary.withValues(alpha: 0.06),
+              highlightColor: ui.textPrimary.withValues(alpha: 0.04),
               child: Container(
                 width: double.infinity,
                 padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 10.w),
                 decoration: BoxDecoration(
                   color: i == _selectedPortIndex
-                      ? AppColors.whiteColor.withValues(alpha: 0.07)
+                      ? ui.innerCardBg
                       : AppColors.transparentColor,
                   borderRadius: BorderRadius.circular(8.r),
                 ),
@@ -420,7 +424,7 @@ class _ChargingStationDetailScreenState
                               Expanded(
                                 child: AppText(
                                   _ports[i].label,
-                                  color: AppColors.whiteColor,
+                                  color: ui.textPrimary,
                                   fontSize: FontSizes.font14Sp,
                                   fontWeight: FontWeights.weight600,
                                   maxLines: 1,
@@ -434,7 +438,7 @@ class _ChargingStationDetailScreenState
                           4.verticalSpace,
                           AppText(
                             _ports[i].price,
-                            color: AppColors.iconsGreyColor,
+                            color: ui.textSecondary,
                             fontSize: FontSizes.font12Sp,
                             fontWeight: FontWeights.weight400,
                           ),
@@ -452,7 +456,7 @@ class _ChargingStationDetailScreenState
               child: Divider(
                 height: 1,
                 thickness: 1,
-                color: AppColors.whiteColor.withValues(alpha: 0.08),
+                color: ui.borderSubtle,
               ),
             ),
         ],
@@ -461,16 +465,17 @@ class _ChargingStationDetailScreenState
   }
 
   Widget _portPlugIcon(double diameter) {
+    final ui = AppUiColors.of(context);
     return Container(
       height: diameter,
       width: diameter,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: AppColors.whiteColor.withValues(alpha: 0.10),
+        color: ui.innerCardBg,
       ),
       child: Icon(
         Icons.ev_station_rounded,
-        color: AppColors.whiteColor.withValues(alpha: 0.88),
+        color: ui.textPrimary.withValues(alpha: 0.88),
         size: 22.r,
       ),
     );
@@ -516,13 +521,14 @@ class _ChargingStationDetailScreenState
   }
 
   Widget _amenityChip(_Amenity a) {
+    final ui = AppUiColors.of(context);
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
       decoration: BoxDecoration(
-        color: AppColors.fieldBackgroundColor,
+        color: ui.cardBackground,
         borderRadius: BorderRadius.circular(20.r),
         border: Border.all(
-          color: AppColors.whiteColor.withValues(alpha: 0.08),
+          color: ui.borderSubtle,
         ),
       ),
       child: Row(
@@ -531,12 +537,12 @@ class _ChargingStationDetailScreenState
           Icon(
             a.icon,
             size: 16.r,
-            color: AppColors.whiteColor.withValues(alpha: 0.85),
+            color: ui.textPrimary.withValues(alpha: 0.85),
           ),
           6.horizontalSpace,
           AppText(
             a.label,
-            color: AppColors.whiteColor,
+            color: ui.textPrimary,
             fontSize: FontSizes.font12Sp,
             fontWeight: FontWeights.weight500,
           ),
@@ -559,15 +565,16 @@ class _ChargingStationDetailScreenState
   }
 
   Widget _reviewCard(_Review r) {
+    final ui = AppUiColors.of(context);
     return Container(
       width: 260.w,
       height: 248.h,
       padding: EdgeInsets.all(14.r),
       decoration: BoxDecoration(
-        color: AppColors.fieldBackgroundColor,
+        color: ui.cardBackground,
         borderRadius: BorderRadius.circular(12.r),
         border: Border.all(
-          color: AppColors.whiteColor.withValues(alpha: 0.06),
+          color: ui.borderSubtle,
         ),
       ),
       child: Column(
@@ -592,11 +599,11 @@ class _ChargingStationDetailScreenState
             children: [
               CircleAvatar(
                 radius: 16.r,
-                backgroundColor: AppColors.greyColor.withValues(alpha: 0.4),
+                backgroundColor: ui.innerCardBg,
                 child: Center(
                   child: AppText(
                     r.name.isNotEmpty ? r.name[0].toUpperCase() : '?',
-                    color: AppColors.whiteColor,
+                    color: ui.textPrimary,
                     fontSize: FontSizes.font14Sp,
                     fontWeight: FontWeights.weight700,
                   ),
@@ -606,7 +613,7 @@ class _ChargingStationDetailScreenState
               Expanded(
                 child: AppText(
                   r.name,
-                  color: AppColors.whiteColor,
+                  color: ui.textPrimary,
                   fontSize: FontSizes.font14Sp,
                   fontWeight: FontWeights.weight600,
                   maxLines: 2,
@@ -618,7 +625,7 @@ class _ChargingStationDetailScreenState
           8.verticalSpace,
           AppText(
             r.text,
-            color: AppColors.whiteColor.withValues(alpha: 0.88),
+            color: ui.textPrimary.withValues(alpha: 0.88),
             fontSize: FontSizes.font12Sp,
             fontWeight: FontWeights.weight400,
             maxLines: 2,
@@ -630,6 +637,7 @@ class _ChargingStationDetailScreenState
   }
 
   Widget _buildBottomActions(BuildContext context) {
+    final ui = AppUiColors.of(context);
     return SafeArea(
       top: false,
       child: Padding(
@@ -645,9 +653,9 @@ class _ChargingStationDetailScreenState
                   );
                 },
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: AppColors.whiteColor,
+                  foregroundColor: ui.textPrimary,
                   side: BorderSide(
-                    color: AppColors.whiteColor.withValues(alpha: 0.85),
+                    color: ui.textPrimary.withValues(alpha: 0.85),
                   ),
                   padding: EdgeInsets.symmetric(vertical: 14.h),
                   shape: RoundedRectangleBorder(
@@ -661,7 +669,7 @@ class _ChargingStationDetailScreenState
                     8.horizontalSpace,
                     AppText(
                       'Directions',
-                      color: AppColors.whiteColor,
+                      color: ui.textPrimary,
                       fontSize: FontSizes.font14Sp,
                       fontWeight: FontWeights.weight600,
                     ),
@@ -678,7 +686,7 @@ class _ChargingStationDetailScreenState
                 buttonHeight: 48.h,
                 cornerRadius: 12.r,
                 buttonColor: AppColors.primaryDarkColor,
-                textColor: AppColors.blackColor,
+                textColor: AppColors.whiteColor,
                 fontSize: FontSizes.font14Sp,
                 fontWeight: FontWeights.weight700,
               ),

@@ -25,7 +25,8 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
   @override
   Widget build(BuildContext context) {
     final total = PaymentMethodScreen._total;
-    final bg = AppUiColors.of(context).scaffoldBackground;
+    final ui = AppUiColors.of(context);
+    final bg = ui.scaffoldBackground;
 
     return Scaffold(
       backgroundColor: bg,
@@ -37,7 +38,7 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back_rounded,
-            color: AppColors.whiteColor,
+            color: ui.textPrimary,
             size: 24.r,
           ),
           onPressed: () => context.pop(),
@@ -45,7 +46,7 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
         centerTitle: true,
         title: AppText(
           'Payment Method',
-          color: AppColors.whiteColor,
+          color: ui.textPrimary,
           fontSize: FontSizes.font18Sp,
           fontWeight: FontWeights.weight700,
         ),
@@ -63,7 +64,7 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
                   24.verticalSpace,
                   AppText(
                     'Choose Payment Method',
-                    color: AppColors.whiteColor,
+                    color: ui.textPrimary,
                     fontSize: FontSizes.font15Sp,
                     fontWeight: FontWeights.weight600,
                   ),
@@ -142,14 +143,15 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
   }
 
   Widget _bookingSummaryCard() {
+    final ui = AppUiColors.of(context);
     return Container(
       width: double.infinity,
       padding: AppUtils.all18Padding,
       decoration: BoxDecoration(
-        color: AppColors.fieldBackgroundColor,
+        color: ui.cardBackground,
         borderRadius: BorderRadius.circular(14.r),
         border: Border.all(
-          color: AppColors.whiteColor.withValues(alpha: 0.08),
+          color: ui.borderSubtle,
         ),
       ),
       child: Column(
@@ -157,14 +159,14 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
         children: [
           AppText(
             'HGL Charging Hub M2',
-            color: AppColors.whiteColor,
+            color: ui.textPrimary,
             fontSize: FontSizes.font16Sp,
             fontWeight: FontWeights.weight700,
           ),
           6.verticalSpace,
           AppText(
             'April 18 14:00-15:00',
-            color: AppColors.iconsGreyColor,
+            color: ui.textSecondary,
             fontSize: FontSizes.font12Sp,
             fontWeight: FontWeights.weight400,
           ),
@@ -176,7 +178,7 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
           Divider(
             height: 1,
             thickness: 1,
-            color: AppColors.whiteColor.withValues(alpha: 0.08),
+            color: ui.borderSubtle,
           ),
           12.verticalSpace,
           Row(
@@ -184,13 +186,13 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
             children: [
               AppText(
                 'Total',
-                color: AppColors.whiteColor,
+                color: ui.textPrimary,
                 fontSize: FontSizes.font15Sp,
                 fontWeight: FontWeights.weight700,
               ),
               AppText(
                 'Rs ${PaymentMethodScreen._total.toInt()}',
-                color: AppColors.whiteColor,
+                color: ui.textPrimary,
                 fontSize: FontSizes.font15Sp,
                 fontWeight: FontWeights.weight700,
               ),
@@ -202,18 +204,19 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
   }
 
   Widget _summaryRow(String label, String value) {
+    final ui = AppUiColors.of(context);
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         AppText(
           label,
-          color: AppColors.iconsGreyColor,
+          color: ui.textSecondary,
           fontSize: FontSizes.font14Sp,
           fontWeight: FontWeights.weight400,
         ),
         AppText(
           value,
-          color: AppColors.whiteColor,
+          color: ui.textPrimary,
           fontSize: FontSizes.font14Sp,
           fontWeight: FontWeights.weight500,
         ),
@@ -228,6 +231,7 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
     required String title,
     String? subtitle,
   }) {
+    final ui = AppUiColors.of(context);
     return Material(
       color: AppColors.transparentColor,
       child: InkWell(
@@ -239,12 +243,12 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
           width: double.infinity,
           padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 14.h),
           decoration: BoxDecoration(
-            color: AppColors.fieldBackgroundColor,
+            color: ui.cardBackground,
             borderRadius: BorderRadius.circular(12.r),
             border: Border.all(
               color: selected
                   ? AppColors.primaryDarkColor
-                  : AppColors.whiteColor.withValues(alpha: 0.06),
+                  : ui.borderSubtle,
               width: selected ? 1.5 : 1,
             ),
             boxShadow: selected
@@ -271,7 +275,7 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
                   children: [
                     AppText(
                       title,
-                      color: AppColors.whiteColor,
+                      color: ui.textPrimary,
                       fontSize: FontSizes.font14Sp,
                       fontWeight: FontWeights.weight600,
                     ),
@@ -279,7 +283,7 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
                       4.verticalSpace,
                       AppText(
                         subtitle,
-                        color: AppColors.iconsGreyColor,
+                        color: ui.textSecondary,
                         fontSize: FontSizes.font12Sp,
                         fontWeight: FontWeights.weight400,
                         maxLines: 2,
@@ -297,6 +301,7 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
   }
 
   Widget _radioDot(bool selected) {
+    final ui = AppUiColors.of(context);
     return Container(
       height: 22.r,
       width: 22.r,
@@ -305,7 +310,7 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
         border: Border.all(
           color: selected
               ? AppColors.primaryDarkColor
-              : AppColors.whiteColor.withValues(alpha: 0.35),
+              : ui.textSecondary.withValues(alpha: 0.45),
           width: 2,
         ),
         color: AppColors.transparentColor,
@@ -400,22 +405,24 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
   }
 
   Widget _cashBrand() {
+    final ui = AppUiColors.of(context);
     return Container(
       width: 40.r,
       height: 40.r,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: AppColors.greyColor.withValues(alpha: 0.28),
+        color: ui.innerCardBg,
       ),
       child: Icon(
         Icons.payments_rounded,
-        color: AppColors.whiteColor.withValues(alpha: 0.9),
+        color: ui.textPrimary.withValues(alpha: 0.9),
         size: 20.r,
       ),
     );
   }
 
   Widget _addNewPaymentRow() {
+    final ui = AppUiColors.of(context);
     return Material(
       color: AppColors.transparentColor,
       child: InkWell(
@@ -425,10 +432,10 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
           width: double.infinity,
           padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 14.h),
           decoration: BoxDecoration(
-            color: AppColors.fieldBackgroundColor,
+            color: ui.cardBackground,
             borderRadius: BorderRadius.circular(12.r),
             border: Border.all(
-              color: AppColors.whiteColor.withValues(alpha: 0.06),
+              color: ui.borderSubtle,
             ),
           ),
           child: Row(
@@ -450,7 +457,7 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
               12.horizontalSpace,
               AppText(
                 'Add New Payment Method',
-                color: AppColors.whiteColor,
+                color: ui.textPrimary,
                 fontSize: FontSizes.font14Sp,
                 fontWeight: FontWeights.weight600,
               ),

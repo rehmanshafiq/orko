@@ -33,10 +33,6 @@ class MapFiltersBottomSheet extends StatefulWidget {
 }
 
 class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
-  static const _sheetBg = Color(0xFF0C0C0C);
-  static const _chipBg = Color(0xFF2A2C2B);
-  static const _trackInactive = Color(0xFF3A3D3C);
-
   static const List<String> _chargerTypes = [
     'Type 1',
     'Type 2',
@@ -78,6 +74,7 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final ui = AppUiColors.of(context);
     final bottomInset = MediaQuery.paddingOf(context).bottom;
 
     return Align(
@@ -86,7 +83,7 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(22.r)),
         child: Container(
           width: double.infinity,
-          color: _sheetBg,
+          color: ui.cardBackground,
           child: SingleChildScrollView(
             padding: EdgeInsets.only(bottom: bottomInset + 12.h),
             child: Column(
@@ -99,8 +96,7 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
                     height: 4.h,
                     width: 40.w,
                     decoration: BoxDecoration(
-                      color: AppColors.greyBottomSheetThumbColor
-                          .withValues(alpha: 0.55),
+                      color: ui.textSecondary.withValues(alpha: 0.55),
                       borderRadius: BorderRadius.circular(10.r),
                     ),
                   ),
@@ -113,7 +109,7 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
                       Expanded(
                         child: AppText(
                           'Filters',
-                          color: AppColors.whiteColor,
+                          color: ui.textPrimary,
                           fontSize: FontSizes.font20Sp,
                           fontWeight: FontWeights.weight700,
                         ),
@@ -134,7 +130,7 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
                 Divider(
                   height: 1,
                   thickness: 1,
-                  color: AppColors.whiteColor.withValues(alpha: 0.08),
+                  color: ui.borderSubtle,
                 ),
                 18.verticalSpace,
                 Padding(
@@ -184,7 +180,7 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
                           Expanded(
                             child: AppText(
                               'Available Now',
-                              color: AppColors.whiteColor,
+                              color: ui.textPrimary,
                               fontSize: FontSizes.font14Sp,
                               fontWeight: FontWeights.weight500,
                             ),
@@ -237,24 +233,25 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
   Widget _sectionTitle(String text) {
     return AppText(
       text,
-      color: AppColors.whiteColor,
+      color: AppUiColors.of(context).textPrimary,
       fontSize: FontSizes.font15Sp,
       fontWeight: FontWeights.weight700,
     );
   }
 
   Widget _chargerChip(String label, bool selected) {
+    final ui = AppUiColors.of(context);
     return AnimatedContainer(
       duration: const Duration(milliseconds: 180),
       curve: Curves.easeOut,
       padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
       decoration: BoxDecoration(
-        color: _chipBg,
+        color: ui.innerCardBg,
         borderRadius: BorderRadius.circular(22.r),
         border: Border.all(
           color: selected
               ? AppColors.primaryDarkColor
-              : AppColors.whiteColor.withValues(alpha: 0.12),
+              : ui.borderSubtle,
           width: selected ? 1.5 : 1,
         ),
         boxShadow: selected
@@ -271,7 +268,7 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
         label,
         color: selected
             ? AppColors.primaryDarkColor
-            : AppColors.whiteColor,
+            : ui.textPrimary,
         fontSize: FontSizes.font12Sp,
         fontWeight: FontWeights.weight600,
       ),
@@ -279,6 +276,7 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
   }
 
   Widget _powerLabelsRow() {
+    final ui = AppUiColors.of(context);
     final low = _powerRange.start.round();
     final high = _powerRange.end.round();
     return Row(
@@ -289,7 +287,7 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
             alignment: Alignment.centerLeft,
             child: AppText(
               '0 kW',
-              color: AppColors.whiteColor,
+              color: ui.textPrimary,
               fontSize: FontSizes.font12Sp,
               fontWeight: FontWeights.weight500,
             ),
@@ -313,7 +311,7 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
             alignment: Alignment.centerRight,
             child: AppText(
               '350 kW',
-              color: AppColors.whiteColor,
+              color: ui.textPrimary,
               fontSize: FontSizes.font12Sp,
               fontWeight: FontWeights.weight500,
               textAlign: TextAlign.end,
@@ -353,6 +351,7 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
     int? divisions,
     required ValueChanged<RangeValues> onChanged,
   }) {
+    final ui = AppUiColors.of(context);
     return SliderTheme(
       data: SliderTheme.of(context).copyWith(
         rangeThumbShape: RoundRangeSliderThumbShape(
@@ -363,7 +362,7 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
         overlayShape: RoundSliderOverlayShape(overlayRadius: 18.r),
         trackHeight: 4.h,
         activeTrackColor: AppColors.primaryDarkColor,
-        inactiveTrackColor: _trackInactive,
+        inactiveTrackColor: ui.progressTrack,
         thumbColor: AppColors.primaryDarkColor,
       ),
       child: RangeSlider(
@@ -377,6 +376,7 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
   }
 
   Widget _availabilitySwitch() {
+    final ui = AppUiColors.of(context);
     return SwitchTheme(
       data: SwitchThemeData(
         thumbColor: WidgetStateProperty.resolveWith((s) {
@@ -389,7 +389,7 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
           if (s.contains(WidgetState.selected)) {
             return AppColors.primaryDarkColor;
           }
-          return _trackInactive;
+          return ui.progressTrack;
         }),
         trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
       ),
@@ -402,6 +402,7 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
   }
 
   Widget _amenitiesGrid() {
+    final ui = AppUiColors.of(context);
     return GridView.count(
       crossAxisCount: 3,
       shrinkWrap: true,
@@ -429,7 +430,7 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
                   name,
                   color: on
                       ? AppColors.primaryDarkColor
-                      : AppColors.whiteColor,
+                      : ui.textPrimary,
                   fontSize: FontSizes.font12Sp,
                   fontWeight: FontWeights.weight600,
                   maxLines: 2,
@@ -444,6 +445,7 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
   }
 
   Widget _amenityBox(bool checked) {
+    final ui = AppUiColors.of(context);
     return AnimatedContainer(
       duration: const Duration(milliseconds: 160),
       width: 20.w,
@@ -454,7 +456,7 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
         border: Border.all(
           color: checked
               ? AppColors.primaryDarkColor
-              : AppColors.whiteColor.withValues(alpha: 0.22),
+              : ui.borderSubtle,
           width: 1.5,
         ),
       ),

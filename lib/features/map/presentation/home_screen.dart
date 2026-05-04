@@ -45,6 +45,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   GoogleMapController? _mapController;
 
+  bool _isDarkMode(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark;
+
   /// True only after the dark style has been confirmed painted.
   /// The black cover overlay is shown whenever this is false,
   /// hiding any white flash from the Google Maps SDK.
@@ -78,7 +81,7 @@ class _HomeScreenState extends State<HomeScreen> {
     await Future.delayed(const Duration(milliseconds: 50));
     if (!mounted) return;
 
-    await controller.setMapStyle(_darkMapStyle);
+    await controller.setMapStyle(_isDarkMode(context) ? _darkMapStyle : null);
     if (!mounted) return;
 
     setState(() => _mapReady = true);
@@ -134,7 +137,7 @@ class _HomeScreenState extends State<HomeScreen> {
     });
 
     // Step 4 ── Reapply dark style; the SDK reverted it on redraw.
-    await _mapController?.setMapStyle(_darkMapStyle);
+    await _mapController?.setMapStyle(_isDarkMode(context) ? _darkMapStyle : null);
     if (!mounted) return;
 
     // Step 5 ── Animate camera to first location.
@@ -268,8 +271,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final ui = AppUiColors.of(context);
     return Scaffold(
-      backgroundColor: AppUiColors.of(context).scaffoldBackground,
+      backgroundColor: ui.scaffoldBackground,
       body: BlocListener<AuthCubit, AuthState>(
         listener: (context, state) {
           if (state is AuthUnauthenticated) context.go('/login');
@@ -310,8 +314,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 // Sits above the map and below all UI. Visible whenever the
                 // map is not yet dark, hiding any white tile flash entirely.
                 if (!_mapReady)
-                  const Positioned.fill(
-                    child: ColoredBox(color: AppColors.blackColor),
+                  Positioned.fill(
+                    child: ColoredBox(color: ui.scaffoldBackground),
                   ),
 
                 // ── UI Overlay ─────────────────────────────────────────────
@@ -321,13 +325,13 @@ class _HomeScreenState extends State<HomeScreen> {
                       10.verticalSpace,
                       Padding(
                         padding: AppUtils.horizontal16Padding,
-                        child: _buildTopActions(),
+                        child: _buildTopActions(context),
                       ),
                       if (errorMessage != null) ...[
                         8.verticalSpace,
                         Padding(
                           padding: AppUtils.horizontal16Padding,
-                          child: _buildErrorBanner(errorMessage),
+                          child: _buildErrorBanner(context, errorMessage),
                         ),
                       ],
                       Expanded(
@@ -335,11 +339,11 @@ class _HomeScreenState extends State<HomeScreen> {
                           alignment: Alignment.bottomRight,
                           child: Padding(
                             padding: const EdgeInsets.only(right: 16, bottom: 16),
-                            child: _buildMyLocationButton(),
+                            child: _buildMyLocationButton(context),
                           ),
                         ),
                       ),
-                      _buildBottomSheet(),
+                      _buildBottomSheet(context),
                     ],
                   ),
                 ),
@@ -361,7 +365,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // ── Reusable widgets ──────────────────────────────────────────────────────
 
-  Widget _buildMyLocationButton() {
+  Widget _buildMyLocationButton(BuildContext context) {
+    final ui = AppUiColors.of(context);
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -371,23 +376,23 @@ class _HomeScreenState extends State<HomeScreen> {
           height: 52.h,
           width: 52.w,
           decoration: BoxDecoration(
-            color: AppColors.greyColor.withValues(alpha: 0.20),
+            color: ui.cardBackground.withValues(alpha: ui.isLight ? 0.95 : 0.2),
             borderRadius: BorderRadius.circular(8.r),
             border: Border.all(
-              color: AppColors.whiteColor.withValues(alpha: 0.12),
+              color: ui.borderSubtle,
             ),
           ),
           child: Icon(
             Icons.my_location_rounded,
             size: 26,
-            color: AppColors.whiteColor,
+            color: ui.textPrimary,
           ),
         ),
       ),
     );
   }
 
-  Widget _buildErrorBanner(String message) {
+  Widget _buildErrorBanner(BuildContext context, String message) {
     return Container(
       width: double.infinity,
       padding: EdgeInsets.symmetric(vertical: 8.h, horizontal: 10.w),
@@ -398,14 +403,15 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       child: AppText(
         message,
-        color: AppColors.whiteColor,
+        color: AppUiColors.of(context).textPrimary,
         fontSize: FontSizes.font12Sp,
         fontWeight: FontWeights.weight500,
       ),
     );
   }
 
-  Widget _buildTopActions() {
+  Widget _buildTopActions(BuildContext context) {
+    final ui = AppUiColors.of(context);
     return Row(
       children: [
         Expanded(
@@ -417,30 +423,31 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Ink(
                 padding: AppUtils.homeTopSearchPadding,
                 decoration: BoxDecoration(
-                  color: AppColors.greyColor.withValues(alpha: 0.20),
+                  color: ui.cardBackground.withValues(alpha: ui.isLight ? 0.96 : 0.2),
                   borderRadius: BorderRadius.circular(10.r),
                   border: Border.all(
-                    color: AppColors.whiteColor.withValues(alpha: 0.12),
+                    color: ui.borderSubtle,
                   ),
                 ),
                 child: Row(
                   children: [
                     Icon(
                       Icons.search,
-                      color: AppColors.whiteColor.withValues(alpha: 0.4),
+                      color: ui.textMuted,
                       size: 22,
                     ),
                     8.horizontalSpace,
                     Expanded(
                       child: AppText(
                         'Search stations or locations',
-                        color: AppColors.whiteColor.withValues(alpha: 0.4),
+                        color: ui.textMuted,
                         fontSize: FontSizes.font14Sp,
                         fontWeight: FontWeights.weight400,
                       ),
                     ),
                     8.horizontalSpace,
                     _topActionIcon(
+                      context,
                       Icons.tune_rounded,
                       isPrimary: true,
                       isCompact: true,
@@ -456,17 +463,19 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         10.horizontalSpace,
-        _topActionIcon(Icons.notifications_none_rounded),
+        _topActionIcon(context, Icons.notifications_none_rounded),
       ],
     );
   }
 
   Widget _topActionIcon(
+    BuildContext context,
     IconData icon, {
     bool isPrimary = false,
     bool isCompact = false,
     VoidCallback? onTap,
   }) {
+    final ui = AppUiColors.of(context);
     final radius = BorderRadius.circular(8.r);
     final child = Container(
       height: isCompact ? 30.h : 52.h,
@@ -474,19 +483,19 @@ class _HomeScreenState extends State<HomeScreen> {
       decoration: BoxDecoration(
         color: isPrimary
             ? AppColors.primaryDarkColor
-            : AppColors.greyColor.withValues(alpha: 0.20),
+            : ui.cardBackground.withValues(alpha: ui.isLight ? 0.96 : 0.2),
         borderRadius: radius,
         border: Border.all(
           color: isPrimary
               ? AppColors.primaryDarkColor
-              : AppColors.whiteColor.withValues(alpha: 0.12),
+              : ui.borderSubtle,
         ),
       ),
       alignment: Alignment.center,
       child: Icon(
         icon,
         size: isCompact ? 15 : 26,
-        color: AppColors.whiteColor,
+        color: isPrimary ? AppColors.whiteColor : ui.textPrimary,
       ),
     );
 
@@ -502,18 +511,19 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildBottomSheet() {
+  Widget _buildBottomSheet(BuildContext context) {
+    final ui = AppUiColors.of(context);
     final nearbyStations = _locations.toList();
 
     return Container(
       padding: AppUtils.homeBottomSheetPadding,
       decoration: BoxDecoration(
-        color: AppColors.blackColor.withValues(alpha: 0.9),
+        color: ui.cardBackground.withValues(alpha: ui.isLight ? 0.98 : 0.9),
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(22.r),
           topRight: Radius.circular(22.r),
         ),
-        border: Border.all(color: AppColors.whiteColor.withValues(alpha: 0.08)),
+        border: Border.all(color: ui.borderSubtle),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -523,7 +533,7 @@ class _HomeScreenState extends State<HomeScreen> {
               height: 3.h,
               width: 26.w,
               decoration: BoxDecoration(
-                color: AppColors.whiteColor.withValues(alpha: 0.45),
+                color: ui.textSecondary.withValues(alpha: 0.65),
                 borderRadius: BorderRadius.circular(10.r),
               ),
             ),
@@ -531,18 +541,18 @@ class _HomeScreenState extends State<HomeScreen> {
           12.verticalSpace,
           AppText(
             'Nearby Stations',
-            color: AppColors.whiteColor,
+            color: ui.textPrimary,
             fontSize: FontSizes.font24Sp,
             fontWeight: FontWeights.weight700,
           ),
           10.verticalSpace,
           Row(
             children: [
-              _chip('Available Now', isActive: true),
+              _chip(context, 'Available Now', isActive: true),
               8.horizontalSpace,
-              _chip('DC Fast'),
+              _chip(context, 'DC Fast'),
               8.horizontalSpace,
-              _chip('AC Level 2'),
+              _chip(context, 'AC Level 2'),
             ],
           ),
           12.verticalSpace,
@@ -551,7 +561,7 @@ class _HomeScreenState extends State<HomeScreen> {
               padding: EdgeInsets.symmetric(vertical: 12.h),
               child: AppText(
                 'No stations available',
-                color: AppColors.whiteColor.withValues(alpha: 0.75),
+                color: ui.textSecondary,
                 fontSize: FontSizes.font12Sp,
                 fontWeight: FontWeights.weight500,
               ),
@@ -587,25 +597,26 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _chip(String text, {bool isActive = false}) {
+  Widget _chip(BuildContext context, String text, {bool isActive = false}) {
+    final ui = AppUiColors.of(context);
     return Container(
       padding: AppUtils.homeFilterChipPadding,
       decoration: BoxDecoration(
         color: isActive
             ? AppColors.primaryDarkColor.withValues(alpha: 0.22)
-            : AppColors.fieldBackgroundColor,
+            : ui.innerCardBg,
         borderRadius: BorderRadius.circular(20.r),
         border: Border.all(
           color: isActive
               ? AppColors.primaryDarkColor
-              : AppColors.whiteColor.withValues(alpha: 0.12),
+              : ui.borderSubtle,
         ),
       ),
       child: AppText(
         text,
         color: isActive
             ? AppColors.primaryDarkColor
-            : AppColors.whiteColor.withValues(alpha: 0.8),
+            : ui.textPrimary.withValues(alpha: 0.8),
         fontSize: FontSizes.font10Sp,
         fontWeight: FontWeights.weight500,
       ),
@@ -613,6 +624,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _stationCard(BuildContext context, HubcoLocationEntity station) {
+    final ui = AppUiColors.of(context);
     return Material(
       color: AppColors.transparentColor,
       child: InkWell(
@@ -621,10 +633,10 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Ink(
           padding: AppUtils.homeStationCardPadding,
           decoration: BoxDecoration(
-            color: AppColors.fieldBackgroundColor,
+            color: ui.innerCardBg,
             borderRadius: BorderRadius.circular(12.r),
             border: Border.all(
-              color: AppColors.whiteColor.withValues(alpha: 0.08),
+              color: ui.borderSubtle,
             ),
           ),
           child: Column(
@@ -632,7 +644,7 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               AppText(
                 station.name,
-                color: AppColors.whiteColor,
+                color: ui.textPrimary,
                 fontSize: FontSizes.font12Sp,
                 fontWeight: FontWeights.weight600,
                 maxLines: 2,
@@ -648,7 +660,7 @@ class _HomeScreenState extends State<HomeScreen> {
               6.verticalSpace,
               AppText(
                 station.address,
-                color: AppColors.whiteColor.withValues(alpha: 0.75),
+                color: ui.textSecondary,
                 fontSize: FontSizes.font10Sp,
                 fontWeight: FontWeights.weight400,
                 maxLines: 2,

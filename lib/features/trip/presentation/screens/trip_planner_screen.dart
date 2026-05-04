@@ -28,22 +28,23 @@ class TripPlannerScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ui = AppUiColors.of(context);
     return Scaffold(
-      backgroundColor: AppUiColors.of(context).scaffoldBackground,
+      backgroundColor: ui.scaffoldBackground,
       body: SafeArea(
         child: ListView(
           padding: AppUtils.horizontal16Padding,
           children: [
             10.verticalSpace,
-            _header(),
+            _header(context),
             16.verticalSpace,
-            _locationField('Lahore', isStart: true),
+            _locationField(context, 'Lahore', isStart: true),
             8.verticalSpace,
-            _locationField('Islamabad', isStart: false),
+            _locationField(context, 'Islamabad', isStart: false),
             14.verticalSpace,
-            _sectionTitle('EV Details'),
+            _sectionTitle(context, 'EV Details'),
             10.verticalSpace,
-            _evDetailsCard(),
+            _evDetailsCard(context),
             12.verticalSpace,
             PrimaryButtonWidget(
               text: 'Plan Trip',
@@ -54,25 +55,27 @@ class TripPlannerScreen extends StatelessWidget {
               cornerRadius: 8.r,
             ),
             12.verticalSpace,
-            _mapCard(),
+            _mapCard(context),
             12.verticalSpace,
-            _sectionTitle('Suggested Stops'),
+            _sectionTitle(context, 'Suggested Stops'),
             8.verticalSpace,
             _stopCard(
+              context,
               title: 'Stop 1: HCL Hub Kala Shah Kaku',
               subtitle: '45 min charge, Rs 450 estimated',
             ),
             8.verticalSpace,
             _stopCard(
+              context,
               title: 'Stop 2: HCL Hub Rawat',
               subtitle: '30 min charge, Rs 300 estimated',
             ),
             12.verticalSpace,
-            _sectionTitle('Trip Summary'),
+            _sectionTitle(context, 'Trip Summary'),
             8.verticalSpace,
-            _tripSummaryCard(),
+            _tripSummaryCard(context),
             22.verticalSpace,
-            _mapListToggle(),
+            _mapListToggle(context),
             8.verticalSpace,
           ],
         ),
@@ -80,14 +83,15 @@ class TripPlannerScreen extends StatelessWidget {
     );
   }
 
-  Widget _header() {
+  Widget _header(BuildContext context) {
+    final ui = AppUiColors.of(context);
     return Row(
       children: [
-        Icon(Icons.arrow_back_rounded, color: AppColors.whiteColor, size: 20.sp),
+        Icon(Icons.arrow_back_rounded, color: ui.textPrimary, size: 20.sp),
         8.horizontalSpace,
         AppText(
           'Trip Planner',
-          color: AppColors.whiteColor,
+          color: ui.textPrimary,
           fontSize: FontSizes.font22Sp,
           fontWeight: FontWeights.weight700,
         ),
@@ -95,13 +99,14 @@ class TripPlannerScreen extends StatelessWidget {
     );
   }
 
-  Widget _locationField(String value, {required bool isStart}) {
+  Widget _locationField(BuildContext context, String value, {required bool isStart}) {
+    final ui = AppUiColors.of(context);
     return Container(
       padding: AppUtils.vertical10Horizontal12Padding,
       decoration: BoxDecoration(
-        color: AppColors.fieldBackgroundColor,
+        color: ui.cardBackground,
         borderRadius: BorderRadius.circular(8.r),
-        border: Border.all(color: AppColors.whiteColor.withValues(alpha: 0.09)),
+        border: Border.all(color: ui.borderSubtle),
       ),
       child: Row(
         children: [
@@ -113,7 +118,7 @@ class TripPlannerScreen extends StatelessWidget {
           8.horizontalSpace,
           AppText(
             value,
-            color: AppColors.whiteColor.withValues(alpha: 0.9),
+            color: ui.textPrimary.withValues(alpha: 0.9),
             fontSize: FontSizes.font12Sp,
             fontWeight: FontWeights.weight500,
           ),
@@ -122,35 +127,36 @@ class TripPlannerScreen extends StatelessWidget {
     );
   }
 
-  Widget _sectionTitle(String text) {
+  Widget _sectionTitle(BuildContext context, String text) {
     return AppText(
       text,
-      color: AppColors.whiteColor,
+      color: AppUiColors.of(context).textPrimary,
       fontSize: FontSizes.font16Sp,
       fontWeight: FontWeights.weight700,
     );
   }
 
-  Widget _evDetailsCard() {
+  Widget _evDetailsCard(BuildContext context) {
     return Row(
       children: [
-        _metric(icon: Icons.battery_6_bar_rounded, value: '60%', label: 'current charge'),
+        _metric(context, icon: Icons.battery_6_bar_rounded, value: '60%', label: 'current charge'),
         12.horizontalSpace,
-        _metric(icon: Icons.electric_car_rounded, value: 'Tesla', label: 'Model 3'),
+        _metric(context, icon: Icons.electric_car_rounded, value: 'Tesla', label: 'Model 3'),
         12.horizontalSpace,
-        _metric(icon: Icons.route_rounded, value: '280 km', label: 'range'),
+        _metric(context, icon: Icons.route_rounded, value: '280 km', label: 'range'),
       ],
     );
   }
 
-  Widget _metric({required IconData icon, required String value, required String label}) {
+  Widget _metric(BuildContext context, {required IconData icon, required String value, required String label}) {
+    final ui = AppUiColors.of(context);
     return Expanded(
       child: Container(
         padding: AppUtils.horizontal8Vertical4Padding,
         decoration: BoxDecoration(
-          color: AppColors.fieldBackgroundColor,
+          color: ui.cardBackground,
           borderRadius: BorderRadius.circular(8.r),
-          border: Border.all(color: AppColors.whiteColor.withValues(alpha: 0.09)),
+          border: Border.all(color: ui.borderSubtle),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -161,7 +167,7 @@ class TripPlannerScreen extends StatelessWidget {
                 4.horizontalSpace,
                 AppText(
                   value,
-                  color: AppColors.whiteColor,
+                  color: ui.textPrimary,
                   fontSize: FontSizes.font12Sp,
                   fontWeight: FontWeights.weight600,
                 ),
@@ -170,7 +176,7 @@ class TripPlannerScreen extends StatelessWidget {
             2.verticalSpace,
             AppText(
               label,
-              color: AppColors.whiteColor.withValues(alpha: 0.6),
+              color: ui.textMuted,
               fontSize: FontSizes.font8Sp,
               fontWeight: FontWeights.weight400,
             ),
@@ -180,7 +186,8 @@ class TripPlannerScreen extends StatelessWidget {
     );
   }
 
-  Widget _mapCard() {
+  Widget _mapCard(BuildContext context) {
+    final ui = AppUiColors.of(context);
     final routePoints = <LatLng>[
       const LatLng(32.0945, 73.1945),
       const LatLng(32.1245, 73.2380),
@@ -190,9 +197,9 @@ class TripPlannerScreen extends StatelessWidget {
     return Container(
       height: 132.h,
       decoration: BoxDecoration(
-        color: AppColors.fieldBackgroundColor,
+        color: ui.cardBackground,
         borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: AppColors.whiteColor.withValues(alpha: 0.1)),
+        border: Border.all(color: ui.borderSubtle),
       ),
       child: Stack(
         children: [
@@ -204,7 +211,7 @@ class TripPlannerScreen extends StatelessWidget {
                   target: _mapCenter,
                   zoom: 9.8,
                 ),
-                style: _darkMapStyle,
+                style: ui.isLight ? null : _darkMapStyle,
                 compassEnabled: false,
                 mapToolbarEnabled: false,
                 myLocationButtonEnabled: false,
@@ -245,51 +252,56 @@ class TripPlannerScreen extends StatelessWidget {
             top: 10.h,
             left: 10.w,
             child: _mapLabelChip(
+              context,
               'Start',
             ),
           ),
           Positioned(
             top: 42.h,
             left: 74.w,
-            child: _mapLabelChip('Stop 1'),
+            child: _mapLabelChip(context, 'Stop 1'),
           ),
           Positioned(
             top: 68.h,
             left: 120.w,
-            child: _mapLabelChip('Stop 2'),
+            child: _mapLabelChip(context, 'Stop 2'),
           ),
           Positioned(
             bottom: 8.h,
             right: 8.w,
-            child: _mapLabelChip('Street'),
+            child: _mapLabelChip(context, 'Street'),
           ),
         ],
       ),
     );
   }
 
-  Widget _mapLabelChip(String text) {
+  Widget _mapLabelChip(BuildContext context, String text) {
+    final ui = AppUiColors.of(context);
     return Container(
       padding: AppUtils.horizontal8Vertical4Padding,
       decoration: BoxDecoration(
-        color: AppColors.blackColor.withValues(alpha: 0.62),
+        color: ui.isLight
+            ? AppColors.whiteColor.withValues(alpha: 0.85)
+            : AppColors.blackColor.withValues(alpha: 0.62),
         borderRadius: BorderRadius.circular(8.r),
-        border: Border.all(color: AppColors.whiteColor.withValues(alpha: 0.14)),
+        border: Border.all(color: ui.borderSubtle),
       ),
       child: AppText(
         text,
-        color: AppColors.whiteColor.withValues(alpha: 0.88),
+        color: ui.textPrimary.withValues(alpha: 0.88),
         fontSize: FontSizes.font8Sp,
         fontWeight: FontWeights.weight500,
       ),
     );
   }
 
-  Widget _stopCard({required String title, required String subtitle}) {
+  Widget _stopCard(BuildContext context, {required String title, required String subtitle}) {
+    final ui = AppUiColors.of(context);
     return Container(
       padding: AppUtils.vertical10Horizontal12Padding,
       decoration: BoxDecoration(
-        color: AppColors.fieldBackgroundColor,
+        color: ui.cardBackground,
         borderRadius: BorderRadius.circular(8.r),
         border: Border.all(color: AppColors.primaryDarkColor),
       ),
@@ -311,14 +323,14 @@ class TripPlannerScreen extends StatelessWidget {
               children: [
                 AppText(
                   title,
-                  color: AppColors.whiteColor,
+                  color: ui.textPrimary,
                   fontSize: FontSizes.font10Sp,
                   fontWeight: FontWeights.weight600,
                 ),
                 2.verticalSpace,
                 AppText(
                   subtitle,
-                  color: AppColors.whiteColor.withValues(alpha: 0.6),
+                  color: ui.textMuted,
                   fontSize: FontSizes.font8Sp,
                   fontWeight: FontWeights.weight400,
                 ),
@@ -330,29 +342,30 @@ class TripPlannerScreen extends StatelessWidget {
     );
   }
 
-  Widget _tripSummaryCard() {
+  Widget _tripSummaryCard(BuildContext context) {
     return Row(
       children: [
-        _summaryItem(title: 'Total Distance', value: '380 km'),
-        _summaryItem(title: 'Total Time', value: '4h 20min'),
-        _summaryItem(title: 'Total Charging Cost', value: 'Rs 750'),
+        _summaryItem(context, title: 'Total Distance', value: '380 km'),
+        _summaryItem(context, title: 'Total Time', value: '4h 20min'),
+        _summaryItem(context, title: 'Total Charging Cost', value: 'Rs 750'),
       ],
     );
   }
 
-  Widget _summaryItem({required String title, required String value}) {
+  Widget _summaryItem(BuildContext context, {required String title, required String value}) {
+    final ui = AppUiColors.of(context);
     return Expanded(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Icons.circle, size: 5.sp, color: AppColors.whiteColor.withValues(alpha: 0.55)),
+              Icon(Icons.circle, size: 5.sp, color: ui.textMuted),
               4.horizontalSpace,
               Expanded(
                 child: AppText(
                   title,
-                  color: AppColors.whiteColor.withValues(alpha: 0.58),
+                  color: ui.textMuted,
                   fontSize: FontSizes.font8Sp,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -363,7 +376,7 @@ class TripPlannerScreen extends StatelessWidget {
           4.verticalSpace,
           AppText(
             value,
-            color: AppColors.whiteColor,
+            color: ui.textPrimary,
             fontSize: FontSizes.font12Sp,
             fontWeight: FontWeights.weight600,
           ),
@@ -372,7 +385,8 @@ class TripPlannerScreen extends StatelessWidget {
     );
   }
 
-  Widget _mapListToggle() {
+  Widget _mapListToggle(BuildContext context) {
+    final ui = AppUiColors.of(context);
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -406,7 +420,7 @@ class TripPlannerScreen extends StatelessWidget {
         8.horizontalSpace,
         AppText(
           'List View',
-          color: AppColors.whiteColor.withValues(alpha: 0.72),
+          color: ui.textSecondary,
           fontSize: FontSizes.font10Sp,
           fontWeight: FontWeights.weight500,
         ),

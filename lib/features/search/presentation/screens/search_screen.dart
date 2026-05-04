@@ -30,8 +30,9 @@ class _SearchScreenState extends State<SearchScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final ui = AppUiColors.of(context);
     return Scaffold(
-      backgroundColor: AppUiColors.of(context).scaffoldBackground,
+      backgroundColor: ui.scaffoldBackground,
       body: SafeArea(
         child: ListView(
           padding: AppUtils.horizontal16Padding,
@@ -39,19 +40,24 @@ class _SearchScreenState extends State<SearchScreen> {
             8.verticalSpace,
             _searchBar(context),
             16.verticalSpace,
-            _sectionTitle('Recent Searches'),
+            _sectionTitle(context, 'Recent Searches'),
             10.verticalSpace,
-            _recentItem('Lahore Motorway M2'),
+            _recentItem(context, 'Lahore Motorway M2'),
             14.verticalSpace,
-            _recentItem('DHA Phase 5 Lahore'),
+            _recentItem(context, 'DHA Phase 5 Lahore'),
             14.verticalSpace,
-            _recentItem('Islamabad Blue Area'),
+            _recentItem(context, 'Islamabad Blue Area'),
             18.verticalSpace,
-            Divider(color: AppColors.whiteColor.withValues(alpha: 0.10)),
+            Divider(color: ui.borderSubtle),
             16.verticalSpace,
-            _sectionTitle('Popular Stations', leadingIcon: Icons.local_fire_department_rounded),
+            _sectionTitle(
+              context,
+              'Popular Stations',
+              leadingIcon: Icons.local_fire_department_rounded,
+            ),
             10.verticalSpace,
             _stationCard(
+              context: context,
               title: 'HGL Liberty Market',
               subtitle: 'Lahore',
               distance: '1.2 km',
@@ -60,6 +66,7 @@ class _SearchScreenState extends State<SearchScreen> {
             ),
             8.verticalSpace,
             _stationCard(
+              context: context,
               title: 'HGL Packages Mall',
               subtitle: 'Lahore',
               distance: '2.8 km',
@@ -68,6 +75,7 @@ class _SearchScreenState extends State<SearchScreen> {
             ),
             8.verticalSpace,
             _stationCard(
+              context: context,
               title: 'HGL Blue Area Islamabad',
               subtitle: 'Islamabad',
               distance: '4.5 km',
@@ -82,11 +90,12 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   Widget _searchBar(BuildContext context) {
+    final ui = AppUiColors.of(context);
     return Container(
       height: 52.h,
       padding: EdgeInsets.all(16.r),
       decoration: BoxDecoration(
-        color: AppColors.fieldBackgroundColor,
+        color: ui.cardBackground,
         borderRadius: BorderRadius.circular(12.r),
         border: Border.all(color: AppColors.primaryDarkColor, width: 1.2),
         boxShadow: [
@@ -107,7 +116,7 @@ class _SearchScreenState extends State<SearchScreen> {
               customBorder: const CircleBorder(),
               child: Icon(
                 Icons.arrow_back_rounded,
-                color: AppColors.whiteColor.withValues(alpha: 0.8),
+                color: ui.textPrimary.withValues(alpha: 0.8),
                 size: 18.r,
               ),
             ),
@@ -118,7 +127,7 @@ class _SearchScreenState extends State<SearchScreen> {
               controller: _searchController,
               cursorColor: AppColors.primaryDarkColor,
               style: TextStyle(
-                color: AppColors.whiteColor,
+                color: ui.textPrimary,
                 fontSize: FontSizes.font12Sp,
                 fontWeight: FontWeights.weight400,
                 fontFamily: AppFonts.lexend,
@@ -134,7 +143,7 @@ class _SearchScreenState extends State<SearchScreen> {
                 isDense: true,
                 hintText: 'Search stations or locations',
                 hintStyle: TextStyle(
-                  color: AppColors.whiteColor.withValues(alpha: 0.65),
+                  color: ui.textMuted,
                   fontSize: FontSizes.font12Sp,
                   fontWeight: FontWeights.weight400,
                   fontFamily: AppFonts.lexend,
@@ -162,7 +171,7 @@ class _SearchScreenState extends State<SearchScreen> {
               customBorder: const CircleBorder(),
               child: Icon(
                 Icons.close_rounded,
-                color: AppColors.whiteColor.withValues(alpha: 0.65),
+                color: ui.textMuted,
                 size: 18.r,
               ),
             ),
@@ -172,7 +181,8 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
-  Widget _sectionTitle(String title, {IconData? leadingIcon}) {
+  Widget _sectionTitle(BuildContext context, String title, {IconData? leadingIcon}) {
+    final ui = AppUiColors.of(context);
     return Row(
       children: [
         if (leadingIcon != null) ...[
@@ -181,7 +191,7 @@ class _SearchScreenState extends State<SearchScreen> {
         ],
         AppText(
           title,
-          color: AppColors.whiteColor,
+          color: ui.textPrimary,
           fontSize: FontSizes.font20Sp,
           fontWeight: FontWeights.weight700,
         ),
@@ -189,38 +199,41 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
-  Widget _recentItem(String text) {
+  Widget _recentItem(BuildContext context, String text) {
+    final ui = AppUiColors.of(context);
     return Row(
       children: [
-        Icon(Icons.access_time_rounded, color: AppColors.whiteColor.withValues(alpha: 0.55), size: 16.sp),
+        Icon(Icons.access_time_rounded, color: ui.textMuted, size: 16.sp),
         10.horizontalSpace,
         Expanded(
           child: AppText(
             text,
-            color: AppColors.whiteColor.withValues(alpha: 0.9),
+            color: ui.textPrimary.withValues(alpha: 0.9),
             fontSize: FontSizes.font14Sp,
             fontWeight: FontWeights.weight400,
           ),
         ),
         10.horizontalSpace,
-        Icon(Icons.arrow_forward_ios_rounded, color: AppColors.whiteColor.withValues(alpha: 0.55), size: 13.sp),
+        Icon(Icons.arrow_forward_ios_rounded, color: ui.textMuted, size: 13.sp),
       ],
     );
   }
 
   Widget _stationCard({
+    required BuildContext context,
     required String title,
     required String subtitle,
     required String distance,
     required String available,
     required List<String> tags,
   }) {
+    final ui = AppUiColors.of(context);
     return Container(
       padding: AppUtils.homeStationCardPadding,
       decoration: BoxDecoration(
-        color: AppColors.fieldBackgroundColor.withValues(alpha: 0.9),
+        color: ui.cardBackground.withValues(alpha: ui.isLight ? 1 : 0.9),
         borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: AppColors.whiteColor.withValues(alpha: 0.08)),
+        border: Border.all(color: ui.borderSubtle),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -233,7 +246,7 @@ class _SearchScreenState extends State<SearchScreen> {
                     Flexible(
                       child: AppText(
                         title,
-                        color: AppColors.whiteColor,
+                        color: ui.textPrimary,
                         fontSize: FontSizes.font14Sp,
                         fontWeight: FontWeights.weight700,
                         maxLines: 1,
@@ -243,7 +256,7 @@ class _SearchScreenState extends State<SearchScreen> {
                     5.horizontalSpace,
                     AppText(
                       subtitle,
-                      color: AppColors.whiteColor.withValues(alpha: 0.45),
+                      color: ui.textMuted,
                       fontSize: FontSizes.font12Sp,
                       fontWeight: FontWeights.weight400,
                     ),
@@ -251,7 +264,7 @@ class _SearchScreenState extends State<SearchScreen> {
                 ),
               ),
               8.horizontalSpace,
-              _distanceChip(distance),
+              _distanceChip(context, distance),
             ],
           ),
           4.verticalSpace,
@@ -264,13 +277,13 @@ class _SearchScreenState extends State<SearchScreen> {
           6.verticalSpace,
           Row(
             children: [
-              Icon(Icons.ev_station_outlined, color: AppColors.whiteColor.withValues(alpha: 0.5), size: 13.sp),
+              Icon(Icons.ev_station_outlined, color: ui.textMuted, size: 13.sp),
               6.horizontalSpace,
-              Icon(Icons.bolt_outlined, color: AppColors.whiteColor.withValues(alpha: 0.5), size: 13.sp),
+              Icon(Icons.bolt_outlined, color: ui.textMuted, size: 13.sp),
               8.horizontalSpace,
-              _tagChip(tags[0]),
+              _tagChip(context, tags[0]),
               4.horizontalSpace,
-              _tagChip(tags[1]),
+              _tagChip(context, tags[1]),
             ],
           ),
         ],
@@ -278,20 +291,21 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
-  Widget _distanceChip(String text) {
+  Widget _distanceChip(BuildContext context, String text) {
+    final ui = AppUiColors.of(context);
     return Container(
       padding: AppUtils.horizontal8Vertical4Padding,
       decoration: BoxDecoration(
-        color: AppColors.whiteColor.withValues(alpha: 0.12),
+        color: ui.innerCardBg,
         borderRadius: BorderRadius.circular(20.r),
       ),
       child: Row(
         children: [
-          Icon(Icons.navigation_rounded, color: AppColors.whiteColor.withValues(alpha: 0.75), size: 10.sp),
+          Icon(Icons.navigation_rounded, color: ui.textSecondary, size: 10.sp),
           4.horizontalSpace,
           AppText(
             text,
-            color: AppColors.whiteColor,
+            color: ui.textPrimary,
             fontSize: FontSizes.font8Sp,
             fontWeight: FontWeights.weight500,
           ),
@@ -300,16 +314,17 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
-  Widget _tagChip(String label) {
+  Widget _tagChip(BuildContext context, String label) {
+    final ui = AppUiColors.of(context);
     return Container(
       padding: AppUtils.horizontal8Vertical4Padding,
       decoration: BoxDecoration(
-        color: AppColors.whiteColor.withValues(alpha: 0.10),
+        color: ui.innerCardBg,
         borderRadius: BorderRadius.circular(8.r),
       ),
       child: AppText(
         label,
-        color: AppColors.whiteColor.withValues(alpha: 0.85),
+        color: ui.textPrimary.withValues(alpha: 0.85),
         fontSize: FontSizes.font8Sp,
         fontWeight: FontWeights.weight500,
       ),

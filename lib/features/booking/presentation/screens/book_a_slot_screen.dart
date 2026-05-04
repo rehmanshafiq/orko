@@ -61,8 +61,9 @@ class _BookASlotScreenState extends State<BookASlotScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final ui = AppUiColors.of(context);
     return Scaffold(
-      backgroundColor: AppUiColors.of(context).scaffoldBackground,
+      backgroundColor: ui.scaffoldBackground,
       body: SafeArea(
         child: Column(
           children: [
@@ -77,19 +78,19 @@ class _BookASlotScreenState extends State<BookASlotScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     16.verticalSpace,
-                    _stationInfoCard(),
+                    _stationInfoCard(context),
                     20.verticalSpace,
-                    _sectionTitle('Select Charger Port'),
+                    _sectionTitle(context, 'Select Charger Port'),
                     12.verticalSpace,
-                    _chargerPortRow(),
+                    _chargerPortRow(context),
                     20.verticalSpace,
-                    _sectionTitle('Select Date'),
+                    _sectionTitle(context, 'Select Date'),
                     12.verticalSpace,
                     _dateSelectorRow(),
                     20.verticalSpace,
-                    _sectionTitle('Available Time Slots'),
+                    _sectionTitle(context, 'Available Time Slots'),
                     12.verticalSpace,
-                    _timeSlotGrid(),
+                    _timeSlotGrid(context),
                     20.verticalSpace,
                     _durationSection(),
                     18.verticalSpace,
@@ -106,19 +107,20 @@ class _BookASlotScreenState extends State<BookASlotScreen> {
   }
 
   Widget _buildAppBar(BuildContext context) {
+    final ui = AppUiColors.of(context);
     return Row(
       children: [
         IconButton(
           padding: EdgeInsets.zero,
           constraints: BoxConstraints(minWidth: 40.w, minHeight: 40.h),
-          icon: Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.whiteColor, size: 20.sp),
+          icon: Icon(Icons.arrow_back_ios_new_rounded, color: ui.textPrimary, size: 20.sp),
           onPressed: () => Navigator.of(context).maybePop(),
         ),
         Expanded(
           child: AppText(
             'Book a Slot',
             textAlign: TextAlign.center,
-            color: AppColors.whiteColor,
+            color: ui.textPrimary,
             fontSize: FontSizes.font18Sp,
             fontWeight: FontWeights.weight700,
           ),
@@ -128,21 +130,22 @@ class _BookASlotScreenState extends State<BookASlotScreen> {
     );
   }
 
-  Widget _stationInfoCard() {
+  Widget _stationInfoCard(BuildContext context) {
+    final ui = AppUiColors.of(context);
     return Container(
       width: double.infinity,
       padding: AppUtils.all12Padding,
       decoration: BoxDecoration(
-        color: AppColors.fieldBackgroundColor,
+        color: ui.cardBackground,
         borderRadius: BorderRadius.circular(14.r),
-        border: Border.all(color: AppColors.whiteColor.withValues(alpha: 0.08)),
+        border: Border.all(color: ui.borderSubtle),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           AppText(
             _stationTitle,
-            color: AppColors.whiteColor,
+            color: ui.textPrimary,
             fontSize: FontSizes.font14Sp,
             fontWeight: FontWeights.weight700,
             maxLines: 2,
@@ -150,18 +153,18 @@ class _BookASlotScreenState extends State<BookASlotScreen> {
           6.verticalSpace,
           AppText(
             _stationAddress,
-            color: AppColors.iconsGreyColor,
+            color: ui.textSecondary,
             fontSize: FontSizes.font12Sp,
             fontWeight: FontWeights.weight400,
           ),
           10.verticalSpace,
           Row(
             children: [
-              _plugChip('CCS'),
+              _plugChip(context, 'CCS'),
               12.horizontalSpace,
-              _plugChip('CHAdeMO'),
+              _plugChip(context, 'CHAdeMO'),
               12.horizontalSpace,
-              _plugChip('Type 2'),
+              _plugChip(context, 'Type 2'),
             ],
           ),
         ],
@@ -169,15 +172,16 @@ class _BookASlotScreenState extends State<BookASlotScreen> {
     );
   }
 
-  Widget _plugChip(String label) {
+  Widget _plugChip(BuildContext context, String label) {
+    final ui = AppUiColors.of(context);
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(Icons.ev_station_outlined, size: 16.sp, color: AppColors.iconsGreyColor),
+        Icon(Icons.ev_station_outlined, size: 16.sp, color: ui.textSecondary),
         4.horizontalSpace,
         AppText(
           label,
-          color: AppColors.iconsGreyColor,
+          color: ui.textSecondary,
           fontSize: FontSizes.font12Sp,
           fontWeight: FontWeights.weight400,
         ),
@@ -185,34 +189,37 @@ class _BookASlotScreenState extends State<BookASlotScreen> {
     );
   }
 
-  Widget _sectionTitle(String title) {
+  Widget _sectionTitle(BuildContext context, String title) {
     return AppText(
       title,
-      color: AppColors.whiteColor,
+      color: AppUiColors.of(context).textPrimary,
       fontSize: FontSizes.font14Sp,
       fontWeight: FontWeights.weight700,
     );
   }
 
-  Widget _chargerPortRow() {
+  Widget _chargerPortRow(BuildContext context) {
     return SizedBox(
       height: 128.h,
       child: ListView(
         scrollDirection: Axis.horizontal,
         children: [
           _portCard(
+            context: context,
             portIndex: 0,
             portLabel: 'Port 1',
             specs: 'CCS, 350kW',
           ),
           10.horizontalSpace,
           _portCard(
+            context: context,
             portIndex: 1,
             portLabel: 'Port 2',
             specs: 'CCS 150 kW',
           ),
           10.horizontalSpace,
           _portCard(
+            context: context,
             portIndex: 2,
             portLabel: 'Port 3',
             specs: 'Type 2, 22kW',
@@ -223,12 +230,14 @@ class _BookASlotScreenState extends State<BookASlotScreen> {
   }
 
   Widget _portCard({
+    required BuildContext context,
     required int portIndex,
     required String portLabel,
     required String specs,
   }) {
+    final ui = AppUiColors.of(context);
     final selected = _selectedPortIndex == portIndex;
-    final borderColor = selected ? AppColors.primaryDarkColor : AppColors.whiteColor.withValues(alpha: 0.08);
+    final borderColor = selected ? AppColors.primaryDarkColor : ui.borderSubtle;
     final glow = selected
         ? [
             BoxShadow(
@@ -248,7 +257,7 @@ class _BookASlotScreenState extends State<BookASlotScreen> {
           width: 148.w,
           padding: AppUtils.all12Padding,
           decoration: BoxDecoration(
-            color: AppColors.fieldBackgroundColor,
+            color: ui.cardBackground,
             borderRadius: BorderRadius.circular(14.r),
             border: Border.all(color: borderColor, width: selected ? 2 : 1),
             boxShadow: glow,
@@ -261,7 +270,7 @@ class _BookASlotScreenState extends State<BookASlotScreen> {
                 children: [
                   AppText(
                     portLabel,
-                    color: selected ? AppColors.primaryDarkColor : AppColors.whiteColor,
+                    color: selected ? AppColors.primaryDarkColor : ui.textPrimary,
                     fontSize: FontSizes.font14Sp,
                     fontWeight: FontWeights.weight400,
                   ),
@@ -275,7 +284,7 @@ class _BookASlotScreenState extends State<BookASlotScreen> {
               8.verticalSpace,
               AppText(
                 specs,
-                color: selected ? AppColors.whiteColor : AppColors.whiteColor.withValues(alpha: 0.85),
+                color: selected ? ui.textPrimary : ui.textSecondary,
                 fontSize: FontSizes.font12Sp,
                 fontWeight: FontWeights.weight400,
               ),
@@ -306,12 +315,14 @@ class _BookASlotScreenState extends State<BookASlotScreen> {
   }
 
   Widget _dateSelectorRow() {
+    final ui = AppUiColors.of(context);
     return Container(
       width: double.infinity,
       padding: AppUtils.horizontal8Vertical4Padding,
       decoration: BoxDecoration(
-        color: AppColors.fieldBackgroundColor,
+        color: ui.cardBackground,
         borderRadius: BorderRadius.circular(14.r),
+        border: Border.all(color: ui.borderSubtle),
       ),
       child: Row(
         children: [
@@ -337,6 +348,7 @@ class _BookASlotScreenState extends State<BookASlotScreen> {
   }
 
   Widget _todayDateChip() {
+    final ui = AppUiColors.of(context);
     final selected = _selectedDateSegment == 0;
     return Material(
       color: AppColors.transparentColor,
@@ -351,7 +363,7 @@ class _BookASlotScreenState extends State<BookASlotScreen> {
             color: selected ? AppColors.primaryDarkColor : AppColors.primaryDarkColor.withValues(alpha: 0.35),
             shape: BoxShape.circle,
             border: Border.all(
-              color: selected ? AppColors.whiteColor.withValues(alpha: 0.45) : AppColors.transparentColor,
+              color: selected ? ui.textPrimary.withValues(alpha: 0.45) : AppColors.transparentColor,
               width: selected ? 1.5 : 0,
             ),
           ),
@@ -384,14 +396,14 @@ class _BookASlotScreenState extends State<BookASlotScreen> {
             children: [
               AppText(
                 day,
-                color: selected ? AppColors.primaryDarkColor : AppColors.whiteColor.withValues(alpha: 0.55),
+                color: selected ? AppColors.primaryDarkColor : AppUiColors.of(context).textMuted,
                 fontSize: FontSizes.font10Sp,
                 fontWeight: FontWeights.weight500,
               ),
               1.verticalSpace,
               AppText(
                 date,
-                color: selected ? AppColors.whiteColor : AppColors.whiteColor,
+                color: selected ? AppColors.whiteColor : AppUiColors.of(context).textPrimary,
                 fontSize: FontSizes.font12Sp,
                 fontWeight: selected ? FontWeights.weight700 : FontWeights.weight400,
               ),
@@ -402,7 +414,7 @@ class _BookASlotScreenState extends State<BookASlotScreen> {
     );
   }
 
-  Widget _timeSlotGrid() {
+  Widget _timeSlotGrid(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
         const crossAxisCount = 4;
@@ -425,6 +437,7 @@ class _BookASlotScreenState extends State<BookASlotScreen> {
             final s = _slotDefs[index];
             final isSelected = s.style == _SlotStyle.available && _selectedTime == s.time;
             return _timeChip(
+              context: context,
               time: s.time,
               style: s.style,
               width: itemWidth,
@@ -438,6 +451,7 @@ class _BookASlotScreenState extends State<BookASlotScreen> {
   }
 
   Widget _timeChip({
+    required BuildContext context,
     required String time,
     required _SlotStyle style,
     required double width,
@@ -504,10 +518,11 @@ class _BookASlotScreenState extends State<BookASlotScreen> {
   }
 
   Widget _durationSection() {
+    final ui = AppUiColors.of(context);
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        _sectionTitle('Duration'),
+        _sectionTitle(context, 'Duration'),
         Row(
           children: [
             _roundIconButton(
@@ -522,7 +537,7 @@ class _BookASlotScreenState extends State<BookASlotScreen> {
             10.horizontalSpace,
             AppText(
               _durationHours == 1 ? '1 hour' : '$_durationHours hours',
-              color: AppColors.whiteColor,
+              color: ui.textPrimary,
               fontSize: FontSizes.font12Sp,
               fontWeight: FontWeights.weight500,
             ),
@@ -547,6 +562,7 @@ class _BookASlotScreenState extends State<BookASlotScreen> {
     required bool enabled,
     required VoidCallback onTap,
   }) {
+    final ui = AppUiColors.of(context);
     return Material(
       color: AppColors.transparentColor,
       child: InkWell(
@@ -556,18 +572,18 @@ class _BookASlotScreenState extends State<BookASlotScreen> {
           width: 22.w,
           height: 22.w,
           decoration: BoxDecoration(
-            color: AppColors.fieldBackgroundColor,
+            color: ui.cardBackground,
             shape: BoxShape.circle,
             border: Border.all(
               color: enabled
-                  ? AppColors.whiteColor.withValues(alpha: 0.18)
-                  : AppColors.whiteColor.withValues(alpha: 0.06),
+                  ? ui.textPrimary.withValues(alpha: 0.18)
+                  : ui.borderSubtle,
             ),
           ),
           child: Center(
             child: Icon(
               icon,
-              color: AppColors.whiteColor.withValues(alpha: enabled ? 0.92 : 0.35),
+              color: ui.textPrimary.withValues(alpha: enabled ? 0.92 : 0.35),
               size: 12.sp,
             ),
           ),
@@ -577,6 +593,7 @@ class _BookASlotScreenState extends State<BookASlotScreen> {
   }
 
   Widget _bottomSummary(BuildContext context) {
+    final ui = AppUiColors.of(context);
     final screenW = MediaQuery.sizeOf(context).width;
     final buttonW = screenW - 32.w - 24.w;
     final estimated = 450 * _durationHours;
@@ -586,23 +603,23 @@ class _BookASlotScreenState extends State<BookASlotScreen> {
       width: double.infinity,
       padding: AppUtils.all12Padding,
       decoration: BoxDecoration(
-        color: AppColors.fieldBackgroundColor,
+        color: ui.cardBackground,
         borderRadius: BorderRadius.circular(14.r),
-        border: Border.all(color: AppColors.whiteColor.withValues(alpha: 0.08)),
+        border: Border.all(color: ui.borderSubtle),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           AppText(
             'Estimated Cost',
-            color: AppColors.whiteColor,
+            color: ui.textPrimary,
             fontSize: FontSizes.font14Sp,
             fontWeight: FontWeights.weight500,
           ),
           6.verticalSpace,
           AppText(
             'Rs $estimated for $_durationHours hour${_durationHours == 1 ? '' : 's'} ($kwhNote kWh estimated)',
-            color: AppColors.iconsGreyColor,
+            color: ui.textSecondary,
             fontSize: FontSizes.font12Sp,
             fontWeight: FontWeights.weight400,
           ),
