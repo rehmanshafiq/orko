@@ -174,7 +174,6 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
                         values: _powerRange,
                         min: _powerMin,
                         max: _powerMax,
-                        divisions: 70,
                         onChanged: (v) => setState(() => _powerRange = v),
                       ),
                       20.verticalSpace,
@@ -217,7 +216,6 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
                         values: _priceRange,
                         min: _priceMin,
                         max: _priceMax,
-                        divisions: 22,
                         onChanged: (v) => setState(() => _priceRange = v),
                       ),
                     ],
@@ -352,7 +350,7 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
     required RangeValues values,
     required double min,
     required double max,
-    required int divisions,
+    int? divisions,
     required ValueChanged<RangeValues> onChanged,
   }) {
     return SliderTheme(
