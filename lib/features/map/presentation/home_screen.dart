@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/utils/app_ui.dart';
+import 'package:orko_hubco/core/utils/helpers.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
 import 'package:orko_hubco/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:orko_hubco/features/auth/presentation/cubit/auth_state.dart';
@@ -117,6 +119,62 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() => _mapReady = true);
   }
 
+  /// Centers the map on the device location (same idea as Google Maps’ target button).
+  Future<void> _goToMyLocation() async {
+    final controller = _mapController;
+    if (controller == null || !mounted) return;
+
+    final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      if (mounted) {
+        AppHelpers.showSnackBar(
+          context,
+          'Turn on location services to see your position on the map.',
+          isError: true,
+        );
+      }
+      return;
+    }
+
+    var permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+    }
+    if (permission == LocationPermission.denied ||
+        permission == LocationPermission.deniedForever) {
+      if (mounted) {
+        AppHelpers.showSnackBar(
+          context,
+          'Location permission is required to go to your current position.',
+          isError: true,
+        );
+      }
+      return;
+    }
+
+    try {
+      final position = await Geolocator.getCurrentPosition();
+      if (!mounted) return;
+
+      await controller.animateCamera(
+        CameraUpdate.newCameraPosition(
+          CameraPosition(
+            target: LatLng(position.latitude, position.longitude),
+            zoom: 16,
+          ),
+        ),
+      );
+    } catch (_) {
+      if (mounted) {
+        AppHelpers.showSnackBar(
+          context,
+          'Could not get your current location. Try again.',
+          isError: true,
+        );
+      }
+    }
+  }
+
   // ── Build ─────────────────────────────────────────────────────────────────
 
   @override
@@ -152,6 +210,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     compassEnabled: false,
                     mapToolbarEnabled: false,
                     myLocationButtonEnabled: false,
+                    myLocationEnabled: true,
                     zoomControlsEnabled: false,
                     buildingsEnabled: true,
                     markers: _markers,
@@ -182,7 +241,15 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: _buildErrorBanner(errorMessage),
                         ),
                       ],
-                      const Spacer(),
+                      Expanded(
+                        child: Align(
+                          alignment: Alignment.bottomRight,
+                          child: Padding(
+                            padding: const EdgeInsets.only(right: 16, bottom: 16),
+                            child: _buildMyLocationButton(),
+                          ),
+                        ),
+                      ),
                       _buildBottomSheet(),
                     ],
                   ),
@@ -204,6 +271,32 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // ── Reusable widgets ──────────────────────────────────────────────────────
+
+  Widget _buildMyLocationButton() {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: _goToMyLocation,
+        borderRadius: BorderRadius.circular(8.r),
+        child: Ink(
+          height: 52.h,
+          width: 52.w,
+          decoration: BoxDecoration(
+            color: AppColors.greyColor.withValues(alpha: 0.20),
+            borderRadius: BorderRadius.circular(8.r),
+            border: Border.all(
+              color: AppColors.whiteColor.withValues(alpha: 0.12),
+            ),
+          ),
+          child: Icon(
+            Icons.my_location_rounded,
+            size: 26,
+            color: AppColors.whiteColor,
+          ),
+        ),
+      ),
+    );
+  }
 
   Widget _buildErrorBanner(String message) {
     return Container(
