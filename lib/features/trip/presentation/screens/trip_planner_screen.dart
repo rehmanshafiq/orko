@@ -87,7 +87,7 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
               _mapCard(context),
               16.verticalSpace,
               _chargingStopsSection(context),
-              16.verticalSpace,
+              22.verticalSpace,
               _sectionTitle(context, 'Trip Summary'),
               8.verticalSpace,
               _tripSummaryCard(context),
