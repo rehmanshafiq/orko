@@ -6,6 +6,9 @@ import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/utils/app_ui.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
 import 'package:orko_hubco/core/utils/widgets/primary_button_widget.dart';
+import 'package:orko_hubco/features/booking/presentation/screens/book_a_slot_screen.dart';
+import 'package:orko_hubco/features/map/domain/entities/hubco_location_entity.dart';
+import 'package:orko_hubco/features/map/presentation/charging_station_detail_screen.dart';
 
 class TripPlannerScreen extends StatefulWidget {
   const TripPlannerScreen({super.key});
@@ -1045,7 +1048,12 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
                 Expanded(
                   child: PrimaryButtonWidget(
                     text: 'View Details',
-                    onPress: () {},
+                    onPress: () => _openChargingStationDetails(
+                      context,
+                      stopIndex: stopIndex,
+                      stationName: stationName,
+                      address: address,
+                    ),
                     buttonWidth: double.infinity,
                     buttonHeight: 40.h,
                     cornerRadius: 8.r,
@@ -1060,7 +1068,7 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
                 Expanded(
                   child: PrimaryButtonWidget(
                     text: 'Pre-book',
-                    onPress: () {},
+                    onPress: () => _openPreBook(context),
                     buttonWidth: double.infinity,
                     buttonHeight: 40.h,
                     cornerRadius: 8.r,
@@ -1075,6 +1083,35 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
             ),
           ],
         ],
+      ),
+    );
+  }
+
+  void _openChargingStationDetails(
+    BuildContext context, {
+    required int stopIndex,
+    required String stationName,
+    required String address,
+  }) {
+    final station = HubcoLocationEntity(
+      id: stopIndex + 1,
+      name: stationName,
+      address: address,
+      latitude: _mapCenter.latitude,
+      longitude: _mapCenter.longitude,
+      status: true,
+    );
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => ChargingStationDetailScreen(station: station),
+      ),
+    );
+  }
+
+  void _openPreBook(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => const BookASlotScreen(),
       ),
     );
   }
