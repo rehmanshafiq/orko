@@ -25,6 +25,9 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
   double _currentBatteryPercent = 60;
   double _targetArrivalBatteryPercent = 20;
 
+  bool _tripPlanned = false;
+  int _selectedRouteIndex = 0;
+
   @override
   void dispose() {
     _startLocationController.dispose();
@@ -70,35 +73,25 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
             14.verticalSpace,
             PrimaryButtonWidget(
               text: 'Plan Trip',
-              onPress: () {},
+              onPress: () => setState(() => _tripPlanned = true),
               buttonColor: AppColors.primaryDarkColor,
               fontWeight: FontWeights.weight700,
               fontSize: FontSizes.font14Sp,
               cornerRadius: 8.r,
             ),
-            12.verticalSpace,
-            _mapCard(context),
-            12.verticalSpace,
-            _sectionTitle(context, 'Suggested Stops'),
-            8.verticalSpace,
-            _stopCard(
-              context,
-              title: 'Stop 1: HCL Hub Kala Shah Kaku',
-              subtitle: '45 min charge, Rs 450 estimated',
-            ),
-            8.verticalSpace,
-            _stopCard(
-              context,
-              title: 'Stop 2: HCL Hub Rawat',
-              subtitle: '30 min charge, Rs 300 estimated',
-            ),
-            12.verticalSpace,
-            _sectionTitle(context, 'Trip Summary'),
-            8.verticalSpace,
-            _tripSummaryCard(context),
-            22.verticalSpace,
-            _mapListToggle(context),
-            8.verticalSpace,
+            if (_tripPlanned) ...[
+              16.verticalSpace,
+              _routeOptionsSection(context),
+              12.verticalSpace,
+              _mapCard(context),
+              16.verticalSpace,
+              _sectionTitle(context, 'Trip Summary'),
+              8.verticalSpace,
+              _tripSummaryCard(context),
+              22.verticalSpace,
+              _mapListToggle(context),
+            ],
+            24.verticalSpace,
           ],
         ),
       ),
@@ -297,7 +290,7 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
         trackHeight: 4.h,
         activeTrackColor: AppColors.primaryDarkColor,
         inactiveTrackColor: ui.progressTrack,
-        thumbColor: AppColors.whiteColor,
+        thumbColor: AppColors.primaryDarkColor,
         thumbShape: RoundSliderThumbShape(
           enabledThumbRadius: 10.r,
           elevation: 0,
@@ -309,6 +302,185 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
         ),
       ),
       child: child,
+    );
+  }
+
+  Widget _routeOptionsSection(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _sectionTitle(context, 'Route Options'),
+        10.verticalSpace,
+        _routeOptionCard(
+          context,
+          routeIndex: 0,
+          title: 'Fastest Route',
+          subtitle: '1214 km • 13h 0m',
+          stops: '2',
+          cost: 'PKR 3200',
+          co2: '145 kg',
+          leadingIcon: Icons.show_chart_rounded,
+          leadingIconColor: AppColors.whiteColor,
+          leadingBgColor: AppColors.ratingStarColor,
+        ),
+        8.verticalSpace,
+        _routeOptionCard(
+          context,
+          routeIndex: 1,
+          title: 'Most Economical',
+          subtitle: '1198 km • 14h 0m',
+          stops: '3',
+          cost: 'PKR 2650',
+          co2: '148 kg',
+          leadingIcon: Icons.attach_money_rounded,
+          leadingIconColor: AppColors.primaryDarkColor,
+          leadingBgColor: AppColors.primaryLightColor.withValues(alpha: 0.55),
+        ),
+      ],
+    );
+  }
+
+  Widget _routeOptionCard(
+    BuildContext context, {
+    required int routeIndex,
+    required String title,
+    required String subtitle,
+    required String stops,
+    required String cost,
+    required String co2,
+    required IconData leadingIcon,
+    required Color leadingIconColor,
+    required Color leadingBgColor,
+  }) {
+    final ui = AppUiColors.of(context);
+    final selected = _selectedRouteIndex == routeIndex;
+    return GestureDetector(
+      onTap: () => setState(() => _selectedRouteIndex = routeIndex),
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        padding: AppUtils.vertical10Horizontal12Padding,
+        decoration: BoxDecoration(
+          color: selected ? ui.efficiencyTipBg : ui.cardBackground,
+          borderRadius: BorderRadius.circular(8.r),
+          border: Border.all(
+            color: selected ? AppColors.primaryDarkColor : ui.borderSubtle,
+            width: selected ? 1.5 : 1,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 40.w,
+                  height: 40.w,
+                  decoration: BoxDecoration(
+                    color: leadingBgColor,
+                    shape: BoxShape.circle,
+                  ),
+                  alignment: Alignment.center,
+                  child: Icon(leadingIcon, color: leadingIconColor, size: 20.sp),
+                ),
+                10.horizontalSpace,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      AppText(
+                        title,
+                        color: ui.textPrimary,
+                        fontSize: FontSizes.font14Sp,
+                        fontWeight: FontWeights.weight700,
+                      ),
+                      4.verticalSpace,
+                      AppText(
+                        subtitle,
+                        color: ui.textMuted,
+                        fontSize: FontSizes.font10Sp,
+                        fontWeight: FontWeights.weight400,
+                      ),
+                    ],
+                  ),
+                ),
+                if (selected) ...[
+                  8.horizontalSpace,
+                  Container(
+                    padding: AppUtils.horizontal8Vertical4Padding,
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryDarkColor,
+                      borderRadius: BorderRadius.circular(6.r),
+                    ),
+                    child: AppText(
+                      'Selected',
+                      color: AppColors.whiteColor,
+                      fontSize: FontSizes.font8Sp,
+                      fontWeight: FontWeights.weight600,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+            14.verticalSpace,
+            Row(
+              children: [
+                Expanded(
+                  child: _routeOptionMetric(
+                    context,
+                    label: 'Stops',
+                    value: stops,
+                    valueColor: ui.textPrimary,
+                  ),
+                ),
+                Expanded(
+                  child: _routeOptionMetric(
+                    context,
+                    label: 'Cost',
+                    value: cost,
+                    valueColor: AppColors.primaryDarkColor,
+                  ),
+                ),
+                Expanded(
+                  child: _routeOptionMetric(
+                    context,
+                    label: 'CO2 Saved',
+                    value: co2,
+                    valueColor: AppColors.primaryDarkColor,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _routeOptionMetric(
+    BuildContext context, {
+    required String label,
+    required String value,
+    required Color valueColor,
+  }) {
+    final ui = AppUiColors.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        AppText(
+          label,
+          color: ui.textMuted,
+          fontSize: FontSizes.font8Sp,
+          fontWeight: FontWeights.weight400,
+        ),
+        4.verticalSpace,
+        AppText(
+          value,
+          color: valueColor,
+          fontSize: FontSizes.font12Sp,
+          fontWeight: FontWeights.weight700,
+        ),
+      ],
     );
   }
 
@@ -456,52 +628,6 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
         color: ui.textPrimary.withValues(alpha: 0.88),
         fontSize: FontSizes.font8Sp,
         fontWeight: FontWeights.weight500,
-      ),
-    );
-  }
-
-  Widget _stopCard(BuildContext context, {required String title, required String subtitle}) {
-    final ui = AppUiColors.of(context);
-    return Container(
-      padding: AppUtils.vertical10Horizontal12Padding,
-      decoration: BoxDecoration(
-        color: ui.cardBackground,
-        borderRadius: BorderRadius.circular(8.r),
-        border: Border.all(color: AppColors.primaryDarkColor),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 18.w,
-            height: 18.w,
-            decoration: const BoxDecoration(
-              color: AppColors.primaryDarkColor,
-              shape: BoxShape.circle,
-            ),
-            child: Icon(Icons.bolt_rounded, size: 11.sp, color: AppColors.whiteColor),
-          ),
-          8.horizontalSpace,
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                AppText(
-                  title,
-                  color: ui.textPrimary,
-                  fontSize: FontSizes.font10Sp,
-                  fontWeight: FontWeights.weight600,
-                ),
-                2.verticalSpace,
-                AppText(
-                  subtitle,
-                  color: ui.textMuted,
-                  fontSize: FontSizes.font8Sp,
-                  fontWeight: FontWeights.weight400,
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }
