@@ -6,5 +6,8 @@ class AppImages {
   static final String onboarding2 = '${imagePath}onboarding_2.png';
   static final String onboarding3 = '${imagePath}onboarding_3.png';
   static final String icChargingStation = '${imagePath}ic_charging_station.png';
+  /// Wide hero for charging hub detail (EV chargers at night).
+  static final String chargingStationBanner =
+      '${imagePath}charging_station_banner.png';
   static final String nawaTextIcon = '${iconPath}nawa_text_icon.svg';
 }

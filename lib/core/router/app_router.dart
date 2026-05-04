@@ -9,6 +9,8 @@ import 'package:orko_hubco/features/auth/presentation/screens/login_screen.dart'
 import 'package:orko_hubco/features/auth/presentation/screens/register_screen.dart';
 import 'package:orko_hubco/features/booking/presentation/screens/book_a_slot_screen.dart';
 import 'package:orko_hubco/features/bottom_navigation/presentation/screens/bottom_nav_shell.dart';
+import 'package:orko_hubco/features/map/domain/entities/hubco_location_entity.dart';
+import 'package:orko_hubco/features/map/presentation/charging_station_detail_screen.dart';
 import 'package:orko_hubco/features/map/presentation/home_screen.dart';
 import 'package:orko_hubco/features/map/presentation/cubit/map_cubit.dart';
 import 'package:orko_hubco/features/onboarding/presentation/bloc/onboarding_cubit.dart';
@@ -74,6 +76,18 @@ class AppRouter {
           create: (_) => sl<AuthCubit>(),
           child: const RegisterScreen(),
         ),
+      ),
+
+      // Full-screen over shell (map marker → hub detail).
+      GoRoute(
+        path: '/station-detail',
+        name: 'station-detail',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final extra = state.extra;
+          final station = extra is HubcoLocationEntity ? extra : null;
+          return ChargingStationDetailScreen(station: station);
+        },
       ),
 
       // ── Main Shell (Bottom Nav) ─────────────────────────────────────

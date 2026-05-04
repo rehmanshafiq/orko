@@ -26,6 +26,8 @@ class AppColors {
   static const primaryDarkColor = Color(0xFF329748);
   static const fieldBackgroundColor = Color(0xFF202221);
   static const mapPinBlueColor = Color(0xFF2A83FF);
+  /// Star icons on reviews / ratings (warm gold on dark UI).
+  static const ratingStarColor = Color(0xFFFFB74D);
   static const bottomNavBackgroundColor = Color(0xFF191919);
   /// Busy / warning time slots (mustard on dark UI).
   static const slotBusyYellowColor = Color(0xFF9A7B1E);

@@ -586,61 +586,7 @@ class _HomeScreenState extends State<HomeScreen> {
       position: LatLng(station.latitude, station.longitude),
       icon: icon ?? BitmapDescriptor.defaultMarker,
       infoWindow: InfoWindow(title: station.name),
-      onTap: () => _showStationDialog(station),
-    );
-  }
-
-  Future<void> _showStationDialog(HubcoLocationEntity station) {
-    return showDialog<void>(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppColors.fieldBackgroundColor,
-        title: AppText(
-          station.name,
-          color: AppColors.whiteColor,
-          fontSize: FontSizes.font16Sp,
-          fontWeight: FontWeights.weight700,
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            AppText(
-              "Address: ${station.address}",
-              color: AppColors.whiteColor.withValues(alpha: 0.8),
-              fontSize: FontSizes.font12Sp,
-              fontWeight: FontWeights.weight400,
-            ),
-            8.verticalSpace,
-            AppText(
-              'Lat: ${station.latitude}, Lng: ${station.longitude}',
-              color: AppColors.whiteColor.withValues(alpha: 0.75),
-              fontSize: FontSizes.font10Sp,
-              fontWeight: FontWeights.weight400,
-            ),
-            6.verticalSpace,
-            AppText(
-              station.status ? 'Status: Active' : 'Status: Inactive',
-              color: station.status
-                  ? AppColors.primaryDarkColor
-                  : Colors.redAccent,
-              fontSize: FontSizes.font12Sp,
-              fontWeight: FontWeights.weight600,
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: AppText(
-              'Close',
-              color: AppColors.whiteColor.withValues(alpha: 0.8),
-              fontSize: FontSizes.font12Sp,
-              fontWeight: FontWeights.weight500,
-            ),
-          ),
-        ],
-      ),
+      onTap: () => context.push('/station-detail', extra: station),
     );
   }
 
