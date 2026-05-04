@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:orko_hubco/core/di/injection_container.dart';
 import 'package:orko_hubco/core/router/app_router.dart';
+import 'package:orko_hubco/core/theme/app_material_theme.dart';
+import 'package:orko_hubco/core/theme/theme_cubit.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -37,39 +40,20 @@ class OrkoHubCoApp extends StatelessWidget {
       designSize: const Size(390, 844),
       minTextAdapt: true,
       splitScreenMode: true,
-      builder: (_, __) => MaterialApp.router(
-        title: 'Orko HubCo',
-        debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          useMaterial3: true,
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: Colors.deepPurple,
-            brightness: Brightness.light,
-          ),
-          appBarTheme: const AppBarTheme(
-            centerTitle: true,
-            elevation: 0,
-          ),
-          inputDecorationTheme: InputDecorationTheme(
-            filled: true,
-            fillColor: Colors.grey.shade50,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
+      builder: (_, __) => BlocProvider<ThemeCubit>.value(
+        value: sl<ThemeCubit>(),
+        child: BlocBuilder<ThemeCubit, ThemeMode>(
+          builder: (context, themeMode) {
+            return MaterialApp.router(
+              title: 'Orko HubCo',
+              debugShowCheckedModeBanner: false,
+              theme: AppMaterialTheme.light,
+              darkTheme: AppMaterialTheme.dark,
+              themeMode: themeMode,
+              routerConfig: AppRouter.router,
+            );
+          },
         ),
-        darkTheme: ThemeData(
-          useMaterial3: true,
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: Colors.deepPurple,
-            brightness: Brightness.dark,
-          ),
-          appBarTheme: const AppBarTheme(
-            centerTitle: true,
-            elevation: 0,
-          ),
-        ),
-        routerConfig: AppRouter.router,
       ),
     );
   }

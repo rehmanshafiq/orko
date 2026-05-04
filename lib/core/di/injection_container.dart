@@ -4,6 +4,7 @@ import 'package:orko_hubco/core/network/api_client.dart';
 import 'package:orko_hubco/core/network/network_info.dart';
 import 'package:orko_hubco/core/services/analytics_service.dart';
 import 'package:orko_hubco/core/services/local_storage_service.dart';
+import 'package:orko_hubco/core/theme/theme_cubit.dart';
 import 'package:orko_hubco/features/auth/di/auth_injection.dart';
 import 'package:orko_hubco/features/map/di/map_injection.dart';
 import 'package:orko_hubco/features/onboarding/di/onboarding_injection.dart';
@@ -25,6 +26,9 @@ Future<void> initDependencies() async {
   // Services
   sl.registerLazySingleton<LocalStorageService>(() => LocalStorageService());
   sl.registerLazySingleton<AnalyticsService>(() => AnalyticsService());
+  sl.registerLazySingleton<ThemeCubit>(
+    () => ThemeCubit(localStorageService: sl()),
+  );
 
   // ── Features ──────────────────────────────────────────────────────────
 

@@ -31,7 +31,7 @@ class _SearchScreenState extends State<SearchScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.blackColor,
+      backgroundColor: AppUiColors.of(context).scaffoldBackground,
       body: SafeArea(
         child: ListView(
           padding: AppUtils.horizontal16Padding,

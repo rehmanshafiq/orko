@@ -34,3 +34,108 @@ class AppColors {
   /// Booked / unavailable slot chip background.
   static const slotBookedBackgroundColor = Color(0xFF5C2424);
 }
+
+/// Surfaces and typography that follow [ThemeData.brightness], built from [AppColors] only.
+class AppUiColors {
+  const AppUiColors._(this._brightness);
+
+  factory AppUiColors.of(BuildContext context) {
+    return AppUiColors._(Theme.of(context).brightness);
+  }
+
+  final Brightness _brightness;
+
+  bool get isLight => _brightness == Brightness.light;
+
+  Color get scaffoldBackground =>
+      isLight ? AppColors.scaffoldColor : AppColors.blackColor;
+
+  Color get cardBackground =>
+      isLight ? AppColors.whiteColor : AppColors.fieldBackgroundColor;
+
+  Color get textPrimary =>
+      isLight ? AppColors.blackColor : AppColors.whiteColor;
+
+  Color get textSecondary =>
+      isLight ? AppColors.greyColor : AppColors.iconsGreyColor;
+
+  Color get textMuted => isLight
+      ? AppColors.hintColor
+      : AppColors.whiteColor.withValues(alpha: 0.6);
+
+  Color get borderSubtle => isLight
+      ? AppColors.colorsOutlineColor
+      : AppColors.whiteColor.withValues(alpha: 0.08);
+
+  Color get progressTrack => isLight
+      ? AppColors.shimmerGreyColor
+      : AppColors.whiteColor.withValues(alpha: 0.12);
+
+  Color get innerCardBg => isLight
+      ? AppColors.sandColor.withValues(alpha: 0.55)
+      : AppColors.fieldBackgroundColor;
+
+  Color get vehicleImagePlaceholder => isLight
+      ? AppColors.shimmerGreyColor
+      : AppColors.greyColor.withValues(alpha: 0.25);
+
+  Color get vehicleStatBoxBg => isLight
+      ? AppColors.shimmerGreyColor
+      : AppColors.whiteColor.withValues(alpha: 0.06);
+
+  Color get bottomNavContainerBg =>
+      isLight ? AppColors.whiteColor : AppColors.bottomNavBackgroundColor;
+
+  Color get bottomNavBorder => isLight
+      ? AppColors.colorsOutlineColor
+      : AppColors.whiteColor.withValues(alpha: 0.06);
+
+  Color get bottomNavShadow => isLight
+      ? AppColors.blackColor.withValues(alpha: 0.08)
+      : AppColors.blackColor.withValues(alpha: 0.4);
+
+  Color get navInactive => isLight
+      ? AppColors.greyColor
+      : AppColors.whiteColor.withValues(alpha: 0.68);
+
+  Color get navActive => AppColors.primaryDarkColor;
+
+  Color get chipInactiveBg =>
+      isLight ? AppColors.whiteColor : AppColors.fieldBackgroundColor;
+
+  Color get chipInactiveBorder => borderSubtle;
+
+  Color get drivingEfficiencyBg => isLight
+      ? AppColors.mapPinBlueColor.withValues(alpha: 0.08)
+      : AppColors.mapPinBlueColor.withValues(alpha: 0.12);
+
+  Color get drivingEfficiencyBorder => isLight
+      ? AppColors.mapPinBlueColor.withValues(alpha: 0.2)
+      : AppColors.mapPinBlueColor.withValues(alpha: 0.25);
+
+  Color get chargingPatternsBg => isLight
+      ? AppColors.mapPinBlueColor.withValues(alpha: 0.06)
+      : AppColors.mapPinBlueColor.withValues(alpha: 0.1);
+
+  Color get chargingPatternsBorder => isLight
+      ? AppColors.mapPinBlueColor.withValues(alpha: 0.18)
+      : AppColors.mapPinBlueColor.withValues(alpha: 0.22);
+
+  Color get efficiencyTipBg => isLight
+      ? AppColors.primaryDarkColor.withValues(alpha: 0.1)
+      : AppColors.primaryDarkColor.withValues(alpha: 0.2);
+
+  Color get inputFill =>
+      isLight ? AppColors.shimmerGreyColor : AppColors.fieldBackgroundColor;
+
+  Color get inputBorder => isLight
+      ? AppColors.dividerColor
+      : AppColors.whiteColor.withValues(alpha: 0.16);
+
+  Color get dividerLine =>
+      isLight ? AppColors.dividerColor : AppColors.whiteColor.withValues(alpha: 0.2);
+
+  Color get socialButtonShadow => isLight
+      ? AppColors.blackColor.withValues(alpha: 0.08)
+      : AppColors.blackColor.withValues(alpha: 0.45);
+}

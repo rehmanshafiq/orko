@@ -69,16 +69,17 @@ class _ChargingStationDetailScreenState
   @override
   Widget build(BuildContext context) {
     final station = widget.station;
+    final ui = AppUiColors.of(context);
     if (station == null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (context.mounted) context.pop();
       });
       return Scaffold(
-        backgroundColor: AppColors.blackColor,
+        backgroundColor: ui.scaffoldBackground,
         body: Center(
           child: AppText(
             'Invalid station',
-            color: AppColors.whiteColor,
+            color: ui.textPrimary,
             fontSize: FontSizes.font14Sp,
           ),
         ),
@@ -89,7 +90,7 @@ class _ChargingStationDetailScreenState
     final totalPorts = _ports.length;
 
     return Scaffold(
-      backgroundColor: AppColors.blackColor,
+      backgroundColor: ui.scaffoldBackground,
       body: Column(
         children: [
           Expanded(
@@ -102,7 +103,7 @@ class _ChargingStationDetailScreenState
                   expandedHeight: 280.h,
                   pinned: true,
                   stretch: true,
-                  backgroundColor: AppColors.blackColor,
+                  backgroundColor: ui.scaffoldBackground,
                   surfaceTintColor: AppColors.transparentColor,
                   elevation: 0,
                   scrolledUnderElevation: 0,

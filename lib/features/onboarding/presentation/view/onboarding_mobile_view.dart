@@ -43,7 +43,7 @@ class _OnboardingMobileViewState extends State<OnboardingMobileView> {
     final screenHeight = MediaQuery.sizeOf(context).height;
 
     return Scaffold(
-      backgroundColor: AppColors.blackColor,
+      backgroundColor: AppUiColors.of(context).scaffoldBackground,
       body: SafeArea(
         child: BlocConsumer<OnboardingCubit, OnboardingState>(
           listener: (context, state) {

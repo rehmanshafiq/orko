@@ -16,8 +16,9 @@ class BottomNavShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ui = AppUiColors.of(context);
     return Scaffold(
-      backgroundColor: AppColors.blackColor,
+      backgroundColor: ui.scaffoldBackground,
       body: navigationShell,
       bottomNavigationBar: SafeArea(
         top: false,
@@ -27,12 +28,12 @@ class BottomNavShell extends StatelessWidget {
             height: 56.h,
             padding: AppUtils.bottomNavInnerPadding,
             decoration: BoxDecoration(
-              color: AppColors.bottomNavBackgroundColor,
+              color: ui.bottomNavContainerBg,
               borderRadius: BorderRadius.circular(2.r),
-              border: Border.all(color: AppColors.whiteColor.withValues(alpha: 0.06)),
+              border: Border.all(color: ui.bottomNavBorder),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.blackColor.withValues(alpha: 0.4),
+                  color: ui.bottomNavShadow,
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
@@ -41,6 +42,7 @@ class BottomNavShell extends StatelessWidget {
             child: Row(
               children: [
                 _buildNavItem(
+                  context: context,
                   icon: Icons.map_outlined,
                   label: 'Map',
                   isActive: navigationShell.currentIndex == 0,
@@ -48,6 +50,7 @@ class BottomNavShell extends StatelessWidget {
                   activeBackground: true,
                 ),
                 _buildNavItem(
+                  context: context,
                   icon: Icons.calendar_today_outlined,
                   label: 'Bookings',
                   isActive: navigationShell.currentIndex == 2,
@@ -55,6 +58,7 @@ class BottomNavShell extends StatelessWidget {
                   activeBackground: true,
                 ),
                 _buildNavItem(
+                  context: context,
                   icon: Icons.alt_route_rounded,
                   label: 'Trip',
                   isActive: navigationShell.currentIndex == 3,
@@ -62,6 +66,7 @@ class BottomNavShell extends StatelessWidget {
                   activeBackground: true,
                 ),
                 _buildNavItem(
+                  context: context,
                   icon: Icons.bolt_outlined,
                   label: 'Charging',
                   isActive: navigationShell.currentIndex == 4,
@@ -69,6 +74,7 @@ class BottomNavShell extends StatelessWidget {
                   activeBackground: true,
                 ),
                 _buildNavItem(
+                  context: context,
                   icon: Icons.person_outline_rounded,
                   label: 'Profile',
                   isActive: navigationShell.currentIndex == 1,
@@ -91,14 +97,16 @@ class BottomNavShell extends StatelessWidget {
   }
 
   Widget _buildNavItem({
+    required BuildContext context,
     required IconData icon,
     required String label,
     required bool isActive,
     required VoidCallback? onTap,
     bool activeBackground = false,
   }) {
+    final ui = AppUiColors.of(context);
     final Color itemColor =
-        isActive ? AppColors.primaryDarkColor : AppColors.whiteColor.withValues(alpha: 0.68);
+        isActive ? ui.navActive : ui.navInactive;
 
     return Expanded(
       child: GestureDetector(

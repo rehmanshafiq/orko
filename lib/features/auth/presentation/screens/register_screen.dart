@@ -56,8 +56,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final ui = AppUiColors.of(context);
     return Scaffold(
-      backgroundColor: AppColors.blackColor,
+      backgroundColor: ui.scaffoldBackground,
       body: BlocConsumer<AuthCubit, AuthState>(
         listener: (context, state) {
           if (state is AuthAuthenticated) {
@@ -82,9 +83,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         onPressed: () => context.pop(),
                         padding: AppUtils.zeroPadding,
                         constraints: const BoxConstraints(),
-                        icon: const Icon(
+                        icon: Icon(
                           Icons.arrow_back,
-                          color: AppColors.whiteColor,
+                          color: ui.textPrimary,
                           size: 24,
                         ),
                       ),
@@ -93,7 +94,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     AppText(
                       'Create Account',
                       textAlign: TextAlign.center,
-                      color: AppColors.whiteColor,
+                      color: ui.textPrimary,
                       fontSize: FontSizes.font28Sp,
                       fontWeight: FontWeights.weight700,
                     ),
@@ -101,7 +102,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     AppText(
                       'Join HGL and start your green journey.',
                       textAlign: TextAlign.center,
-                      color: AppColors.whiteColor.withValues(alpha: 0.6),
+                      color: ui.textMuted,
                       fontSize: FontSizes.font14Sp,
                       fontWeight: FontWeights.weight400,
                     ),
@@ -109,13 +110,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        _buildStepperDot(isActive: true),
+                        _buildStepperDot(ui, isActive: true),
                         8.horizontalSpace,
-                        _buildStepperDot(isActive: false),
+                        _buildStepperDot(ui, isActive: false),
                       ],
                     ),
                     24.verticalSpace,
                     _buildField(
+                      ui,
                       hintText: 'Full Name',
                       controller: _nameController,
                       validator: (v) => (v == null || v.isEmpty) ? 'Name is required' : null,
@@ -127,16 +129,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         8.horizontalSpace,
                         AppText(
                           'Phone Number',
-                          color: AppColors.whiteColor,
+                          color: ui.textPrimary,
                           fontSize: FontSizes.font12Sp,
                           fontWeight: FontWeights.weight500,
                         ),
                       ],
                     ),
                     8.verticalSpace,
-                    _buildPhoneField(),
+                    _buildPhoneField(ui),
                     12.verticalSpace,
                     _buildField(
+                      ui,
                       hintText: 'Email Address',
                       controller: _emailController,
                       keyboardType: TextInputType.emailAddress,
@@ -145,6 +148,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                     12.verticalSpace,
                     _buildField(
+                      ui,
                       hintText: 'Password',
                       controller: _passwordController,
                       obscureText: _obscurePassword,
@@ -165,7 +169,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         value: 0.8,
                         minHeight: 3,
                         color: AppColors.primaryDarkColor,
-                        backgroundColor: AppColors.whiteColor.withValues(alpha: 0.18),
+                        backgroundColor: ui.progressTrack,
                       ),
                     ),
                     4.verticalSpace,
@@ -177,6 +181,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                     10.verticalSpace,
                     _buildField(
+                      ui,
                       hintText: 'Confirm Password',
                       controller: _confirmPasswordController,
                       obscureText: _obscureConfirmPassword,
@@ -202,7 +207,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   ? AppColors.primaryDarkColor
                                   : AppColors.transparentColor,
                             ),
-                            side: BorderSide(color: AppColors.whiteColor.withValues(alpha: 0.5)),
+                            side: BorderSide(color: ui.inputBorder),
                           ),
                         ),
                         10.horizontalSpace,
@@ -211,7 +216,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             children: [
                               AppText(
                                 'I agree to the ',
-                                color: AppColors.whiteColor.withValues(alpha: 0.75),
+                                color: ui.textPrimary.withValues(alpha: 0.75),
                                 fontSize: FontSizes.font12Sp,
                                 fontWeight: FontWeights.weight400,
                               ),
@@ -257,7 +262,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       children: [
                         AppText(
                           'Already have an account? ',
-                          color: AppColors.whiteColor.withValues(alpha: 0.6),
+                          color: ui.textMuted,
                           fontSize: FontSizes.font12Sp,
                           fontWeight: FontWeights.weight400,
                         ),
@@ -283,18 +288,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  Widget _buildStepperDot({required bool isActive}) {
+  Widget _buildStepperDot(AppUiColors ui, {required bool isActive}) {
     return Container(
       height: 14.h,
       width: 14.w,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: isActive ? AppColors.primaryDarkColor : AppColors.whiteColor.withValues(alpha: 0.3),
+        color: isActive
+            ? AppColors.primaryDarkColor
+            : ui.textSecondary.withValues(alpha: 0.35),
       ),
     );
   }
 
-  Widget _buildPhoneField() {
+  Widget _buildPhoneField(AppUiColors ui) {
     return TextFormField(
       controller: _phoneController,
       keyboardType: TextInputType.phone,
@@ -302,7 +309,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       validator: (value) => (value == null || value.trim().isEmpty) ? 'Phone number is required' : null,
       maxLength: 11,
       style: TextStyle(
-        color: AppColors.whiteColor,
+        color: ui.textPrimary,
         fontSize: FontSizes.font14Sp,
         fontWeight: FontWeights.weight500,
       ),
@@ -314,7 +321,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           fontWeight: FontWeights.weight400,
         ),
         filled: true,
-        fillColor: AppColors.fieldBackgroundColor,
+        fillColor: ui.inputFill,
         contentPadding: EdgeInsets.zero,
         prefixIconConstraints: BoxConstraints(minWidth: 0.w, minHeight: 0.h),
         prefixIcon: Padding(
@@ -326,7 +333,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               6.horizontalSpace,
               AppText(
                 '+92',
-                color: AppColors.whiteColor.withValues(alpha: 0.9),
+                color: ui.textPrimary.withValues(alpha: 0.9),
                 fontSize: FontSizes.font12Sp,
                 fontWeight: FontWeights.weight500,
               ),
@@ -334,14 +341,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
               Container(
                 height: 16.h,
                 width: 1,
-                color: AppColors.whiteColor.withValues(alpha: 0.2),
+                color: ui.inputBorder,
               ),
             ],
           ),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12.r),
-          borderSide: BorderSide(color: AppColors.whiteColor.withValues(alpha: 0.16)),
+          borderSide: BorderSide(color: ui.inputBorder),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12.r),
@@ -359,7 +366,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  Widget  _buildField({
+  Widget _buildField(
+    AppUiColors ui, {
     required String hintText,
     required TextEditingController controller,
     String? Function(String?)? validator,
@@ -379,7 +387,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       onFieldSubmitted: onFieldSubmitted,
       maxLength: 40,
       style: TextStyle(
-        color: AppColors.whiteColor,
+        color: ui.textPrimary,
         fontSize: FontSizes.font14Sp,
         fontWeight: FontWeights.weight500,
       ),
@@ -393,10 +401,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
         prefixIcon: prefixIcon,
         suffixIcon: suffixIcon,
         filled: true,
-        fillColor: AppColors.fieldBackgroundColor,
+        fillColor: ui.inputFill,
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12.r),
-          borderSide: BorderSide(color: AppColors.whiteColor.withValues(alpha: 0.16)),
+          borderSide: BorderSide(color: ui.inputBorder),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12.r),

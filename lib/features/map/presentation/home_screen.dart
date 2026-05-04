@@ -274,7 +274,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.blackColor,
+      backgroundColor: AppUiColors.of(context).scaffoldBackground,
       body: BlocListener<AuthCubit, AuthState>(
         listener: (context, state) {
           if (state is AuthUnauthenticated) context.go('/login');

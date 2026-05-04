@@ -25,11 +25,12 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
   @override
   Widget build(BuildContext context) {
     final total = PaymentMethodScreen._total;
+    final bg = AppUiColors.of(context).scaffoldBackground;
 
     return Scaffold(
-      backgroundColor: AppColors.blackColor,
+      backgroundColor: bg,
       appBar: AppBar(
-        backgroundColor: AppColors.blackColor,
+        backgroundColor: bg,
         elevation: 0,
         scrolledUnderElevation: 0,
         surfaceTintColor: AppColors.transparentColor,

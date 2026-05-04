@@ -51,8 +51,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final ui = AppUiColors.of(context);
     return Scaffold(
-      backgroundColor: AppColors.blackColor,
+      backgroundColor: ui.scaffoldBackground,
       body: BlocConsumer<AuthCubit, AuthState>(
         listener: (context, state) {
           if (state is AuthAuthenticated) {
@@ -71,11 +72,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     50.verticalSpace,
-                    _buildHeader(),
+                    _buildHeader(ui),
                     30.verticalSpace,
-                    _buildPhoneNumberField(),
+                    _buildPhoneNumberField(ui),
                     14.verticalSpace,
-                    _buildPasswordField(),
+                    _buildPasswordField(ui),
                     8.verticalSpace,
                     Align(
                       alignment: Alignment.centerRight,
@@ -95,9 +96,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     20.verticalSpace,
-                    _buildSignInButton(state),
+                    _buildSignInButton(state, ui),
                     28.verticalSpace,
-                    _buildContinueWith(),
+                    _buildContinueWith(ui),
                     18.verticalSpace,
                     Row(
                       children: [
@@ -124,7 +125,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       children: [
                         AppText(
                           "Don't have an account? ",
-                          color: AppColors.whiteColor.withValues(alpha: 0.6),
+                          color: ui.textMuted,
                           fontSize: FontSizes.font12Sp,
                           fontWeight: FontWeights.weight400,
                         ),
@@ -150,7 +151,7 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(AppUiColors ui) {
     return Column(
       children: [
         SizedBox(
@@ -197,13 +198,13 @@ class _LoginScreenState extends State<LoginScreen> {
         2.verticalSpace,
         AppText(
           'HGL',
-          color: AppColors.whiteColor,
+          color: ui.textPrimary,
           fontSize: FontSizes.font24Sp,
           fontWeight: FontWeights.weight400,
         ),
         AppText(
           'HUBCO Green Limited',
-          color: AppColors.whiteColor.withValues(alpha: 0.6),
+          color: ui.textMuted,
           fontSize: FontSizes.font4Sp,
           fontWeight: FontWeights.weight400,
         ),
@@ -211,7 +212,7 @@ class _LoginScreenState extends State<LoginScreen> {
         AppText(
           'Welcome Back',
           textAlign: TextAlign.center,
-          color: AppColors.whiteColor,
+          color: ui.textPrimary,
           fontSize: FontSizes.font28Sp,
           fontWeight: FontWeights.weight600,
         ),
@@ -219,7 +220,7 @@ class _LoginScreenState extends State<LoginScreen> {
         AppText(
           'Sign in to continue charging.',
           textAlign: TextAlign.center,
-          color: AppColors.whiteColor.withValues(alpha: 0.6),
+          color: ui.textMuted,
           fontSize: FontSizes.font12Sp,
           fontWeight: FontWeights.weight400,
         ),
@@ -227,13 +228,13 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildPhoneNumberField() {
+  Widget _buildPhoneNumberField(AppUiColors ui) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         AppText(
           'Phone Number',
-          color: AppColors.whiteColor,
+          color: ui.textPrimary,
           fontSize: FontSizes.font12Sp,
           fontWeight: FontWeights.weight500,
         ),
@@ -245,13 +246,13 @@ class _LoginScreenState extends State<LoginScreen> {
           validator: _validatePhoneNumber,
           maxLength: 11,
           style: TextStyle(
-            color: AppColors.whiteColor,
+            color: ui.textPrimary,
             fontSize: FontSizes.font14Sp,
             fontWeight: FontWeights.weight500,
           ),
           decoration: InputDecoration(
             filled: true,
-            fillColor: AppColors.fieldBackgroundColor,
+            fillColor: ui.inputFill,
             contentPadding: EdgeInsets.zero,
             prefixIconConstraints: BoxConstraints(minWidth: 0.w, minHeight: 0.h),
             prefixIcon: Padding(
@@ -263,7 +264,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   6.horizontalSpace,
                   AppText(
                     '+92',
-                    color: AppColors.whiteColor.withValues(alpha: 0.9),
+                    color: ui.textPrimary.withValues(alpha: 0.9),
                     fontSize: FontSizes.font12Sp,
                     fontWeight: FontWeights.weight500,
                   ),
@@ -271,7 +272,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   Container(
                     height: 16.h,
                     width: 1,
-                    color: AppColors.whiteColor.withOpacity(0.2),
+                    color: ui.inputBorder,
                   ),
                   10.horizontalSpace,
                   const Icon(Icons.phone_outlined, color: AppColors.hintColor, size: 18),
@@ -286,7 +287,7 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: AppColors.whiteColor.withOpacity(0.16)),
+              borderSide: BorderSide(color: ui.inputBorder),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
@@ -306,13 +307,13 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildPasswordField() {
+  Widget _buildPasswordField(AppUiColors ui) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         AppText(
           'Password',
-          color: AppColors.whiteColor,
+          color: ui.textPrimary,
           fontSize: FontSizes.font12Sp,
           fontWeight: FontWeights.weight500,
         ),
@@ -325,11 +326,12 @@ class _LoginScreenState extends State<LoginScreen> {
           onFieldSubmitted: (_) => _onLogin(),
           maxLength: 40,
           style: TextStyle(
-            color: AppColors.whiteColor,
+            color: ui.textPrimary,
             fontSize: FontSizes.font14Sp,
             fontWeight: FontWeights.weight500,
           ),
           decoration: _inputDecoration(
+            ui: ui,
             hintText: '**********',
             suffixIcon: IconButton(
               onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
@@ -346,6 +348,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   InputDecoration _inputDecoration({
+    required AppUiColors ui,
     required String hintText,
     Widget? prefixIcon,
     Widget? suffixIcon,
@@ -360,10 +363,10 @@ class _LoginScreenState extends State<LoginScreen> {
       prefixIcon: prefixIcon,
       suffixIcon: suffixIcon,
       filled: true,
-      fillColor: AppColors.fieldBackgroundColor,
+      fillColor: ui.inputFill,
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: AppColors.whiteColor.withOpacity(0.16)),
+        borderSide: BorderSide(color: ui.inputBorder),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
@@ -380,7 +383,7 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildSignInButton(AuthState state) {
+  Widget _buildSignInButton(AuthState state, AppUiColors ui) {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12.r),
@@ -392,7 +395,7 @@ class _LoginScreenState extends State<LoginScreen> {
             offset: const Offset(0, 6),
           ),
           BoxShadow(
-            color: AppColors.blackColor.withOpacity(0.45),
+            color: ui.socialButtonShadow,
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -412,12 +415,12 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildContinueWith() {
+  Widget _buildContinueWith(AppUiColors ui) {
     return Row(
       children: [
         Expanded(
           child: Divider(
-            color: AppColors.whiteColor.withOpacity(0.2),
+            color: ui.dividerLine,
             thickness: 1,
           ),
         ),
@@ -425,14 +428,14 @@ class _LoginScreenState extends State<LoginScreen> {
           padding: AppUtils.horizontal14Padding,
           child: AppText(
             'or continue with',
-            color: AppColors.whiteColor.withValues(alpha: 0.6),
+            color: ui.textMuted,
             fontSize: FontSizes.font12Sp,
             fontWeight: FontWeights.weight400,
           ),
         ),
         Expanded(
           child: Divider(
-            color: AppColors.whiteColor.withOpacity(0.2),
+            color: ui.dividerLine,
             thickness: 1,
           ),
         ),
@@ -456,6 +459,7 @@ class _SocialButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ui = AppUiColors.of(context);
     final Widget leadingIcon =
         imagePath != null
             ? AppPngImageView(
@@ -468,9 +472,9 @@ class _SocialButton extends StatelessWidget {
     return OutlinedButton.icon(
       onPressed: onTap,
       style: OutlinedButton.styleFrom(
-        foregroundColor: AppColors.whiteColor,
+        foregroundColor: ui.textPrimary,
         side: BorderSide(
-          color: AppColors.whiteColor,
+          color: ui.inputBorder,
         ),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
@@ -478,7 +482,7 @@ class _SocialButton extends StatelessWidget {
       icon: leadingIcon,
       label: AppText(
         text,
-        color: AppColors.whiteColor,
+        color: ui.textPrimary,
         fontSize: FontSizes.font14Sp,
         fontWeight: FontWeights.weight500,
       ),
