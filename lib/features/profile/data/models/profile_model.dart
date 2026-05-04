@@ -11,14 +11,33 @@ class ProfileModel extends ProfileEntity {
     super.bio,
   });
 
+  /// Parses API or stub payloads; missing keys (e.g. Postman Echo) use safe defaults.
   factory ProfileModel.fromJson(Map<String, dynamic> json) {
+    final root = json['data'] is Map<String, dynamic>
+        ? json['data'] as Map<String, dynamic>
+        : json;
+
+    String pickStr(String key, String fallback) {
+      final v = root[key];
+      if (v == null) return fallback;
+      if (v is String) return v.isEmpty ? fallback : v;
+      return v.toString();
+    }
+
+    String? pickStrOpt(String key) {
+      final v = root[key];
+      if (v == null) return null;
+      if (v is String) return v.isEmpty ? null : v;
+      return v.toString();
+    }
+
     return ProfileModel(
-      id: json['id'] as String,
-      name: json['name'] as String,
-      email: json['email'] as String,
-      phone: json['phone'] as String?,
-      avatarUrl: json['avatar_url'] as String?,
-      bio: json['bio'] as String?,
+      id: pickStr('id', '1'),
+      name: pickStr('name', 'Hubco Member'),
+      email: pickStr('email', 'member@hubco.app'),
+      phone: pickStrOpt('phone'),
+      avatarUrl: pickStrOpt('avatar_url'),
+      bio: pickStrOpt('bio'),
     );
   }
 

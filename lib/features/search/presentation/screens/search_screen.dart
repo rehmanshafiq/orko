@@ -6,8 +6,27 @@ import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/utils/app_ui.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
 
-class SearchScreen extends StatelessWidget {
+class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
+
+  @override
+  State<SearchScreen> createState() => _SearchScreenState();
+}
+
+class _SearchScreenState extends State<SearchScreen> {
+  late final TextEditingController _searchController;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -64,7 +83,8 @@ class SearchScreen extends StatelessWidget {
 
   Widget _searchBar(BuildContext context) {
     return Container(
-      padding: AppUtils.vertical10Horizontal12Padding,
+      height: 52.h,
+      padding: EdgeInsets.all(16.r),
       decoration: BoxDecoration(
         color: AppColors.fieldBackgroundColor,
         borderRadius: BorderRadius.circular(12.r),
@@ -78,35 +98,73 @@ class SearchScreen extends StatelessWidget {
         ],
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          IconButton(
-            padding: EdgeInsets.zero,
-            constraints: BoxConstraints.tightFor(width: 32.w, height: 32.h),
-            onPressed: () => context.pop(),
-            icon: Icon(
-              Icons.arrow_back_rounded,
-              color: AppColors.whiteColor.withValues(alpha: 0.8),
-              size: 18.sp,
+          Material(
+            color: AppColors.transparentColor,
+            child: InkWell(
+              onTap: () => context.pop(),
+              customBorder: const CircleBorder(),
+              child: Icon(
+                Icons.arrow_back_rounded,
+                color: AppColors.whiteColor.withValues(alpha: 0.8),
+                size: 18.r,
+              ),
             ),
           ),
-          4.horizontalSpace,
+          8.horizontalSpace,
           Expanded(
-            child: AppText(
-              'Search stations or locations',
-              color: AppColors.whiteColor.withValues(alpha: 0.65),
-              fontSize: FontSizes.font12Sp,
-              fontWeight: FontWeights.weight400,
+            child: TextField(
+              controller: _searchController,
+              cursorColor: AppColors.primaryDarkColor,
+              style: TextStyle(
+                color: AppColors.whiteColor,
+                fontSize: FontSizes.font12Sp,
+                fontWeight: FontWeights.weight400,
+                fontFamily: AppFonts.lexend,
+                height: 1.0,
+              ),
+              strutStyle: StrutStyle(
+                fontSize: FontSizes.font12Sp,
+                height: 1.0,
+                fontFamily: AppFonts.lexend,
+                forceStrutHeight: true,
+              ),
+              decoration: InputDecoration(
+                isDense: true,
+                hintText: 'Search stations or locations',
+                hintStyle: TextStyle(
+                  color: AppColors.whiteColor.withValues(alpha: 0.65),
+                  fontSize: FontSizes.font12Sp,
+                  fontWeight: FontWeights.weight400,
+                  fontFamily: AppFonts.lexend,
+                  height: 1.0,
+                ),
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                contentPadding: EdgeInsets.zero,
+                filled: false,
+              ),
+              minLines: 1,
+              maxLines: 1,
+              textAlignVertical: TextAlignVertical.center,
             ),
           ),
-          4.horizontalSpace,
-          IconButton(
-            padding: EdgeInsets.zero,
-            constraints: BoxConstraints.tightFor(width: 32.w, height: 32.h),
-            onPressed: () => context.pop(),
-            icon: Icon(
-              Icons.close_rounded,
-              color: AppColors.whiteColor.withValues(alpha: 0.65),
-              size: 18.sp,
+          8.horizontalSpace,
+          Material(
+            color: AppColors.transparentColor,
+            child: InkWell(
+              onTap: () {
+                _searchController.clear();
+                context.pop();
+              },
+              customBorder: const CircleBorder(),
+              child: Icon(
+                Icons.close_rounded,
+                color: AppColors.whiteColor.withValues(alpha: 0.65),
+                size: 18.r,
+              ),
             ),
           ),
         ],

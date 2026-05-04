@@ -19,7 +19,14 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
     try {
       final response = await apiClient.get(ApiConstants.profile);
       if (response.statusCode == 200 && response.data != null) {
-        return ProfileModel.fromJson(response.data as Map<String, dynamic>);
+        final raw = response.data;
+        if (raw is! Map) {
+          throw ServerException(
+            message: 'Invalid profile response',
+            statusCode: response.statusCode,
+          );
+        }
+        return ProfileModel.fromJson(Map<String, dynamic>.from(raw));
       }
       throw ServerException(message: 'Failed to load profile', statusCode: response.statusCode);
     } catch (e) {
@@ -33,7 +40,14 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
     try {
       final response = await apiClient.put(ApiConstants.updateProfile, data: data);
       if (response.statusCode == 200 && response.data != null) {
-        return ProfileModel.fromJson(response.data as Map<String, dynamic>);
+        final raw = response.data;
+        if (raw is! Map) {
+          throw ServerException(
+            message: 'Invalid profile response',
+            statusCode: response.statusCode,
+          );
+        }
+        return ProfileModel.fromJson(Map<String, dynamic>.from(raw));
       }
       throw ServerException(message: 'Failed to update profile', statusCode: response.statusCode);
     } catch (e) {
