@@ -142,8 +142,8 @@ class BookingConfirmationScreen extends StatelessWidget {
                 EdgeInsets.only(bottom: 12.h, top: 8.h),
               ),
               child: PrimaryButtonWidget(
-                text: 'View My Bookings',
-                onPress: () => context.go('/bookings'),
+                text: 'Start Charge',
+                onPress: () => context.go('/profile'),
                 buttonWidth: double.infinity,
                 buttonHeight: 52.h,
                 cornerRadius: 12.r,
