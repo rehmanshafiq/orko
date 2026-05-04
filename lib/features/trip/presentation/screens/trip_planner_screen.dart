@@ -678,7 +678,7 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
     final rail = 38.w;
     final node = 24.w;
 
-    Widget connector(double height) {
+    Widget connector({double? height}) {
       return Center(
         child: Container(
           width: 2.w,
@@ -688,6 +688,12 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
             borderRadius: BorderRadius.circular(2.r),
           ),
         ),
+      );
+    }
+
+    Widget flexibleConnector() {
+      return Expanded(
+        child: connector(),
       );
     }
 
@@ -710,19 +716,22 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Row(
+        IntrinsicHeight(
+          child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
               width: rail,
               alignment: Alignment.topCenter,
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   circleNode(
                     backgroundColor: AppColors.primaryDarkColor,
                     child: Icon(Icons.location_on_rounded, size: 12.sp, color: AppColors.whiteColor),
                   ),
-                  connector(16.h),
+                  4.verticalSpace,
+                  flexibleConnector(),
                 ],
               ),
             ),
@@ -748,21 +757,35 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
               ),
             ),
           ],
+          ),
         ),
         Row(
+          children: [
+            Container(
+              width: rail,
+              alignment: Alignment.center,
+              child: connector(height: 14.h),
+            ),
+            10.horizontalSpace,
+            Expanded(child: Container()),
+          ],
+        ),
+        IntrinsicHeight(
+          child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
               width: rail,
               alignment: Alignment.topCenter,
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  connector(12.h),
+                  flexibleConnector(),
                   circleNode(
                     backgroundColor: AppColors.ratingStarColor,
                     child: Icon(Icons.bolt_rounded, size: 12.sp, color: AppColors.whiteColor),
                   ),
-                  connector(12.h),
+                  flexibleConnector(),
                 ],
               ),
             ),
@@ -780,22 +803,35 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
               ),
             ),
           ],
+          ),
         ),
-        18.verticalSpace,
         Row(
+          children: [
+            Container(
+              width: rail,
+              alignment: Alignment.center,
+              child: connector(height: 14.h),
+            ),
+            10.horizontalSpace,
+            Expanded(child: Container()),
+          ],
+        ),
+        IntrinsicHeight(
+          child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
               width: rail,
               alignment: Alignment.topCenter,
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  connector(12.h),
+                  flexibleConnector(),
                   circleNode(
                     backgroundColor: AppColors.ratingStarColor,
                     child: Icon(Icons.bolt_rounded, size: 12.sp, color: AppColors.whiteColor),
                   ),
-                  connector(12.h),
+                  flexibleConnector(),
                 ],
               ),
             ),
@@ -813,17 +849,30 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
               ),
             ),
           ],
+          ),
         ),
-        18.verticalSpace,
         Row(
+          children: [
+            Container(
+              width: rail,
+              alignment: Alignment.center,
+              child: connector(height: 14.h),
+            ),
+            10.horizontalSpace,
+            Expanded(child: Container()),
+          ],
+        ),
+        IntrinsicHeight(
+          child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
               width: rail,
               alignment: Alignment.topCenter,
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  connector(12.h),
+                  flexibleConnector(),
                   circleNode(
                     backgroundColor: AppColors.primaryLightColor,
                     child: Icon(Icons.navigation_rounded, size: 11.sp, color: AppColors.whiteColor),
@@ -853,6 +902,7 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
               ),
             ),
           ],
+          ),
         ),
       ],
     );
