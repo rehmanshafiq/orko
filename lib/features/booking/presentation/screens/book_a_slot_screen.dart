@@ -318,22 +318,26 @@ class _BookASlotScreenState extends State<BookASlotScreen> {
     final ui = AppUiColors.of(context);
     return Container(
       width: double.infinity,
-      padding: AppUtils.horizontal8Vertical4Padding,
+      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 10.h),
       decoration: BoxDecoration(
-        color: ui.cardBackground,
+        color: ui.innerCardBg,
         borderRadius: BorderRadius.circular(14.r),
         border: Border.all(color: ui.borderSubtle),
       ),
       child: Row(
         children: [
-          _todayDateChip(),
+          _todayDateChip(ui),
+          10.horizontalSpace,
+          Container(width: 1, height: 36.h, color: ui.dividerLine),
           8.horizontalSpace,
           ...List.generate(_weekPills.length, (i) {
             final p = _weekPills[i];
             final segment = i + 1;
             return Expanded(
-              child: Center(
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 2.w),
                 child: _datePill(
+                  ui: ui,
                   day: p.day,
                   date: p.date,
                   selected: _selectedDateSegment == segment,
@@ -347,31 +351,58 @@ class _BookASlotScreenState extends State<BookASlotScreen> {
     );
   }
 
-  Widget _todayDateChip() {
-    final ui = AppUiColors.of(context);
+  Widget _todayDateChip(AppUiColors ui) {
     final selected = _selectedDateSegment == 0;
+
+    /// Unselected circle: translucent primary on dark, tinted surface on light
+    /// so contrast stays WCAG-ish for caption text without white-on-muted.
+    final bg = selected
+        ? AppColors.primaryDarkColor
+        : ui.isLight
+            ? AppColors.primaryDarkColor.withValues(alpha: 0.12)
+            : AppColors.primaryDarkColor.withValues(alpha: 0.28);
+
+    final labelColor =
+        selected ? AppColors.whiteColor : ui.isLight ? AppColors.primaryDarkColor : AppColors.whiteColor;
+
+    final borderColor = selected
+        ? ui.isLight
+            ? AppColors.primaryDarkColor.withValues(alpha: 0.72)
+            : AppColors.primaryLightColor.withValues(alpha: 0.55)
+        : ui.borderSubtle;
+
     return Material(
       color: AppColors.transparentColor,
       child: InkWell(
         onTap: () => setState(() => _selectedDateSegment = 0),
         customBorder: const CircleBorder(),
-        child: Container(
-          width: 46.w,
-          height: 46.w,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 160),
+          curve: Curves.easeOut,
+          width: 50.w,
+          height: 50.w,
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: selected ? AppColors.primaryDarkColor : AppColors.primaryDarkColor.withValues(alpha: 0.35),
+            color: bg,
             shape: BoxShape.circle,
-            border: Border.all(
-              color: selected ? ui.textPrimary.withValues(alpha: 0.45) : AppColors.transparentColor,
-              width: selected ? 1.5 : 0,
-            ),
+            border: Border.all(color: borderColor, width: selected ? 2 : 1),
+            boxShadow: selected
+                ? [
+                    BoxShadow(
+                      color: AppColors.primaryDarkColor
+                          .withValues(alpha: ui.isLight ? 0.28 : 0.45),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ]
+                : null,
           ),
           child: AppText(
             'Today',
-            color: AppColors.whiteColor,
+            color: labelColor,
             fontSize: FontSizes.font8Sp,
             fontWeight: FontWeights.weight700,
+            maxLines: 1,
           ),
         ),
       ),
@@ -379,33 +410,60 @@ class _BookASlotScreenState extends State<BookASlotScreen> {
   }
 
   Widget _datePill({
+    required AppUiColors ui,
     required String day,
     required String date,
     required bool selected,
     required VoidCallback onTap,
   }) {
+    final surface = selected ? ui.efficiencyTipBg : ui.cardBackground;
+    final borderColor =
+        selected ? AppColors.primaryDarkColor : ui.borderSubtle;
+    final dayColor =
+        selected ? AppColors.primaryDarkColor : ui.textMuted;
+    final dateColor = selected ? ui.textPrimary : ui.textSecondary;
+
     return Material(
       color: AppColors.transparentColor,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(10.r),
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 6.h),
+        borderRadius: BorderRadius.circular(12.r),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 160),
+          curve: Curves.easeOut,
+          padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 8.h),
+          decoration: BoxDecoration(
+            color: surface,
+            borderRadius: BorderRadius.circular(12.r),
+            border: Border.all(color: borderColor, width: selected ? 1.5 : 1),
+            boxShadow: selected
+                ? [
+                    BoxShadow(
+                      color: AppColors.primaryDarkColor
+                          .withValues(alpha: ui.isLight ? 0.12 : 0.22),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ]
+                : null,
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               AppText(
                 day,
-                color: selected ? AppColors.primaryDarkColor : AppUiColors.of(context).textMuted,
+                color: dayColor,
                 fontSize: FontSizes.font10Sp,
-                fontWeight: FontWeights.weight500,
+                fontWeight:
+                    selected ? FontWeights.weight600 : FontWeights.weight500,
               ),
-              1.verticalSpace,
+              4.verticalSpace,
               AppText(
                 date,
-                color: selected ? AppColors.whiteColor : AppUiColors.of(context).textPrimary,
+                color: dateColor,
                 fontSize: FontSizes.font12Sp,
-                fontWeight: selected ? FontWeights.weight700 : FontWeights.weight400,
+                fontWeight:
+                    selected ? FontWeights.weight700 : FontWeights.weight600,
               ),
             ],
           ),
@@ -415,6 +473,7 @@ class _BookASlotScreenState extends State<BookASlotScreen> {
   }
 
   Widget _timeSlotGrid(BuildContext context) {
+    final ui = AppUiColors.of(context);
     return LayoutBuilder(
       builder: (context, constraints) {
         const crossAxisCount = 4;
@@ -437,7 +496,7 @@ class _BookASlotScreenState extends State<BookASlotScreen> {
             final s = _slotDefs[index];
             final isSelected = s.style == _SlotStyle.available && _selectedTime == s.time;
             return _timeChip(
-              context: context,
+              ui: ui,
               time: s.time,
               style: s.style,
               width: itemWidth,
@@ -451,7 +510,7 @@ class _BookASlotScreenState extends State<BookASlotScreen> {
   }
 
   Widget _timeChip({
-    required BuildContext context,
+    required AppUiColors ui,
     required String time,
     required _SlotStyle style,
     required double width,
@@ -464,26 +523,50 @@ class _BookASlotScreenState extends State<BookASlotScreen> {
 
     switch (style) {
       case _SlotStyle.available:
-        bg = AppColors.primaryDarkColor.withValues(alpha: 0.28);
-        border = AppColors.primaryDarkColor;
-        textColor = AppColors.whiteColor;
+        if (ui.isLight) {
+          bg = AppColors.primaryDarkColor.withValues(alpha: 0.1);
+          border = AppColors.primaryDarkColor.withValues(alpha: 0.42);
+          textColor = AppColors.primaryDarkColor;
+        } else {
+          bg = AppColors.primaryDarkColor.withValues(alpha: 0.28);
+          border = AppColors.primaryDarkColor.withValues(alpha: 0.75);
+          textColor = AppColors.whiteColor.withValues(alpha: 0.96);
+        }
         break;
       case _SlotStyle.booked:
         bg = AppColors.slotBookedBackgroundColor;
-        border = AppColors.slotBookedBackgroundColor;
-        textColor = AppColors.whiteColor;
+        border = ui.isLight
+            ? AppColors.slotBookedBackgroundColor.withValues(alpha: 0.88)
+            : AppColors.slotBookedBackgroundColor;
+        textColor =
+            ui.isLight ? AppColors.whiteColor : AppColors.whiteColor.withValues(alpha: 0.94);
         break;
       case _SlotStyle.busy:
         bg = AppColors.slotBusyYellowColor;
-        border = AppColors.slotBusyYellowColor;
-        textColor = AppColors.whiteColor;
+        border = ui.isLight
+            ? AppColors.slotBusyYellowColor.withValues(alpha: 0.9)
+            : AppColors.slotBusyYellowColor;
+        textColor =
+            ui.isLight ? AppColors.whiteColor : AppColors.whiteColor.withValues(alpha: 0.94);
         break;
     }
 
+    List<BoxShadow>? chipShadow;
+
     if (isSelected && style == _SlotStyle.available) {
-      bg = AppColors.primaryDarkColor.withValues(alpha: 0.52);
-      border = AppColors.whiteColor;
+      bg = AppColors.primaryDarkColor;
+      border = ui.isLight
+          ? AppColors.primaryDarkColor.withValues(alpha: 0.95)
+          : AppColors.primaryLightColor.withValues(alpha: 0.72);
       textColor = AppColors.whiteColor;
+      chipShadow = [
+        BoxShadow(
+          color:
+              AppColors.primaryDarkColor.withValues(alpha: ui.isLight ? 0.35 : 0.5),
+          blurRadius: 10,
+          offset: const Offset(0, 3),
+        ),
+      ];
     }
 
     final interactive = style == _SlotStyle.available;
@@ -493,7 +576,9 @@ class _BookASlotScreenState extends State<BookASlotScreen> {
       child: InkWell(
         onTap: interactive ? onTap : null,
         borderRadius: BorderRadius.circular(34.r),
-        child: Ink(
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          curve: Curves.easeOut,
           width: width,
           padding: EdgeInsets.symmetric(vertical: 10.h),
           decoration: BoxDecoration(
@@ -501,15 +586,40 @@ class _BookASlotScreenState extends State<BookASlotScreen> {
             borderRadius: BorderRadius.circular(34.r),
             border: Border.all(
               color: border,
-              width: style == _SlotStyle.available ? (isSelected ? 2 : 1.5) : 1,
+              width: style == _SlotStyle.available ? (isSelected ? 2 : 1.25) : 1,
             ),
+            boxShadow: chipShadow,
           ),
           child: Center(
-            child: AppText(
-              time,
-              color: textColor,
-              fontSize: FontSizes.font12Sp,
-              fontWeight: FontWeights.weight400,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: interactive && isSelected
+                  ? Row(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.check_circle_rounded,
+                          size: 13.sp,
+                          color: AppColors.whiteColor.withValues(alpha: 0.95),
+                        ),
+                        3.horizontalSpace,
+                        AppText(
+                          time,
+                          color: textColor,
+                          fontSize: FontSizes.font12Sp,
+                          fontWeight: FontWeights.weight600,
+                        ),
+                      ],
+                    )
+                  : AppText(
+                      time,
+                      color: interactive
+                          ? textColor.withValues(alpha: isSelected ? 1.0 : 0.94)
+                          : textColor.withValues(alpha: 0.92),
+                      fontSize: FontSizes.font12Sp,
+                      fontWeight: FontWeights.weight500,
+                    ),
             ),
           ),
         ),
