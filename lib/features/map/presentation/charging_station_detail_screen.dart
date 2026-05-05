@@ -5,7 +5,6 @@ import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_images.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/utils/app_ui.dart';
-import 'package:orko_hubco/core/utils/helpers.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
 import 'package:orko_hubco/core/utils/widgets/primary_button_widget.dart';
 import 'package:orko_hubco/features/map/domain/entities/hubco_location_entity.dart';
@@ -27,8 +26,8 @@ class ChargingStationDetailScreen extends StatefulWidget {
 class _ChargingStationDetailScreenState
     extends State<ChargingStationDetailScreen> {
   bool _favorite = false;
-  /// Highlighted port row (matches design: first row selected by default).
-  int _selectedPortIndex = 0;
+  /// Highlighted port row — only available ports may be selected.
+  late int _selectedPortIndex;
 
   static const List<_ChargerPort> _ports = [
     _ChargerPort(label: 'CCS, 150 kW', price: 'Rs 45 per kWh', available: true),
@@ -65,6 +64,19 @@ class _ChargingStationDetailScreenState
       rating: 5,
     ),
   ];
+
+  static int _indexOfFirstAvailablePort() {
+    for (var i = 0; i < _ports.length; i++) {
+      if (_ports[i].available) return i;
+    }
+    return 0;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedPortIndex = _indexOfFirstAvailablePort();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -393,62 +405,77 @@ class _ChargingStationDetailScreenState
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         for (var i = 0; i < _ports.length; i++) ...[
-          Material(
-            color: AppColors.transparentColor,
-            child: InkWell(
-              onTap: () => setState(() => _selectedPortIndex = i),
-              splashColor: ui.textPrimary.withValues(alpha: 0.06),
-              highlightColor: ui.textPrimary.withValues(alpha: 0.04),
-              child: Container(
-                width: double.infinity,
-                padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 10.w),
-                decoration: BoxDecoration(
-                  color: i == _selectedPortIndex
-                      ? ui.innerCardBg
-                      : AppColors.transparentColor,
-                  borderRadius: BorderRadius.circular(8.r),
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    _portPlugIcon(iconSize),
-                    iconGap.horizontalSpace,
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
+          Builder(
+            builder: (context) {
+              final port = _ports[i];
+              final canSelect = port.available;
+              final isSelected =
+                  canSelect && i == _selectedPortIndex;
+
+              return Material(
+                color: AppColors.transparentColor,
+                child: InkWell(
+                  onTap: canSelect
+                      ? () => setState(() => _selectedPortIndex = i)
+                      : null,
+                  splashColor: ui.textPrimary.withValues(alpha: 0.06),
+                  highlightColor: ui.textPrimary.withValues(alpha: 0.04),
+                  child: Opacity(
+                    opacity: canSelect ? 1.0 : 0.55,
+                    child: Container(
+                      width: double.infinity,
+                      padding: EdgeInsets.symmetric(
+                          vertical: 12.h, horizontal: 10.w),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? ui.innerCardBg
+                            : AppColors.transparentColor,
+                        borderRadius: BorderRadius.circular(8.r),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Expanded(
-                                child: AppText(
-                                  _ports[i].label,
-                                  color: ui.textPrimary,
-                                  fontSize: FontSizes.font14Sp,
-                                  fontWeight: FontWeights.weight600,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
+                          _portPlugIcon(iconSize, dimmed: !canSelect),
+                          iconGap.horizontalSpace,
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Expanded(
+                                      child: AppText(
+                                        port.label,
+                                        color: ui.textPrimary,
+                                        fontSize: FontSizes.font14Sp,
+                                        fontWeight: FontWeights.weight600,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    8.horizontalSpace,
+                                    _portStatusChip(port.available),
+                                  ],
                                 ),
-                              ),
-                              8.horizontalSpace,
-                              _portStatusChip(_ports[i].available),
-                            ],
-                          ),
-                          4.verticalSpace,
-                          AppText(
-                            _ports[i].price,
-                            color: ui.textSecondary,
-                            fontSize: FontSizes.font12Sp,
-                            fontWeight: FontWeights.weight400,
+                                4.verticalSpace,
+                                AppText(
+                                  port.price,
+                                  color: ui.textSecondary,
+                                  fontSize: FontSizes.font12Sp,
+                                  fontWeight: FontWeights.weight400,
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),
                     ),
-                  ],
+                  ),
                 ),
-              ),
-            ),
+              );
+            },
           ),
           if (i < _ports.length - 1)
             Padding(
@@ -464,7 +491,7 @@ class _ChargingStationDetailScreenState
     );
   }
 
-  Widget _portPlugIcon(double diameter) {
+  Widget _portPlugIcon(double diameter, {required bool dimmed}) {
     final ui = AppUiColors.of(context);
     return Container(
       height: diameter,
@@ -475,7 +502,7 @@ class _ChargingStationDetailScreenState
       ),
       child: Icon(
         Icons.ev_station_rounded,
-        color: ui.textPrimary.withValues(alpha: 0.88),
+        color: ui.textPrimary.withValues(alpha: dimmed ? 0.45 : 0.88),
         size: 22.r,
       ),
     );
