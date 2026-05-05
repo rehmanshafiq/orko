@@ -1,5 +1,9 @@
 import 'dart:async';
+import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart' show Factory;
+import 'package:flutter/gestures.dart'
+    show EagerGestureRecognizer, OneSequenceGestureRecognizer;
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -68,6 +72,16 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
 
   Completer<GoogleMapController> _mapControllerCompleter =
       Completer<GoogleMapController>();
+  GoogleMapController? _mapController;
+
+  /// Logical (dp) marker side. Kept smaller than the home map because the
+  /// trip-planner mini-map is only ~212dp tall.
+  static const double _stationMarkerSize = 12;
+
+  bool _iconsLoaded = false;
+  BitmapDescriptor? _stopIcon;
+  BitmapDescriptor? _startIcon;
+  BitmapDescriptor? _endIcon;
 
   static const String _darkMapStyle = '''
 [
@@ -92,7 +106,16 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_iconsLoaded) return;
+    _iconsLoaded = true;
+    unawaited(_loadCustomMarkerIcons());
+  }
+
+  @override
   void dispose() {
+    _mapController?.dispose();
     _startLocationController
       ..removeListener(_onLocationChanged)
       ..dispose();
@@ -143,7 +166,7 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
           _endLocationController.text,
         ) ??
         const GeoPoint(
-            name: 'Islamabad', latitude: 33.6844, longitude: 73.0479);
+            name: 'Lahore', latitude: 33.6844, longitude: 73.0479);
 
     final stops = HubcoChargingStations.stopsAlongRoute(
       startLat: start.latitude,
@@ -238,6 +261,82 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
     final bounds = _boundsFor(plan.waypoints);
     await controller
         .animateCamera(CameraUpdate.newLatLngBounds(bounds, 48));
+  }
+
+  /// Renders the bolt + start/end pins as off-screen images so the markers
+  /// match the icon-style used on the home map. Call once per screen instance
+  /// (gated by [_iconsLoaded]).
+  Future<void> _loadCustomMarkerIcons() async {
+    if (!mounted) return;
+    final dpr = MediaQuery.devicePixelRatioOf(context);
+
+    final stop = await _renderMarkerIcon(
+      iconData: Icons.bolt_outlined,
+      color: AppColors.primaryDarkColor,
+      dpr: dpr,
+    );
+    final start = await _renderMarkerIcon(
+      iconData: Icons.location_on_rounded,
+      color: AppColors.primaryDarkColor,
+      dpr: dpr,
+    );
+    final end = await _renderMarkerIcon(
+      iconData: Icons.location_on_rounded,
+      color: AppColors.removeColor,
+      dpr: dpr,
+    );
+
+    if (!mounted) return;
+    setState(() {
+      _stopIcon = stop;
+      _startIcon = start;
+      _endIcon = end;
+    });
+  }
+
+  /// Rasterises [iconData] into a [BitmapDescriptor] for use as a Google Map
+  /// marker icon (mirrors the helper in `home_screen.dart`).
+  Future<BitmapDescriptor?> _renderMarkerIcon({
+    required IconData iconData,
+    required Color color,
+    required double dpr,
+  }) async {
+    try {
+      final size = _stationMarkerSize * dpr;
+      final pictureRecorder = ui.PictureRecorder();
+      final canvas = Canvas(pictureRecorder);
+
+      final iconPainter = TextPainter(
+        textDirection: TextDirection.ltr,
+        text: TextSpan(
+          text: String.fromCharCode(iconData.codePoint),
+          style: TextStyle(
+            fontSize: size * 0.88,
+            fontFamily: iconData.fontFamily,
+            package: iconData.fontPackage,
+            color: color,
+          ),
+        ),
+      );
+      iconPainter.layout();
+
+      final iconOffset = Offset(
+        (size - iconPainter.width) / 2,
+        (size - iconPainter.height) / 2,
+      );
+      iconPainter.paint(canvas, iconOffset);
+
+      final picture = pictureRecorder.endRecording();
+      final image = await picture.toImage(size.toInt(), size.toInt());
+      final byteData =
+          await image.toByteData(format: ui.ImageByteFormat.png);
+
+      if (byteData == null) return null;
+      return BitmapDescriptor.bytes(byteData.buffer.asUint8List());
+    } catch (e, st) {
+      debugPrint('❌ Trip-planner marker icon failed: $e\n$st');
+      return null;
+    }
   }
 
   LatLngBounds _boundsFor(List<_LatLngNamed> points) {
@@ -792,31 +891,25 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
         Marker(
           markerId: const MarkerId('start'),
           position: routePoints.first,
-          icon: BitmapDescriptor.defaultMarkerWithHue(
-            BitmapDescriptor.hueGreen,
-          ),
+          icon: _startIcon ?? BitmapDescriptor.defaultMarker,
           infoWindow: InfoWindow(title: plan?.start.name ?? 'Start'),
         ),
       if (routePoints.length > 1)
         Marker(
           markerId: const MarkerId('end'),
           position: routePoints.last,
-          icon: BitmapDescriptor.defaultMarkerWithHue(
-            BitmapDescriptor.hueRed,
-          ),
+          icon: _endIcon ?? BitmapDescriptor.defaultMarker,
           infoWindow: InfoWindow(title: plan?.end.name ?? 'Destination'),
         ),
       if (plan != null)
         for (var i = 0; i < plan.stops.length; i++)
           Marker(
-            markerId: MarkerId('stop-$i'),
+            markerId: MarkerId('stop-${plan.stops[i].id}'),
             position: LatLng(
               plan.stops[i].latitude,
               plan.stops[i].longitude,
             ),
-            icon: BitmapDescriptor.defaultMarkerWithHue(
-              BitmapDescriptor.hueOrange,
-            ),
+            icon: _stopIcon ?? BitmapDescriptor.defaultMarker,
             infoWindow: InfoWindow(
               title: plan.stops[i].name,
               snippet: plan.stops[i].address,
@@ -825,7 +918,7 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
     };
 
     return Container(
-      height: 212.h,
+      height: 312.h,
       decoration: BoxDecoration(
         color: ui.cardBackground,
         borderRadius: BorderRadius.circular(12.r),
@@ -837,9 +930,6 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
             child: ClipRRect(
               borderRadius: BorderRadius.circular(12.r),
               child: GoogleMap(
-                key: ValueKey(
-                  'trip-map-${plan?.strategy.label ?? '_'}-${routePoints.length}',
-                ),
                 initialCameraPosition: CameraPosition(
                   target: initialTarget,
                   zoom: 6.5,
@@ -848,12 +938,20 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
                 compassEnabled: false,
                 mapToolbarEnabled: false,
                 myLocationButtonEnabled: false,
-                zoomControlsEnabled: false,
-                scrollGesturesEnabled: false,
+                zoomControlsEnabled: true,
+                zoomGesturesEnabled: true,
+                scrollGesturesEnabled: true,
                 rotateGesturesEnabled: false,
                 tiltGesturesEnabled: false,
-                zoomGesturesEnabled: false,
+                // Claim gestures so the parent ListView doesn't intercept
+                // pan / pinch on the map.
+                gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>{
+                  Factory<OneSequenceGestureRecognizer>(
+                    EagerGestureRecognizer.new,
+                  ),
+                },
                 onMapCreated: (controller) {
+                  _mapController = controller;
                   if (!_mapControllerCompleter.isCompleted) {
                     _mapControllerCompleter.complete(controller);
                   } else {
@@ -868,32 +966,12 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
                     Polyline(
                       polylineId: const PolylineId('trip-route'),
                       points: routePoints,
-                      color: AppColors.primaryDarkColor,
+                      color: AppColors.mapPinBlueColor.withValues(alpha: 0.42),
                       width: 4,
                     ),
                 },
               ),
             ),
-          ),
-          Positioned(
-            top: 10.h,
-            left: 10.w,
-            child: _mapLabelChip(
-              context,
-              plan?.start.name ?? 'Start',
-            ),
-          ),
-          if (plan != null)
-            for (var i = 0; i < plan.stops.length; i++)
-              Positioned(
-                top: (42 + (i * 24)).h,
-                left: (74 + (i * 18)).w,
-                child: _mapLabelChip(context, 'Stop ${i + 1}'),
-              ),
-          Positioned(
-            bottom: 8.h,
-            right: 8.w,
-            child: _mapLabelChip(context, plan?.end.name ?? 'Destination'),
           ),
         ],
       ),
