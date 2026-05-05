@@ -1278,50 +1278,6 @@ class _SettingsTabBody extends StatelessWidget {
               Row(
                 children: [
                   Icon(
-                    Icons.language_rounded,
-                    color: AppColors.primaryLightColor,
-                    size: 20.r,
-                  ),
-                  8.horizontalSpace,
-                  AppText(
-                    'Language',
-                    color: ui.textPrimary,
-                    fontSize: FontSizes.font16Sp,
-                    fontWeight: FontWeights.weight700,
-                  ),
-                ],
-              ),
-              14.verticalSpace,
-              Row(
-                children: [
-                  Expanded(
-                    child: _LanguageChip(
-                      label: 'English',
-                      selected: state.language == ProfileLanguage.english,
-                      onTap: () => cubit.setLanguage(ProfileLanguage.english),
-                    ),
-                  ),
-                  10.horizontalSpace,
-                  Expanded(
-                    child: _LanguageChip(
-                      label: 'Urdu (اردو)',
-                      selected: state.language == ProfileLanguage.urdu,
-                      onTap: () => cubit.setLanguage(ProfileLanguage.urdu),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-        14.verticalSpace,
-        _SectionCard(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(
                     Icons.notifications_outlined,
                     color: AppColors.primaryLightColor,
                     size: 20.r,
