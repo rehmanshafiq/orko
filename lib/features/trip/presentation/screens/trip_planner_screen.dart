@@ -56,7 +56,7 @@ class _TripPlannerScreenState extends State<TripPlannerScreen> {
   final TextEditingController _startLocationController =
       TextEditingController(text: 'Karachi');
   final TextEditingController _endLocationController =
-      TextEditingController(text: 'Islamabad');
+      TextEditingController(text: 'Lahore');
 
   double _currentBatteryPercent = 60;
   double _targetArrivalBatteryPercent = 20;
