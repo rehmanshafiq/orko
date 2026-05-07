@@ -489,7 +489,7 @@ class _AchievementsCard extends StatelessWidget {
               Icon(
                 Icons.workspace_premium_outlined,
                 color: AppColors.primaryLightColor,
-                size: 20.r,
+                size: 22.r,
               ),
               8.horizontalSpace,
               AppText(
