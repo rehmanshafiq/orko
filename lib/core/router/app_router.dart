@@ -22,7 +22,7 @@ import 'package:orko_hubco/features/profile/presentation/screens/charging_status
 import 'package:orko_hubco/features/profile/presentation/screens/profile_screen.dart';
 import 'package:orko_hubco/features/search/presentation/page/search_page.dart';
 import 'package:orko_hubco/features/splash/presentation/page/splash_page.dart';
-import 'package:orko_hubco/features/trip/presentation/screens/trip_planner_screen.dart';
+import 'package:orko_hubco/features/trip/presentation/page/trip_planner_page.dart';
 
 /// App-wide router configuration using go_router.
 ///
@@ -33,7 +33,7 @@ import 'package:orko_hubco/features/trip/presentation/screens/trip_planner_scree
 ///     ├── /home          → HomeScreen     (tab 0)
 ///     ├── /account       → ProfileScreen  (tab 1)
 ///     ├── /bookings      → BookASlotScreen (tab 2)
-///     ├── /trip          → TripPlannerScreen (tab 3)
+///     ├── /trip          → TripPlannerPage (tab 3)
 ///     └── /profile       → ChargingStatusScreen (tab 4)
 ///   /search              → SearchPage (modal stack from map search bar)
 class AppRouter {
@@ -175,7 +175,7 @@ class AppRouter {
               GoRoute(
                 path: '/trip',
                 name: 'trip',
-                builder: (context, state) => const TripPlannerScreen(),
+                builder: (context, state) => const TripPlannerPage(),
               ),
             ],
           ),
