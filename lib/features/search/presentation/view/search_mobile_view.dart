@@ -6,14 +6,14 @@ import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/utils/app_ui.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
 
-class SearchScreen extends StatefulWidget {
-  const SearchScreen({super.key});
+class SearchMobileView extends StatefulWidget {
+  const SearchMobileView({super.key});
 
   @override
-  State<SearchScreen> createState() => _SearchScreenState();
+  State<SearchMobileView> createState() => _SearchMobileViewState();
 }
 
-class _SearchScreenState extends State<SearchScreen> {
+class _SearchMobileViewState extends State<SearchMobileView> {
   late final TextEditingController _searchController;
 
   @override
@@ -181,7 +181,11 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
-  Widget _sectionTitle(BuildContext context, String title, {IconData? leadingIcon}) {
+  Widget _sectionTitle(
+    BuildContext context,
+    String title, {
+    IconData? leadingIcon,
+  }) {
     final ui = AppUiColors.of(context);
     return Row(
       children: [
@@ -331,3 +335,4 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 }
+

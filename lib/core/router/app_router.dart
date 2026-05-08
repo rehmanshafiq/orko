@@ -20,7 +20,7 @@ import 'package:orko_hubco/features/onboarding/presentation/page/onboarding_page
 import 'package:orko_hubco/features/profile/presentation/cubit/profile_cubit.dart';
 import 'package:orko_hubco/features/profile/presentation/screens/charging_status_screen.dart';
 import 'package:orko_hubco/features/profile/presentation/screens/profile_screen.dart';
-import 'package:orko_hubco/features/search/presentation/screens/search_screen.dart';
+import 'package:orko_hubco/features/search/presentation/page/search_page.dart';
 import 'package:orko_hubco/features/splash/presentation/page/splash_page.dart';
 import 'package:orko_hubco/features/trip/presentation/screens/trip_planner_screen.dart';
 
@@ -35,7 +35,7 @@ import 'package:orko_hubco/features/trip/presentation/screens/trip_planner_scree
 ///     ├── /bookings      → BookASlotScreen (tab 2)
 ///     ├── /trip          → TripPlannerScreen (tab 3)
 ///     └── /profile       → ChargingStatusScreen (tab 4)
-///   /search              → SearchScreen (modal stack from map search bar)
+///   /search              → SearchPage (modal stack from map search bar)
 class AppRouter {
   AppRouter._();
 
@@ -117,7 +117,7 @@ class AppRouter {
         path: '/search',
         name: 'search',
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => const SearchScreen(),
+        builder: (context, state) => const SearchPage(),
       ),
 
       // ── Main Shell (Bottom Nav) ─────────────────────────────────────
