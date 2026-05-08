@@ -15,6 +15,35 @@ class SearchMobileView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ui = AppUiColors.of(context);
+    const recentSearches = [
+      'Lahore Motorway M2',
+      'DHA Phase 5 Lahore',
+      'Islamabad Blue Area',
+    ];
+    const popularStations = [
+      (
+        title: 'HGL Liberty Market',
+        subtitle: 'Lahore',
+        distance: '1.2 km',
+        available: '4/6 Available',
+        tags: ['DC Fast', 'CCS2'],
+      ),
+      (
+        title: 'HGL Packages Mall',
+        subtitle: 'Lahore',
+        distance: '2.8 km',
+        available: '0/4 Available',
+        tags: ['DC Fast', 'CHAdeMO'],
+      ),
+      (
+        title: 'HGL Blue Area Islamabad',
+        subtitle: 'Islamabad',
+        distance: '4.5 km',
+        available: '6/8 Available',
+        tags: ['AC Level 2', 'Type 2'],
+      ),
+    ];
+
     return BlocProvider(
       create: (_) => SearchCubit(),
       child: Scaffold(
@@ -28,11 +57,15 @@ class SearchMobileView extends StatelessWidget {
               16.verticalSpace,
               const SearchSectionTitleWidget(title: 'Recent Searches'),
               10.verticalSpace,
-              const RecentSearchItemWidget(text: 'Lahore Motorway M2'),
-              14.verticalSpace,
-              const RecentSearchItemWidget(text: 'DHA Phase 5 Lahore'),
-              14.verticalSpace,
-              const RecentSearchItemWidget(text: 'Islamabad Blue Area'),
+              ListView.separated(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: recentSearches.length,
+                separatorBuilder: (_, __) => 14.verticalSpace,
+                itemBuilder: (context, index) {
+                  return RecentSearchItemWidget(text: recentSearches[index]);
+                },
+              ),
               18.verticalSpace,
               Divider(color: ui.borderSubtle),
               16.verticalSpace,
@@ -41,28 +74,21 @@ class SearchMobileView extends StatelessWidget {
                 leadingIcon: Icons.local_fire_department_rounded,
               ),
               10.verticalSpace,
-              const StationCardWidget(
-                title: 'HGL Liberty Market',
-                subtitle: 'Lahore',
-                distance: '1.2 km',
-                available: '4/6 Available',
-                tags: ['DC Fast', 'CCS2'],
-              ),
-              8.verticalSpace,
-              const StationCardWidget(
-                title: 'HGL Packages Mall',
-                subtitle: 'Lahore',
-                distance: '2.8 km',
-                available: '0/4 Available',
-                tags: ['DC Fast', 'CHAdeMO'],
-              ),
-              8.verticalSpace,
-              const StationCardWidget(
-                title: 'HGL Blue Area Islamabad',
-                subtitle: 'Islamabad',
-                distance: '4.5 km',
-                available: '6/8 Available',
-                tags: ['AC Level 2', 'Type 2'],
+              ListView.separated(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: popularStations.length,
+                separatorBuilder: (_, __) => 8.verticalSpace,
+                itemBuilder: (context, index) {
+                  final station = popularStations[index];
+                  return StationCardWidget(
+                    title: station.title,
+                    subtitle: station.subtitle,
+                    distance: station.distance,
+                    available: station.available,
+                    tags: station.tags,
+                  );
+                },
               ),
               10.verticalSpace,
             ],
