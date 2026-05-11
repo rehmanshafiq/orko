@@ -7,7 +7,7 @@ import 'package:orko_hubco/features/auth/data/datasources/local/auth_local_datas
 import 'package:orko_hubco/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:orko_hubco/features/auth/presentation/screens/login_screen.dart';
 import 'package:orko_hubco/features/auth/presentation/screens/register_screen.dart';
-import 'package:orko_hubco/features/booking/presentation/screens/book_a_slot_screen.dart';
+import 'package:orko_hubco/features/booking/presentation/pages/book_slot_page.dart';
 import 'package:orko_hubco/features/booking/presentation/screens/booking_confirmation_screen.dart';
 import 'package:orko_hubco/features/booking/presentation/screens/payment_method_screen.dart';
 import 'package:orko_hubco/features/bottom_navigation/presentation/screens/bottom_nav_shell.dart';
@@ -32,7 +32,7 @@ import 'package:orko_hubco/features/trip/presentation/page/trip_planner_page.dar
 ///   /home       → BottomNavShell
 ///     ├── /home          → HomeScreen     (tab 0)
 ///     ├── /account       → ProfileScreen  (tab 1)
-///     ├── /bookings      → BookASlotScreen (tab 2)
+///     ├── /bookings      → BookSlotPage (tab 2)
 ///     ├── /trip          → TripPlannerPage (tab 3)
 ///     └── /profile       → ChargingStatusPage (tab 4)
 ///   /search              → SearchPage (modal stack from map search bar)
@@ -165,7 +165,7 @@ class AppRouter {
               GoRoute(
                 path: '/bookings',
                 name: 'bookings',
-                builder: (context, state) => const BookASlotScreen(),
+                builder: (context, state) => const BookSlotPage(),
               ),
             ],
           ),

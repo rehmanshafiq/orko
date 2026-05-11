@@ -6,7 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/charging_stations.dart';
-import 'package:orko_hubco/features/booking/presentation/screens/book_a_slot_screen.dart';
+import 'package:orko_hubco/features/booking/presentation/pages/book_slot_page.dart';
 import 'package:orko_hubco/features/map/domain/entities/hubco_location_entity.dart';
 import 'package:orko_hubco/features/charging/presentation/page/charging_station_detail_page.dart';
 import 'package:orko_hubco/features/trip/presentation/bloc/trip_planner_event.dart';
@@ -403,7 +403,7 @@ class TripPlannerBloc extends Bloc<TripPlannerEvent, TripPlannerState> {
   void openPreBook(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => const BookASlotScreen(),
+        builder: (_) => const BookSlotPage(),
       ),
     );
   }
