@@ -8,7 +8,7 @@ import 'package:orko_hubco/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:orko_hubco/features/auth/presentation/screens/login_screen.dart';
 import 'package:orko_hubco/features/auth/presentation/screens/register_screen.dart';
 import 'package:orko_hubco/features/booking/presentation/pages/book_slot_page.dart';
-import 'package:orko_hubco/features/booking/presentation/screens/booking_confirmation_screen.dart';
+import 'package:orko_hubco/features/booking/presentation/pages/booking_confirmation_page.dart';
 import 'package:orko_hubco/features/booking/presentation/screens/payment_method_screen.dart';
 import 'package:orko_hubco/features/bottom_navigation/presentation/screens/bottom_nav_shell.dart';
 import 'package:orko_hubco/features/map/domain/entities/hubco_location_entity.dart';
@@ -109,7 +109,7 @@ class AppRouter {
         builder: (context, state) {
           final extra = state.extra;
           final paid = extra is int ? extra : 472;
-          return BookingConfirmationScreen(amountPaid: paid);
+          return BookingConfirmationPage(amountPaid: paid);
         },
       ),
 
