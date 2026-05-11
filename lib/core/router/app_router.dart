@@ -12,7 +12,7 @@ import 'package:orko_hubco/features/booking/presentation/screens/booking_confirm
 import 'package:orko_hubco/features/booking/presentation/screens/payment_method_screen.dart';
 import 'package:orko_hubco/features/bottom_navigation/presentation/screens/bottom_nav_shell.dart';
 import 'package:orko_hubco/features/map/domain/entities/hubco_location_entity.dart';
-import 'package:orko_hubco/features/map/presentation/charging_station_detail_screen.dart';
+import 'package:orko_hubco/features/charging/presentation/page/charging_station_detail_page.dart';
 import 'package:orko_hubco/features/map/presentation/home_screen.dart';
 import 'package:orko_hubco/features/map/presentation/cubit/map_cubit.dart';
 import 'package:orko_hubco/features/onboarding/presentation/bloc/onboarding_cubit.dart';
@@ -91,7 +91,7 @@ class AppRouter {
         builder: (context, state) {
           final extra = state.extra;
           final station = extra is HubcoLocationEntity ? extra : null;
-          return ChargingStationDetailScreen(station: station);
+          return ChargingStationDetailPage(station: station);
         },
       ),
 

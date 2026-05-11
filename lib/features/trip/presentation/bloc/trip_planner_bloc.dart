@@ -8,7 +8,7 @@ import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/charging_stations.dart';
 import 'package:orko_hubco/features/booking/presentation/screens/book_a_slot_screen.dart';
 import 'package:orko_hubco/features/map/domain/entities/hubco_location_entity.dart';
-import 'package:orko_hubco/features/map/presentation/charging_station_detail_screen.dart';
+import 'package:orko_hubco/features/charging/presentation/page/charging_station_detail_page.dart';
 import 'package:orko_hubco/features/trip/presentation/bloc/trip_planner_event.dart';
 import 'package:orko_hubco/features/trip/presentation/bloc/trip_planner_state.dart';
 import 'package:orko_hubco/features/trip/presentation/models/latlng_named_model.dart';
@@ -395,7 +395,7 @@ class TripPlannerBloc extends Bloc<TripPlannerEvent, TripPlannerState> {
   }) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => ChargingStationDetailScreen(station: station),
+        builder: (_) => ChargingStationDetailPage(station: station),
       ),
     );
   }
