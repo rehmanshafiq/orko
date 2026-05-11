@@ -18,7 +18,7 @@ import 'package:orko_hubco/features/map/presentation/cubit/map_cubit.dart';
 import 'package:orko_hubco/features/onboarding/presentation/bloc/onboarding_cubit.dart';
 import 'package:orko_hubco/features/onboarding/presentation/page/onboarding_page.dart';
 import 'package:orko_hubco/features/profile/presentation/cubit/profile_cubit.dart';
-import 'package:orko_hubco/features/profile/presentation/screens/charging_status_screen.dart';
+import 'package:orko_hubco/features/charging/presentation/page/charging_status_page.dart';
 import 'package:orko_hubco/features/profile/presentation/screens/profile_screen.dart';
 import 'package:orko_hubco/features/search/presentation/page/search_page.dart';
 import 'package:orko_hubco/features/splash/presentation/page/splash_page.dart';
@@ -34,7 +34,7 @@ import 'package:orko_hubco/features/trip/presentation/page/trip_planner_page.dar
 ///     ├── /account       → ProfileScreen  (tab 1)
 ///     ├── /bookings      → BookASlotScreen (tab 2)
 ///     ├── /trip          → TripPlannerPage (tab 3)
-///     └── /profile       → ChargingStatusScreen (tab 4)
+///     └── /profile       → ChargingStatusPage (tab 4)
 ///   /search              → SearchPage (modal stack from map search bar)
 class AppRouter {
   AppRouter._();
@@ -185,7 +185,7 @@ class AppRouter {
               GoRoute(
                 path: '/profile',
                 name: 'profile',
-                builder: (context, state) => const ChargingStatusScreen(),
+                builder: (context, state) => const ChargingStatusPage(),
               ),
             ],
           ),
