@@ -24,7 +24,7 @@ class SearchMobileView extends StatelessWidget {
       (
         title: 'HGL Liberty Market',
         subtitle: 'Lahore',
-        distance: '1.2 km',
+        distance: '1.3 km',
         available: '4/6 Available',
         tags: ['DC Fast', 'CCS2'],
       ),
