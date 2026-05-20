@@ -23,12 +23,13 @@ class DateChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final surface = selected ? ui.efficiencyTipBg : ui.cardBackground;
+    final surface = selected
+        ? AppColors.primaryDarkColor.withValues(alpha: 0.95)
+        : ui.cardBackground;
     final borderColor =
         selected ? AppColors.primaryDarkColor : ui.borderSubtle;
-    final dayColor =
-        selected ? AppColors.primaryDarkColor : ui.textMuted;
-    final dateColor = selected ? ui.textPrimary : ui.textSecondary;
+    final dayColor = selected ? AppColors.whiteColor : ui.textMuted;
+    final dateColor = selected ? AppColors.whiteColor : ui.textSecondary;
 
     return Material(
       color: AppColors.transparentColor,
@@ -98,7 +99,7 @@ class TodayDateChip extends StatelessWidget {
     /// Unselected circle: translucent primary on dark, tinted surface on light
     /// so contrast stays WCAG-ish for caption text without white-on-muted.
     final bg = selected
-        ? AppColors.primaryDarkColor
+        ? AppColors.primaryDarkColor.withValues(alpha: 0.95)
         : ui.isLight
             ? AppColors.primaryDarkColor.withValues(alpha: 0.12)
             : AppColors.primaryDarkColor.withValues(alpha: 0.28);
