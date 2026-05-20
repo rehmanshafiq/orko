@@ -43,17 +43,17 @@ class ChargingStatusState extends Equatable {
 
   factory ChargingStatusState.initial() {
     return const ChargingStatusState(
-      stationHeadline: 'HGL Charging Hub M2 Port 2 CCS',
-      chargingPercentage: 67,
-      energyDelivered: '8.4',
+      stationHeadline: 'Gulberg Premium Hub III',
+      chargingPercentage: 65,
+      energyDelivered: '42.8',
       energyDeliveredUnit: 'kWh',
-      chargingSpeed: '150',
+      chargingSpeed: '52.4',
       chargingSpeedUnit: 'kW',
-      sessionTime: '00:33:42',
-      cost: 'Rs 378',
+      sessionTime: '00:42:15',
+      cost: 'PKR 1,240.50',
       sliderValue: 0.80,
       estimatedTimeLabel: 'Est. Full Charge in 16 min',
-      stationInfoText: 'Station Info - HGL Charging Hub M2',
+      stationInfoText: 'Supernova 150kW · Connector #02',
       status: ChargingSessionStatus.charging,
     );
   }
