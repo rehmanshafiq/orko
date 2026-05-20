@@ -7,6 +7,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
+import 'package:orko_hubco/core/constants/app_revamped_theme.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/utils/app_ui.dart';
 import 'package:orko_hubco/core/utils/helpers.dart';
@@ -27,13 +28,6 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   static const LatLng _center = LatLng(24.8607, 67.0011);
-
-  static const Color _mapCoverColor = Color(0xFF0C4A4E);
-  static const Color _mapHomeGreen = Color(0xFF00796B);
-  static const Color _mapHomeGreenBright = Color(0xFF00A878);
-  static const Color _mapHomeTextDark = Color(0xFF1B4332);
-  static const Color _mapHomeTextMuted = Color(0xFF6B7280);
-  static const Color _mapHomeCardBg = Color(0xFFF3F4F6);
 
   static const String _tealMapStyle = '''
 [
@@ -349,8 +343,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 // Sits above the map and below all UI. Visible whenever the
                 // map is not yet dark, hiding any white tile flash entirely.
                 if (!_mapReady)
-                  const Positioned.fill(
-                    child: ColoredBox(color: _mapCoverColor),
+                  Positioned.fill(
+                    child: ColoredBox(
+                      color: context.revampedTheme.mapCoverColor,
+                    ),
                   ),
 
                 // ── UI Overlay ─────────────────────────────────────────────
@@ -374,7 +370,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           alignment: Alignment.bottomRight,
                           child: Padding(
                             padding: EdgeInsets.only(right: 16.w, bottom: 16.h),
-                            child: _buildMapFloatingButtons(),
+                            child: _buildMapFloatingButtons(context),
                           ),
                         ),
                       ),
@@ -400,21 +396,22 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // ── Reusable widgets ──────────────────────────────────────────────────────
 
-  Widget _buildMapFloatingButtons() {
+  Widget _buildMapFloatingButtons(BuildContext context) {
+    final t = context.revampedTheme;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         _MapFloatingButton(
           icon: Icons.my_location_rounded,
-          backgroundColor: _mapHomeGreenBright,
-          iconColor: AppColors.whiteColor,
+          backgroundColor: t.brandGreenBright,
+          iconColor: t.textOnBrand,
           onTap: _goToMyLocation,
         ),
         12.verticalSpace,
         _MapFloatingButton(
           icon: Icons.layers_rounded,
-          backgroundColor: AppColors.whiteColor,
-          iconColor: _mapHomeTextMuted,
+          backgroundColor: t.fabLayersBackground,
+          iconColor: t.fabLayersIcon,
           onTap: () {},
         ),
       ],
@@ -541,20 +538,21 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildBottomSheet(BuildContext context) {
+    final t = context.revampedTheme;
     final nearbyStations = _locations.toList();
     final availableCount = nearbyStations.where((s) => s.status).length;
 
     return Container(
       padding: EdgeInsets.fromLTRB(20.w, 12.h, 20.w, 20.h),
       decoration: BoxDecoration(
-        color: AppColors.whiteColor,
+        color: t.bottomSheetBackground,
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(28.r),
           topRight: Radius.circular(28.r),
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.blackColor.withValues(alpha: 0.08),
+            color: t.shadow,
             blurRadius: 24,
             offset: const Offset(0, -4),
           ),
@@ -569,7 +567,7 @@ class _HomeScreenState extends State<HomeScreen> {
               height: 4.h,
               width: 40.w,
               decoration: BoxDecoration(
-                color: AppColors.shimmerGreyColor,
+                color: t.progressTrack,
                 borderRadius: BorderRadius.circular(999),
               ),
             ),
@@ -577,7 +575,7 @@ class _HomeScreenState extends State<HomeScreen> {
           18.verticalSpace,
           AppText(
             'NEARBY STATIONS',
-            color: _mapHomeGreen,
+            color: t.stationDetailBrandGreen,
             fontSize: FontSizes.font10Sp,
             fontWeight: FontWeights.weight700,
             letterSpacing: 1.2,
@@ -589,7 +587,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Expanded(
                 child: AppText(
                   'Clifton, Karachi',
-                  color: _mapHomeTextDark,
+                  color: t.mapHomeTextDark,
                   fontSize: FontSizes.font24Sp,
                   fontWeight: FontWeights.weight700,
                 ),
@@ -597,7 +595,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 7.h),
                 decoration: BoxDecoration(
-                  color: AppColors.shimmerGreyColor,
+                  color: t.filterChipBackground,
                   borderRadius: BorderRadius.circular(999),
                 ),
                 child: Row(
@@ -606,15 +604,15 @@ class _HomeScreenState extends State<HomeScreen> {
                     Container(
                       width: 7.w,
                       height: 7.w,
-                      decoration: const BoxDecoration(
-                        color: _mapHomeGreenBright,
+                      decoration: BoxDecoration(
+                        color: t.brandGreenBright,
                         shape: BoxShape.circle,
                       ),
                     ),
                     6.horizontalSpace,
                     AppText(
                       '$availableCount Available',
-                      color: _mapHomeTextDark,
+                      color: t.mapHomeTextDark,
                       fontSize: FontSizes.font12Sp,
                       fontWeight: FontWeights.weight600,
                     ),
@@ -629,7 +627,7 @@ class _HomeScreenState extends State<HomeScreen> {
               padding: EdgeInsets.symmetric(vertical: 16.h),
               child: AppText(
                 'No stations available',
-                color: _mapHomeTextMuted,
+                color: t.textMuted,
                 fontSize: FontSizes.font12Sp,
                 fontWeight: FontWeights.weight500,
               ),
@@ -671,6 +669,7 @@ class _HomeScreenState extends State<HomeScreen> {
     HubcoLocationEntity station,
     int index,
   ) {
+    final t = context.revampedTheme;
     final distances = ['0.8 km', '1.2 km', '2.1 km', '3.4 km'];
     final driveTimes = ['8 min drive', '12 min drive', '18 min drive', '24 min drive'];
 
@@ -684,7 +683,7 @@ class _HomeScreenState extends State<HomeScreen> {
           height: double.infinity,
           padding: EdgeInsets.all(14.r),
           decoration: BoxDecoration(
-            color: _mapHomeCardBg,
+            color: t.subtleSurface,
             borderRadius: BorderRadius.circular(20.r),
           ),
           child: Column(
@@ -698,12 +697,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     width: 40.w,
                     height: 40.w,
                     decoration: BoxDecoration(
-                      color: AppColors.whiteColor,
+                      color: t.cardBackground,
                       borderRadius: BorderRadius.circular(12.r),
                     ),
                     child: Icon(
                       Icons.bolt_rounded,
-                      color: _mapHomeGreen,
+                      color: t.stationDetailBrandGreen,
                       size: 22.sp,
                     ),
                   ),
@@ -713,14 +712,14 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       AppText(
                         distances[index % distances.length],
-                        color: _mapHomeGreen,
+                        color: t.stationDetailBrandGreen,
                         fontSize: FontSizes.font14Sp,
                         fontWeight: FontWeights.weight700,
                       ),
                       2.verticalSpace,
                       AppText(
                         driveTimes[index % driveTimes.length],
-                        color: _mapHomeTextMuted,
+                        color: t.textMuted,
                         fontSize: FontSizes.font10Sp,
                         fontWeight: FontWeights.weight400,
                       ),
@@ -731,7 +730,7 @@ class _HomeScreenState extends State<HomeScreen> {
               10.verticalSpace,
               AppText(
                 station.name,
-                color: _mapHomeTextDark,
+                color: t.mapHomeTextDark,
                 fontSize: FontSizes.font15Sp,
                 fontWeight: FontWeights.weight700,
                 maxLines: 1,
@@ -740,18 +739,18 @@ class _HomeScreenState extends State<HomeScreen> {
               4.verticalSpace,
               AppText(
                 'Super Fast • CCS2 • 150kW',
-                color: _mapHomeTextMuted,
+                color: t.textMuted,
                 fontSize: FontSizes.font12Sp,
                 fontWeight: FontWeights.weight400,
               ),
               const Spacer(),
               Row(
                 children: [
-                  _portIndicatorBadge('1', isActive: true),
+                  _portIndicatorBadge(context, '1', isActive: true),
                   6.horizontalSpace,
-                  _portIndicatorBadge('2', isActive: true),
+                  _portIndicatorBadge(context, '2', isActive: true),
                   6.horizontalSpace,
-                  _portIndicatorBadge('+3', isActive: false),
+                  _portIndicatorBadge(context, '+3', isActive: false),
                   const Spacer(),
                   Material(
                     color: AppColors.transparentColor,
@@ -764,12 +763,12 @@ class _HomeScreenState extends State<HomeScreen> {
                           vertical: 8.h,
                         ),
                         decoration: BoxDecoration(
-                          color: _mapHomeGreenBright,
+                          color: t.brandGreenBright,
                           borderRadius: BorderRadius.circular(12.r),
                         ),
                         child: AppText(
                           'Book',
-                          color: AppColors.whiteColor,
+                          color: t.textOnBrand,
                           fontSize: FontSizes.font14Sp,
                           fontWeight: FontWeights.weight700,
                         ),
@@ -785,20 +784,23 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _portIndicatorBadge(String label, {required bool isActive}) {
+  Widget _portIndicatorBadge(
+    BuildContext context,
+    String label, {
+    required bool isActive,
+  }) {
+    final t = context.revampedTheme;
     return Container(
       width: 28.w,
       height: 28.w,
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: isActive
-            ? _mapHomeGreenBright.withValues(alpha: 0.18)
-            : AppColors.shimmerGreyColor,
+        color: isActive ? t.portIndicatorActiveBg : t.progressTrack,
         shape: BoxShape.circle,
       ),
       child: AppText(
         label,
-        color: isActive ? _mapHomeGreen : _mapHomeTextMuted,
+        color: isActive ? t.stationDetailBrandGreen : t.textMuted,
         fontSize: FontSizes.font10Sp,
         fontWeight: FontWeights.weight700,
       ),
@@ -824,7 +826,7 @@ class _MapFloatingButton extends StatelessWidget {
     return Material(
       color: AppColors.transparentColor,
       elevation: 4,
-      shadowColor: AppColors.blackColor.withValues(alpha: 0.15),
+      shadowColor: context.revampedTheme.shadow,
       shape: const CircleBorder(),
       child: InkWell(
         onTap: onTap,
@@ -837,7 +839,7 @@ class _MapFloatingButton extends StatelessWidget {
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
-                color: AppColors.blackColor.withValues(alpha: 0.12),
+                color: context.revampedTheme.shadow,
                 blurRadius: 12,
                 offset: const Offset(0, 4),
               ),

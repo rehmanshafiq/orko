@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
+import 'package:orko_hubco/core/constants/app_revamped_theme.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/global_bloc/bloc/user_bloc.dart'
     show
@@ -89,25 +90,26 @@ class _SplashMobileViewState extends State<SplashMobileView>
 
   @override
   Widget build(BuildContext context) {
+    final t = AppRevampedTheme.of(context);
     final screenWidth = MediaQuery.sizeOf(context).width;
     final bottomInset = MediaQuery.paddingOf(context).bottom;
 
     return Scaffold(
-      backgroundColor: AppColors.splashMintBackground,
+      backgroundColor: t.splashBackground,
       body: Stack(
         fit: StackFit.expand,
         children: [
-          _buildCenterGlow(),
+          _buildCenterGlow(t),
           FadeTransition(
             opacity: _fadeAnimation,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                _buildLogoBadge(),
+                _buildLogoBadge(t),
                 28.verticalSpace,
-                _buildBrandTitle(),
+                _buildBrandTitle(t),
                 18.verticalSpace,
-                _buildSubtitleWithDividers(),
+                _buildSubtitleWithDividers(t),
               ],
             ),
           ),
@@ -117,7 +119,7 @@ class _SplashMobileViewState extends State<SplashMobileView>
             bottom: bottomInset + 52.h,
             child: FadeTransition(
               opacity: _fadeAnimation,
-              child: _buildLoadingSection(screenWidth),
+              child: _buildLoadingSection(t, screenWidth),
             ),
           ),
         ],
@@ -125,7 +127,7 @@ class _SplashMobileViewState extends State<SplashMobileView>
     );
   }
 
-  Widget _buildCenterGlow() {
+  Widget _buildCenterGlow(AppRevampedTheme t) {
     return Center(
       child: Container(
         width: 340.w,
@@ -136,9 +138,9 @@ class _SplashMobileViewState extends State<SplashMobileView>
             center: Alignment.center,
             radius: 0.85,
             colors: [
-              AppColors.whiteColor.withValues(alpha: 0.92),
-              AppColors.splashMintGlow.withValues(alpha: 0.55),
-              AppColors.splashMintBackground.withValues(alpha: 0),
+              t.splashGlowCenter,
+              t.splashGlowMid.withValues(alpha: t.isLight ? 0.55 : 0.35),
+              t.splashGlowOuter,
             ],
             stops: const [0.0, 0.55, 1.0],
           ),
@@ -147,19 +149,19 @@ class _SplashMobileViewState extends State<SplashMobileView>
     );
   }
 
-  Widget _buildLogoBadge() {
+  Widget _buildLogoBadge(AppRevampedTheme t) {
     return Container(
       width: 92.w,
       height: 92.w,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        gradient: const LinearGradient(
+        gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            Color(0xFF16B07E),
-            AppColors.splashBrandGreen,
-            Color(0xFF0A7354),
+            t.splashBadgeGreenTop,
+            t.splashBrandGreen,
+            t.splashBadgeGreenBottom,
           ],
         ),
         border: Border.all(
@@ -168,12 +170,12 @@ class _SplashMobileViewState extends State<SplashMobileView>
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.splashBrandGreen.withValues(alpha: 0.32),
+            color: t.splashBrandGreen.withValues(alpha: 0.32),
             blurRadius: 28,
             offset: const Offset(0, 10),
           ),
           BoxShadow(
-            color: AppColors.blackColor.withValues(alpha: 0.06),
+            color: t.shadow,
             blurRadius: 16,
             offset: const Offset(0, 4),
           ),
@@ -187,7 +189,7 @@ class _SplashMobileViewState extends State<SplashMobileView>
     );
   }
 
-  Widget _buildBrandTitle() {
+  Widget _buildBrandTitle(AppRevampedTheme t) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -195,7 +197,7 @@ class _SplashMobileViewState extends State<SplashMobileView>
           'HUBCO',
           fontSize: FontSizes.font36Sp,
           fontWeight: FontWeights.weight700,
-          color: AppColors.splashTextDark,
+          color: t.splashTextPrimary,
           letterSpacing: 0.8,
           height: 1.05,
         ),
@@ -203,7 +205,7 @@ class _SplashMobileViewState extends State<SplashMobileView>
           'CHARGE',
           fontSize: FontSizes.font36Sp,
           fontWeight: FontWeights.weight700,
-          color: AppColors.splashBrandGreen,
+          color: t.splashBrandGreen,
           letterSpacing: 0.8,
           height: 1.05,
         ),
@@ -211,28 +213,31 @@ class _SplashMobileViewState extends State<SplashMobileView>
     );
   }
 
-  Widget _buildSubtitleWithDividers() {
+  Widget _buildSubtitleWithDividers(AppRevampedTheme t) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       mainAxisSize: MainAxisSize.min,
       children: [
-        _buildSubtitleDivider(fadeFromCenter: false),
+        _buildSubtitleDivider(t, fadeFromCenter: false),
         Padding(
           padding: EdgeInsets.symmetric(horizontal: 14.w),
           child: AppText(
             'POWER YOUR JOURNEY',
             fontSize: FontSizes.font10Sp,
             fontWeight: FontWeights.weight500,
-            color: AppColors.splashMutedText,
+            color: t.splashTextMuted,
             letterSpacing: 3.6,
           ),
         ),
-        _buildSubtitleDivider(fadeFromCenter: true),
+        _buildSubtitleDivider(t, fadeFromCenter: true),
       ],
     );
   }
 
-  Widget _buildSubtitleDivider({required bool fadeFromCenter}) {
+  Widget _buildSubtitleDivider(
+    AppRevampedTheme t, {
+    required bool fadeFromCenter,
+  }) {
     return Container(
       width: 52.w,
       height: 1,
@@ -241,15 +246,15 @@ class _SplashMobileViewState extends State<SplashMobileView>
           begin: fadeFromCenter ? Alignment.centerLeft : Alignment.centerRight,
           end: fadeFromCenter ? Alignment.centerRight : Alignment.centerLeft,
           colors: [
-            AppColors.splashMutedText.withValues(alpha: 0.38),
-            AppColors.splashMutedText.withValues(alpha: 0),
+            t.splashTextMuted.withValues(alpha: 0.38),
+            t.splashTextMuted.withValues(alpha: 0),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildLoadingSection(double screenWidth) {
+  Widget _buildLoadingSection(AppRevampedTheme t, double screenWidth) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -260,7 +265,7 @@ class _SplashMobileViewState extends State<SplashMobileView>
               width: screenWidth * 0.45,
               height: 3.5.h,
               decoration: BoxDecoration(
-                color: AppColors.shimmerGreyColor,
+                color: t.progressTrack,
                 borderRadius: BorderRadius.circular(999),
               ),
               clipBehavior: Clip.antiAlias,
@@ -270,7 +275,7 @@ class _SplashMobileViewState extends State<SplashMobileView>
                   widthFactor: _progressAnimation.value.clamp(0, 1),
                   child: Container(
                     decoration: BoxDecoration(
-                      color: AppColors.splashBrandGreen,
+                      color: t.splashBrandGreen,
                       borderRadius: BorderRadius.circular(999),
                     ),
                   ),
@@ -287,8 +292,8 @@ class _SplashMobileViewState extends State<SplashMobileView>
             Container(
               width: 5.w,
               height: 5.w,
-              decoration: const BoxDecoration(
-                color: AppColors.splashBrandGreen,
+              decoration: BoxDecoration(
+                color: t.splashBrandGreen,
                 shape: BoxShape.circle,
               ),
             ),
@@ -297,7 +302,7 @@ class _SplashMobileViewState extends State<SplashMobileView>
               'Initializing core systems...',
               fontSize: FontSizes.font12Sp,
               fontWeight: FontWeights.weight400,
-              color: AppColors.splashMutedText,
+              color: t.splashTextMuted,
             ),
           ],
         ),

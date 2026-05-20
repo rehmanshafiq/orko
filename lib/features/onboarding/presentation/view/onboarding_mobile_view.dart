@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
+import 'package:orko_hubco/core/constants/app_revamped_theme.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/utils/app_routing/app_navigations.dart';
 import 'package:orko_hubco/core/utils/app_ui.dart';
@@ -62,17 +63,18 @@ class _OnboardingMobileViewState extends State<OnboardingMobileView> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppRevampedTheme.of(context);
     final screenHeight = MediaQuery.sizeOf(context).height;
 
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              AppColors.onboardingBackgroundTop,
-              AppColors.onboardingBackgroundBottom,
+              t.onboardingBackgroundTop,
+              t.onboardingBackgroundBottom,
             ],
           ),
         ),
@@ -98,7 +100,7 @@ class _OnboardingMobileViewState extends State<OnboardingMobileView> {
                 return Center(
                   child: AppText(
                     'No onboarding data found',
-                    color: AppColors.onboardingTextMuted,
+                    color: t.textSecondary,
                   ),
                 );
               }
@@ -107,7 +109,7 @@ class _OnboardingMobileViewState extends State<OnboardingMobileView> {
                 padding: AppUtils.horizontal20Padding,
                 child: Column(
                   children: [
-                    _buildHeader(context, state),
+                    _buildHeader(context, t, state),
                     20.verticalSpace,
                     Expanded(
                       child: PageView.builder(
@@ -118,6 +120,7 @@ class _OnboardingMobileViewState extends State<OnboardingMobileView> {
                         itemBuilder: (context, index) {
                           final item = state.items[index];
                           return _OnboardingSlide(
+                            t: t,
                             item: item,
                             imageHeight: screenHeight * 0.36,
                           );
@@ -126,11 +129,12 @@ class _OnboardingMobileViewState extends State<OnboardingMobileView> {
                     ),
                     24.verticalSpace,
                     _PageIndicator(
+                      t: t,
                       count: state.items.length,
                       activeIndex: state.currentIndex,
                     ),
                     28.verticalSpace,
-                    _buildBottomActions(context, state),
+                    _buildBottomActions(context, t, state),
                     16.verticalSpace,
                   ],
                 ),
@@ -142,13 +146,17 @@ class _OnboardingMobileViewState extends State<OnboardingMobileView> {
     );
   }
 
-  Widget _buildHeader(BuildContext context, OnboardingState state) {
+  Widget _buildHeader(
+    BuildContext context,
+    AppRevampedTheme t,
+    OnboardingState state,
+  ) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         AppText(
           'HUBCO',
-          color: AppColors.onboardingBrandGreen,
+          color: t.brandGreen,
           fontSize: FontSizes.font22Sp,
           fontWeight: FontWeights.weight700,
           letterSpacing: 0.6,
@@ -163,7 +171,7 @@ class _OnboardingMobileViewState extends State<OnboardingMobileView> {
           ),
           child: AppText(
             'SKIP',
-            color: AppColors.onboardingSkipText,
+            color: t.onboardingSkipText,
             fontSize: FontSizes.font14Sp,
             fontWeight: FontWeights.weight500,
             letterSpacing: 1.2,
@@ -173,12 +181,17 @@ class _OnboardingMobileViewState extends State<OnboardingMobileView> {
     );
   }
 
-  Widget _buildBottomActions(BuildContext context, OnboardingState state) {
+  Widget _buildBottomActions(
+    BuildContext context,
+    AppRevampedTheme t,
+    OnboardingState state,
+  ) {
     return Row(
       children: [
         Expanded(
           flex: 4,
           child: _BackButton(
+            t: t,
             onPressed: state.currentIndex == 0
                 ? null
                 : () => _goToPreviousPage(state),
@@ -188,6 +201,7 @@ class _OnboardingMobileViewState extends State<OnboardingMobileView> {
         Expanded(
           flex: 6,
           child: _NextButton(
+            t: t,
             label: state.isLastPage ? 'Get Started' : 'Next',
             isEnabled: !state.isCompleting,
             onPressed: () => _goToNextPage(context, state),
@@ -200,10 +214,12 @@ class _OnboardingMobileViewState extends State<OnboardingMobileView> {
 
 class _OnboardingSlide extends StatelessWidget {
   const _OnboardingSlide({
+    required this.t,
     required this.item,
     required this.imageHeight,
   });
 
+  final AppRevampedTheme t;
   final OnboardingItemEntity item;
   final double imageHeight;
 
@@ -216,14 +232,14 @@ class _OnboardingSlide extends StatelessWidget {
     return SingleChildScrollView(
       child: Column(
         children: [
-          _HeroImage(imagePath: item.imagePath, height: imageHeight),
+          _HeroImage(t: t, imagePath: item.imagePath, height: imageHeight),
           32.verticalSpace,
           Column(
             children: [
               AppText(
                 primaryTitle,
                 textAlign: TextAlign.center,
-                color: AppColors.onboardingTextDark,
+                color: t.textPrimary,
                 fontSize: FontSizes.font32Sp,
                 fontWeight: FontWeights.weight700,
                 height: 1.15,
@@ -233,7 +249,7 @@ class _OnboardingSlide extends StatelessWidget {
                   accentTitle,
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: AppColors.onboardingBrandGreen,
+                    color: t.brandGreen,
                     fontSize: FontSizes.font32Sp,
                     fontWeight: FontWeights.weight700,
                     fontStyle: FontStyle.italic,
@@ -249,7 +265,7 @@ class _OnboardingSlide extends StatelessWidget {
             child: AppText(
               item.description,
               textAlign: TextAlign.center,
-              color: AppColors.onboardingTextMuted,
+              color: t.textSecondary,
               fontSize: FontSizes.font16Sp,
               fontWeight: FontWeights.weight400,
               height: 1.55,
@@ -263,10 +279,12 @@ class _OnboardingSlide extends StatelessWidget {
 
 class _HeroImage extends StatelessWidget {
   const _HeroImage({
+    required this.t,
     required this.imagePath,
     required this.height,
   });
 
+  final AppRevampedTheme t;
   final String imagePath;
   final double height;
 
@@ -277,12 +295,12 @@ class _HeroImage extends StatelessWidget {
         borderRadius: BorderRadius.circular(20.r),
         boxShadow: [
           BoxShadow(
-            color: AppColors.blackColor.withValues(alpha: 0.14),
+            color: t.shadow,
             blurRadius: 28,
             offset: const Offset(0, 10),
           ),
           BoxShadow(
-            color: AppColors.onboardingBrandGreen.withValues(alpha: 0.08),
+            color: t.brandGreen.withValues(alpha: 0.08),
             blurRadius: 40,
             spreadRadius: 2,
           ),
@@ -303,10 +321,12 @@ class _HeroImage extends StatelessWidget {
 
 class _PageIndicator extends StatelessWidget {
   const _PageIndicator({
+    required this.t,
     required this.count,
     required this.activeIndex,
   });
 
+  final AppRevampedTheme t;
   final int count;
   final int activeIndex;
 
@@ -325,8 +345,8 @@ class _PageIndicator extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(999),
             color: index == activeIndex
-                ? AppColors.onboardingBrandGreen
-                : AppColors.shimmerGreyColor,
+                ? t.brandGreen
+                : t.indicatorInactive,
           ),
         ),
       ),
@@ -335,8 +355,9 @@ class _PageIndicator extends StatelessWidget {
 }
 
 class _BackButton extends StatelessWidget {
-  const _BackButton({required this.onPressed});
+  const _BackButton({required this.t, required this.onPressed});
 
+  final AppRevampedTheme t;
   final VoidCallback? onPressed;
 
   @override
@@ -346,12 +367,11 @@ class _BackButton extends StatelessWidget {
       child: TextButton(
         onPressed: onPressed,
         style: TextButton.styleFrom(
-          backgroundColor: AppColors.onboardingBackButtonBg,
+          backgroundColor: t.onboardingBackButtonBackground,
           disabledBackgroundColor:
-              AppColors.onboardingBackButtonBg.withValues(alpha: 0.65),
-          foregroundColor: AppColors.onboardingTextDark,
-          disabledForegroundColor:
-              AppColors.onboardingTextDark.withValues(alpha: 0.35),
+              t.onboardingBackButtonBackground.withValues(alpha: 0.65),
+          foregroundColor: t.textPrimary,
+          disabledForegroundColor: t.textPrimary.withValues(alpha: 0.35),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(999),
           ),
@@ -360,8 +380,8 @@ class _BackButton extends StatelessWidget {
         child: AppText(
           'Back',
           color: onPressed == null
-              ? AppColors.onboardingTextDark.withValues(alpha: 0.35)
-              : AppColors.onboardingTextDark,
+              ? t.textPrimary.withValues(alpha: 0.35)
+              : t.textPrimary,
           fontSize: FontSizes.font16Sp,
           fontWeight: FontWeights.weight600,
         ),
@@ -372,11 +392,13 @@ class _BackButton extends StatelessWidget {
 
 class _NextButton extends StatelessWidget {
   const _NextButton({
+    required this.t,
     required this.label,
     required this.onPressed,
     required this.isEnabled,
   });
 
+  final AppRevampedTheme t;
   final String label;
   final VoidCallback? onPressed;
   final bool isEnabled;
@@ -389,20 +411,20 @@ class _NextButton extends StatelessWidget {
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: isEnabled
-                ? const [
-                    AppColors.onboardingBrandGreen,
-                    AppColors.onboardingBrandGreenLight,
+                ? [
+                    t.brandGreen,
+                    t.brandGreenLight,
                   ]
                 : [
-                    AppColors.thumbBarGreyColor,
-                    AppColors.thumbBarGreyColor,
+                    t.disabledButtonGrey,
+                    t.disabledButtonGrey,
                   ],
           ),
           borderRadius: BorderRadius.circular(999),
           boxShadow: isEnabled
               ? [
                   BoxShadow(
-                    color: AppColors.onboardingBrandGreen.withValues(alpha: 0.28),
+                    color: t.brandGreen.withValues(alpha: 0.28),
                     blurRadius: 16,
                     offset: const Offset(0, 6),
                   ),

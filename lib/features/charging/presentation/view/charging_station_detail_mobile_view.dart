@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
+import 'package:orko_hubco/core/constants/app_revamped_theme.dart';
 import 'package:orko_hubco/core/constants/app_images.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/utils/app_ui.dart';
@@ -30,11 +31,11 @@ class ChargingStationDetailMobileView extends StatelessWidget {
         if (context.mounted) context.pop();
       });
       return Scaffold(
-        backgroundColor: AppColors.stationDetailBackground,
+        backgroundColor: context.revampedTheme.stationDetailBackground,
         body: Center(
           child: AppText(
             'Invalid station',
-            color: AppColors.stationDetailTextDark,
+            color: context.revampedTheme.textPrimary,
             fontSize: FontSizes.font14Sp,
           ),
         ),
@@ -46,7 +47,7 @@ class ChargingStationDetailMobileView extends StatelessWidget {
       child: BlocBuilder<ChargingStationDetailBloc, ChargingStationDetailState>(
         builder: (context, state) {
           return Scaffold(
-            backgroundColor: AppColors.stationDetailBackground,
+            backgroundColor: context.revampedTheme.stationDetailBackground,
             body: Column(
               children: [
                 _StationDetailTopBar(
@@ -112,7 +113,7 @@ class _StationDetailTopBar extends StatelessWidget {
     return SafeArea(
       bottom: false,
       child: Container(
-        color: AppColors.whiteColor,
+        color: context.revampedTheme.topBarBackground,
         padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 6.h),
         child: Row(
           children: [
@@ -120,7 +121,7 @@ class _StationDetailTopBar extends StatelessWidget {
               onPressed: onBack,
               icon: Icon(
                 Icons.arrow_back_rounded,
-                color: AppColors.stationDetailTextDark,
+                color: context.revampedTheme.textPrimary,
                 size: 24.sp,
               ),
             ),
@@ -128,7 +129,7 @@ class _StationDetailTopBar extends StatelessWidget {
               child: Center(
                 child: AppText(
                   'HUBCO',
-                  color: AppColors.stationDetailBrandGreen,
+                  color: context.revampedTheme.stationDetailBrandGreen,
                   fontSize: FontSizes.font20Sp,
                   fontWeight: FontWeights.weight700,
                   letterSpacing: 0.5,
@@ -140,8 +141,8 @@ class _StationDetailTopBar extends StatelessWidget {
               icon: Icon(
                 isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
                 color: isFavorite
-                    ? AppColors.stationDetailBrandGreen
-                    : AppColors.stationDetailTextDark,
+                    ? context.revampedTheme.stationDetailBrandGreen
+                    : context.revampedTheme.textPrimary,
                 size: 24.sp,
               ),
             ),
@@ -195,12 +196,12 @@ class _HeroImageCard extends StatelessWidget {
                   Container(
                     padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
                     decoration: BoxDecoration(
-                      color: AppColors.stationDetailMintBadge,
+                      color: context.revampedTheme.mintBadgeBackground,
                       borderRadius: BorderRadius.circular(999),
                     ),
                     child: AppText(
                       'SUPERCHARGER',
-                      color: AppColors.stationDetailAvailableText,
+                      color: context.revampedTheme.availableGreen,
                       fontSize: FontSizes.font10Sp,
                       fontWeight: FontWeights.weight700,
                       letterSpacing: 0.8,
@@ -245,13 +246,13 @@ class _HeroImageCard extends StatelessWidget {
                           children: [
                             Icon(
                               Icons.star_rounded,
-                              color: AppColors.stationDetailBrandGreenLight,
+                              color: context.revampedTheme.stationDetailBrandGreenLight,
                               size: 14.sp,
                             ),
                             4.horizontalSpace,
                             AppText(
                               '4.9 (124)',
-                              color: AppColors.stationDetailTextDark,
+                              color: context.revampedTheme.textPrimary,
                               fontSize: FontSizes.font12Sp,
                               fontWeight: FontWeights.weight600,
                             ),
@@ -262,7 +263,7 @@ class _HeroImageCard extends StatelessWidget {
                       _HeroMetaPill(
                         child: AppText(
                           '1.2 mi',
-                          color: AppColors.stationDetailTextDark,
+                          color: context.revampedTheme.textPrimary,
                           fontSize: FontSizes.font12Sp,
                           fontWeight: FontWeights.weight600,
                         ),
@@ -289,7 +290,7 @@ class _HeroMetaPill extends StatelessWidget {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
       decoration: BoxDecoration(
-        color: AppColors.whiteColor.withValues(alpha: 0.94),
+        color: context.revampedTheme.heroMetaPillBackground,
         borderRadius: BorderRadius.circular(999),
       ),
       child: child,
@@ -318,7 +319,7 @@ class _ChargerAvailabilitySection extends StatelessWidget {
             Expanded(
               child: AppText(
                 'Charger Availability',
-                color: AppColors.stationDetailTextDark,
+                color: context.revampedTheme.textPrimary,
                 fontSize: FontSizes.font18Sp,
                 fontWeight: FontWeights.weight700,
               ),
@@ -326,15 +327,15 @@ class _ChargerAvailabilitySection extends StatelessWidget {
             Container(
               width: 6.w,
               height: 6.w,
-              decoration: const BoxDecoration(
-                color: AppColors.stationDetailBrandGreenLight,
+              decoration: BoxDecoration(
+                color: context.revampedTheme.stationDetailBrandGreenLight,
                 shape: BoxShape.circle,
               ),
             ),
             6.horizontalSpace,
             AppText(
               'LIVE STATUS',
-              color: AppColors.stationDetailTextMuted,
+              color: context.revampedTheme.textSecondary,
               fontSize: FontSizes.font10Sp,
               fontWeight: FontWeights.weight600,
               letterSpacing: 1.1,
@@ -343,7 +344,7 @@ class _ChargerAvailabilitySection extends StatelessWidget {
         ),
         14.verticalSpace,
         ...List.generate(ports.length, (index) {
-          final uiPort = _portUiModelAt(index, ports[index]);
+          final uiPort = _portUiModelAt(context, index, ports[index]);
           final isSelected = ports[index].available && index == selectedPortIndex;
           return Padding(
             padding: EdgeInsets.only(bottom: index == ports.length - 1 ? 0 : 10.h),
@@ -395,7 +396,12 @@ class _PortUiModel {
   final Color statusTextColor;
 }
 
-_PortUiModel _portUiModelAt(int index, ChargerPortModel port) {
+_PortUiModel _portUiModelAt(
+  BuildContext context,
+  int index,
+  ChargerPortModel port,
+) {
+  final t = context.revampedTheme;
   switch (index) {
     case 0:
       return _PortUiModel(
@@ -405,10 +411,10 @@ _PortUiModel _portUiModelAt(int index, ChargerPortModel port) {
         details: '350 kW • Station A',
         statusLabel: 'AVAILABLE',
         available: port.available,
-        badgeBackground: AppColors.stationDetailMintIconBg,
-        badgeTextColor: AppColors.stationDetailAvailableText,
-        statusBackground: AppColors.stationDetailMintIconBg,
-        statusTextColor: AppColors.stationDetailAvailableText,
+        badgeBackground: t.mintIconBackground,
+        badgeTextColor: t.availableGreen,
+        statusBackground: t.mintIconBackground,
+        statusTextColor: t.availableGreen,
       );
     case 1:
       return _PortUiModel(
@@ -418,14 +424,11 @@ _PortUiModel _portUiModelAt(int index, ChargerPortModel port) {
         details: '350 kW • Station B',
         statusLabel: port.available ? 'AVAILABLE' : 'IN USE (12m)',
         available: port.available,
-        badgeBackground: AppColors.stationDetailMintIconBg,
-        badgeTextColor: AppColors.stationDetailAvailableText,
-        statusBackground: port.available
-            ? AppColors.stationDetailMintIconBg
-            : AppColors.stationDetailInUseBg,
-        statusTextColor: port.available
-            ? AppColors.stationDetailAvailableText
-            : AppColors.stationDetailInUseText,
+        badgeBackground: t.mintIconBackground,
+        badgeTextColor: t.availableGreen,
+        statusBackground:
+            port.available ? t.mintIconBackground : t.inUseBackground,
+        statusTextColor: port.available ? t.availableGreen : t.inUseText,
       );
     default:
       return _PortUiModel(
@@ -435,10 +438,10 @@ _PortUiModel _portUiModelAt(int index, ChargerPortModel port) {
         details: '50 kW • Station C',
         statusLabel: 'AVAILABLE',
         available: port.available,
-        badgeBackground: AppColors.stationDetailPortPurpleBg,
-        badgeTextColor: AppColors.stationDetailPortPurpleText,
-        statusBackground: AppColors.stationDetailMintIconBg,
-        statusTextColor: AppColors.stationDetailAvailableText,
+        badgeBackground: t.portPurpleBackground,
+        badgeTextColor: t.portPurpleText,
+        statusBackground: t.mintIconBackground,
+        statusTextColor: t.availableGreen,
       );
   }
 }
@@ -466,12 +469,12 @@ class _PortAvailabilityCard extends StatelessWidget {
           padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 14.h),
           decoration: BoxDecoration(
             color: isSelected
-                ? AppColors.stationDetailMintIconBg.withValues(alpha: 0.55)
-                : AppColors.stationDetailCardBg,
+                ? context.revampedTheme.mintIconBackground.withValues(alpha: 0.55)
+                : context.revampedTheme.subtleSurface,
             borderRadius: BorderRadius.circular(18.r),
             border: Border.all(
               color: isSelected
-                  ? AppColors.stationDetailBrandGreen.withValues(alpha: 0.35)
+                  ? context.revampedTheme.stationDetailBrandGreen.withValues(alpha: 0.35)
                   : AppColors.colorsOutlineColor.withValues(alpha: 0.7),
             ),
             boxShadow: [
@@ -507,7 +510,7 @@ class _PortAvailabilityCard extends StatelessWidget {
                   children: [
                     AppText(
                       port.title,
-                      color: AppColors.stationDetailTextDark,
+                      color: context.revampedTheme.textPrimary,
                       fontSize: FontSizes.font15Sp,
                       fontWeight: FontWeights.weight700,
                     ),
@@ -515,7 +518,7 @@ class _PortAvailabilityCard extends StatelessWidget {
                       2.verticalSpace,
                       AppText(
                         port.connector,
-                        color: AppColors.stationDetailTextDark,
+                        color: context.revampedTheme.textPrimary,
                         fontSize: FontSizes.font14Sp,
                         fontWeight: FontWeights.weight600,
                       ),
@@ -523,7 +526,7 @@ class _PortAvailabilityCard extends StatelessWidget {
                     4.verticalSpace,
                     AppText(
                       port.details,
-                      color: AppColors.stationDetailTextMuted,
+                      color: context.revampedTheme.textSecondary,
                       fontSize: FontSizes.font12Sp,
                       fontWeight: FontWeights.weight400,
                     ),
@@ -568,7 +571,7 @@ class _ConnectorFilterChip extends StatelessWidget {
       ),
       child: AppText(
         label,
-        color: AppColors.stationDetailTextMuted,
+        color: context.revampedTheme.textSecondary,
         fontSize: FontSizes.font10Sp,
         fontWeight: FontWeights.weight600,
         letterSpacing: 0.4,
@@ -586,7 +589,7 @@ class _PricingSection extends StatelessWidget {
       width: double.infinity,
       padding: EdgeInsets.all(18.r),
       decoration: BoxDecoration(
-        color: AppColors.stationDetailPricingBg,
+        color: context.revampedTheme.pricingCardBackground,
         borderRadius: BorderRadius.circular(20.r),
       ),
       child: Column(
@@ -594,7 +597,7 @@ class _PricingSection extends StatelessWidget {
         children: [
           AppText(
             'Pricing',
-            color: AppColors.stationDetailTextDark,
+            color: context.revampedTheme.textPrimary,
             fontSize: FontSizes.font18Sp,
             fontWeight: FontWeights.weight700,
           ),
@@ -610,7 +613,7 @@ class _PricingSection extends StatelessWidget {
                 TextSpan(
                   text: 'PKR 0.42',
                   style: TextStyle(
-                    color: AppColors.stationDetailTextDark,
+                    color: context.revampedTheme.textPrimary,
                     fontWeight: FontWeights.weight700,
                     fontSize: FontSizes.font28Sp,
                   ),
@@ -618,7 +621,7 @@ class _PricingSection extends StatelessWidget {
                 TextSpan(
                   text: ' /kWh',
                   style: TextStyle(
-                    color: AppColors.stationDetailTextMuted,
+                    color: context.revampedTheme.textSecondary,
                     fontWeight: FontWeights.weight500,
                     fontSize: FontSizes.font16Sp,
                   ),
@@ -629,7 +632,7 @@ class _PricingSection extends StatelessWidget {
           10.verticalSpace,
           AppText(
             'Estimated cost for 80% charge: \$22.50. Dynamic pricing applies during peak hours.',
-            color: AppColors.stationDetailTextMuted,
+            color: context.revampedTheme.textSecondary,
             fontSize: FontSizes.font12Sp,
             fontWeight: FontWeights.weight400,
             height: 1.45,
@@ -654,7 +657,7 @@ class _AmenitiesSection extends StatelessWidget {
       children: [
         AppText(
           'ON-SITE AMENITIES',
-          color: AppColors.stationDetailTextMuted,
+          color: context.revampedTheme.textSecondary,
           fontSize: FontSizes.font10Sp,
           fontWeight: FontWeights.weight700,
           letterSpacing: 1.4,
@@ -687,20 +690,20 @@ class _AmenityItem extends StatelessWidget {
         Container(
           width: 56.w,
           height: 56.w,
-          decoration: const BoxDecoration(
-            color: AppColors.stationDetailMintIconBg,
+          decoration: BoxDecoration(
+            color: context.revampedTheme.mintIconBackground,
             shape: BoxShape.circle,
           ),
           child: Icon(
             amenity.icon,
-            color: AppColors.stationDetailBrandGreen,
+            color: context.revampedTheme.stationDetailBrandGreen,
             size: 24.sp,
           ),
         ),
         10.verticalSpace,
         AppText(
           amenity.label.toUpperCase(),
-          color: AppColors.stationDetailTextMuted,
+          color: context.revampedTheme.textSecondary,
           fontSize: FontSizes.font10Sp,
           fontWeight: FontWeights.weight600,
           letterSpacing: 0.8,
@@ -723,14 +726,14 @@ class _LocationSection extends StatelessWidget {
       children: [
         AppText(
           'Location',
-          color: AppColors.stationDetailTextDark,
+          color: context.revampedTheme.textPrimary,
           fontSize: FontSizes.font18Sp,
           fontWeight: FontWeights.weight700,
         ),
         8.verticalSpace,
         AppText(
           'Adjacent to Green Garden Shopping Mall, Level B2 Parking.',
-          color: AppColors.stationDetailTextMuted,
+          color: context.revampedTheme.textSecondary,
           fontSize: FontSizes.font12Sp,
           fontWeight: FontWeights.weight400,
           height: 1.45,
@@ -745,19 +748,19 @@ class _LocationSection extends StatelessWidget {
               fit: StackFit.expand,
               children: [
                 Container(
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     gradient: LinearGradient(
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                       colors: [
-                        Color(0xFF0B1220),
-                        Color(0xFF111827),
+                        context.revampedTheme.mapPlaceholderStart,
+                        context.revampedTheme.mapPlaceholderEnd,
                       ],
                     ),
                   ),
                 ),
                 CustomPaint(
-                  painter: _MapGridPainter(),
+                  painter: _MapGridPainter(context.revampedTheme),
                   child: const SizedBox.expand(),
                 ),
                 Center(
@@ -777,10 +780,14 @@ class _LocationSection extends StatelessWidget {
 }
 
 class _MapGridPainter extends CustomPainter {
+  _MapGridPainter(this.t);
+
+  final AppRevampedTheme t;
+
   @override
   void paint(Canvas canvas, Size size) {
     final linePaint = Paint()
-      ..color = AppColors.mapPinBlueColor.withValues(alpha: 0.18)
+      ..color = t.mapGridLine
       ..strokeWidth = 1;
 
     const gap = 24.0;
@@ -791,15 +798,14 @@ class _MapGridPainter extends CustomPainter {
       canvas.drawLine(Offset(0, y), Offset(size.width, y), linePaint);
     }
 
-    final nodePaint = Paint()
-      ..color = AppColors.mapPinBlueColor.withValues(alpha: 0.55);
+    final nodePaint = Paint()..color = t.mapGridNode;
     canvas.drawCircle(Offset(size.width * 0.35, size.height * 0.45), 3, nodePaint);
     canvas.drawCircle(Offset(size.width * 0.62, size.height * 0.58), 3, nodePaint);
     canvas.drawCircle(Offset(size.width * 0.78, size.height * 0.32), 3, nodePaint);
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant _MapGridPainter oldDelegate) => oldDelegate.t != t;
 }
 
 class _StationDetailBottomBar extends StatelessWidget {
@@ -818,16 +824,16 @@ class _StationDetailBottomBar extends StatelessWidget {
                 height: 54.h,
                 child: DecoratedBox(
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(
+                    gradient: LinearGradient(
                       colors: [
-                        AppColors.stationDetailBrandGreen,
-                        AppColors.stationDetailBrandGreenLight,
+                        context.revampedTheme.stationDetailBrandGreen,
+                        context.revampedTheme.stationDetailBrandGreenLight,
                       ],
                     ),
                     borderRadius: BorderRadius.circular(999),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.stationDetailBrandGreen.withValues(alpha: 0.28),
+                        color: context.revampedTheme.stationDetailBrandGreen.withValues(alpha: 0.28),
                         blurRadius: 14,
                         offset: const Offset(0, 6),
                       ),
@@ -863,7 +869,7 @@ class _StationDetailBottomBar extends StatelessWidget {
                   borderRadius: BorderRadius.circular(16.r),
                   child: Icon(
                     Icons.navigation_rounded,
-                    color: AppColors.stationDetailTextDark,
+                    color: context.revampedTheme.textPrimary,
                     size: 22.sp,
                   ),
                 ),

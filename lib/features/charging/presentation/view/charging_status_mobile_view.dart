@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
-import 'package:orko_hubco/core/constants/app_colors.dart';
+import 'package:orko_hubco/core/constants/app_revamped_theme.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
 import 'package:orko_hubco/features/charging/presentation/cubit/charging_status_cubit.dart';
@@ -13,17 +13,11 @@ import 'package:orko_hubco/features/charging/presentation/cubit/charging_status_
 class ChargingStatusMobileView extends StatelessWidget {
   const ChargingStatusMobileView({super.key});
 
-  static const Color _bgColor = Color(0xFFF8F9FA);
-  static const Color _primaryGreen = Color(0xFF006D44);
-  static const Color _textDark = Color(0xFF1A1A1A);
-  static const Color _textMuted = Color(0xFF9CA3AF);
-  static const Color _stopRed = Color(0xFFC62828);
-  static const Color _mintIconBg = Color(0xFFD1FAE5);
-
   @override
   Widget build(BuildContext context) {
+    final t = context.revampedTheme;
     return Scaffold(
-      backgroundColor: _bgColor,
+      backgroundColor: t.scaffoldBackground,
       body: SafeArea(
         child: BlocBuilder<ChargingStatusCubit, ChargingStatusState>(
           builder: (context, state) {
@@ -82,14 +76,15 @@ class _StatusHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.revampedTheme;
     return Row(
       children: [
         CircleAvatar(
           radius: 20.r,
-          backgroundColor: AppColors.shimmerGreyColor,
+          backgroundColor: t.avatarBackground,
           child: Icon(
             Icons.person_rounded,
-            color: ChargingStatusMobileView._textMuted,
+            color: t.textMuted,
             size: 22.sp,
           ),
         ),
@@ -97,7 +92,7 @@ class _StatusHeader extends StatelessWidget {
           child: Center(
             child: AppText(
               'HUBCO',
-              color: ChargingStatusMobileView._primaryGreen,
+              color: t.chargingStatusPrimaryGreen,
               fontSize: FontSizes.font22Sp,
               fontWeight: FontWeights.weight700,
               letterSpacing: 0.5,
@@ -108,7 +103,7 @@ class _StatusHeader extends StatelessWidget {
           onPressed: onSearch,
           icon: Icon(
             Icons.search_rounded,
-            color: ChargingStatusMobileView._primaryGreen,
+            color: t.chargingStatusPrimaryGreen,
             size: 24.sp,
           ),
         ),
@@ -128,12 +123,13 @@ class _StationInfoSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.revampedTheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         AppText(
           'CURRENT STATION',
-          color: ChargingStatusMobileView._textMuted,
+          color: t.textMuted,
           fontSize: FontSizes.font10Sp,
           fontWeight: FontWeights.weight700,
           letterSpacing: 1.2,
@@ -141,7 +137,7 @@ class _StationInfoSection extends StatelessWidget {
         6.verticalSpace,
         AppText(
           stationName,
-          color: ChargingStatusMobileView._textDark,
+          color: t.textPrimary,
           fontSize: FontSizes.font26Sp,
           fontWeight: FontWeights.weight700,
         ),
@@ -151,8 +147,8 @@ class _StationInfoSection extends StatelessWidget {
             Container(
               width: 8.w,
               height: 8.w,
-              decoration: const BoxDecoration(
-                color: Color(0xFF6EE7B7),
+              decoration: BoxDecoration(
+                color: t.sessionActiveDot,
                 shape: BoxShape.circle,
               ),
             ),
@@ -160,7 +156,7 @@ class _StationInfoSection extends StatelessWidget {
             Expanded(
               child: AppText(
                 sessionLabel,
-                color: ChargingStatusMobileView._textMuted,
+                color: t.textMuted,
                 fontSize: FontSizes.font12Sp,
                 fontWeight: FontWeights.weight500,
               ),
@@ -179,6 +175,7 @@ class _BatteryGauge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.revampedTheme;
     final progress = (percent / 100).clamp(0.0, 1.0);
 
     return SizedBox(
@@ -188,7 +185,7 @@ class _BatteryGauge extends StatelessWidget {
           width: 200.w,
           height: 200.w,
           child: CustomPaint(
-            painter: _BatteryGaugePainter(progress: progress),
+            painter: _BatteryGaugePainter(progress: progress, theme: t),
             child: Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -199,14 +196,14 @@ class _BatteryGauge extends StatelessWidget {
                     children: [
                       AppText(
                         '$percent',
-                        color: ChargingStatusMobileView._primaryGreen,
+                        color: t.chargingStatusPrimaryGreen,
                         fontSize: FontSizes.font36Sp,
                         fontWeight: FontWeights.weight700,
                         height: 1,
                       ),
                       AppText(
                         '%',
-                        color: ChargingStatusMobileView._primaryGreen,
+                        color: t.chargingStatusPrimaryGreen,
                         fontSize: FontSizes.font18Sp,
                         fontWeight: FontWeights.weight600,
                         height: 1.4,
@@ -216,7 +213,7 @@ class _BatteryGauge extends StatelessWidget {
                   6.verticalSpace,
                   AppText(
                     'BATTERY LEVEL',
-                    color: ChargingStatusMobileView._primaryGreen,
+                    color: t.chargingStatusPrimaryGreen,
                     fontSize: FontSizes.font10Sp,
                     fontWeight: FontWeights.weight700,
                     letterSpacing: 1.1,
@@ -232,9 +229,10 @@ class _BatteryGauge extends StatelessWidget {
 }
 
 class _BatteryGaugePainter extends CustomPainter {
-  _BatteryGaugePainter({required this.progress});
+  _BatteryGaugePainter({required this.progress, required this.theme});
 
   final double progress;
+  final AppRevampedTheme theme;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -244,13 +242,13 @@ class _BatteryGaugePainter extends CustomPainter {
     const startAngle = -math.pi / 2;
 
     final trackPaint = Paint()
-      ..color = AppColors.shimmerGreyColor
+      ..color = theme.progressTrack
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth
       ..strokeCap = StrokeCap.round;
 
     final progressPaint = Paint()
-      ..color = ChargingStatusMobileView._primaryGreen
+      ..color = theme.chargingStatusPrimaryGreen
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth
       ..strokeCap = StrokeCap.round;
@@ -267,7 +265,7 @@ class _BatteryGaugePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _BatteryGaugePainter oldDelegate) {
-    return oldDelegate.progress != progress;
+    return oldDelegate.progress != progress || oldDelegate.theme != theme;
   }
 }
 
@@ -278,14 +276,15 @@ class _StopChargingButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.revampedTheme;
     return SizedBox(
       width: double.infinity,
       height: 54.h,
       child: ElevatedButton.icon(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: ChargingStatusMobileView._stopRed,
-          foregroundColor: AppColors.whiteColor,
+          backgroundColor: t.stopRed,
+          foregroundColor: t.textOnBrand,
           elevation: 0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(999),
@@ -294,7 +293,7 @@ class _StopChargingButton extends StatelessWidget {
         icon: Icon(Icons.stop_circle_outlined, size: 22.sp),
         label: AppText(
           'Stop Charging',
-          color: AppColors.whiteColor,
+          color: t.textOnBrand,
           fontSize: FontSizes.font16Sp,
           fontWeight: FontWeights.weight700,
         ),
@@ -310,6 +309,7 @@ class _MetricsGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.revampedTheme;
     return Column(
       children: [
         Row(
@@ -319,7 +319,7 @@ class _MetricsGrid extends StatelessWidget {
                 icon: Icons.receipt_long_outlined,
                 label: 'ESTIMATED COST',
                 value: _formatCost(state.cost),
-                valueColor: ChargingStatusMobileView._textDark,
+                valueColor: t.textPrimary,
               ),
             ),
             12.horizontalSpace,
@@ -328,7 +328,7 @@ class _MetricsGrid extends StatelessWidget {
                 icon: Icons.bolt_rounded,
                 label: 'ENERGY DELIVERED',
                 value: '${state.energyDelivered} ${state.energyDeliveredUnit}',
-                valueColor: ChargingStatusMobileView._textDark,
+                valueColor: t.textPrimary,
               ),
             ),
           ],
@@ -341,8 +341,8 @@ class _MetricsGrid extends StatelessWidget {
                 icon: Icons.speed_rounded,
                 label: 'CURRENT SPEED',
                 value: '${state.chargingSpeed} ${state.chargingSpeedUnit}',
-                valueColor: ChargingStatusMobileView._primaryGreen,
-                labelColor: ChargingStatusMobileView._primaryGreen,
+                valueColor: t.chargingStatusPrimaryGreen,
+                labelColor: t.chargingStatusPrimaryGreen,
               ),
             ),
             12.horizontalSpace,
@@ -351,7 +351,7 @@ class _MetricsGrid extends StatelessWidget {
                 icon: Icons.access_time_rounded,
                 label: 'SESSION TIME',
                 value: state.sessionTime,
-                valueColor: ChargingStatusMobileView._textDark,
+                valueColor: t.textPrimary,
               ),
             ),
           ],
@@ -386,14 +386,15 @@ class _MetricCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.revampedTheme;
     return Container(
       padding: EdgeInsets.all(14.r),
       decoration: BoxDecoration(
-        color: AppColors.whiteColor,
+        color: t.cardBackground,
         borderRadius: BorderRadius.circular(16.r),
         boxShadow: [
           BoxShadow(
-            color: AppColors.blackColor.withValues(alpha: 0.05),
+            color: t.shadow,
             blurRadius: 12,
             offset: const Offset(0, 3),
           ),
@@ -405,12 +406,12 @@ class _MetricCard extends StatelessWidget {
           Icon(
             icon,
             size: 18.sp,
-            color: labelColor ?? ChargingStatusMobileView._textMuted,
+            color: labelColor ?? t.textMuted,
           ),
           10.verticalSpace,
           AppText(
             label,
-            color: labelColor ?? ChargingStatusMobileView._textMuted,
+            color: labelColor ?? t.textMuted,
             fontSize: FontSizes.font10Sp,
             fontWeight: FontWeights.weight700,
             letterSpacing: 0.6,
@@ -436,14 +437,15 @@ class _ChargerDetailsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.revampedTheme;
     return Container(
       padding: EdgeInsets.all(16.r),
       decoration: BoxDecoration(
-        color: AppColors.whiteColor,
+        color: t.cardBackground,
         borderRadius: BorderRadius.circular(16.r),
         boxShadow: [
           BoxShadow(
-            color: AppColors.blackColor.withValues(alpha: 0.05),
+            color: t.shadow,
             blurRadius: 12,
             offset: const Offset(0, 3),
           ),
@@ -455,12 +457,12 @@ class _ChargerDetailsCard extends StatelessWidget {
             width: 48.w,
             height: 48.w,
             decoration: BoxDecoration(
-              color: ChargingStatusMobileView._mintIconBg,
+              color: t.mintIconBackground,
               borderRadius: BorderRadius.circular(12.r),
             ),
             child: Icon(
               Icons.ev_station_rounded,
-              color: ChargingStatusMobileView._primaryGreen,
+              color: t.chargingStatusPrimaryGreen,
               size: 26.sp,
             ),
           ),
@@ -471,14 +473,14 @@ class _ChargerDetailsCard extends StatelessWidget {
               children: [
                 AppText(
                   'Supernova 150kW',
-                  color: ChargingStatusMobileView._textDark,
+                  color: t.textPrimary,
                   fontSize: FontSizes.font15Sp,
                   fontWeight: FontWeights.weight700,
                 ),
                 4.verticalSpace,
                 AppText(
                   'Connector #02 · DC Fast',
-                  color: ChargingStatusMobileView._textMuted,
+                  color: t.textMuted,
                   fontSize: FontSizes.font12Sp,
                   fontWeight: FontWeights.weight400,
                 ),
@@ -490,7 +492,7 @@ class _ChargerDetailsCard extends StatelessWidget {
             children: [
               AppText(
                 'VOLTAGE',
-                color: ChargingStatusMobileView._textMuted,
+                color: t.textMuted,
                 fontSize: FontSizes.font10Sp,
                 fontWeight: FontWeights.weight700,
                 letterSpacing: 0.5,
@@ -498,7 +500,7 @@ class _ChargerDetailsCard extends StatelessWidget {
               4.verticalSpace,
               AppText(
                 '395V',
-                color: ChargingStatusMobileView._textDark,
+                color: t.textPrimary,
                 fontSize: FontSizes.font16Sp,
                 fontWeight: FontWeights.weight700,
               ),
@@ -515,16 +517,17 @@ class _EcoContributionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.revampedTheme;
     return Container(
       width: double.infinity,
       padding: EdgeInsets.all(20.r),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
+        gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Color(0xFF004D40),
-            Color(0xFF006D44),
+            t.ecoGradientStart,
+            t.chargingStatusPrimaryGreen,
           ],
         ),
         borderRadius: BorderRadius.circular(16.r),
@@ -534,7 +537,7 @@ class _EcoContributionCard extends StatelessWidget {
         children: [
           AppText(
             'ECO CONTRIBUTION',
-            color: AppColors.whiteColor.withValues(alpha: 0.85),
+            color: t.textOnBrand.withValues(alpha: 0.85),
             fontSize: FontSizes.font10Sp,
             fontWeight: FontWeights.weight700,
             letterSpacing: 1.2,
@@ -542,7 +545,7 @@ class _EcoContributionCard extends StatelessWidget {
           10.verticalSpace,
           AppText(
             "You've offset 18.4 kg of CO₂ this session — equivalent to planting 2 trees.",
-            color: AppColors.whiteColor,
+            color: t.textOnBrand,
             fontSize: FontSizes.font14Sp,
             fontWeight: FontWeights.weight500,
             height: 1.45,

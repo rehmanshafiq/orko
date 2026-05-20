@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
+import 'package:orko_hubco/core/constants/app_revamped_theme.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
 import 'package:orko_hubco/features/booking/presentation/cubit/booking_cubit.dart';
@@ -12,15 +13,6 @@ import 'package:orko_hubco/features/booking/presentation/models/slot_style.dart'
 /// EV charging slot booking UI — layout matches product reference.
 class BookSlotMobileView extends StatelessWidget {
   const BookSlotMobileView({super.key});
-
-  static const Color _bgColor = Color(0xFFF8F9FB);
-  static const Color _primaryGreen = Color(0xFF00C48C);
-  static const Color _darkGreen = Color(0xFF004D40);
-  static const Color _scheduleLabelGreen = Color(0xFF6EE7B7);
-  static const Color _textDark = Color(0xFF1A1A1A);
-  static const Color _textMuted = Color(0xFF9CA3AF);
-  static const Color _takenPink = Color(0xFFF9A8D4);
-  static const Color _heldGreen = Color(0xFFD1FAE5);
 
   static const List<({String day, String date})> _datePills = [
     (day: 'MON', date: '13'),
@@ -66,7 +58,7 @@ class BookSlotMobileView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _bgColor,
+      backgroundColor: context.revampedTheme.scaffoldBackground,
       body: SafeArea(
         child: BlocBuilder<BookingCubit, BookingState>(
           builder: (context, state) {
@@ -141,10 +133,10 @@ class _BookSlotHeader extends StatelessWidget {
         children: [
           CircleAvatar(
             radius: 20.r,
-            backgroundColor: AppColors.shimmerGreyColor,
+            backgroundColor: context.revampedTheme.avatarBackground,
             child: Icon(
               Icons.person_rounded,
-              color: BookSlotMobileView._textMuted,
+              color: context.revampedTheme.textMuted,
               size: 22.sp,
             ),
           ),
@@ -152,7 +144,7 @@ class _BookSlotHeader extends StatelessWidget {
             child: Center(
               child: AppText(
                 'HUBCO',
-                color: BookSlotMobileView._darkGreen,
+                color: context.revampedTheme.bookSlotDarkGreen,
                 fontSize: FontSizes.font22Sp,
                 fontWeight: FontWeights.weight700,
                 letterSpacing: 0.5,
@@ -163,7 +155,7 @@ class _BookSlotHeader extends StatelessWidget {
             onPressed: onSearch,
             icon: Icon(
               Icons.search_rounded,
-              color: BookSlotMobileView._textDark,
+              color: context.revampedTheme.textPrimary,
               size: 24.sp,
             ),
           ),
@@ -189,7 +181,7 @@ class _ScheduleSection extends StatelessWidget {
       children: [
         AppText(
           'SCHEDULE',
-          color: BookSlotMobileView._scheduleLabelGreen,
+          color: context.revampedTheme.scheduleLabelGreen,
           fontSize: FontSizes.font10Sp,
           fontWeight: FontWeights.weight700,
           letterSpacing: 1.4,
@@ -200,14 +192,14 @@ class _ScheduleSection extends StatelessWidget {
             Expanded(
               child: AppText(
                 'Select Date',
-                color: BookSlotMobileView._textDark,
+                color: context.revampedTheme.textPrimary,
                 fontSize: FontSizes.font26Sp,
                 fontWeight: FontWeights.weight700,
               ),
             ),
             AppText(
               'May 2024',
-              color: BookSlotMobileView._textMuted,
+              color: context.revampedTheme.textMuted,
               fontSize: FontSizes.font14Sp,
               fontWeight: FontWeights.weight500,
             ),
@@ -252,6 +244,7 @@ class _DatePill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.revampedTheme;
     return Material(
       color: AppColors.transparentColor,
       child: InkWell(
@@ -262,19 +255,19 @@ class _DatePill extends StatelessWidget {
           width: 60.w,
           padding: EdgeInsets.symmetric(vertical: 12.h),
           decoration: BoxDecoration(
-            color: selected ? BookSlotMobileView._darkGreen : AppColors.whiteColor,
+            color: selected ? t.bookSlotDarkGreen : t.cardBackground,
             borderRadius: BorderRadius.circular(30.r),
             boxShadow: selected
                 ? [
                     BoxShadow(
-                      color: BookSlotMobileView._darkGreen.withValues(alpha: 0.25),
+                      color: t.datePillSelectedShadow,
                       blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),
                   ]
                 : [
                     BoxShadow(
-                      color: AppColors.blackColor.withValues(alpha: 0.04),
+                      color: t.datePillUnselectedShadow,
                       blurRadius: 6,
                       offset: const Offset(0, 2),
                     ),
@@ -285,7 +278,7 @@ class _DatePill extends StatelessWidget {
             children: [
               AppText(
                 day,
-                color: selected ? AppColors.whiteColor : BookSlotMobileView._textMuted,
+                color: selected ? t.textOnBrand : t.textMuted,
                 fontSize: FontSizes.font10Sp,
                 fontWeight: FontWeights.weight600,
                 letterSpacing: 0.5,
@@ -293,7 +286,7 @@ class _DatePill extends StatelessWidget {
               4.verticalSpace,
               AppText(
                 date,
-                color: selected ? AppColors.whiteColor : BookSlotMobileView._textDark,
+                color: selected ? t.textOnBrand : t.textPrimary,
                 fontSize: FontSizes.font16Sp,
                 fontWeight: FontWeights.weight700,
               ),
@@ -324,16 +317,16 @@ class _AvailableSlotsSection extends StatelessWidget {
             Expanded(
               child: AppText(
                 'Available Slots',
-                color: BookSlotMobileView._textDark,
+                color: context.revampedTheme.textPrimary,
                 fontSize: FontSizes.font18Sp,
                 fontWeight: FontWeights.weight700,
               ),
             ),
-            _LegendDot(color: BookSlotMobileView._primaryGreen, label: 'AVAIL'),
+            _LegendDot(color: context.revampedTheme.bookSlotPrimaryGreen, label: 'AVAIL'),
             10.horizontalSpace,
-            _LegendDot(color: BookSlotMobileView._takenPink, label: 'TAKEN'),
+            _LegendDot(color: context.revampedTheme.takenPink, label: 'TAKEN'),
             10.horizontalSpace,
-            _LegendDot(color: BookSlotMobileView._heldGreen, label: 'HELD'),
+            _LegendDot(color: context.revampedTheme.heldGreen, label: 'HELD'),
           ],
         ),
         16.verticalSpace,
@@ -391,7 +384,7 @@ class _LegendDot extends StatelessWidget {
         4.horizontalSpace,
         AppText(
           label,
-          color: BookSlotMobileView._textMuted,
+          color: context.revampedTheme.textMuted,
           fontSize: FontSizes.font10Sp,
           fontWeight: FontWeights.weight600,
           letterSpacing: 0.3,
@@ -418,33 +411,34 @@ class _TimeSlotCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.revampedTheme;
     late Color background;
     late Color border;
     late Color timeColor;
     late Color statusColor;
 
     if (isSelected) {
-      background = BookSlotMobileView._primaryGreen;
-      border = BookSlotMobileView._darkGreen;
-      timeColor = BookSlotMobileView._textDark;
-      statusColor = BookSlotMobileView._textDark;
+      background = t.selectedSlotBackground;
+      border = t.selectedSlotBorder;
+      timeColor = t.selectedSlotText;
+      statusColor = t.selectedSlotText;
     } else {
       switch (style) {
         case SlotStyle.available:
-          background = AppColors.whiteColor;
-          border = BookSlotMobileView._primaryGreen.withValues(alpha: 0.45);
-          timeColor = BookSlotMobileView._textDark;
-          statusColor = BookSlotMobileView._primaryGreen;
+          background = t.cardBackground;
+          border = t.availableSlotBorder;
+          timeColor = t.textPrimary;
+          statusColor = t.bookSlotPrimaryGreen;
         case SlotStyle.booked:
-          background = AppColors.whiteColor;
-          border = AppColors.shimmerGreyColor;
-          timeColor = BookSlotMobileView._textMuted;
-          statusColor = BookSlotMobileView._textMuted;
+          background = t.cardBackground;
+          border = t.progressTrack;
+          timeColor = t.textMuted;
+          statusColor = t.textMuted;
         case SlotStyle.busy:
-          background = BookSlotMobileView._heldGreen.withValues(alpha: 0.5);
-          border = BookSlotMobileView._heldGreen;
-          timeColor = BookSlotMobileView._textMuted;
-          statusColor = BookSlotMobileView._textMuted;
+          background = t.heldGreen.withValues(alpha: 0.5);
+          border = t.heldGreen;
+          timeColor = t.textMuted;
+          statusColor = t.textMuted;
       }
     }
 
@@ -501,6 +495,7 @@ class _DurationSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.revampedTheme;
     final showOptimal = durationMinutes == 45;
 
     return Column(
@@ -508,7 +503,7 @@ class _DurationSection extends StatelessWidget {
       children: [
         AppText(
           'Duration',
-          color: BookSlotMobileView._textDark,
+          color: context.revampedTheme.textPrimary,
           fontSize: FontSizes.font18Sp,
           fontWeight: FontWeights.weight700,
         ),
@@ -517,7 +512,7 @@ class _DurationSection extends StatelessWidget {
           width: double.infinity,
           padding: EdgeInsets.fromLTRB(20.w, 20.h, 20.w, 16.h),
           decoration: BoxDecoration(
-            color: AppColors.shimmerGreyColor.withValues(alpha: 0.55),
+            color: t.durationCardBackground,
             borderRadius: BorderRadius.circular(20.r),
           ),
           child: Column(
@@ -530,7 +525,7 @@ class _DurationSection extends StatelessWidget {
                     text: TextSpan(
                       style: TextStyle(
                         fontFamily: AppFonts.lexend,
-                        color: BookSlotMobileView._textDark,
+                        color: context.revampedTheme.textPrimary,
                       ),
                       children: [
                         TextSpan(
@@ -558,12 +553,12 @@ class _DurationSection extends StatelessWidget {
                         vertical: 5.h,
                       ),
                       decoration: BoxDecoration(
-                        color: BookSlotMobileView._primaryGreen,
+                        color: context.revampedTheme.bookSlotPrimaryGreen,
                         borderRadius: BorderRadius.circular(999),
                       ),
                       child: AppText(
                         'OPTIMAL CHARGE',
-                        color: BookSlotMobileView._darkGreen,
+                        color: context.revampedTheme.bookSlotDarkGreen,
                         fontSize: FontSizes.font10Sp,
                         fontWeight: FontWeights.weight700,
                         letterSpacing: 0.5,
@@ -576,8 +571,8 @@ class _DurationSection extends StatelessWidget {
               SliderTheme(
                 data: SliderTheme.of(context).copyWith(
                   trackHeight: 4.h,
-                  activeTrackColor: BookSlotMobileView._primaryGreen,
-                  inactiveTrackColor: AppColors.whiteColor,
+                  activeTrackColor: context.revampedTheme.bookSlotPrimaryGreen,
+                  inactiveTrackColor: t.cardBackground,
                   thumbColor: AppColors.whiteColor,
                   overlayColor: AppColors.transparentColor,
                   showValueIndicator: ShowValueIndicator.never,
@@ -597,14 +592,14 @@ class _DurationSection extends StatelessWidget {
                 children: [
                   AppText(
                     '15 MIN',
-                    color: BookSlotMobileView._textMuted,
+                    color: context.revampedTheme.textMuted,
                     fontSize: FontSizes.font10Sp,
                     fontWeight: FontWeights.weight600,
                     letterSpacing: 0.5,
                   ),
                   AppText(
                     '120 MIN',
-                    color: BookSlotMobileView._textMuted,
+                    color: context.revampedTheme.textMuted,
                     fontSize: FontSizes.font10Sp,
                     fontWeight: FontWeights.weight600,
                     letterSpacing: 0.5,
@@ -680,15 +675,16 @@ class _EstimatedCostCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.revampedTheme;
     return Container(
       width: double.infinity,
       padding: EdgeInsets.all(20.r),
       decoration: BoxDecoration(
-        color: AppColors.whiteColor,
+        color: t.cardBackground,
         borderRadius: BorderRadius.circular(20.r),
         boxShadow: [
           BoxShadow(
-            color: AppColors.blackColor.withValues(alpha: 0.05),
+            color: t.shadow,
             blurRadius: 16,
             offset: const Offset(0, 4),
           ),
@@ -699,7 +695,7 @@ class _EstimatedCostCard extends StatelessWidget {
         children: [
           AppText(
             'ESTIMATED COST',
-            color: BookSlotMobileView._textMuted,
+            color: context.revampedTheme.textMuted,
             fontSize: FontSizes.font10Sp,
             fontWeight: FontWeights.weight700,
             letterSpacing: 1.2,
@@ -715,20 +711,20 @@ class _EstimatedCostCard extends StatelessWidget {
             value: 'PKR ${stationAccess.toStringAsFixed(2)}',
           ),
           16.verticalSpace,
-          Divider(color: AppColors.shimmerGreyColor, height: 1),
+          Divider(color: t.progressTrack, height: 1),
           14.verticalSpace,
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               AppText(
                 'Total',
-                color: BookSlotMobileView._textDark,
+                color: context.revampedTheme.textPrimary,
                 fontSize: FontSizes.font16Sp,
                 fontWeight: FontWeights.weight700,
               ),
               AppText(
                 'PKR ${total.toStringAsFixed(2)}',
-                color: BookSlotMobileView._darkGreen,
+                color: context.revampedTheme.bookSlotDarkGreen,
                 fontSize: FontSizes.font24Sp,
                 fontWeight: FontWeights.weight700,
               ),
@@ -753,13 +749,13 @@ class _CostRow extends StatelessWidget {
       children: [
         AppText(
           label,
-          color: BookSlotMobileView._textMuted,
+          color: context.revampedTheme.textMuted,
           fontSize: FontSizes.font14Sp,
           fontWeight: FontWeights.weight400,
         ),
         AppText(
           value,
-          color: BookSlotMobileView._textDark,
+          color: context.revampedTheme.textPrimary,
           fontSize: FontSizes.font14Sp,
           fontWeight: FontWeights.weight700,
         ),
@@ -779,6 +775,7 @@ class _ContinueButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.revampedTheme;
     return SizedBox(
       width: double.infinity,
       height: 52.h,
@@ -787,12 +784,12 @@ class _ContinueButton extends StatelessWidget {
           gradient: LinearGradient(
             colors: enabled
                 ? [
-                    BookSlotMobileView._darkGreen,
-                    BookSlotMobileView._primaryGreen,
+                    t.bookSlotDarkGreen,
+                    t.bookSlotPrimaryGreen,
                   ]
                 : [
-                    AppColors.thumbBarGreyColor,
-                    AppColors.thumbBarGreyColor,
+                    t.disabledButtonGrey,
+                    t.disabledButtonGrey,
                   ],
           ),
           borderRadius: BorderRadius.circular(14.r),
@@ -809,16 +806,14 @@ class _ContinueButton extends StatelessWidget {
                 children: [
                   AppText(
                     'Continue to Payment',
-                    color: AppColors.whiteColor,
+                    color: t.textOnBrand,
                     fontSize: FontSizes.font16Sp,
                     fontWeight: FontWeights.weight700,
                   ),
                   8.horizontalSpace,
                   Icon(
                     Icons.arrow_forward_rounded,
-                    color: enabled
-                        ? AppColors.whiteColor
-                        : AppColors.greyColor,
+                    color: enabled ? t.textOnBrand : t.textMuted,
                     size: 20.sp,
                   ),
                 ],

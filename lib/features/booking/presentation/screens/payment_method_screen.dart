@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
+import 'package:orko_hubco/core/constants/app_revamped_theme.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
 
@@ -16,51 +17,54 @@ class PaymentMethodScreen extends StatefulWidget {
 }
 
 class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
-  static const Color _bgColor = Color(0xFFF8F9FB);
-  static const Color _primaryGreen = Color(0xFF006B4D);
-  static const Color _mintBadgeBg = Color(0xFFD1FAE5);
-  static const Color _textDark = Color(0xFF1A1A1A);
-  static const Color _textMuted = Color(0xFF9CA3AF);
-  static const Color _totalBoxBg = Color(0xFFF3F4F6);
-
   int _selectedIndex = 0;
 
-  static const List<({String title, String subtitle, IconData icon, Color iconBg, Color? iconColor})>
-      _paymentMethods = [
-    (
-      title: 'Visa card',
-      subtitle: '•••• •••• •••• 4291',
-      icon: Icons.credit_card_rounded,
-      iconBg: Color(0xFFE8F4FC),
-      iconColor: _primaryGreen,
-    ),
-    (
-      title: 'EasyPaisa',
-      subtitle: 'Linked Mobile Wallet',
-      icon: Icons.account_balance_wallet_rounded,
-      iconBg: Color(0xFFD1FAE5),
-      iconColor: _primaryGreen,
-    ),
-    (
-      title: 'JazzCash',
-      subtitle: 'Instant Pay Enabled',
-      icon: Icons.payments_rounded,
-      iconBg: Color(0xFFFEE2E2),
-      iconColor: Color(0xFFB91C1C),
-    ),
-    (
-      title: 'Cash',
-      subtitle: 'Pay at Counter',
-      icon: Icons.money_rounded,
-      iconBg: Color(0xFFF3F4F6),
-      iconColor: _textDark,
-    ),
-  ];
+  static List<
+      ({
+        String title,
+        String subtitle,
+        IconData icon,
+        Color iconBg,
+        Color? iconColor,
+      })> _paymentMethods(AppRevampedTheme t) {
+    return [
+      (
+        title: 'Visa card',
+        subtitle: '•••• •••• •••• 4291',
+        icon: Icons.credit_card_rounded,
+        iconBg: t.paymentIconBlueBg,
+        iconColor: t.paymentPrimaryGreen,
+      ),
+      (
+        title: 'EasyPaisa',
+        subtitle: 'Linked Mobile Wallet',
+        icon: Icons.account_balance_wallet_rounded,
+        iconBg: t.mintBadgeBackground,
+        iconColor: t.paymentPrimaryGreen,
+      ),
+      (
+        title: 'JazzCash',
+        subtitle: 'Instant Pay Enabled',
+        icon: Icons.payments_rounded,
+        iconBg: t.paymentIconRedBg,
+        iconColor: t.paymentIconRed,
+      ),
+      (
+        title: 'Cash',
+        subtitle: 'Pay at Counter',
+        icon: Icons.money_rounded,
+        iconBg: t.totalBoxBackground,
+        iconColor: t.textPrimary,
+      ),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
+    final t = context.revampedTheme;
+    final paymentMethods = _paymentMethods(t);
     return Scaffold(
-      backgroundColor: _bgColor,
+      backgroundColor: t.scaffoldBackground,
       body: SafeArea(
         child: Column(
           children: [
@@ -75,7 +79,7 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
                     20.verticalSpace,
                     AppText(
                       'Confirm Payment',
-                      color: _textDark,
+                      color: t.textPrimary,
                       fontSize: FontSizes.font26Sp,
                       fontWeight: FontWeights.weight700,
                     ),
@@ -87,7 +91,7 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
                       children: [
                         AppText(
                           'Payment Method',
-                          color: _textDark,
+                          color: t.textPrimary,
                           fontSize: FontSizes.font18Sp,
                           fontWeight: FontWeights.weight700,
                         ),
@@ -95,7 +99,7 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
                           onTap: () {},
                           child: AppText(
                             'Add New',
-                            color: _primaryGreen,
+                            color: t.paymentPrimaryGreen,
                             fontSize: FontSizes.font14Sp,
                             fontWeight: FontWeights.weight700,
                           ),
@@ -103,18 +107,18 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
                       ],
                     ),
                     16.verticalSpace,
-                    ...List.generate(_paymentMethods.length, (index) {
-                      final method = _paymentMethods[index];
+                    ...List.generate(paymentMethods.length, (index) {
+                      final method = paymentMethods[index];
                       return Padding(
                         padding: EdgeInsets.only(
-                          bottom: index == _paymentMethods.length - 1 ? 0 : 12.h,
+                          bottom: index == paymentMethods.length - 1 ? 0 : 12.h,
                         ),
                         child: _PaymentMethodTile(
                           title: method.title,
                           subtitle: method.subtitle,
                           icon: method.icon,
                           iconBackground: method.iconBg,
-                          iconColor: method.iconColor ?? _textDark,
+                          iconColor: method.iconColor ?? t.textPrimary,
                           selected: _selectedIndex == index,
                           onTap: () => setState(() => _selectedIndex = index),
                         ),
@@ -151,14 +155,15 @@ class _PaymentHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.revampedTheme;
     return Row(
       children: [
         CircleAvatar(
           radius: 20.r,
-          backgroundColor: AppColors.shimmerGreyColor,
+          backgroundColor: t.avatarBackground,
           child: Icon(
             Icons.person_rounded,
-            color: _PaymentMethodScreenState._textMuted,
+            color: t.textMuted,
             size: 22.sp,
           ),
         ),
@@ -166,7 +171,7 @@ class _PaymentHeader extends StatelessWidget {
           child: Center(
             child: AppText(
               'HUBCO',
-              color: _PaymentMethodScreenState._primaryGreen,
+              color: t.paymentPrimaryGreen,
               fontSize: FontSizes.font22Sp,
               fontWeight: FontWeights.weight700,
               letterSpacing: 0.5,
@@ -177,7 +182,7 @@ class _PaymentHeader extends StatelessWidget {
           onPressed: onSearch,
           icon: Icon(
             Icons.search_rounded,
-            color: _PaymentMethodScreenState._primaryGreen,
+            color: t.paymentPrimaryGreen,
             size: 24.sp,
           ),
         ),
@@ -191,15 +196,16 @@ class _PaymentSummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.revampedTheme;
     return Container(
       width: double.infinity,
       padding: EdgeInsets.all(18.r),
       decoration: BoxDecoration(
-        color: AppColors.whiteColor,
+        color: t.cardBackground,
         borderRadius: BorderRadius.circular(16.r),
         boxShadow: [
           BoxShadow(
-            color: AppColors.blackColor.withValues(alpha: 0.05),
+            color: t.shadow,
             blurRadius: 16,
             offset: const Offset(0, 4),
           ),
@@ -217,7 +223,7 @@ class _PaymentSummaryCard extends StatelessWidget {
                   children: [
                     AppText(
                       'SESSION ID',
-                      color: _PaymentMethodScreenState._textMuted,
+                      color: context.revampedTheme.textMuted,
                       fontSize: FontSizes.font10Sp,
                       fontWeight: FontWeights.weight700,
                       letterSpacing: 0.8,
@@ -225,7 +231,7 @@ class _PaymentSummaryCard extends StatelessWidget {
                     4.verticalSpace,
                     AppText(
                       '#HB-8829-EV',
-                      color: _PaymentMethodScreenState._textDark,
+                      color: context.revampedTheme.textPrimary,
                       fontSize: FontSizes.font16Sp,
                       fontWeight: FontWeights.weight700,
                     ),
@@ -235,12 +241,12 @@ class _PaymentSummaryCard extends StatelessWidget {
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
                 decoration: BoxDecoration(
-                  color: _PaymentMethodScreenState._mintBadgeBg,
+                  color: context.revampedTheme.mintBadgeBackground,
                   borderRadius: BorderRadius.circular(999),
                 ),
                 child: AppText(
                   'FAST CHARGE',
-                  color: _PaymentMethodScreenState._primaryGreen,
+                  color: context.revampedTheme.paymentPrimaryGreen,
                   fontSize: FontSizes.font10Sp,
                   fontWeight: FontWeights.weight700,
                   letterSpacing: 0.5,
@@ -287,7 +293,7 @@ class _PaymentSummaryCard extends StatelessWidget {
             width: double.infinity,
             padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
             decoration: BoxDecoration(
-              color: _PaymentMethodScreenState._totalBoxBg,
+              color: context.revampedTheme.totalBoxBackground,
               borderRadius: BorderRadius.circular(12.r),
             ),
             child: Row(
@@ -295,13 +301,13 @@ class _PaymentSummaryCard extends StatelessWidget {
               children: [
                 AppText(
                   'Total Amount',
-                  color: _PaymentMethodScreenState._textDark,
+                  color: context.revampedTheme.textPrimary,
                   fontSize: FontSizes.font15Sp,
                   fontWeight: FontWeights.weight700,
                 ),
                 AppText(
                   'PKR ${PaymentMethodScreen._totalAmount.toStringAsFixed(2)}',
-                  color: _PaymentMethodScreenState._primaryGreen,
+                  color: context.revampedTheme.paymentPrimaryGreen,
                   fontSize: FontSizes.font18Sp,
                   fontWeight: FontWeights.weight700,
                 ),
@@ -332,7 +338,7 @@ class _MetricBlock extends StatelessWidget {
       children: [
         AppText(
           label,
-          color: _PaymentMethodScreenState._textMuted,
+          color: context.revampedTheme.textMuted,
           fontSize: FontSizes.font10Sp,
           fontWeight: FontWeights.weight700,
           letterSpacing: 0.6,
@@ -344,14 +350,14 @@ class _MetricBlock extends StatelessWidget {
           children: [
             AppText(
               value,
-              color: _PaymentMethodScreenState._textDark,
+              color: context.revampedTheme.textPrimary,
               fontSize: FontSizes.font22Sp,
               fontWeight: FontWeights.weight700,
             ),
             4.horizontalSpace,
             AppText(
               unit,
-              color: _PaymentMethodScreenState._textMuted,
+              color: context.revampedTheme.textMuted,
               fontSize: FontSizes.font12Sp,
               fontWeight: FontWeights.weight500,
             ),
@@ -375,13 +381,13 @@ class _CostLine extends StatelessWidget {
       children: [
         AppText(
           label,
-          color: _PaymentMethodScreenState._textMuted,
+          color: context.revampedTheme.textMuted,
           fontSize: FontSizes.font12Sp,
           fontWeight: FontWeights.weight400,
         ),
         AppText(
           value,
-          color: _PaymentMethodScreenState._textDark,
+          color: context.revampedTheme.textPrimary,
           fontSize: FontSizes.font14Sp,
           fontWeight: FontWeights.weight600,
         ),
@@ -411,6 +417,7 @@ class _PaymentMethodTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.revampedTheme;
     return Material(
       color: AppColors.transparentColor,
       child: InkWell(
@@ -420,17 +427,15 @@ class _PaymentMethodTile extends StatelessWidget {
           duration: const Duration(milliseconds: 200),
           padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 14.h),
           decoration: BoxDecoration(
-            color: AppColors.whiteColor,
+            color: t.cardBackground,
             borderRadius: BorderRadius.circular(14.r),
             border: Border.all(
-              color: selected
-                  ? _PaymentMethodScreenState._primaryGreen
-                  : AppColors.transparentColor,
+              color: selected ? t.paymentPrimaryGreen : AppColors.transparentColor,
               width: selected ? 2 : 1,
             ),
             boxShadow: [
               BoxShadow(
-                color: AppColors.blackColor.withValues(alpha: 0.04),
+                color: t.shadow,
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
@@ -454,14 +459,14 @@ class _PaymentMethodTile extends StatelessWidget {
                   children: [
                     AppText(
                       title,
-                      color: _PaymentMethodScreenState._textDark,
+                      color: context.revampedTheme.textPrimary,
                       fontSize: FontSizes.font15Sp,
                       fontWeight: FontWeights.weight700,
                     ),
                     4.verticalSpace,
                     AppText(
                       subtitle,
-                      color: _PaymentMethodScreenState._textMuted,
+                      color: context.revampedTheme.textMuted,
                       fontSize: FontSizes.font12Sp,
                       fontWeight: FontWeights.weight400,
                     ),
@@ -472,13 +477,13 @@ class _PaymentMethodTile extends StatelessWidget {
                 Container(
                   width: 24.w,
                   height: 24.w,
-                  decoration: const BoxDecoration(
-                    color: _PaymentMethodScreenState._primaryGreen,
+                  decoration: BoxDecoration(
+                    color: t.paymentPrimaryGreen,
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
                     Icons.check_rounded,
-                    color: AppColors.whiteColor,
+                    color: t.textOnBrand,
                     size: 16.sp,
                   ),
                 )
@@ -489,7 +494,7 @@ class _PaymentMethodTile extends StatelessWidget {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: AppColors.thumbBarGreyColor,
+                      color: t.disabledButtonGrey,
                       width: 2,
                     ),
                   ),
@@ -509,21 +514,22 @@ class _ContinuePaymentButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.revampedTheme;
     return SizedBox(
       width: double.infinity,
       height: 54.h,
       child: DecoratedBox(
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
+          gradient: LinearGradient(
             colors: [
-              Color(0xFF004D40),
-              Color(0xFF006B4D),
+              t.continueGradientStart,
+              t.paymentPrimaryGreen,
             ],
           ),
           borderRadius: BorderRadius.circular(14.r),
           boxShadow: [
             BoxShadow(
-              color: _PaymentMethodScreenState._primaryGreen.withValues(alpha: 0.28),
+              color: t.paymentPrimaryGreen.withValues(alpha: 0.28),
               blurRadius: 14,
               offset: const Offset(0, 6),
             ),
@@ -541,14 +547,14 @@ class _ContinuePaymentButton extends StatelessWidget {
                 children: [
                   AppText(
                     'Continue Payment',
-                    color: AppColors.whiteColor,
+                    color: t.textOnBrand,
                     fontSize: FontSizes.font16Sp,
                     fontWeight: FontWeights.weight700,
                   ),
                   8.horizontalSpace,
                   Icon(
                     Icons.arrow_forward_rounded,
-                    color: AppColors.whiteColor,
+                    color: t.textOnBrand,
                     size: 20.sp,
                   ),
                 ],
