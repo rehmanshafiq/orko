@@ -50,6 +50,22 @@ class AppColors {
   static const onboardingTextDark = Color(0xFF1A1A1A);
   static const onboardingTextMuted = Color(0xFF666666);
   static const onboardingSkipText = Color(0xFF757575);
+
+  /// Charging station detail screen palette.
+  static const stationDetailBackground = Color(0xFFF5F7F6);
+  static const stationDetailBrandGreen = Color(0xFF00796B);
+  static const stationDetailBrandGreenLight = Color(0xFF00BFA5);
+  static const stationDetailMintBadge = Color(0xFFD1FAE5);
+  static const stationDetailMintIconBg = Color(0xFFE8F5E9);
+  static const stationDetailPricingBg = Color(0xFFEEF2FF);
+  static const stationDetailTextDark = Color(0xFF1A1A1A);
+  static const stationDetailTextMuted = Color(0xFF757575);
+  static const stationDetailCardBg = Color(0xFFF9FAFB);
+  static const stationDetailInUseBg = Color(0xFFFEE2E2);
+  static const stationDetailInUseText = Color(0xFFB91C1C);
+  static const stationDetailAvailableText = Color(0xFF047857);
+  static const stationDetailPortPurpleBg = Color(0xFFEDE9FE);
+  static const stationDetailPortPurpleText = Color(0xFF6D28D9);
 }
 
 /// Surfaces and typography that follow [ThemeData.brightness], built from [AppColors] only.

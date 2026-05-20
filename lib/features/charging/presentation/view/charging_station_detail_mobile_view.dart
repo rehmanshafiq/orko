@@ -3,23 +3,17 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
+import 'package:orko_hubco/core/constants/app_images.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/utils/app_ui.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
 import 'package:orko_hubco/features/charging/presentation/bloc/charging_station_detail_bloc.dart';
 import 'package:orko_hubco/features/charging/presentation/bloc/charging_station_detail_event.dart';
 import 'package:orko_hubco/features/charging/presentation/bloc/charging_station_detail_state.dart';
-import 'package:orko_hubco/features/charging/presentation/widgets/charging_station_amenities_widget.dart';
-import 'package:orko_hubco/features/charging/presentation/widgets/charging_station_banner_widget.dart';
-import 'package:orko_hubco/features/charging/presentation/widgets/charging_station_bottom_actions_widget.dart';
-import 'package:orko_hubco/features/charging/presentation/widgets/charging_station_glass_button_widget.dart';
-import 'package:orko_hubco/features/charging/presentation/widgets/charging_station_meta_row_widget.dart';
-import 'package:orko_hubco/features/charging/presentation/widgets/charging_station_ports_list_widget.dart';
-import 'package:orko_hubco/features/charging/presentation/widgets/charging_station_reviews_widget.dart';
-import 'package:orko_hubco/features/charging/presentation/widgets/charging_station_section_title_widget.dart';
+import 'package:orko_hubco/features/charging/presentation/models/amenity_model.dart';
+import 'package:orko_hubco/features/charging/presentation/models/charger_port_model.dart';
 import 'package:orko_hubco/features/map/domain/entities/hubco_location_entity.dart';
 
-/// Charging hub detail — layout matches product reference (dark theme).
 class ChargingStationDetailMobileView extends StatelessWidget {
   const ChargingStationDetailMobileView({
     super.key,
@@ -31,17 +25,16 @@ class ChargingStationDetailMobileView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final hub = station;
-    final ui = AppUiColors.of(context);
     if (hub == null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (context.mounted) context.pop();
       });
       return Scaffold(
-        backgroundColor: ui.scaffoldBackground,
+        backgroundColor: AppColors.stationDetailBackground,
         body: Center(
           child: AppText(
             'Invalid station',
-            color: ui.textPrimary,
+            color: AppColors.stationDetailTextDark,
             fontSize: FontSizes.font14Sp,
           ),
         ),
@@ -52,160 +45,832 @@ class ChargingStationDetailMobileView extends StatelessWidget {
       create: (_) => ChargingStationDetailBloc(),
       child: BlocBuilder<ChargingStationDetailBloc, ChargingStationDetailState>(
         builder: (context, state) {
-          final availableCount = state.ports.where((p) => p.available).length;
-          final totalPorts = state.ports.length;
-
           return Scaffold(
-            backgroundColor: ui.scaffoldBackground,
+            backgroundColor: AppColors.stationDetailBackground,
             body: Column(
               children: [
+                _StationDetailTopBar(
+                  isFavorite: state.favorite,
+                  onBack: () => context.pop(),
+                  onFavoriteToggle: () => context
+                      .read<ChargingStationDetailBloc>()
+                      .add(const ChargingStationDetailFavoriteToggled()),
+                ),
                 Expanded(
-                  child: CustomScrollView(
+                  child: SingleChildScrollView(
                     physics: const BouncingScrollPhysics(
                       parent: AlwaysScrollableScrollPhysics(),
                     ),
-                    slivers: [
-                      SliverAppBar(
-                        expandedHeight: 280.h,
-                        pinned: true,
-                        stretch: true,
-                        backgroundColor: ui.scaffoldBackground,
-                        surfaceTintColor: AppColors.transparentColor,
-                        elevation: 0,
-                        scrolledUnderElevation: 0,
-                        automaticallyImplyLeading: false,
-                        leadingWidth: 56.w,
-                        leading: Padding(
-                          padding: EdgeInsets.only(left: 8.w),
-                          child: Align(
-                            alignment: Alignment.centerLeft,
-                            child: ChargingStationGlassButtonWidget(
-                              icon: Icons.arrow_back_rounded,
-                              onTap: () => context.pop(),
-                            ),
-                          ),
+                    padding: AppUtils.horizontal16Padding,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        12.verticalSpace,
+                        _HeroImageCard(station: hub),
+                        24.verticalSpace,
+                        _ChargerAvailabilitySection(
+                          ports: state.ports,
+                          selectedPortIndex: state.selectedPortIndex,
+                          onPortTap: (index) => context
+                              .read<ChargingStationDetailBloc>()
+                              .add(ChargingStationDetailPortSelected(index)),
                         ),
-                        actions: [
-                          Padding(
-                            padding: EdgeInsets.only(right: 8.w),
-                            child: ChargingStationGlassButtonWidget(
-                              icon: state.favorite
-                                  ? Icons.favorite_rounded
-                                  : Icons.favorite_border_rounded,
-                              onTap: () => context
-                                  .read<ChargingStationDetailBloc>()
-                                  .add(const ChargingStationDetailFavoriteToggled()),
-                              iconColor: state.favorite
-                                  ? AppColors.primaryDarkColor
-                                  : ui.textPrimary,
-                            ),
-                          ),
-                        ],
-                        flexibleSpace: FlexibleSpaceBar(
-                          collapseMode: CollapseMode.parallax,
-                          stretchModes: const [
-                            StretchMode.zoomBackground,
-                            StretchMode.blurBackground,
-                          ],
-                          background: const ChargingStationBannerWidget(),
-                        ),
-                      ),
-                      SliverToBoxAdapter(
-                        child: Padding(
-                          padding: AppUtils.horizontal16Padding,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              16.verticalSpace,
-                              AppText(
-                                hub.name,
-                                color: ui.textPrimary,
-                                fontSize: FontSizes.font22Sp,
-                                fontWeight: FontWeights.weight700,
-                              ),
-                              6.verticalSpace,
-                              AppText(
-                                hub.address,
-                                color: ui.textSecondary,
-                                fontSize: FontSizes.font12Sp,
-                                fontWeight: FontWeights.weight400,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              10.verticalSpace,
-                              ChargingStationMetaRowWidget(
-                                station: hub,
-                                availableCount: availableCount,
-                                totalPorts: totalPorts,
-                              ),
-                              22.verticalSpace,
-                              const ChargingStationSectionTitleWidget(
-                                title: 'Charger Ports',
-                              ),
-                              12.verticalSpace,
-                              ChargingStationPortsListWidget(
-                                ports: state.ports,
-                                selectedPortIndex: state.selectedPortIndex,
-                                onAvailablePortTap: (i) => context
-                                    .read<ChargingStationDetailBloc>()
-                                    .add(ChargingStationDetailPortSelected(i)),
-                              ),
-                              22.verticalSpace,
-                              const ChargingStationSectionTitleWidget(
-                                title: 'Amenities',
-                              ),
-                              12.verticalSpace,
-                              ChargingStationAmenitiesWidget(
-                                amenities: state.amenities,
-                              ),
-                              22.verticalSpace,
-                              const ChargingStationSectionTitleWidget(
-                                title: 'Operating Hours',
-                              ),
-                              6.verticalSpace,
-                              AppText(
-                                '24 hours 7 days',
-                                color: ui.textSecondary,
-                                fontSize: FontSizes.font14Sp,
-                                fontWeight: FontWeights.weight400,
-                              ),
-                              16.verticalSpace,
-                              Divider(
-                                height: 1,
-                                color: ui.borderSubtle,
-                              ),
-                              16.verticalSpace,
-                              const ChargingStationSectionTitleWidget(
-                                title: 'Pricing',
-                              ),
-                              6.verticalSpace,
-                              AppText(
-                                'Rs 45 per kWh, minimum 30 minutes',
-                                color: ui.textSecondary,
-                                fontSize: FontSizes.font14Sp,
-                                fontWeight: FontWeights.weight400,
-                              ),
-                              22.verticalSpace,
-                              const ChargingStationSectionTitleWidget(
-                                title: 'Reviews',
-                              ),
-                              12.verticalSpace,
-                              ChargingStationReviewsWidget(
-                                reviews: state.reviews,
-                              ),
-                              50.verticalSpace,
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
+                        16.verticalSpace,
+                        const _PricingSection(),
+                        24.verticalSpace,
+                        _AmenitiesSection(amenities: state.amenities),
+                        24.verticalSpace,
+                        _LocationSection(station: hub),
+                        96.verticalSpace,
+                      ],
+                    ),
                   ),
                 ),
-                const ChargingStationBottomActionsWidget(),
+                const _StationDetailBottomBar(),
               ],
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+class _StationDetailTopBar extends StatelessWidget {
+  const _StationDetailTopBar({
+    required this.isFavorite,
+    required this.onBack,
+    required this.onFavoriteToggle,
+  });
+
+  final bool isFavorite;
+  final VoidCallback onBack;
+  final VoidCallback onFavoriteToggle;
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      bottom: false,
+      child: Container(
+        color: AppColors.whiteColor,
+        padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 6.h),
+        child: Row(
+          children: [
+            IconButton(
+              onPressed: onBack,
+              icon: Icon(
+                Icons.arrow_back_rounded,
+                color: AppColors.stationDetailTextDark,
+                size: 24.sp,
+              ),
+            ),
+            Expanded(
+              child: Center(
+                child: AppText(
+                  'HUBCO',
+                  color: AppColors.stationDetailBrandGreen,
+                  fontSize: FontSizes.font20Sp,
+                  fontWeight: FontWeights.weight700,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ),
+            IconButton(
+              onPressed: onFavoriteToggle,
+              icon: Icon(
+                isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                color: isFavorite
+                    ? AppColors.stationDetailBrandGreen
+                    : AppColors.stationDetailTextDark,
+                size: 24.sp,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _HeroImageCard extends StatelessWidget {
+  const _HeroImageCard({required this.station});
+
+  final HubcoLocationEntity station;
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(24.r),
+      child: SizedBox(
+        height: 220.h,
+        width: double.infinity,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            DecoratedBox(
+              decoration: BoxDecoration(
+                image: DecorationImage(
+                  image: AssetImage(AppImages.chargingStationBanner),
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
+            DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    AppColors.blackColor.withValues(alpha: 0.08),
+                    AppColors.blackColor.withValues(alpha: 0.55),
+                  ],
+                ),
+              ),
+            ),
+            Padding(
+              padding: EdgeInsets.all(16.r),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
+                    decoration: BoxDecoration(
+                      color: AppColors.stationDetailMintBadge,
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: AppText(
+                      'SUPERCHARGER',
+                      color: AppColors.stationDetailAvailableText,
+                      fontSize: FontSizes.font10Sp,
+                      fontWeight: FontWeights.weight700,
+                      letterSpacing: 0.8,
+                    ),
+                  ),
+                  const Spacer(),
+                  AppText(
+                    station.name,
+                    color: AppColors.whiteColor,
+                    fontSize: FontSizes.font24Sp,
+                    fontWeight: FontWeights.weight700,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  6.verticalSpace,
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.location_on_rounded,
+                        color: AppColors.whiteColor.withValues(alpha: 0.92),
+                        size: 16.sp,
+                      ),
+                      4.horizontalSpace,
+                      Expanded(
+                        child: AppText(
+                          station.address,
+                          color: AppColors.whiteColor.withValues(alpha: 0.92),
+                          fontSize: FontSizes.font12Sp,
+                          fontWeight: FontWeights.weight400,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                  12.verticalSpace,
+                  Row(
+                    children: [
+                      _HeroMetaPill(
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.star_rounded,
+                              color: AppColors.stationDetailBrandGreenLight,
+                              size: 14.sp,
+                            ),
+                            4.horizontalSpace,
+                            AppText(
+                              '4.9 (124)',
+                              color: AppColors.stationDetailTextDark,
+                              fontSize: FontSizes.font12Sp,
+                              fontWeight: FontWeights.weight600,
+                            ),
+                          ],
+                        ),
+                      ),
+                      8.horizontalSpace,
+                      _HeroMetaPill(
+                        child: AppText(
+                          '1.2 mi',
+                          color: AppColors.stationDetailTextDark,
+                          fontSize: FontSizes.font12Sp,
+                          fontWeight: FontWeights.weight600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _HeroMetaPill extends StatelessWidget {
+  const _HeroMetaPill({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
+      decoration: BoxDecoration(
+        color: AppColors.whiteColor.withValues(alpha: 0.94),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: child,
+    );
+  }
+}
+
+class _ChargerAvailabilitySection extends StatelessWidget {
+  const _ChargerAvailabilitySection({
+    required this.ports,
+    required this.selectedPortIndex,
+    required this.onPortTap,
+  });
+
+  final List<ChargerPortModel> ports;
+  final int selectedPortIndex;
+  final ValueChanged<int> onPortTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: AppText(
+                'Charger Availability',
+                color: AppColors.stationDetailTextDark,
+                fontSize: FontSizes.font18Sp,
+                fontWeight: FontWeights.weight700,
+              ),
+            ),
+            Container(
+              width: 6.w,
+              height: 6.w,
+              decoration: const BoxDecoration(
+                color: AppColors.stationDetailBrandGreenLight,
+                shape: BoxShape.circle,
+              ),
+            ),
+            6.horizontalSpace,
+            AppText(
+              'LIVE STATUS',
+              color: AppColors.stationDetailTextMuted,
+              fontSize: FontSizes.font10Sp,
+              fontWeight: FontWeights.weight600,
+              letterSpacing: 1.1,
+            ),
+          ],
+        ),
+        14.verticalSpace,
+        ...List.generate(ports.length, (index) {
+          final uiPort = _portUiModelAt(index, ports[index]);
+          final isSelected = ports[index].available && index == selectedPortIndex;
+          return Padding(
+            padding: EdgeInsets.only(bottom: index == ports.length - 1 ? 0 : 10.h),
+            child: _PortAvailabilityCard(
+              port: uiPort,
+              isSelected: isSelected,
+              onTap: ports[index].available ? () => onPortTap(index) : null,
+            ),
+          );
+        }),
+        14.verticalSpace,
+        Wrap(
+          spacing: 8.w,
+          runSpacing: 8.h,
+          children: const [
+            _ConnectorFilterChip(label: 'CCS'),
+            _ConnectorFilterChip(label: 'TYPE 2'),
+            _ConnectorFilterChip(label: 'CHADEMO'),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _PortUiModel {
+  const _PortUiModel({
+    required this.id,
+    required this.title,
+    required this.connector,
+    required this.details,
+    required this.statusLabel,
+    required this.available,
+    required this.badgeBackground,
+    required this.badgeTextColor,
+    required this.statusBackground,
+    required this.statusTextColor,
+  });
+
+  final String id;
+  final String title;
+  final String connector;
+  final String details;
+  final String statusLabel;
+  final bool available;
+  final Color badgeBackground;
+  final Color badgeTextColor;
+  final Color statusBackground;
+  final Color statusTextColor;
+}
+
+_PortUiModel _portUiModelAt(int index, ChargerPortModel port) {
+  switch (index) {
+    case 0:
+      return _PortUiModel(
+        id: 'P1',
+        title: 'Ultra Rapid',
+        connector: 'CCS',
+        details: '350 kW • Station A',
+        statusLabel: 'AVAILABLE',
+        available: port.available,
+        badgeBackground: AppColors.stationDetailMintIconBg,
+        badgeTextColor: AppColors.stationDetailAvailableText,
+        statusBackground: AppColors.stationDetailMintIconBg,
+        statusTextColor: AppColors.stationDetailAvailableText,
+      );
+    case 1:
+      return _PortUiModel(
+        id: 'P2',
+        title: 'Ultra Rapid',
+        connector: 'CCS',
+        details: '350 kW • Station B',
+        statusLabel: port.available ? 'AVAILABLE' : 'IN USE (12m)',
+        available: port.available,
+        badgeBackground: AppColors.stationDetailMintIconBg,
+        badgeTextColor: AppColors.stationDetailAvailableText,
+        statusBackground: port.available
+            ? AppColors.stationDetailMintIconBg
+            : AppColors.stationDetailInUseBg,
+        statusTextColor: port.available
+            ? AppColors.stationDetailAvailableText
+            : AppColors.stationDetailInUseText,
+      );
+    default:
+      return _PortUiModel(
+        id: 'P3',
+        title: 'CHAdeMO',
+        connector: '',
+        details: '50 kW • Station C',
+        statusLabel: 'AVAILABLE',
+        available: port.available,
+        badgeBackground: AppColors.stationDetailPortPurpleBg,
+        badgeTextColor: AppColors.stationDetailPortPurpleText,
+        statusBackground: AppColors.stationDetailMintIconBg,
+        statusTextColor: AppColors.stationDetailAvailableText,
+      );
+  }
+}
+
+class _PortAvailabilityCard extends StatelessWidget {
+  const _PortAvailabilityCard({
+    required this.port,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  final _PortUiModel port;
+  final bool isSelected;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppColors.transparentColor,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(18.r),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 14.h),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? AppColors.stationDetailMintIconBg.withValues(alpha: 0.55)
+                : AppColors.stationDetailCardBg,
+            borderRadius: BorderRadius.circular(18.r),
+            border: Border.all(
+              color: isSelected
+                  ? AppColors.stationDetailBrandGreen.withValues(alpha: 0.35)
+                  : AppColors.colorsOutlineColor.withValues(alpha: 0.7),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.blackColor.withValues(alpha: 0.03),
+                blurRadius: 10,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Container(
+                width: 44.w,
+                height: 44.w,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: port.badgeBackground,
+                  shape: BoxShape.circle,
+                ),
+                child: AppText(
+                  port.id,
+                  color: port.badgeTextColor,
+                  fontSize: FontSizes.font14Sp,
+                  fontWeight: FontWeights.weight700,
+                ),
+              ),
+              12.horizontalSpace,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    AppText(
+                      port.title,
+                      color: AppColors.stationDetailTextDark,
+                      fontSize: FontSizes.font15Sp,
+                      fontWeight: FontWeights.weight700,
+                    ),
+                    if (port.connector.isNotEmpty) ...[
+                      2.verticalSpace,
+                      AppText(
+                        port.connector,
+                        color: AppColors.stationDetailTextDark,
+                        fontSize: FontSizes.font14Sp,
+                        fontWeight: FontWeights.weight600,
+                      ),
+                    ],
+                    4.verticalSpace,
+                    AppText(
+                      port.details,
+                      color: AppColors.stationDetailTextMuted,
+                      fontSize: FontSizes.font12Sp,
+                      fontWeight: FontWeights.weight400,
+                    ),
+                  ],
+                ),
+              ),
+              8.horizontalSpace,
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
+                decoration: BoxDecoration(
+                  color: port.statusBackground,
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: AppText(
+                  port.statusLabel,
+                  color: port.statusTextColor,
+                  fontSize: FontSizes.font10Sp,
+                  fontWeight: FontWeights.weight700,
+                  letterSpacing: 0.3,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ConnectorFilterChip extends StatelessWidget {
+  const _ConnectorFilterChip({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 8.h),
+      decoration: BoxDecoration(
+        color: AppColors.shimmerGreyColor,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: AppText(
+        label,
+        color: AppColors.stationDetailTextMuted,
+        fontSize: FontSizes.font10Sp,
+        fontWeight: FontWeights.weight600,
+        letterSpacing: 0.4,
+      ),
+    );
+  }
+}
+
+class _PricingSection extends StatelessWidget {
+  const _PricingSection();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(18.r),
+      decoration: BoxDecoration(
+        color: AppColors.stationDetailPricingBg,
+        borderRadius: BorderRadius.circular(20.r),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          AppText(
+            'Pricing',
+            color: AppColors.stationDetailTextDark,
+            fontSize: FontSizes.font18Sp,
+            fontWeight: FontWeights.weight700,
+          ),
+          10.verticalSpace,
+          RichText(
+            text: TextSpan(
+              style: TextStyle(
+                fontFamily: AppFonts.lexend,
+                fontSize: FontSizes.font28Sp,
+                height: 1.2,
+              ),
+              children: [
+                TextSpan(
+                  text: 'PKR 0.42',
+                  style: TextStyle(
+                    color: AppColors.stationDetailTextDark,
+                    fontWeight: FontWeights.weight700,
+                    fontSize: FontSizes.font28Sp,
+                  ),
+                ),
+                TextSpan(
+                  text: ' /kWh',
+                  style: TextStyle(
+                    color: AppColors.stationDetailTextMuted,
+                    fontWeight: FontWeights.weight500,
+                    fontSize: FontSizes.font16Sp,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          10.verticalSpace,
+          AppText(
+            'Estimated cost for 80% charge: \$22.50. Dynamic pricing applies during peak hours.',
+            color: AppColors.stationDetailTextMuted,
+            fontSize: FontSizes.font12Sp,
+            fontWeight: FontWeights.weight400,
+            height: 1.45,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AmenitiesSection extends StatelessWidget {
+  const _AmenitiesSection({required this.amenities});
+
+  final List<AmenityModel> amenities;
+
+  @override
+  Widget build(BuildContext context) {
+    final visibleAmenities = amenities.take(3).toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        AppText(
+          'ON-SITE AMENITIES',
+          color: AppColors.stationDetailTextMuted,
+          fontSize: FontSizes.font10Sp,
+          fontWeight: FontWeights.weight700,
+          letterSpacing: 1.4,
+        ),
+        16.verticalSpace,
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: visibleAmenities
+              .map(
+                (amenity) => Expanded(
+                  child: _AmenityItem(amenity: amenity),
+                ),
+              )
+              .toList(),
+        ),
+      ],
+    );
+  }
+}
+
+class _AmenityItem extends StatelessWidget {
+  const _AmenityItem({required this.amenity});
+
+  final AmenityModel amenity;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Container(
+          width: 56.w,
+          height: 56.w,
+          decoration: const BoxDecoration(
+            color: AppColors.stationDetailMintIconBg,
+            shape: BoxShape.circle,
+          ),
+          child: Icon(
+            amenity.icon,
+            color: AppColors.stationDetailBrandGreen,
+            size: 24.sp,
+          ),
+        ),
+        10.verticalSpace,
+        AppText(
+          amenity.label.toUpperCase(),
+          color: AppColors.stationDetailTextMuted,
+          fontSize: FontSizes.font10Sp,
+          fontWeight: FontWeights.weight600,
+          letterSpacing: 0.8,
+          textAlign: TextAlign.center,
+        ),
+      ],
+    );
+  }
+}
+
+class _LocationSection extends StatelessWidget {
+  const _LocationSection({required this.station});
+
+  final HubcoLocationEntity station;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        AppText(
+          'Location',
+          color: AppColors.stationDetailTextDark,
+          fontSize: FontSizes.font18Sp,
+          fontWeight: FontWeights.weight700,
+        ),
+        8.verticalSpace,
+        AppText(
+          'Adjacent to Green Garden Shopping Mall, Level B2 Parking.',
+          color: AppColors.stationDetailTextMuted,
+          fontSize: FontSizes.font12Sp,
+          fontWeight: FontWeights.weight400,
+          height: 1.45,
+        ),
+        14.verticalSpace,
+        ClipRRect(
+          borderRadius: BorderRadius.circular(20.r),
+          child: SizedBox(
+            height: 150.h,
+            width: double.infinity,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                Container(
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        Color(0xFF0B1220),
+                        Color(0xFF111827),
+                      ],
+                    ),
+                  ),
+                ),
+                CustomPaint(
+                  painter: _MapGridPainter(),
+                  child: const SizedBox.expand(),
+                ),
+                Center(
+                  child: Icon(
+                    Icons.location_on_rounded,
+                    color: AppColors.mapPinBlueColor.withValues(alpha: 0.85),
+                    size: 28.sp,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _MapGridPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final linePaint = Paint()
+      ..color = AppColors.mapPinBlueColor.withValues(alpha: 0.18)
+      ..strokeWidth = 1;
+
+    const gap = 24.0;
+    for (var x = 0.0; x <= size.width; x += gap) {
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), linePaint);
+    }
+    for (var y = 0.0; y <= size.height; y += gap) {
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), linePaint);
+    }
+
+    final nodePaint = Paint()
+      ..color = AppColors.mapPinBlueColor.withValues(alpha: 0.55);
+    canvas.drawCircle(Offset(size.width * 0.35, size.height * 0.45), 3, nodePaint);
+    canvas.drawCircle(Offset(size.width * 0.62, size.height * 0.58), 3, nodePaint);
+    canvas.drawCircle(Offset(size.width * 0.78, size.height * 0.32), 3, nodePaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+class _StationDetailBottomBar extends StatelessWidget {
+  const _StationDetailBottomBar();
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(16.w, 10.h, 16.w, 12.h),
+        child: Row(
+          children: [
+            Expanded(
+              child: SizedBox(
+                height: 54.h,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [
+                        AppColors.stationDetailBrandGreen,
+                        AppColors.stationDetailBrandGreenLight,
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(999),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.stationDetailBrandGreen.withValues(alpha: 0.28),
+                        blurRadius: 14,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
+                  ),
+                  child: Material(
+                    color: AppColors.transparentColor,
+                    child: InkWell(
+                      onTap: () => context.go('/bookings'),
+                      borderRadius: BorderRadius.circular(999),
+                      child: Center(
+                        child: AppText(
+                          'Book Slot',
+                          color: AppColors.whiteColor,
+                          fontSize: FontSizes.font16Sp,
+                          fontWeight: FontWeights.weight700,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            12.horizontalSpace,
+            SizedBox(
+              width: 54.w,
+              height: 54.h,
+              child: Material(
+                color: AppColors.whiteColor,
+                borderRadius: BorderRadius.circular(16.r),
+                child: InkWell(
+                  onTap: () {},
+                  borderRadius: BorderRadius.circular(16.r),
+                  child: Icon(
+                    Icons.navigation_rounded,
+                    color: AppColors.stationDetailTextDark,
+                    size: 22.sp,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
