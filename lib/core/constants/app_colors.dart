@@ -33,6 +33,13 @@ class AppColors {
   static const slotBusyYellowColor = Color(0xFF9A7B1E);
   /// Booked / unavailable slot chip background.
   static const slotBookedBackgroundColor = Color(0xFF5C2424);
+
+  /// Splash screen mint background and brand accents.
+  static const splashMintBackground = Color(0xFFEAF4EF);
+  static const splashMintGlow = Color(0xFFDDEBE5);
+  static const splashBrandGreen = Color(0xFF0E8F68);
+  static const splashTextDark = Color(0xFF111111);
+  static const splashMutedText = Color(0xFF757575);
 }
 
 /// Surfaces and typography that follow [ThemeData.brightness], built from [AppColors] only.
