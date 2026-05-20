@@ -570,10 +570,10 @@ class _DurationSection extends StatelessWidget {
                   activeTrackColor: BookSlotMobileView._primaryGreen,
                   inactiveTrackColor: AppColors.whiteColor,
                   thumbColor: AppColors.whiteColor,
-                  overlayColor:
-                      BookSlotMobileView._primaryGreen.withValues(alpha: 0.12),
-                  thumbShape: RoundSliderThumbShape(enabledThumbRadius: 12.r),
-                  overlayShape: RoundSliderOverlayShape(overlayRadius: 20.r),
+                  overlayColor: AppColors.transparentColor,
+                  showValueIndicator: ShowValueIndicator.never,
+                  thumbShape: _GreenBorderThumbShape(radius: 12.r),
+                  overlayShape: RoundSliderOverlayShape(overlayRadius: 0),
                 ),
                 child: Slider(
                   value: durationHours.toDouble(),
@@ -606,6 +606,52 @@ class _DurationSection extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// White slider thumb with a black ring.
+class _GreenBorderThumbShape extends SliderComponentShape {
+  const _GreenBorderThumbShape({required this.radius});
+
+  final double radius;
+
+  static const double _borderWidth = 3;
+
+  @override
+  Size getPreferredSize(bool isEnabled, bool isDiscrete) {
+    return Size.fromRadius(radius + _borderWidth);
+  }
+
+  @override
+  void paint(
+    PaintingContext context,
+    Offset center, {
+    required Animation<double> activationAnimation,
+    required Animation<double> enableAnimation,
+    required bool isDiscrete,
+    required TextPainter labelPainter,
+    required RenderBox parentBox,
+    required SliderThemeData sliderTheme,
+    required TextDirection textDirection,
+    required double value,
+    required double textScaleFactor,
+    required Size sizeWithOverflow,
+  }) {
+    final canvas = context.canvas;
+
+    canvas.drawCircle(
+      center,
+      radius,
+      Paint()..color = AppColors.whiteColor,
+    );
+    canvas.drawCircle(
+      center,
+      radius,
+      Paint()
+        ..color = AppColors.blackColor
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = _borderWidth,
     );
   }
 }
@@ -747,12 +793,26 @@ class _ContinueButton extends StatelessWidget {
           child: InkWell(
             onTap: enabled ? onPressed : null,
             borderRadius: BorderRadius.circular(14.r),
-            child: Center(
-              child: AppText(
-                'Continue to Payment',
-                color: AppColors.whiteColor,
-                fontSize: FontSizes.font16Sp,
-                fontWeight: FontWeights.weight700,
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 24.w),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  AppText(
+                    'Continue to Payment',
+                    color: AppColors.whiteColor,
+                    fontSize: FontSizes.font16Sp,
+                    fontWeight: FontWeights.weight700,
+                  ),
+                  8.horizontalSpace,
+                  Icon(
+                    Icons.arrow_forward_rounded,
+                    color: enabled
+                        ? AppColors.whiteColor
+                        : AppColors.greyColor,
+                    size: 20.sp,
+                  ),
+                ],
               ),
             ),
           ),
