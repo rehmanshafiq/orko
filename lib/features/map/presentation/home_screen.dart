@@ -189,27 +189,39 @@ class _HomeScreenState extends State<HomeScreen> {
       final size = _chargingStationMarkerSize * dpr;
       final pictureRecorder = ui.PictureRecorder();
       final canvas = Canvas(pictureRecorder);
-      final iconData = Icons.bolt_outlined;
+      final center = Offset(size / 2, size / 2);
+      final radius = size * 0.38;
 
+      final fillPaint = Paint()..color = const Color(0xFFEF4444);
+      canvas.drawCircle(center, radius, fillPaint);
+
+      final borderPaint = Paint()
+        ..color = AppColors.whiteColor
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = size * 0.07;
+      canvas.drawCircle(center, radius - borderPaint.strokeWidth / 2, borderPaint);
+
+      final iconData = Icons.ev_station_rounded;
       final iconPainter = TextPainter(
         textDirection: TextDirection.ltr,
         text: TextSpan(
           text: String.fromCharCode(iconData.codePoint),
           style: TextStyle(
-            fontSize: size * 0.88,
+            fontSize: size * 0.42,
             fontFamily: iconData.fontFamily,
             package: iconData.fontPackage,
-            color: AppColors.primaryDarkColor,
+            color: AppColors.whiteColor,
           ),
         ),
       );
       iconPainter.layout();
-
-      final iconOffset = Offset(
-        (size - iconPainter.width) / 2,
-        (size - iconPainter.height) / 2,
+      iconPainter.paint(
+        canvas,
+        Offset(
+          center.dx - iconPainter.width / 2,
+          center.dy - iconPainter.height / 2,
+        ),
       );
-      iconPainter.paint(canvas, iconOffset);
 
       final picture = pictureRecorder.endRecording();
       final image = await picture.toImage(size.toInt(), size.toInt());

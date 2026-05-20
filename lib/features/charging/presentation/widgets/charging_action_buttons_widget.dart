@@ -14,8 +14,12 @@ class ChargingActionButtonsWidget extends StatelessWidget {
   final VoidCallback onStopCharging;
   final VoidCallback onEmergencyStop;
 
+  static const _emergencyGradientStart = Color(0xFF6E1118);
+  static const _emergencyGradientEnd = Color(0xFFA31C25);
+
   @override
   Widget build(BuildContext context) {
+    final ui = AppUiColors.of(context);
     return Column(
       children: [
         PrimaryButtonWidget(
@@ -30,8 +34,9 @@ class ChargingActionButtonsWidget extends StatelessWidget {
         10.verticalSpace,
         Container(
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF6E1118), Color(0xFFA31C25)],
+            gradient: LinearGradient(
+              colors: [_emergencyGradientStart.withValues(alpha: 0.4),
+                _emergencyGradientEnd.withValues(alpha: 0.4),],
             ),
             borderRadius: BorderRadius.circular(12.r),
           ),

@@ -29,19 +29,19 @@ class ChargingGaugeWidget extends StatelessWidget {
         alignment: Alignment.center,
         children: [
           // Outer thick glow ring (matches design halo).
-          CircularPercentIndicator(
-            radius: 92.w,
-            lineWidth: 14.w,
-            percent: p,
-            circularStrokeCap: CircularStrokeCap.round,
-            progressColor: AppColors.primaryLightColor.withValues(alpha: 0.70),
-            backgroundColor: AppColors.primaryDarkColor.withValues(alpha: 0.12),
-            backgroundWidth: 14.w,
-            startAngle: 0,
-            maskFilter: const MaskFilter.blur(BlurStyle.normal, 7),
-            animation: false,
-            center: const SizedBox.shrink(),
-          ),
+          // CircularPercentIndicator(
+          //   radius: 92.w,
+          //   lineWidth: 14.w,
+          //   percent: p,
+          //   circularStrokeCap: CircularStrokeCap.round,
+          //   progressColor: AppColors.primaryLightColor.withValues(alpha: 0.70),
+          //   backgroundColor: AppColors.primaryDarkColor.withValues(alpha: 0.12),
+          //   backgroundWidth: 14.w,
+          //   startAngle: 0,
+          //   maskFilter: const MaskFilter.blur(BlurStyle.normal, 7),
+          //   animation: false,
+          //   center: const SizedBox.shrink(),
+          // ),
 
           // Inner crisp ring (matches design arc thickness).
           CircularPercentIndicator(
