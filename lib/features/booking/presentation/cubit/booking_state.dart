@@ -1,17 +1,21 @@
 import 'package:equatable/equatable.dart';
 
 class BookingState extends Equatable {
+  static const int noDateSelected = -1;
+
   const BookingState({
     this.selectedPortIndex = 1,
-    this.selectedDateSegment = 0,
-    this.selectedTime = '14:00',
-    this.durationHours = 1,
+    this.selectedDateSegment = noDateSelected,
+    this.selectedTime,
+    this.durationHours = 3,
   });
 
   final int selectedPortIndex;
   final int selectedDateSegment;
   final String? selectedTime;
   final int durationHours;
+
+  bool get isDateSelected => selectedDateSegment >= 0;
 
   BookingState copyWith({
     int? selectedPortIndex,

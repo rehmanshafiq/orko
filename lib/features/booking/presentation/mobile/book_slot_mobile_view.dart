@@ -54,6 +54,15 @@ class BookSlotMobileView extends StatelessWidget {
     }
   }
 
+  static bool _canContinueToPayment(BookingState state) {
+    if (!state.isDateSelected || state.selectedTime == null) return false;
+    return _slotDefinitions.any(
+      (slot) =>
+          slot.time == state.selectedTime &&
+          slot.style == SlotStyle.available,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -102,7 +111,7 @@ class BookSlotMobileView extends StatelessWidget {
                         ),
                         20.verticalSpace,
                         _ContinueButton(
-                          enabled: state.selectedTime != null,
+                          enabled: _canContinueToPayment(state),
                           onPressed: () => context.push('/payment-method'),
                         ),
                         24.verticalSpace,
