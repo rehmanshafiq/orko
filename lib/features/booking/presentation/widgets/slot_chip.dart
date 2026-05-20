@@ -42,7 +42,7 @@ class SlotChip extends StatelessWidget {
         }
         break;
       case SlotStyle.booked:
-        bg = AppColors.slotBookedBackgroundColor;
+        bg = AppColors.slotBookedBackgroundColor.withValues(alpha: 0.5);
         border = ui.isLight
             ? AppColors.slotBookedBackgroundColor.withValues(alpha: 0.88)
             : AppColors.slotBookedBackgroundColor;
@@ -50,7 +50,7 @@ class SlotChip extends StatelessWidget {
             ui.isLight ? AppColors.whiteColor : AppColors.whiteColor.withValues(alpha: 0.94);
         break;
       case SlotStyle.busy:
-        bg = AppColors.slotBusyYellowColor;
+        bg = AppColors.slotBusyYellowColor.withValues(alpha: 0.5);
         border = ui.isLight
             ? AppColors.slotBusyYellowColor.withValues(alpha: 0.9)
             : AppColors.slotBusyYellowColor;

@@ -23,6 +23,8 @@ class PortCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final backgroundColor =
+        selected ? AppColors.primaryDarkColor.withValues(alpha: 0.95) : ui.cardBackground;
     final borderColor = selected ? AppColors.primaryDarkColor : ui.borderSubtle;
     final glow = selected
         ? [
@@ -43,7 +45,7 @@ class PortCard extends StatelessWidget {
           width: 148.w,
           padding: AppUtils.all12Padding,
           decoration: BoxDecoration(
-            color: ui.cardBackground,
+            color: backgroundColor,
             borderRadius: BorderRadius.circular(14.r),
             border: Border.all(color: borderColor, width: selected ? 2 : 1),
             boxShadow: glow,
@@ -56,21 +58,21 @@ class PortCard extends StatelessWidget {
                 children: [
                   AppText(
                     portLabel,
-                    color: selected ? AppColors.primaryDarkColor : ui.textPrimary,
+                    color: selected ? AppColors.whiteColor : ui.textPrimary,
                     fontSize: FontSizes.font14Sp,
                     fontWeight: FontWeights.weight400,
                   ),
                   Icon(
                     Icons.electric_bolt_rounded,
                     size: 22.sp,
-                    color: selected ? AppColors.primaryDarkColor : AppColors.iconsGreyColor,
+                    color: selected ? AppColors.whiteColor : AppColors.iconsGreyColor,
                   ),
                 ],
               ),
               8.verticalSpace,
               AppText(
                 specs,
-                color: selected ? ui.textPrimary : ui.textSecondary,
+                color: selected ? AppColors.whiteColor : ui.textSecondary,
                 fontSize: FontSizes.font12Sp,
                 fontWeight: FontWeights.weight400,
               ),
@@ -81,7 +83,7 @@ class PortCard extends StatelessWidget {
                   padding: AppUtils.horizontal8Vertical4Padding,
                   decoration: BoxDecoration(
                     color: selected
-                        ? AppColors.primaryDarkColor.withValues(alpha: 0.45)
+                        ? AppColors.whiteColor.withValues(alpha: 0.25)
                         : AppColors.primaryDarkColor.withValues(alpha: 0.35),
                     borderRadius: BorderRadius.circular(8.r),
                   ),
