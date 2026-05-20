@@ -27,19 +27,27 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   static const LatLng _center = LatLng(24.8607, 67.0011);
-  static const String _darkMapStyle = '''
+
+  static const Color _mapCoverColor = Color(0xFF0C4A4E);
+  static const Color _mapHomeGreen = Color(0xFF00796B);
+  static const Color _mapHomeGreenBright = Color(0xFF00A878);
+  static const Color _mapHomeTextDark = Color(0xFF1B4332);
+  static const Color _mapHomeTextMuted = Color(0xFF6B7280);
+  static const Color _mapHomeCardBg = Color(0xFFF3F4F6);
+
+  static const String _tealMapStyle = '''
 [
-  {"elementType":"geometry","stylers":[{"color":"#101828"}]},
-  {"elementType":"labels.text.fill","stylers":[{"color":"#6b7280"}]},
-  {"elementType":"labels.text.stroke","stylers":[{"color":"#101828"}]},
-  {"featureType":"administrative","elementType":"geometry","stylers":[{"color":"#1f2937"}]},
-  {"featureType":"poi","elementType":"labels.text.fill","stylers":[{"color":"#6b7280"}]},
-  {"featureType":"road","elementType":"geometry","stylers":[{"color":"#1f2937"}]},
-  {"featureType":"road.arterial","elementType":"geometry","stylers":[{"color":"#243244"}]},
-  {"featureType":"road.highway","elementType":"geometry","stylers":[{"color":"#2f3f55"}]},
-  {"featureType":"road.highway","elementType":"geometry.stroke","stylers":[{"color":"#1f2b3a"}]},
-  {"featureType":"transit","elementType":"geometry","stylers":[{"color":"#1f2937"}]},
-  {"featureType":"water","elementType":"geometry","stylers":[{"color":"#0b1220"}]}
+  {"elementType":"geometry","stylers":[{"color":"#0c4a4e"}]},
+  {"elementType":"labels.text.fill","stylers":[{"color":"#7dd3e8"}]},
+  {"elementType":"labels.text.stroke","stylers":[{"color":"#0c4a4e"}]},
+  {"featureType":"administrative","elementType":"geometry","stylers":[{"color":"#0f5c60"}]},
+  {"featureType":"poi","elementType":"labels.text","stylers":[{"visibility":"off"}]},
+  {"featureType":"road","elementType":"geometry","stylers":[{"color":"#136b70"}]},
+  {"featureType":"road","elementType":"geometry.stroke","stylers":[{"color":"#5eead4"}]},
+  {"featureType":"road.arterial","elementType":"geometry","stylers":[{"color":"#17838a"}]},
+  {"featureType":"road.highway","elementType":"geometry","stylers":[{"color":"#1a9aa3"}]},
+  {"featureType":"transit","elementType":"geometry","stylers":[{"color":"#0f5c60"}]},
+  {"featureType":"water","elementType":"geometry","stylers":[{"color":"#083a3e"}]}
 ]
 ''';
 
@@ -49,9 +57,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _applyMapStyleForTheme(Brightness brightness) async {
     final controller = _mapController;
     if (controller == null) return;
-    await controller.setMapStyle(
-      brightness == Brightness.dark ? _darkMapStyle : null,
-    );
+    await controller.setMapStyle(_tealMapStyle);
   }
 
   /// True only after the dark style has been confirmed painted.
@@ -179,7 +185,7 @@ class _HomeScreenState extends State<HomeScreen> {
     unawaited(_syncMapMyLocationLayer());
   }
 
-  static const double _chargingStationMarkerSize = 34;
+  static const double _chargingStationMarkerSize = 40;
 
   Future<BitmapDescriptor?> _resolveChargingStationIcon() async {
     if (_chargingStationIcon != null) return _chargingStationIcon;
@@ -189,27 +195,39 @@ class _HomeScreenState extends State<HomeScreen> {
       final size = _chargingStationMarkerSize * dpr;
       final pictureRecorder = ui.PictureRecorder();
       final canvas = Canvas(pictureRecorder);
-      final iconData = Icons.bolt_outlined;
+      final center = Offset(size / 2, size / 2);
+      final radius = size * 0.38;
 
+      final fillPaint = Paint()..color = const Color(0xFFEF4444);
+      canvas.drawCircle(center, radius, fillPaint);
+
+      final borderPaint = Paint()
+        ..color = AppColors.whiteColor
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = size * 0.07;
+      canvas.drawCircle(center, radius - borderPaint.strokeWidth / 2, borderPaint);
+
+      final iconData = Icons.ev_station_rounded;
       final iconPainter = TextPainter(
         textDirection: TextDirection.ltr,
         text: TextSpan(
           text: String.fromCharCode(iconData.codePoint),
           style: TextStyle(
-            fontSize: size * 0.88,
+            fontSize: size * 0.42,
             fontFamily: iconData.fontFamily,
             package: iconData.fontPackage,
-            color: AppColors.primaryDarkColor,
+            color: AppColors.whiteColor,
           ),
         ),
       );
       iconPainter.layout();
-
-      final iconOffset = Offset(
-        (size - iconPainter.width) / 2,
-        (size - iconPainter.height) / 2,
+      iconPainter.paint(
+        canvas,
+        Offset(
+          center.dx - iconPainter.width / 2,
+          center.dy - iconPainter.height / 2,
+        ),
       );
-      iconPainter.paint(canvas, iconOffset);
 
       final picture = pictureRecorder.endRecording();
       final image = await picture.toImage(size.toInt(), size.toInt());
@@ -331,8 +349,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 // Sits above the map and below all UI. Visible whenever the
                 // map is not yet dark, hiding any white tile flash entirely.
                 if (!_mapReady)
-                  Positioned.fill(
-                    child: ColoredBox(color: ui.scaffoldBackground),
+                  const Positioned.fill(
+                    child: ColoredBox(color: _mapCoverColor),
                   ),
 
                 // ── UI Overlay ─────────────────────────────────────────────
@@ -355,8 +373,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: Align(
                           alignment: Alignment.bottomRight,
                           child: Padding(
-                            padding: const EdgeInsets.only(right: 16, bottom: 16),
-                            child: _buildMyLocationButton(context),
+                            padding: EdgeInsets.only(right: 16.w, bottom: 16.h),
+                            child: _buildMapFloatingButtons(),
                           ),
                         ),
                       ),
@@ -382,30 +400,24 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // ── Reusable widgets ──────────────────────────────────────────────────────
 
-  Widget _buildMyLocationButton(BuildContext context) {
-    final ui = AppUiColors.of(context);
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: _goToMyLocation,
-        borderRadius: BorderRadius.circular(8.r),
-        child: Ink(
-          height: 52.h,
-          width: 52.w,
-          decoration: BoxDecoration(
-            color: ui.cardBackground.withValues(alpha: ui.isLight ? 0.95 : 0.2),
-            borderRadius: BorderRadius.circular(8.r),
-            border: Border.all(
-              color: ui.borderSubtle,
-            ),
-          ),
-          child: Icon(
-            Icons.my_location_rounded,
-            size: 26,
-            color: ui.textPrimary,
-          ),
+  Widget _buildMapFloatingButtons() {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _MapFloatingButton(
+          icon: Icons.my_location_rounded,
+          backgroundColor: _mapHomeGreenBright,
+          iconColor: AppColors.whiteColor,
+          onTap: _goToMyLocation,
         ),
-      ),
+        12.verticalSpace,
+        _MapFloatingButton(
+          icon: Icons.layers_rounded,
+          backgroundColor: AppColors.whiteColor,
+          iconColor: _mapHomeTextMuted,
+          onTap: () {},
+        ),
+      ],
     );
   }
 
@@ -529,72 +541,112 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildBottomSheet(BuildContext context) {
-    final ui = AppUiColors.of(context);
     final nearbyStations = _locations.toList();
+    final availableCount = nearbyStations.where((s) => s.status).length;
 
     return Container(
-      padding: AppUtils.homeBottomSheetPadding,
+      padding: EdgeInsets.fromLTRB(20.w, 12.h, 20.w, 20.h),
       decoration: BoxDecoration(
-        color: ui.cardBackground.withValues(alpha: ui.isLight ? 0.98 : 0.9),
+        color: AppColors.whiteColor,
         borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(22.r),
-          topRight: Radius.circular(22.r),
+          topLeft: Radius.circular(28.r),
+          topRight: Radius.circular(28.r),
         ),
-        border: Border.all(color: ui.borderSubtle),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.blackColor.withValues(alpha: 0.08),
+            blurRadius: 24,
+            offset: const Offset(0, -4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Align(
+          Center(
             child: Container(
-              height: 3.h,
-              width: 26.w,
+              height: 4.h,
+              width: 40.w,
               decoration: BoxDecoration(
-                color: ui.textSecondary.withValues(alpha: 0.65),
-                borderRadius: BorderRadius.circular(10.r),
+                color: AppColors.shimmerGreyColor,
+                borderRadius: BorderRadius.circular(999),
               ),
             ),
           ),
-          12.verticalSpace,
+          18.verticalSpace,
           AppText(
-            'Nearby Stations',
-            color: ui.textPrimary,
-            fontSize: FontSizes.font24Sp,
+            'NEARBY STATIONS',
+            color: _mapHomeGreen,
+            fontSize: FontSizes.font10Sp,
             fontWeight: FontWeights.weight700,
+            letterSpacing: 1.2,
           ),
-          10.verticalSpace,
+          8.verticalSpace,
           Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              _chip(context, 'Available Now', isActive: true),
-              8.horizontalSpace,
-              _chip(context, 'DC Fast'),
-              8.horizontalSpace,
-              _chip(context, 'AC Level 2'),
+              Expanded(
+                child: AppText(
+                  'Clifton, Karachi',
+                  color: _mapHomeTextDark,
+                  fontSize: FontSizes.font24Sp,
+                  fontWeight: FontWeights.weight700,
+                ),
+              ),
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 7.h),
+                decoration: BoxDecoration(
+                  color: AppColors.shimmerGreyColor,
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 7.w,
+                      height: 7.w,
+                      decoration: const BoxDecoration(
+                        color: _mapHomeGreenBright,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    6.horizontalSpace,
+                    AppText(
+                      '$availableCount Available',
+                      color: _mapHomeTextDark,
+                      fontSize: FontSizes.font12Sp,
+                      fontWeight: FontWeights.weight600,
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
-          12.verticalSpace,
+          18.verticalSpace,
           if (nearbyStations.isEmpty)
             Padding(
-              padding: EdgeInsets.symmetric(vertical: 12.h),
+              padding: EdgeInsets.symmetric(vertical: 16.h),
               child: AppText(
                 'No stations available',
-                color: ui.textSecondary,
+                color: _mapHomeTextMuted,
                 fontSize: FontSizes.font12Sp,
                 fontWeight: FontWeights.weight500,
               ),
             )
           else
             SizedBox(
-              height: 114.h,
+              height: 176.h,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 itemCount: nearbyStations.length,
-                separatorBuilder: (_, __) => 8.horizontalSpace,
+                separatorBuilder: (_, __) => 12.horizontalSpace,
                 itemBuilder: (context, index) {
                   final station = nearbyStations[index];
                   return SizedBox(
-                    width: 176.w,
-                    child: _stationCard(context, station),
+                    width: 300.w,
+                    height: 176.h,
+                    child: _stationCard(context, station, index),
                   );
                 },
               ),
@@ -614,77 +666,184 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _chip(BuildContext context, String text, {bool isActive = false}) {
-    final ui = AppUiColors.of(context);
-    return Container(
-      padding: AppUtils.homeFilterChipPadding,
-      decoration: BoxDecoration(
-        color: isActive
-            ? AppColors.primaryDarkColor.withValues(alpha: 0.22)
-            : ui.innerCardBg,
-        borderRadius: BorderRadius.circular(20.r),
-        border: Border.all(
-          color: isActive
-              ? AppColors.primaryDarkColor
-              : ui.borderSubtle,
-        ),
-      ),
-      child: AppText(
-        text,
-        color: isActive
-            ? AppColors.primaryDarkColor
-            : ui.textPrimary.withValues(alpha: 0.8),
-        fontSize: FontSizes.font10Sp,
-        fontWeight: FontWeights.weight500,
-      ),
-    );
-  }
+  Widget _stationCard(
+    BuildContext context,
+    HubcoLocationEntity station,
+    int index,
+  ) {
+    final distances = ['0.8 km', '1.2 km', '2.1 km', '3.4 km'];
+    final driveTimes = ['8 min drive', '12 min drive', '18 min drive', '24 min drive'];
 
-  Widget _stationCard(BuildContext context, HubcoLocationEntity station) {
-    final ui = AppUiColors.of(context);
     return Material(
       color: AppColors.transparentColor,
       child: InkWell(
         onTap: () => context.push('/station-detail', extra: station),
-        borderRadius: BorderRadius.circular(12.r),
+        borderRadius: BorderRadius.circular(20.r),
         child: Ink(
-          padding: AppUtils.homeStationCardPadding,
+          width: double.infinity,
+          height: double.infinity,
+          padding: EdgeInsets.all(14.r),
           decoration: BoxDecoration(
-            color: ui.innerCardBg,
-            borderRadius: BorderRadius.circular(12.r),
-            border: Border.all(
-              color: ui.borderSubtle,
-            ),
+            color: _mapHomeCardBg,
+            borderRadius: BorderRadius.circular(20.r),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.max,
             children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 40.w,
+                    height: 40.w,
+                    decoration: BoxDecoration(
+                      color: AppColors.whiteColor,
+                      borderRadius: BorderRadius.circular(12.r),
+                    ),
+                    child: Icon(
+                      Icons.bolt_rounded,
+                      color: _mapHomeGreen,
+                      size: 22.sp,
+                    ),
+                  ),
+                  const Spacer(),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      AppText(
+                        distances[index % distances.length],
+                        color: _mapHomeGreen,
+                        fontSize: FontSizes.font14Sp,
+                        fontWeight: FontWeights.weight700,
+                      ),
+                      2.verticalSpace,
+                      AppText(
+                        driveTimes[index % driveTimes.length],
+                        color: _mapHomeTextMuted,
+                        fontSize: FontSizes.font10Sp,
+                        fontWeight: FontWeights.weight400,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              10.verticalSpace,
               AppText(
                 station.name,
-                color: ui.textPrimary,
-                fontSize: FontSizes.font12Sp,
-                fontWeight: FontWeights.weight600,
-                maxLines: 2,
+                color: _mapHomeTextDark,
+                fontSize: FontSizes.font15Sp,
+                fontWeight: FontWeights.weight700,
+                maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
               4.verticalSpace,
               AppText(
-                station.status ? 'Available' : 'Unavailable',
-                color: AppColors.primaryDarkColor,
-                fontSize: FontSizes.font10Sp,
-                fontWeight: FontWeights.weight500,
-              ),
-              6.verticalSpace,
-              AppText(
-                station.address,
-                color: ui.textSecondary,
-                fontSize: FontSizes.font10Sp,
+                'Super Fast • CCS2 • 150kW',
+                color: _mapHomeTextMuted,
+                fontSize: FontSizes.font12Sp,
                 fontWeight: FontWeights.weight400,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
+              ),
+              const Spacer(),
+              Row(
+                children: [
+                  _portIndicatorBadge('1', isActive: true),
+                  6.horizontalSpace,
+                  _portIndicatorBadge('2', isActive: true),
+                  6.horizontalSpace,
+                  _portIndicatorBadge('+3', isActive: false),
+                  const Spacer(),
+                  Material(
+                    color: AppColors.transparentColor,
+                    child: InkWell(
+                      onTap: () => context.push('/bookings'),
+                      borderRadius: BorderRadius.circular(12.r),
+                      child: Ink(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 16.w,
+                          vertical: 8.h,
+                        ),
+                        decoration: BoxDecoration(
+                          color: _mapHomeGreenBright,
+                          borderRadius: BorderRadius.circular(12.r),
+                        ),
+                        child: AppText(
+                          'Book',
+                          color: AppColors.whiteColor,
+                          fontSize: FontSizes.font14Sp,
+                          fontWeight: FontWeights.weight700,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _portIndicatorBadge(String label, {required bool isActive}) {
+    return Container(
+      width: 28.w,
+      height: 28.w,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: isActive
+            ? _mapHomeGreenBright.withValues(alpha: 0.18)
+            : AppColors.shimmerGreyColor,
+        shape: BoxShape.circle,
+      ),
+      child: AppText(
+        label,
+        color: isActive ? _mapHomeGreen : _mapHomeTextMuted,
+        fontSize: FontSizes.font10Sp,
+        fontWeight: FontWeights.weight700,
+      ),
+    );
+  }
+}
+
+class _MapFloatingButton extends StatelessWidget {
+  const _MapFloatingButton({
+    required this.icon,
+    required this.backgroundColor,
+    required this.iconColor,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final Color backgroundColor;
+  final Color iconColor;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppColors.transparentColor,
+      elevation: 4,
+      shadowColor: AppColors.blackColor.withValues(alpha: 0.15),
+      shape: const CircleBorder(),
+      child: InkWell(
+        onTap: onTap,
+        customBorder: const CircleBorder(),
+        child: Ink(
+          width: 52.w,
+          height: 52.w,
+          decoration: BoxDecoration(
+            color: backgroundColor,
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.blackColor.withValues(alpha: 0.12),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Icon(icon, color: iconColor, size: 24.sp),
         ),
       ),
     );
