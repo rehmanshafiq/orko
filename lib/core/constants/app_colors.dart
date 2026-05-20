@@ -40,6 +40,16 @@ class AppColors {
   static const splashBrandGreen = Color(0xFF0E8F68);
   static const splashTextDark = Color(0xFF111111);
   static const splashMutedText = Color(0xFF757575);
+
+  /// Onboarding screen palette.
+  static const onboardingBackgroundTop = Color(0xFFEAF6F2);
+  static const onboardingBackgroundBottom = Color(0xFFE8F0FA);
+  static const onboardingBrandGreen = Color(0xFF006847);
+  static const onboardingBrandGreenLight = Color(0xFF00B386);
+  static const onboardingBackButtonBg = Color(0xFFE8E6FF);
+  static const onboardingTextDark = Color(0xFF1A1A1A);
+  static const onboardingTextMuted = Color(0xFF666666);
+  static const onboardingSkipText = Color(0xFF757575);
 }
 
 /// Surfaces and typography that follow [ThemeData.brightness], built from [AppColors] only.

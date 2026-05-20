@@ -11,9 +11,9 @@ class OnboardingLocalDataSourceImpl implements OnboardingLocalDataSource {
     return [
       OnboardingItemEntity(
         imagePath: AppImages.onboarding1,
-        title: 'Charge Smarter.\nDrive Further.',
+        title: 'Find Chargers\nNear You',
         description:
-            'Discover EV charging stations across Pakistan - instantly.',
+            'Access over 50,000 premium charging points with real-time availability and transparent pricing.',
       ),
       OnboardingItemEntity(
         imagePath: AppImages.onboarding2,
