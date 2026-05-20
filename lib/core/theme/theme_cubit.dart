@@ -13,7 +13,8 @@ class ThemeCubit extends Cubit<ThemeMode> {
 
   static ThemeMode _readInitial(LocalStorageService storage) {
     final raw = storage.read<String>(StorageConstants.themeMode);
-    return raw == 'light' ? ThemeMode.light : ThemeMode.dark;
+    if (raw == 'dark') return ThemeMode.dark;
+    return ThemeMode.light;
   }
 
   void setThemeMode(ThemeMode mode) {

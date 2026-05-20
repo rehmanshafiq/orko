@@ -418,10 +418,10 @@ class _TimeSlotCard extends StatelessWidget {
     late Color statusColor;
 
     if (isSelected) {
-      background = t.selectedSlotBackground;
-      border = t.selectedSlotBorder;
-      timeColor = t.selectedSlotText;
-      statusColor = t.selectedSlotText;
+      background = t.bookSlotPrimaryGreen;
+      border = t.bookSlotDarkGreen;
+      timeColor = t.bookSlotDarkGreen;
+      statusColor = t.bookSlotDarkGreen;
     } else {
       switch (style) {
         case SlotStyle.available:
