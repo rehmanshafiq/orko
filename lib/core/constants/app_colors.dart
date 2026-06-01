@@ -35,6 +35,7 @@ class AppColors {
   static const slotBookedBackgroundColor = Color(0xFF5C2424);
   static const darkNearbyColor = Color(0xFF222222);
   static const searchBackgroundColor = Color(0xFF23262D);
+  static const iconGlassBackgroundColor = Color(0xFF4F5D6D);
 }
 
 /// Surfaces and typography that follow [ThemeData.brightness], built from [AppColors] only.
@@ -143,4 +144,7 @@ class AppUiColors {
 
   Color get searchBackground =>
       isLight ? AppColors.whiteColor : AppColors.searchBackgroundColor;
+
+  Color get iconGlassBackground =>
+      isLight ? AppColors.whiteColor : AppColors.iconGlassBackgroundColor;
 }

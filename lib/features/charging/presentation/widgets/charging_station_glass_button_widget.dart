@@ -27,10 +27,7 @@ class ChargingStationGlassButtonWidget extends StatelessWidget {
           width: 44.r,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: ui.cardBackground.withValues(alpha: ui.isLight ? 0.88 : 0.35),
-            border: Border.all(
-              color: ui.borderSubtle,
-            ),
+            color: ui.iconGlassBackground.withValues(alpha: ui.isLight ? 0.88 : 0.55),
           ),
           child: Icon(
             icon,
