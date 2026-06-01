@@ -22,7 +22,7 @@ class AppColors {
   static const sandColor = Color(0xFFE8E6DC);
   static const myAccountBorderColor = Color(0xFFE2E2E2);
   static const colorsOutlineColor = Color(0xFFEBEBEB);
-  static const primaryLightColor = Color(0xFF8FC84D);
+  static const primaryLightColor = Color(0xFF8FCF4D);
   static const primaryDarkColor = Color(0xFF329748);
   static const fieldBackgroundColor = Color(0xFF171717);
   static const mapPinBlueColor = Color(0xFF2A83FF);
@@ -34,6 +34,7 @@ class AppColors {
   /// Booked / unavailable slot chip background.
   static const slotBookedBackgroundColor = Color(0xFF5C2424);
   static const darkNearbyColor = Color(0xFF222222);
+  static const searchBackgroundColor = Color(0xFF23262D);
 }
 
 /// Surfaces and typography that follow [ThemeData.brightness], built from [AppColors] only.
@@ -139,4 +140,7 @@ class AppUiColors {
   Color get socialButtonShadow => isLight
       ? AppColors.blackColor.withValues(alpha: 0.08)
       : AppColors.blackColor.withValues(alpha: 0.45);
+
+  Color get searchBackground =>
+      isLight ? AppColors.whiteColor : AppColors.searchBackgroundColor;
 }

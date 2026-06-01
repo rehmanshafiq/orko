@@ -452,7 +452,7 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Ink(
                 padding: AppUtils.homeTopSearchPadding,
                 decoration: BoxDecoration(
-                  color: ui.cardBackground.withValues(alpha: ui.isLight ? 0.96 : 0.2),
+                  color: ui.searchBackground,
                   borderRadius: BorderRadius.circular(10.r),
                   border: Border.all(
                     color: ui.borderSubtle,
@@ -463,7 +463,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     Icon(
                       Icons.search,
                       color: ui.textMuted,
-                      size: 22,
+                      size: 25,
                     ),
                     8.horizontalSpace,
                     Expanded(
@@ -512,7 +512,7 @@ class _HomeScreenState extends State<HomeScreen> {
       decoration: BoxDecoration(
         color: isPrimary
             ? AppColors.primaryDarkColor
-            : ui.cardBackground.withValues(alpha: ui.isLight ? 0.96 : 0.2),
+            : ui.searchBackground,
         borderRadius: radius,
         border: Border.all(
           color: isPrimary
@@ -524,7 +524,7 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Icon(
         icon,
         size: isCompact ? 15 : 26,
-        color: isPrimary ? AppColors.whiteColor : ui.textPrimary,
+        color: isPrimary ? AppColors.whiteColor : ui.textMuted,
       ),
     );
 
@@ -560,7 +560,7 @@ class _HomeScreenState extends State<HomeScreen> {
           Align(
             child: Container(
               height: 3.h,
-              width: 26.w,
+              width: 66.w,
               decoration: BoxDecoration(
                 color: ui.textSecondary.withValues(alpha: 0.65),
                 borderRadius: BorderRadius.circular(10.r),
@@ -597,7 +597,7 @@ class _HomeScreenState extends State<HomeScreen> {
             )
           else
             SizedBox(
-              height: 136.h,
+              height: 118.h,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 itemCount: nearbyStations.length,
@@ -646,8 +646,8 @@ class _HomeScreenState extends State<HomeScreen> {
         color: isActive
             ? AppColors.primaryDarkColor
             : ui.textPrimary.withValues(alpha: 0.8),
-        fontSize: FontSizes.font12Sp,
-        fontWeight: FontWeights.weight500,
+        fontSize: FontSizes.font14Sp,
+        fontWeight: FontWeights.weight400,
       ),
     );
   }
@@ -678,7 +678,7 @@ class _HomeScreenState extends State<HomeScreen> {
         onTap: () => context.push('/station-detail', extra: station),
         borderRadius: BorderRadius.circular(24.r),
         child: Ink(
-          padding: EdgeInsets.only(left: 14.w, right: 14.w, top: 12.h),
+          padding: EdgeInsets.fromLTRB(14.w, 12.h, 14.w, 4.h),
           decoration: BoxDecoration(
             color: ui.innerCardBg,
             borderRadius: BorderRadius.circular(24.r),
@@ -734,7 +734,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 fontSize: FontSizes.font15Sp,
                 fontWeight: FontWeights.weight500,
               ),
-              12.verticalSpace,
+              8.verticalSpace,
               Row(
                 children: [
                   _StationPlugIconsRow(color: ui.textSecondary),
@@ -743,7 +743,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: AppText(
                       _stationPriceLabel(station),
                       color: ui.textSecondary,
-                      fontSize: FontSizes.font14Sp,
+                      fontSize: FontSizes.font15Sp,
                       fontWeight: FontWeights.weight400,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
