@@ -45,12 +45,12 @@ class ChargingGaugeWidget extends StatelessWidget {
 
           // Inner crisp ring (matches design arc thickness).
           CircularPercentIndicator(
-            radius: 86.w,
-            lineWidth: 10.w,
-            backgroundWidth: 10.w,
+            radius: 104.w,
+            lineWidth: 15.w,
+            backgroundWidth: 12.w,
             percent: p,
             circularStrokeCap: CircularStrokeCap.round,
-            progressColor: AppColors.primaryLightColor,
+            progressColor: AppColors.primaryDarkColor,
             backgroundColor: AppColors.primaryDarkColor.withValues(alpha: 0.18),
             startAngle: 0,
             maskFilter: const MaskFilter.blur(BlurStyle.normal, 2.2),
@@ -61,20 +61,20 @@ class ChargingGaugeWidget extends StatelessWidget {
                 AppText(
                   percentLabel,
                   color: ui.textPrimary,
-                  fontSize: FontSizes.font34Sp,
+                  fontSize: FontSizes.font44Sp,
                   fontWeight: FontWeight.bold,
                 ),
                 AppText(
                   statusLabel,
                   color: ui.textSecondary,
-                  fontSize: FontSizes.font12Sp,
+                  fontSize: FontSizes.font16Sp,
                   fontWeight: FontWeights.weight400,
                 ),
                 8.verticalSpace,
                 Icon(
                   Icons.bolt_rounded,
-                  color: AppColors.primaryLightColor,
-                  size: 32.sp,
+                  color: AppColors.primaryDarkColor,
+                  size: 40.sp,
                 ),
               ],
             ),

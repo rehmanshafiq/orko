@@ -51,7 +51,7 @@ class ChargingStatusMobileView extends StatelessWidget {
                     fontSize: FontSizes.font12Sp,
                     fontWeight: FontWeights.weight400,
                   ),
-                  18.verticalSpace,
+                  38.verticalSpace,
                   ChargingGaugeWidget(
                     progress: state.gaugeProgress,
                     percentLabel: state.gaugePercentLabel,
