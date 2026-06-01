@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
+import 'package:orko_hubco/core/constants/app_images.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/utils/app_ui.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
+import 'package:orko_hubco/core/utils/widgets/image_view/app_image_view.dart';
 import 'package:orko_hubco/core/utils/widgets/primary_button_widget.dart';
 
 /// Payment method selection — matches product dark UI.
@@ -329,63 +331,32 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
     );
   }
 
-  Widget _visaBrand() {
-    return Container(
-      width: 44.w,
-      height: 30.h,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(6.r),
-        color: AppColors.mapPinBlueColor,
-        border: Border.all(
-          color: AppColors.whiteColor.withValues(alpha: 0.12),
-        ),
-      ),
-      alignment: Alignment.center,
-      child: AppText(
-        'VISA',
-        color: AppColors.whiteColor,
-        fontSize: FontSizes.font10Sp,
-        fontWeight: FontWeights.weight800,
-        letterSpacing: 0.5,
+  Widget _paymentBrandIcon(String assetPath, {bool round = false}) {
+    final image = AppPngImageView(
+      appImagePath: assetPath,
+      width: 40.r,
+      height: 40.r,
+      fit: round ? BoxFit.cover : BoxFit.contain,
+    );
+
+    if (!round) return image;
+
+    return ClipOval(
+      child: SizedBox(
+        width: 40.r,
+        height: 40.r,
+        child: image,
       ),
     );
   }
 
-  Widget _easyPaisaBrand() {
-    return Container(
-      width: 40.r,
-      height: 40.r,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: AppColors.primaryDarkColor,
-      ),
-      alignment: Alignment.center,
-      child: AppText(
-        'e',
-        color: AppColors.whiteColor,
-        fontSize: FontSizes.font18Sp,
-        fontWeight: FontWeights.weight700,
-      ),
-    );
-  }
+  Widget _visaBrand() => _paymentBrandIcon(AppImages.icVisa);
 
-  Widget _jazzCashBrand() {
-    return Container(
-      width: 40.r,
-      height: 40.r,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: AppColors.maroonColor,
-      ),
-      alignment: Alignment.center,
-      child: AppText(
-        'J',
-        color: AppColors.whiteColor,
-        fontSize: FontSizes.font16Sp,
-        fontWeight: FontWeights.weight800,
-      ),
-    );
-  }
+  Widget _easyPaisaBrand() =>
+      _paymentBrandIcon(AppImages.icEasypaisa, round: true);
+
+  Widget _jazzCashBrand() =>
+      _paymentBrandIcon(AppImages.icJazzcash, round: true);
 
   Widget _hglWalletBrand() {
     return Container(
@@ -404,22 +375,7 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
     );
   }
 
-  Widget _cashBrand() {
-    final ui = AppUiColors.of(context);
-    return Container(
-      width: 40.r,
-      height: 40.r,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: ui.innerCardBg,
-      ),
-      child: Icon(
-        Icons.payments_rounded,
-        color: ui.textPrimary.withValues(alpha: 0.9),
-        size: 20.r,
-      ),
-    );
-  }
+  Widget _cashBrand() => _paymentBrandIcon(AppImages.icCash, round: true);
 
   Widget _addNewPaymentRow() {
     final ui = AppUiColors.of(context);
