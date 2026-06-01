@@ -66,7 +66,7 @@ class ChargingStationDetailMobileView extends StatelessWidget {
                     ),
                     slivers: [
                       SliverAppBar(
-                        expandedHeight: 280.h,
+                        expandedHeight: 160.h,
                         pinned: true,
                         stretch: true,
                         backgroundColor: ui.scaffoldBackground,
