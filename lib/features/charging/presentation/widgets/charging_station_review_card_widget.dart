@@ -22,7 +22,7 @@ class ChargingStationReviewCardWidget extends StatelessWidget {
       height: 108.h,
       padding: EdgeInsets.all(8.r),
       decoration: BoxDecoration(
-        color: ui.searchBackground,
+        color: ui.isLight ? AppColors.sandColor.withValues(alpha: 0.55) : ui.searchBackground,
         borderRadius: BorderRadius.circular(12.r),
         border: Border.all(
           color: ui.borderSubtle,

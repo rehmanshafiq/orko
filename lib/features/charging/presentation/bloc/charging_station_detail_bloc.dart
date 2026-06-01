@@ -42,7 +42,7 @@ class ChargingStationDetailBloc
 
   static const List<ReviewModel> _kReviews = [
     ReviewModel(
-      name: 'Rahul S.',
+      name: 'Ali S.',
       text: 'Fast charging and clean location. Highly recommend!',
       rating: 5,
     ),
