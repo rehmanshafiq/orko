@@ -547,7 +547,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Container(
       padding: AppUtils.homeBottomSheetPadding,
       decoration: BoxDecoration(
-        color: ui.cardBackground.withValues(alpha: ui.isLight ? 0.98 : 0.9),
+        color: ui.cardBackground,
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(22.r),
           topRight: Radius.circular(22.r),
@@ -572,7 +572,7 @@ class _HomeScreenState extends State<HomeScreen> {
             'Nearby Stations',
             color: ui.textPrimary,
             fontSize: FontSizes.font24Sp,
-            fontWeight: FontWeights.weight700,
+            fontWeight: FontWeights.weight600,
           ),
           10.verticalSpace,
           Row(
@@ -646,7 +646,7 @@ class _HomeScreenState extends State<HomeScreen> {
         color: isActive
             ? AppColors.primaryDarkColor
             : ui.textPrimary.withValues(alpha: 0.8),
-        fontSize: FontSizes.font10Sp,
+        fontSize: FontSizes.font12Sp,
         fontWeight: FontWeights.weight500,
       ),
     );

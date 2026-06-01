@@ -24,7 +24,7 @@ class AppColors {
   static const colorsOutlineColor = Color(0xFFEBEBEB);
   static const primaryLightColor = Color(0xFF8FC84D);
   static const primaryDarkColor = Color(0xFF329748);
-  static const fieldBackgroundColor = Color(0xFF202221);
+  static const fieldBackgroundColor = Color(0xFF171717);
   static const mapPinBlueColor = Color(0xFF2A83FF);
   /// Star icons on reviews / ratings (warm gold on dark UI).
   static const ratingStarColor = Color(0xFFFFB74D);
@@ -33,6 +33,7 @@ class AppColors {
   static const slotBusyYellowColor = Color(0xFF9A7B1E);
   /// Booked / unavailable slot chip background.
   static const slotBookedBackgroundColor = Color(0xFF5C2424);
+  static const darkNearbyColor = Color(0xFF222222);
 }
 
 /// Surfaces and typography that follow [ThemeData.brightness], built from [AppColors] only.
@@ -73,7 +74,7 @@ class AppUiColors {
 
   Color get innerCardBg => isLight
       ? AppColors.sandColor.withValues(alpha: 0.55)
-      : AppColors.fieldBackgroundColor;
+      : AppColors.darkNearbyColor;
 
   Color get vehicleImagePlaceholder => isLight
       ? AppColors.shimmerGreyColor
