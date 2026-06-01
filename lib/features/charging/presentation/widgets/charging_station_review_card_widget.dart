@@ -18,11 +18,11 @@ class ChargingStationReviewCardWidget extends StatelessWidget {
     final ui = AppUiColors.of(context);
     final r = review;
     return Container(
-      width: 260.w,
-      height: 248.h,
-      padding: EdgeInsets.all(14.r),
+      width: 190.w,
+      height: 108.h,
+      padding: EdgeInsets.all(8.r),
       decoration: BoxDecoration(
-        color: ui.cardBackground,
+        color: ui.searchBackground,
         borderRadius: BorderRadius.circular(12.r),
         border: Border.all(
           color: ui.borderSubtle,
@@ -38,14 +38,14 @@ class ChargingStationReviewCardWidget extends StatelessWidget {
                   i < r.rating.round()
                       ? Icons.star_rounded
                       : Icons.star_border_rounded,
-                  size: 16.r,
+                  size: 14.r,
                   color: AppColors.ratingStarColor,
                 ),
                 if (i < 4) 2.horizontalSpace,
               ],
             ],
           ),
-          10.verticalSpace,
+          4.verticalSpace,
           Row(
             children: [
               CircleAvatar(
@@ -55,7 +55,7 @@ class ChargingStationReviewCardWidget extends StatelessWidget {
                   child: AppText(
                     r.name.isNotEmpty ? r.name[0].toUpperCase() : '?',
                     color: ui.textPrimary,
-                    fontSize: FontSizes.font14Sp,
+                    fontSize: FontSizes.font12Sp,
                     fontWeight: FontWeights.weight700,
                   ),
                 ),
@@ -65,7 +65,7 @@ class ChargingStationReviewCardWidget extends StatelessWidget {
                 child: AppText(
                   r.name,
                   color: ui.textPrimary,
-                  fontSize: FontSizes.font14Sp,
+                  fontSize: FontSizes.font12Sp,
                   fontWeight: FontWeights.weight600,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -73,11 +73,11 @@ class ChargingStationReviewCardWidget extends StatelessWidget {
               ),
             ],
           ),
-          8.verticalSpace,
+          2.verticalSpace,
           AppText(
             r.text,
-            color: ui.textPrimary.withValues(alpha: 0.88),
-            fontSize: FontSizes.font12Sp,
+            color: ui.textPrimary,
+            fontSize: FontSizes.font10Sp,
             fontWeight: FontWeights.weight400,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,

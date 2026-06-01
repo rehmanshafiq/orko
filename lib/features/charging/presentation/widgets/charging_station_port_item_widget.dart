@@ -11,7 +11,6 @@ class ChargingStationPortItemWidget extends StatelessWidget {
   const ChargingStationPortItemWidget({
     super.key,
     required this.port,
-    required this.canSelect,
     required this.isSelected,
     required this.onTap,
     required this.iconSize,
@@ -19,7 +18,6 @@ class ChargingStationPortItemWidget extends StatelessWidget {
   });
 
   final ChargerPortModel port;
-  final bool canSelect;
   final bool isSelected;
   final VoidCallback? onTap;
   final double iconSize;
@@ -34,22 +32,19 @@ class ChargingStationPortItemWidget extends StatelessWidget {
         onTap: onTap,
         splashColor: ui.textPrimary.withValues(alpha: 0.06),
         highlightColor: ui.textPrimary.withValues(alpha: 0.04),
-        child: Opacity(
-          opacity: canSelect ? 1.0 : 0.55,
-          child: Container(
-            width: double.infinity,
-            padding: EdgeInsets.symmetric(vertical: 8.h, horizontal: 10.w),
-            decoration: BoxDecoration(
-              color: isSelected ? ui.innerRowBg : AppColors.transparentColor,
-              borderRadius: BorderRadius.circular(8.r),
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                ChargingStationPortIconWidget(
-                  diameter: iconSize,
-                  dimmed: !canSelect,
-                ),
+        child: Container(
+          width: double.infinity,
+          padding: EdgeInsets.symmetric(vertical: 8.h, horizontal: 10.w),
+          decoration: BoxDecoration(
+            color: isSelected ? ui.innerRowBg : AppColors.transparentColor,
+            borderRadius: BorderRadius.circular(8.r),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              ChargingStationPortIconWidget(
+                diameter: iconSize,
+              ),
                 6.horizontalSpace,
                 Expanded(
                   child: Column(
@@ -63,13 +58,13 @@ class ChargingStationPortItemWidget extends StatelessWidget {
                             child: AppText(
                               port.label,
                               color: ui.textPrimary,
-                              fontSize: FontSizes.font12Sp,
+                              fontSize: FontSizes.font11Sp,
                               fontWeight: FontWeights.weight600,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          4.verticalSpace,
+                          6.verticalSpace,
                           AppText(
                             port.price,
                             color: ui.textSecondary,
@@ -86,8 +81,7 @@ class ChargingStationPortItemWidget extends StatelessWidget {
                     ],
                   ),
                 ),
-              ],
-            ),
+            ],
           ),
         ),
       ),

@@ -19,6 +19,7 @@ class FontSizes {
   ///--------------Heading Font Size---------------
   static double? font4Sp = 4.sp;
   static double? font8Sp = 8.sp;
+  static double? font9Sp = 9.sp;
   static double? font10Sp = 10.sp;
   static double? font11Sp = 11.sp;
   static double? font12Sp = 12.sp;

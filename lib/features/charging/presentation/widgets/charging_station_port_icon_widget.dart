@@ -6,11 +6,9 @@ class ChargingStationPortIconWidget extends StatelessWidget {
   const ChargingStationPortIconWidget({
     super.key,
     required this.diameter,
-    required this.dimmed,
   });
 
   final double diameter;
-  final bool dimmed;
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +22,7 @@ class ChargingStationPortIconWidget extends StatelessWidget {
       ),
       child: Icon(
         Icons.ev_station_rounded,
-        color: ui.textPrimary.withValues(alpha: dimmed ? 0.45 : 0.88),
+        color: ui.textPrimary.withValues(alpha: 0.88),
         size: 18.r,
       ),
     );

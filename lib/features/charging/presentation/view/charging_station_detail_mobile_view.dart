@@ -143,31 +143,30 @@ class ChargingStationDetailMobileView extends StatelessWidget {
                                     .read<ChargingStationDetailBloc>()
                                     .add(ChargingStationDetailPortSelected(i)),
                               ),
-                              22.verticalSpace,
+                              4.verticalSpace,
+                              const Divider(),
+                              4.verticalSpace,
                               const ChargingStationSectionTitleWidget(
                                 title: 'Amenities',
                               ),
-                              12.verticalSpace,
+                              6.verticalSpace,
                               ChargingStationAmenitiesWidget(
                                 amenities: state.amenities,
                               ),
-                              22.verticalSpace,
+                              8.verticalSpace,
+                              const Divider(),
+                              4.verticalSpace,
                               const ChargingStationSectionTitleWidget(
                                 title: 'Operating Hours',
                               ),
-                              6.verticalSpace,
+                              4.verticalSpace,
                               AppText(
                                 '24 hours 7 days',
                                 color: ui.textSecondary,
-                                fontSize: FontSizes.font14Sp,
+                                fontSize: FontSizes.font12Sp,
                                 fontWeight: FontWeights.weight400,
                               ),
-                              16.verticalSpace,
-                              Divider(
-                                height: 1,
-                                color: ui.borderSubtle,
-                              ),
-                              16.verticalSpace,
+                              8.verticalSpace,
                               const ChargingStationSectionTitleWidget(
                                 title: 'Pricing',
                               ),
@@ -178,11 +177,13 @@ class ChargingStationDetailMobileView extends StatelessWidget {
                                 fontSize: FontSizes.font14Sp,
                                 fontWeight: FontWeights.weight400,
                               ),
-                              22.verticalSpace,
+                              4.verticalSpace,
+                              const Divider(),
+                              6.verticalSpace,
                               const ChargingStationSectionTitleWidget(
                                 title: 'Reviews',
                               ),
-                              12.verticalSpace,
+                              6.verticalSpace,
                               ChargingStationReviewsWidget(
                                 reviews: state.reviews,
                               ),

@@ -17,9 +17,9 @@ class ChargingStationAmenityChipWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final ui = AppUiColors.of(context);
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 6.h),
       decoration: BoxDecoration(
-        color: ui.cardBackground,
+        color: ui.searchBackground,
         borderRadius: BorderRadius.circular(20.r),
         border: Border.all(
           color: ui.borderSubtle,
@@ -37,7 +37,7 @@ class ChargingStationAmenityChipWidget extends StatelessWidget {
           AppText(
             amenity.label,
             color: ui.textPrimary,
-            fontSize: FontSizes.font12Sp,
+            fontSize: FontSizes.font9Sp,
             fontWeight: FontWeights.weight500,
           ),
         ],

@@ -14,7 +14,7 @@ class ChargingStationReviewsWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 148.h,
+      height: 108.h,
       alignment: Alignment.centerLeft,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,

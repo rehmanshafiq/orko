@@ -18,14 +18,9 @@ class ChargingStationPortStatusChipWidget extends StatelessWidget {
       padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
       decoration: BoxDecoration(
         color: available
-            ? AppColors.primaryDarkColor.withValues(alpha: 0.14)
-            : AppColors.slotBusyYellowColor.withValues(alpha: 0.16),
+            ? AppColors.primaryDarkColor.withValues(alpha: 0.36)
+            : AppColors.slotBusyYellowColor.withValues(alpha: 0.36),
         borderRadius: BorderRadius.circular(20.r),
-        border: Border.all(
-          color: available
-              ? AppColors.primaryDarkColor.withValues(alpha: 0.45)
-              : AppColors.slotBusyYellowColor.withValues(alpha: 0.5),
-        ),
       ),
       child: AppText(
         available ? 'Available' : 'Occupied',
