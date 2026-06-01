@@ -597,7 +597,7 @@ class _HomeScreenState extends State<HomeScreen> {
             )
           else
             SizedBox(
-              height: 114.h,
+              height: 136.h,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 itemCount: nearbyStations.length,
@@ -605,7 +605,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 itemBuilder: (context, index) {
                   final station = nearbyStations[index];
                   return SizedBox(
-                    width: 176.w,
+                    width: 260.w,
                     child: _stationCard(context, station),
                   );
                 },
@@ -652,53 +652,130 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  static const _stationDistances = ['1.8 km', '2.8 km'];
+
+  String _stationDistanceLabel(HubcoLocationEntity station) {
+    return _stationDistances[station.id % _stationDistances.length];
+  }
+
+  String _stationAvailabilityLabel(HubcoLocationEntity station) {
+    final total = 4 + station.id % 5;
+    if (!station.status) return '0/$total Available';
+    final available = ((total * 0.65).round()).clamp(1, total);
+    return '$available/$total Available';
+  }
+
+  String _stationPriceLabel(HubcoLocationEntity station) {
+    final price = 45 + station.id % 35;
+    return 'Rs $price/kWh';
+  }
+
   Widget _stationCard(BuildContext context, HubcoLocationEntity station) {
     final ui = AppUiColors.of(context);
     return Material(
       color: AppColors.transparentColor,
       child: InkWell(
         onTap: () => context.push('/station-detail', extra: station),
-        borderRadius: BorderRadius.circular(12.r),
+        borderRadius: BorderRadius.circular(24.r),
         child: Ink(
-          padding: AppUtils.homeStationCardPadding,
+          padding: EdgeInsets.all(14.r),
           decoration: BoxDecoration(
             color: ui.innerCardBg,
-            borderRadius: BorderRadius.circular(12.r),
-            border: Border.all(
-              color: ui.borderSubtle,
-            ),
+            borderRadius: BorderRadius.circular(24.r),
+            border: Border.all(color: ui.borderSubtle),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              AppText(
-                station.name,
-                color: ui.textPrimary,
-                fontSize: FontSizes.font12Sp,
-                fontWeight: FontWeights.weight600,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-              4.verticalSpace,
-              AppText(
-                station.status ? 'Available' : 'Unavailable',
-                color: AppColors.primaryDarkColor,
-                fontSize: FontSizes.font10Sp,
-                fontWeight: FontWeights.weight500,
-              ),
-              6.verticalSpace,
-              AppText(
-                station.address,
-                color: ui.textSecondary,
-                fontSize: FontSizes.font10Sp,
-                fontWeight: FontWeights.weight400,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
+          child: SizedBox.expand(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: AppText(
+                        station.name,
+                        color: ui.textPrimary,
+                        fontSize: FontSizes.font15Sp,
+                        fontWeight: FontWeights.weight700,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    8.horizontalSpace,
+                    Container(
+                      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+                      decoration: BoxDecoration(
+                        color: AppColors.whiteColor.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(20.r),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.navigation_rounded,
+                            color: ui.textPrimary,
+                            size: 10.sp,
+                          ),
+                          4.horizontalSpace,
+                          AppText(
+                            _stationDistanceLabel(station),
+                            color: ui.textPrimary,
+                            fontSize: FontSizes.font12Sp,
+                            fontWeight: FontWeights.weight500,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                8.verticalSpace,
+                AppText(
+                  _stationAvailabilityLabel(station),
+                  color: AppColors.primaryLightColor,
+                  fontSize: FontSizes.font14Sp,
+                  fontWeight: FontWeights.weight500,
+                ),
+                const Spacer(),
+                Row(
+                  children: [
+                    _StationPlugIconsRow(color: ui.textSecondary),
+                    const Spacer(),
+                    Flexible(
+                      child: AppText(
+                        _stationPriceLabel(station),
+                        color: ui.textSecondary,
+                        fontSize: FontSizes.font14Sp,
+                        fontWeight: FontWeights.weight400,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
+    );
+  }
+}
+
+class _StationPlugIconsRow extends StatelessWidget {
+  const _StationPlugIconsRow({required this.color});
+
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(Icons.ev_station_outlined, color: color, size: 24.sp),
+        2.horizontalSpace,
+        Icon(Icons.bolt_outlined, color: color, size: 24.sp),
+        2.horizontalSpace,
+        Icon(Icons.power_outlined, color: color, size: 24.sp),
+      ],
     );
   }
 }
