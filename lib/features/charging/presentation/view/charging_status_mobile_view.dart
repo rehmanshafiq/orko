@@ -126,7 +126,7 @@ class _ChargingSessionTargetCard extends StatelessWidget {
           AppText(
             estimatedTimeLabel,
             color: AppColors.primaryDarkColor,
-            fontSize: FontSizes.font16Sp,
+            fontSize: FontSizes.font18Sp,
             fontWeight: FontWeights.weight600,
           ),
           8.verticalSpace,
