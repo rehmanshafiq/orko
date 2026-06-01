@@ -14,19 +14,20 @@ class ChargingStationPortStatusChipWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ui = AppUiColors.of(context);
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
       decoration: BoxDecoration(
         color: available
-            ? AppColors.primaryDarkColor.withValues(alpha: 0.36)
+            ? ui.isLight ? AppColors.primaryDarkColor.withValues(alpha: 0.22) : AppColors.primaryDarkColor.withValues(alpha: 0.36)
             : AppColors.slotBusyYellowColor.withValues(alpha: 0.36),
         borderRadius: BorderRadius.circular(20.r),
       ),
       child: AppText(
         available ? 'Available' : 'Occupied',
         color: available
-            ? AppColors.primaryLightColor
-            : AppColors.ratingStarColor,
+            ? ui.isLight ? AppColors.primaryDarkColor :  AppColors.primaryLightColor
+            : ui.isLight ? AppColors.ratingStarDarkColor: AppColors.ratingStarColor,
         fontSize: FontSizes.font10Sp,
         fontWeight: FontWeights.weight600,
       ),
