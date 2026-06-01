@@ -9,6 +9,7 @@ class AppColors {
   static const dividerColor = Color(0xFFDADADA);
   static const maroonColor = Color(0xFFA04838);
   static const removeColor = Color(0xFFDA3737);
+  static const redButtonColor = Color(0xFF481818);
   static const linearProgressBorderColor = Color(0xFFEDEDED);
   static const transparentColor = Colors.transparent;
   static const greyColor = Color(0xFF6E6E6E);

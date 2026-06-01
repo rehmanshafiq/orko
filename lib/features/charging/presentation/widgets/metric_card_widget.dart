@@ -26,25 +26,25 @@ class MetricCardWidget extends StatelessWidget {
     return Container(
       padding: AppUtils.horizontal8Vertical8Padding,
       decoration: BoxDecoration(
-        color: ui.cardBackground.withValues(alpha: ui.isLight ? 1 : 0.65),
+        color: ui.searchBackground.withValues(alpha: ui.isLight ? 1 : null),
         borderRadius: BorderRadius.circular(8.r),
         border: Border.all(color: ui.borderSubtle),
       ),
       child: Row(
         children: [
           Container(
-            width: 24.w,
-            height: 24.w,
+            width: 28.w,
+            height: 30.w,
             padding: AppUtils.all4Padding,
             decoration: BoxDecoration(
-              color: ui.innerCardBg,
+              color: ui.innerIconBg,
               borderRadius: BorderRadius.circular(5.r),
               border: Border.all(color: ui.borderSubtle, width: 1),
             ),
             child: Center(
               child: Icon(
                 icon,
-                size: 14.sp,
+                size: 19.sp,
                 color: ui.textSecondary,
               ),
             ),
@@ -57,18 +57,17 @@ class MetricCardWidget extends StatelessWidget {
                 AppText(
                   label,
                   color: ui.textMuted,
-                  fontSize: FontSizes.font10Sp,
+                  fontSize: FontSizes.font12Sp,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                2.verticalSpace,
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     AppText(
                       value,
                       color: ui.textPrimary,
-                      fontSize: FontSizes.font16Sp,
+                      fontSize: FontSizes.font19Sp,
                       fontWeight: FontWeights.weight700,
                     ),
                     if (unit.isNotEmpty) ...[
@@ -76,7 +75,7 @@ class MetricCardWidget extends StatelessWidget {
                       AppText(
                         unit,
                         color: ui.textSecondary,
-                        fontSize: FontSizes.font12Sp,
+                        fontSize: FontSizes.font15Sp,
                         fontWeight: FontWeights.weight600,
                       ),
                     ],

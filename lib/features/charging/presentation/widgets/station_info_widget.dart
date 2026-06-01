@@ -20,26 +20,58 @@ class StationInfoWidget extends StatelessWidget {
     return Container(
       padding: AppUtils.vertical10Horizontal8Padding,
       decoration: BoxDecoration(
-        color: ui.cardBackground.withValues(alpha: ui.isLight ? 1 : 0.65),
+        color: ui.searchBackground.withValues(alpha: ui.isLight ? 1 : null),
         borderRadius: BorderRadius.circular(8.r),
         border: Border.all(color: ui.borderSubtle),
       ),
       child: Row(
         children: [
-          Expanded(
-            child: AppText(
-              infoText,
-              color: ui.textSecondary,
-              fontSize: FontSizes.font10Sp,
-              fontWeight: FontWeights.weight400,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
+          Expanded(child: _infoText()),
           8.horizontalSpace,
           Icon(
             Icons.keyboard_arrow_down_rounded,
             color: ui.textSecondary,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _infoText() {
+    const separator = ' - ';
+    final separatorIndex = infoText.indexOf(separator);
+
+    if (separatorIndex == -1) {
+      return AppText(
+        infoText,
+        color: AppColors.whiteColor,
+        fontSize: FontSizes.font12Sp,
+        fontWeight: FontWeights.weight400,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      );
+    }
+
+    final prefix = infoText.substring(0, separatorIndex + separator.length);
+    final stationName = infoText.substring(separatorIndex + separator.length);
+
+    return RichText(
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      text: TextSpan(
+        style: TextStyle(
+          fontSize: FontSizes.font13Sp,
+          fontWeight: FontWeights.weight400,
+          fontFamily: AppFonts.lexend,
+        ),
+        children: [
+          TextSpan(
+            text: prefix,
+            style: TextStyle(color: ui.textSecondary),
+          ),
+          TextSpan(
+            text: stationName,
+            style: const TextStyle(color: AppColors.whiteColor),
           ),
         ],
       ),

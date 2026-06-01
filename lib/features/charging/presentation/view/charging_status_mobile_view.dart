@@ -58,7 +58,7 @@ class ChargingStatusMobileView extends StatelessWidget {
                     statusLabel: state.statusLabel,
                     ui: ui,
                   ),
-                  16.verticalSpace,
+                  26.verticalSpace,
                   MetricsGridWidget(metrics: state.metrics, ui: ui),
                   16.verticalSpace,
                   _ChargingSessionTargetCard(
@@ -117,7 +117,7 @@ class _ChargingSessionTargetCard extends StatelessWidget {
     return Container(
       padding: AppUtils.all18Padding,
       decoration: BoxDecoration(
-        color: ui.cardBackground.withValues(alpha: ui.isLight ? 1 : 0.65),
+        color: ui.searchBackground.withValues(alpha: ui.isLight ? 1 : null),
         borderRadius: BorderRadius.circular(10.r),
         border: Border.all(color: ui.borderSubtle),
       ),
