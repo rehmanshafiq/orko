@@ -27,6 +27,7 @@ class FontSizes {
   static double? font15Sp = 15.sp;
   static double? font16Sp = 16.sp;
   static double? font18Sp = 18.sp;
+  static double? font19Sp = 19.sp;
   static double? font20Sp = 20.sp;
   static double? font22Sp = 22.sp;
   static double? font24Sp = 24.sp;

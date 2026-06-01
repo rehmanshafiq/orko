@@ -131,7 +131,7 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
                 ),
                 buttonWidth: double.infinity,
                 buttonHeight: 52.h,
-                cornerRadius: 12.r,
+                cornerRadius: 32.r,
                 buttonColor: AppColors.primaryDarkColor,
                 textColor: AppColors.whiteColor,
                 fontSize: FontSizes.font15Sp,
@@ -150,7 +150,7 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
       width: double.infinity,
       padding: AppUtils.all18Padding,
       decoration: BoxDecoration(
-        color: ui.cardBackground,
+        color: ui.searchBackground,
         borderRadius: BorderRadius.circular(14.r),
         border: Border.all(
           color: ui.borderSubtle,
@@ -162,40 +162,38 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
           AppText(
             'HGL Charging Hub M2',
             color: ui.textPrimary,
-            fontSize: FontSizes.font16Sp,
-            fontWeight: FontWeights.weight700,
+            fontSize: FontSizes.font20Sp,
+            fontWeight: FontWeights.weight500,
           ),
-          6.verticalSpace,
           AppText(
             'April 18 14:00-15:00',
             color: ui.textSecondary,
-            fontSize: FontSizes.font12Sp,
+            fontSize: FontSizes.font15Sp,
             fontWeight: FontWeights.weight400,
           ),
           16.verticalSpace,
           _summaryRow('Subtotal', 'Rs ${PaymentMethodScreen._subtotal.toInt()}'),
-          10.verticalSpace,
+          2.verticalSpace,
           _summaryRow('Service Fee', 'Rs ${PaymentMethodScreen._serviceFee.toInt()}'),
-          14.verticalSpace,
+          8.verticalSpace,
           Divider(
             height: 1,
             thickness: 1,
-            color: ui.borderSubtle,
           ),
-          12.verticalSpace,
+          8.verticalSpace,
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               AppText(
                 'Total',
                 color: ui.textPrimary,
-                fontSize: FontSizes.font15Sp,
+                fontSize: FontSizes.font18Sp,
                 fontWeight: FontWeights.weight700,
               ),
               AppText(
                 'Rs ${PaymentMethodScreen._total.toInt()}',
                 color: ui.textPrimary,
-                fontSize: FontSizes.font15Sp,
+                fontSize: FontSizes.font18Sp,
                 fontWeight: FontWeights.weight700,
               ),
             ],
@@ -245,7 +243,7 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
           width: double.infinity,
           padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 14.h),
           decoration: BoxDecoration(
-            color: ui.cardBackground,
+            color: ui.searchBackground,
             borderRadius: BorderRadius.circular(12.r),
             border: Border.all(
               color: selected
@@ -395,6 +393,7 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
             ),
           ),
           child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
                 width: 40.r,
