@@ -65,6 +65,9 @@ class AppUiColors {
   Color get textSecondary =>
       isLight ? AppColors.greyColor : AppColors.iconsGreyColor;
 
+  Color get textSecondaryWhite =>
+      isLight ? AppColors.greyColor : AppColors.whiteColor;
+
   Color get textMuted => isLight
       ? AppColors.hintColor
       : AppColors.whiteColor.withValues(alpha: 0.6);

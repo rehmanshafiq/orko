@@ -107,11 +107,11 @@ class _ChargingSessionTargetCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final sliderTheme = SliderTheme.of(context).copyWith(
-      trackHeight: 3.h,
+      trackHeight: 6.h,
       activeTrackColor: AppColors.primaryDarkColor,
       inactiveTrackColor: ui.progressTrack,
-      thumbColor: AppColors.primaryLightColor,
-      thumbShape: RoundSliderThumbShape(enabledThumbRadius: 6.r),
+      thumbColor: AppColors.primaryDarkColor,
+      thumbShape: RoundSliderThumbShape(enabledThumbRadius: 9.r),
       overlayShape: SliderComponentShape.noOverlay,
     );
     return Container(
@@ -125,9 +125,16 @@ class _ChargingSessionTargetCard extends StatelessWidget {
         children: [
           AppText(
             estimatedTimeLabel,
-            color: AppColors.primaryLightColor,
-            fontSize: FontSizes.font14Sp,
+            color: AppColors.primaryDarkColor,
+            fontSize: FontSizes.font16Sp,
             fontWeight: FontWeights.weight600,
+          ),
+          8.verticalSpace,
+          AppText(
+            targetPercentLabel,
+            color: ui.textSecondaryWhite,
+            fontSize: FontSizes.font13Sp,
+            fontWeight: FontWeights.weight500,
           ),
           10.verticalSpace,
           SliderTheme(
@@ -136,12 +143,6 @@ class _ChargingSessionTargetCard extends StatelessWidget {
               value: sliderValue,
               onChanged: onSliderChanged,
             ),
-          ),
-          AppText(
-            targetPercentLabel,
-            color: ui.textSecondary,
-            fontSize: FontSizes.font10Sp,
-            fontWeight: FontWeights.weight500,
           ),
         ],
       ),
