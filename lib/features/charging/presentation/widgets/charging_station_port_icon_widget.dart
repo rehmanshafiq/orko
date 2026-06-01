@@ -16,16 +16,16 @@ class ChargingStationPortIconWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final ui = AppUiColors.of(context);
     return Container(
-      height: diameter,
-      width: diameter,
+      height: 32.h,
+      width: 32.w,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: ui.innerCardBg,
+        color: ui.innerIconBg,
       ),
       child: Icon(
         Icons.ev_station_rounded,
         color: ui.textPrimary.withValues(alpha: dimmed ? 0.45 : 0.88),
-        size: 22.r,
+        size: 18.r,
       ),
     );
   }

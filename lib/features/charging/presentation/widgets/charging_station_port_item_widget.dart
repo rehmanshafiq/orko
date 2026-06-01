@@ -38,9 +38,9 @@ class ChargingStationPortItemWidget extends StatelessWidget {
           opacity: canSelect ? 1.0 : 0.55,
           child: Container(
             width: double.infinity,
-            padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 10.w),
+            padding: EdgeInsets.symmetric(vertical: 8.h, horizontal: 10.w),
             decoration: BoxDecoration(
-              color: isSelected ? ui.innerCardBg : AppColors.transparentColor,
+              color: isSelected ? ui.innerRowBg : AppColors.transparentColor,
               borderRadius: BorderRadius.circular(8.r),
             ),
             child: Row(
@@ -50,7 +50,7 @@ class ChargingStationPortItemWidget extends StatelessWidget {
                   diameter: iconSize,
                   dimmed: !canSelect,
                 ),
-                iconGap.horizontalSpace,
+                6.horizontalSpace,
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -63,11 +63,18 @@ class ChargingStationPortItemWidget extends StatelessWidget {
                             child: AppText(
                               port.label,
                               color: ui.textPrimary,
-                              fontSize: FontSizes.font14Sp,
+                              fontSize: FontSizes.font12Sp,
                               fontWeight: FontWeights.weight600,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
+                          ),
+                          4.verticalSpace,
+                          AppText(
+                            port.price,
+                            color: ui.textSecondary,
+                            fontSize: FontSizes.font11Sp,
+                            fontWeight: FontWeights.weight400,
                           ),
                           8.horizontalSpace,
                           ChargingStationPortStatusChipWidget(
@@ -75,13 +82,7 @@ class ChargingStationPortItemWidget extends StatelessWidget {
                           ),
                         ],
                       ),
-                      4.verticalSpace,
-                      AppText(
-                        port.price,
-                        color: ui.textSecondary,
-                        fontSize: FontSizes.font12Sp,
-                        fontWeight: FontWeights.weight400,
-                      ),
+
                     ],
                   ),
                 ),

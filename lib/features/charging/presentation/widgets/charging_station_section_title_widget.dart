@@ -17,7 +17,7 @@ class ChargingStationSectionTitleWidget extends StatelessWidget {
     return AppText(
       title,
       color: ui.textPrimary,
-      fontSize: FontSizes.font16Sp,
+      fontSize: FontSizes.font14Sp,
       fontWeight: FontWeights.weight700,
     );
   }

@@ -42,7 +42,6 @@ class ChargingStationPortsListWidget extends StatelessWidget {
               child: Divider(
                 height: 1,
                 thickness: 1,
-                color: ui.borderSubtle,
               ),
             ),
         ],

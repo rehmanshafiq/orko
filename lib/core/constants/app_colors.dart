@@ -36,6 +36,7 @@ class AppColors {
   static const darkNearbyColor = Color(0xFF222222);
   static const searchBackgroundColor = Color(0xFF23262D);
   static const iconGlassBackgroundColor = Color(0xFF4F5D6D);
+  static const iconInnerColor = Color(0xFF4D4D52);
 }
 
 /// Surfaces and typography that follow [ThemeData.brightness], built from [AppColors] only.
@@ -147,4 +148,12 @@ class AppUiColors {
 
   Color get iconGlassBackground =>
       isLight ? AppColors.whiteColor : AppColors.iconGlassBackgroundColor;
+
+  Color get innerRowBg => isLight
+      ? AppColors.sandColor.withValues(alpha: 0.55)
+      : AppColors.searchBackgroundColor;
+
+  Color get innerIconBg => isLight
+      ? AppColors.sandColor.withValues(alpha: 0.55)
+      : AppColors.iconInnerColor;
 }

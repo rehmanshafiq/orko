@@ -26,14 +26,9 @@ class ChargingStationAvailabilityBadgeWidget extends StatelessWidget {
       padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
       decoration: BoxDecoration(
         color: station.status
-            ? AppColors.primaryDarkColor.withValues(alpha: 0.18)
+            ? AppColors.primaryDarkColor.withValues(alpha: 0.38)
             : AppColors.slotBookedBackgroundColor.withValues(alpha: 0.55),
         borderRadius: BorderRadius.circular(20.r),
-        border: Border.all(
-          color: station.status
-              ? AppColors.primaryDarkColor
-              : AppColors.slotBookedBackgroundColor,
-        ),
       ),
       child: AppText(
         label,
