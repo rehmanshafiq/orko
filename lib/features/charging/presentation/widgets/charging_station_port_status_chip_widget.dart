@@ -25,8 +25,8 @@ class ChargingStationPortStatusChipWidget extends StatelessWidget {
       child: AppText(
         available ? 'Available' : 'Occupied',
         color: available
-            ? AppColors.primaryDarkColor
-            : AppColors.slotBusyYellowColor,
+            ? AppColors.primaryLightColor
+            : AppColors.ratingStarColor,
         fontSize: FontSizes.font10Sp,
         fontWeight: FontWeights.weight600,
       ),

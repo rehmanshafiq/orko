@@ -33,7 +33,7 @@ class ChargingStationAvailabilityBadgeWidget extends StatelessWidget {
       child: AppText(
         label,
         color: station.status
-            ? AppColors.primaryDarkColor
+            ? AppColors.primaryLightColor
             : AppColors.whiteColor,
         fontSize: FontSizes.font10Sp,
         fontWeight: FontWeights.weight600,
