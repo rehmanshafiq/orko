@@ -605,7 +605,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 itemBuilder: (context, index) {
                   final station = nearbyStations[index];
                   return SizedBox(
-                    width: 260.w,
+                    width: 280.w,
                     child: _stationCard(context, station),
                   );
                 },
@@ -678,81 +678,80 @@ class _HomeScreenState extends State<HomeScreen> {
         onTap: () => context.push('/station-detail', extra: station),
         borderRadius: BorderRadius.circular(24.r),
         child: Ink(
-          padding: EdgeInsets.all(14.r),
+          padding: EdgeInsets.only(left: 14.w, right: 14.w, top: 12.h),
           decoration: BoxDecoration(
             color: ui.innerCardBg,
             borderRadius: BorderRadius.circular(24.r),
             border: Border.all(color: ui.borderSubtle),
           ),
-          child: SizedBox.expand(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: AppText(
-                        station.name,
-                        color: ui.textPrimary,
-                        fontSize: FontSizes.font15Sp,
-                        fontWeight: FontWeights.weight700,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: AppText(
+                      station.name,
+                      color: ui.textPrimary,
+                      fontSize: FontSizes.font15Sp,
+                      fontWeight: FontWeights.weight700,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    8.horizontalSpace,
-                    Container(
-                      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
-                      decoration: BoxDecoration(
-                        color: AppColors.whiteColor.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(20.r),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.navigation_rounded,
-                            color: ui.textPrimary,
-                            size: 10.sp,
-                          ),
-                          4.horizontalSpace,
-                          AppText(
-                            _stationDistanceLabel(station),
-                            color: ui.textPrimary,
-                            fontSize: FontSizes.font12Sp,
-                            fontWeight: FontWeights.weight500,
-                          ),
-                        ],
-                      ),
+                  ),
+                  8.horizontalSpace,
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+                    decoration: BoxDecoration(
+                      color: AppColors.whiteColor.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(20.r),
                     ),
-                  ],
-                ),
-                8.verticalSpace,
-                AppText(
-                  _stationAvailabilityLabel(station),
-                  color: AppColors.primaryLightColor,
-                  fontSize: FontSizes.font14Sp,
-                  fontWeight: FontWeights.weight500,
-                ),
-                const Spacer(),
-                Row(
-                  children: [
-                    _StationPlugIconsRow(color: ui.textSecondary),
-                    const Spacer(),
-                    Flexible(
-                      child: AppText(
-                        _stationPriceLabel(station),
-                        color: ui.textSecondary,
-                        fontSize: FontSizes.font14Sp,
-                        fontWeight: FontWeights.weight400,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.navigation_rounded,
+                          color: ui.textPrimary,
+                          size: 10.sp,
+                        ),
+                        4.horizontalSpace,
+                        AppText(
+                          _stationDistanceLabel(station),
+                          color: ui.textPrimary,
+                          fontSize: FontSizes.font12Sp,
+                          fontWeight: FontWeights.weight500,
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-              ],
-            ),
+                  ),
+                ],
+              ),
+              4.verticalSpace,
+              AppText(
+                _stationAvailabilityLabel(station),
+                color: AppColors.primaryLightColor,
+                fontSize: FontSizes.font15Sp,
+                fontWeight: FontWeights.weight500,
+              ),
+              12.verticalSpace,
+              Row(
+                children: [
+                  _StationPlugIconsRow(color: ui.textSecondary),
+                  const Spacer(),
+                  Flexible(
+                    child: AppText(
+                      _stationPriceLabel(station),
+                      color: ui.textSecondary,
+                      fontSize: FontSizes.font14Sp,
+                      fontWeight: FontWeights.weight400,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
       ),
