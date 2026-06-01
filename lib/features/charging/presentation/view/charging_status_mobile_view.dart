@@ -48,10 +48,10 @@ class ChargingStatusMobileView extends StatelessWidget {
                     state.stationHeadline,
                     textAlign: TextAlign.center,
                     color: ui.textMuted,
-                    fontSize: FontSizes.font12Sp,
+                    fontSize: FontSizes.font16Sp,
                     fontWeight: FontWeights.weight400,
                   ),
-                  38.verticalSpace,
+                  18.verticalSpace,
                   ChargingGaugeWidget(
                     progress: state.gaugeProgress,
                     percentLabel: state.gaugePercentLabel,
