@@ -83,7 +83,7 @@ class TripPlannerMobileView extends StatelessWidget {
                     buttonColor: AppColors.primaryDarkColor,
                     fontWeight: FontWeights.weight700,
                     fontSize: FontSizes.font14Sp,
-                    cornerRadius: 8.r,
+                    cornerRadius: 24.r,
                   ),
                   if (state.tripPlanned) ...[
                     16.verticalSpace,

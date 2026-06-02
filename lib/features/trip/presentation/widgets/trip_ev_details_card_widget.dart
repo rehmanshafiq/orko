@@ -18,9 +18,7 @@ class TripEvDetailsCardWidget extends StatelessWidget {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 14.h),
       decoration: BoxDecoration(
-        color: ui.cardBackground,
-        borderRadius: BorderRadius.circular(16.r),
-        border: Border.all(color: ui.borderSubtle),
+        color: AppColors.transparentColor,
       ),
       child: IntrinsicHeight(
         child: Row(

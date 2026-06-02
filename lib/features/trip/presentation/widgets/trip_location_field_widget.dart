@@ -20,7 +20,7 @@ class TripLocationFieldWidget extends StatelessWidget {
     return Container(
       padding: AppUtils.vertical10Horizontal12Padding,
       decoration: BoxDecoration(
-        color: ui.cardBackground,
+        color: ui.searchBackground,
         borderRadius: BorderRadius.circular(8.r),
         border: Border.all(color: ui.borderSubtle),
       ),
