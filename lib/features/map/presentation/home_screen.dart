@@ -691,12 +691,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     height: 40.w,
                     decoration: BoxDecoration(
                       color: t.cardBackground,
-                      borderRadius: BorderRadius.circular(12.r),
+                      borderRadius: BorderRadius.circular(22.r),
                     ),
                     child: Icon(
                       Icons.bolt_rounded,
                       color: t.stationDetailBrandGreen,
-                      size: 22.sp,
+                      size: 36.sp,
                     ),
                   ),
                   const Spacer(),
@@ -739,11 +739,7 @@ class _HomeScreenState extends State<HomeScreen> {
               const Spacer(),
               Row(
                 children: [
-                  _portIndicatorBadge(context, '1', isActive: true),
-                  6.horizontalSpace,
-                  _portIndicatorBadge(context, '2', isActive: true),
-                  6.horizontalSpace,
-                  _portIndicatorBadge(context, '+3', isActive: false),
+                  _buildPortIndicatorStack(context),
                   const Spacer(),
                   Material(
                     color: AppColors.transparentColor,
@@ -777,6 +773,34 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Widget _buildPortIndicatorStack(BuildContext context) {
+    final badgeSize = 28.w;
+    final overlap = 10.w;
+    final step = badgeSize - overlap;
+
+    return SizedBox(
+      width: badgeSize + step * 2,
+      height: badgeSize,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Positioned(
+            left: 0,
+            child: _portIndicatorBadge(context, '1', isActive: true),
+          ),
+          Positioned(
+            left: step,
+            child: _portIndicatorBadge(context, '2', isActive: true),
+          ),
+          Positioned(
+            left: step * 2,
+            child: _portIndicatorBadge(context, '+ 3', isActive: false),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _portIndicatorBadge(
     BuildContext context,
     String label, {
@@ -790,10 +814,11 @@ class _HomeScreenState extends State<HomeScreen> {
       decoration: BoxDecoration(
         color: isActive ? t.portIndicatorActiveBg : t.progressTrack,
         shape: BoxShape.circle,
+        border: Border.all(color: AppColors.whiteColor, width: 2.w),
       ),
       child: AppText(
         label,
-        color: isActive ? t.stationDetailBrandGreen : t.textMuted,
+        color: t.mapHomeTextDark,
         fontSize: FontSizes.font10Sp,
         fontWeight: FontWeights.weight700,
       ),
