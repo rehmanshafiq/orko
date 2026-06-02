@@ -87,16 +87,16 @@ class TripPlannerMobileView extends StatelessWidget {
                   ),
                   if (state.tripPlanned) ...[
                     16.verticalSpace,
-                    TripRouteOptionsSectionWidget(
-                      routePlans: state.routePlans,
-                      selectedRouteIndex: state.selectedRouteIndex,
-                      onRouteSelected: (index) => context
-                          .read<TripPlannerBloc>()
-                          .add(TripPlannerRouteSelected(index)),
-                      formatDuration: bloc.formatDuration,
-                      formatPkr: bloc.formatPkr,
-                    ),
-                    12.verticalSpace,
+                    // TripRouteOptionsSectionWidget(
+                    //   routePlans: state.routePlans,
+                    //   selectedRouteIndex: state.selectedRouteIndex,
+                    //   onRouteSelected: (index) => context
+                    //       .read<TripPlannerBloc>()
+                    //       .add(TripPlannerRouteSelected(index)),
+                    //   formatDuration: bloc.formatDuration,
+                    //   formatPkr: bloc.formatPkr,
+                    // ),
+                    // 12.verticalSpace,
                     TripMapCardWidget(
                       plan: state.currentPlan,
                       startIcon: state.startIcon,
@@ -124,11 +124,11 @@ class TripPlannerMobileView extends StatelessWidget {
                       formatPkr: bloc.formatPkr,
                     ),
                     16.verticalSpace,
-                    TripRouteSuggestionCardWidget(
-                      fastestPlan: state.routePlans[0],
-                      economicalPlan: state.routePlans[1],
-                    ),
-                    22.verticalSpace,
+                    // TripRouteSuggestionCardWidget(
+                    //   fastestPlan: state.routePlans[0],
+                    //   economicalPlan: state.routePlans[1],
+                    // ),
+                    // 22.verticalSpace,
                     const TripSectionTitleWidget(text: 'Trip Summary'),
                     8.verticalSpace,
                     TripSummaryCardWidget(

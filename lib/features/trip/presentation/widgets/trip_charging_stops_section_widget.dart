@@ -37,7 +37,7 @@ class TripChargingStopsSectionWidget extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const TripSectionTitleWidget(text: 'Charging Stops'),
+        const TripSectionTitleWidget(text: 'Suggested Stops'),
         14.verticalSpace,
         if (plan == null)
           AppText(
