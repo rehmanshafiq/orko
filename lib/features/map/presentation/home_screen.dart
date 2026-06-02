@@ -550,13 +550,6 @@ class _HomeScreenState extends State<HomeScreen> {
           topLeft: Radius.circular(28.r),
           topRight: Radius.circular(28.r),
         ),
-        boxShadow: [
-          BoxShadow(
-            color: t.shadow,
-            blurRadius: 24,
-            offset: const Offset(0, -4),
-          ),
-        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -564,10 +557,10 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           Center(
             child: Container(
-              height: 4.h,
-              width: 40.w,
+              height: 6.h,
+              width: 60.w,
               decoration: BoxDecoration(
-                color: t.progressTrack,
+                color: t.bottomTrack,
                 borderRadius: BorderRadius.circular(999),
               ),
             ),

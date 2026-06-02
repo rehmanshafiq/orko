@@ -71,6 +71,10 @@ class AppRevampedTheme {
       ? AppColors.shimmerGreyColor
       : const Color(0xFF2A332F);
 
+  Color get bottomTrack => isLight
+      ? const Color(0xFFE0E3E6)
+      : const Color(0xFF2A332F);
+
   Color get headerIconMuted => textMuted;
 
   Color get avatarBackground => isLight
