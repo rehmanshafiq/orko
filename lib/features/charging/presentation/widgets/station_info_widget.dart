@@ -71,7 +71,7 @@ class StationInfoWidget extends StatelessWidget {
           ),
           TextSpan(
             text: stationName,
-            style: const TextStyle(color: AppColors.whiteColor),
+            style: TextStyle(color: ui.textSecondaryWhite),
           ),
         ],
       ),

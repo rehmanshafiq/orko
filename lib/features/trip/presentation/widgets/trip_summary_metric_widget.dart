@@ -21,18 +21,20 @@ class TripSummaryMetricWidget extends StatelessWidget {
     final ui = AppUiColors.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
         Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 12.sp, color: AppColors.mapPinBlueColor),
-            6.horizontalSpace,
-            Expanded(
+            Icon(icon, size: 12.sp, color: ui.textSecondary),
+            4.horizontalSpace,
+            Flexible(
               child: AppText(
                 label,
                 color: ui.textMuted,
-                fontSize: FontSizes.font8Sp,
+                fontSize: FontSizes.font9Sp,
                 fontWeight: FontWeights.weight400,
-                maxLines: 1,
+                maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
             ),
@@ -44,9 +46,10 @@ class TripSummaryMetricWidget extends StatelessWidget {
           color: ui.textPrimary,
           fontSize: FontSizes.font14Sp,
           fontWeight: FontWeights.weight700,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
       ],
     );
   }
 }
-
