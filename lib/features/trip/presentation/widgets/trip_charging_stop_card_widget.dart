@@ -38,11 +38,11 @@ class TripChargingStopCardWidget extends StatelessWidget {
     return Container(
       padding: AppUtils.vertical10Horizontal12Padding,
       decoration: BoxDecoration(
-        color: ui.cardBackground,
+        color: ui.searchBackground,
         borderRadius: BorderRadius.circular(14.r),
         border: Border.all(
-          color: AppColors.ratingStarColor.withValues(alpha: 0.95),
-          width: 1,
+          color: AppColors.primaryDarkColor,
+          width: 2,
         ),
       ),
       child: Column(

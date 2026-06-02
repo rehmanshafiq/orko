@@ -4,7 +4,8 @@ import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
 import 'package:orko_hubco/features/trip/presentation/models/trip_plan_model.dart';
-import 'package:orko_hubco/features/trip/presentation/widgets/trip_charging_stops_timeline_widget.dart';
+import 'package:orko_hubco/features/trip/presentation/widgets/trip_charging_stop_card_widget.dart';
+// import 'package:orko_hubco/features/trip/presentation/widgets/trip_charging_stops_timeline_widget.dart';
 import 'package:orko_hubco/features/trip/presentation/widgets/trip_section_title_widget.dart';
 
 class TripChargingStopsSectionWidget extends StatelessWidget {
@@ -32,7 +33,6 @@ class TripChargingStopsSectionWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ui = AppUiColors.of(context);
-    final lineColor = AppColors.primaryDarkColor.withValues(alpha: ui.isLight ? 0.42 : 0.72);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -47,17 +47,42 @@ class TripChargingStopsSectionWidget extends StatelessWidget {
             fontWeight: FontWeights.weight400,
           )
         else
-          TripChargingStopsTimelineWidget(
-            plan: plan!,
-            lineColor: lineColor,
-            currentBatteryPercent: currentBatteryPercent,
-            targetArrivalBatteryPercent: targetArrivalBatteryPercent,
-            expandedChargingStopIndex: expandedChargingStopIndex,
-            onToggleChargingStop: onToggleChargingStop,
-            onViewDetails: onViewDetails,
-            onPreBook: onPreBook,
-            formatPkr: formatPkr,
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              for (var i = 0; i < plan!.stops.length; i++) ...[
+                if (i > 0) 8.verticalSpace,
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: TripChargingStopCardWidget(
+                        stopIndex: i,
+                        station: plan!.stops[i],
+                        info: plan!.chargeInfo[i],
+                        expanded: expandedChargingStopIndex == i,
+                        onToggleExpanded: () => onToggleChargingStop(i),
+                        onViewDetails: () => onViewDetails(i),
+                        onPreBook: onPreBook,
+                        formatPkr: formatPkr,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ],
           ),
+        // TripChargingStopsTimelineWidget(
+        //   plan: plan!,
+        //   lineColor: lineColor,
+        //   currentBatteryPercent: currentBatteryPercent,
+        //   targetArrivalBatteryPercent: targetArrivalBatteryPercent,
+        //   expandedChargingStopIndex: expandedChargingStopIndex,
+        //   onToggleChargingStop: onToggleChargingStop,
+        //   onViewDetails: onViewDetails,
+        //   onPreBook: onPreBook,
+        //   formatPkr: formatPkr,
+        // ),
       ],
     );
   }
