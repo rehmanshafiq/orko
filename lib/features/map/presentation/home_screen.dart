@@ -543,12 +543,12 @@ class _HomeScreenState extends State<HomeScreen> {
     final availableCount = nearbyStations.where((s) => s.status).length;
 
     return Container(
-      padding: EdgeInsets.fromLTRB(20.w, 12.h, 20.w, 20.h),
+      margin: EdgeInsets.fromLTRB(16.w, 0, 16.w, 0),
+      padding: EdgeInsets.fromLTRB(16.w, 12.h, 16.w, 20.h),
       decoration: BoxDecoration(
         color: t.bottomSheetBackground,
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(28.r),
-          topRight: Radius.circular(28.r),
+        borderRadius: BorderRadius.all(
+          Radius.circular(20.r),
         ),
       ),
       child: Column(
@@ -757,7 +757,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         decoration: BoxDecoration(
                           color: t.brandGreenBright,
-                          borderRadius: BorderRadius.circular(12.r),
+                          borderRadius: BorderRadius.circular(30.r),
                         ),
                         child: AppText(
                           'Book',
