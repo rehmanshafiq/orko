@@ -367,9 +367,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       ],
                       Expanded(
                         child: Align(
-                          alignment: Alignment.bottomRight,
+                          alignment: Alignment.topRight,
                           child: Padding(
-                            padding: EdgeInsets.only(right: 16.w, bottom: 16.h),
+                            padding: EdgeInsets.only(right: 16.w, top: 16.h),
                             child: _buildMapFloatingButtons(context),
                           ),
                         ),
@@ -450,7 +450,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 padding: AppUtils.homeTopSearchPadding,
                 decoration: BoxDecoration(
                   color: ui.cardBackground.withValues(alpha: ui.isLight ? 0.96 : 0.2),
-                  borderRadius: BorderRadius.circular(10.r),
+                  borderRadius: BorderRadius.circular(30.r),
                   border: Border.all(
                     color: ui.borderSubtle,
                   ),
@@ -488,8 +488,8 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
         ),
-        10.horizontalSpace,
-        _topActionIcon(context, Icons.notifications_none_rounded),
+        // 10.horizontalSpace,
+        // _topActionIcon(context, Icons.notifications_none_rounded),
       ],
     );
   }

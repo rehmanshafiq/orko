@@ -47,6 +47,10 @@ class AppRevampedTheme {
       ? const Color(0xFFF3F4F6)
       : const Color(0xFF252D2A);
 
+  Color get chargerPortCardBackground => isLight
+      ? const Color(0xFFF2F4F7)
+      : const Color(0xFF252D2A);
+
   Color get durationCardBackground => isLight
       ? AppColors.shimmerGreyColor.withValues(alpha: 0.55)
       : const Color(0xFF1E2623);
@@ -261,7 +265,7 @@ class AppRevampedTheme {
   // ── Screen-specific light values (dark uses brighter accents) ───────────
 
   Color get stationDetailBackground => isLight
-      ? const Color(0xFFF5F7F6)
+      ? const Color(0xFFFFFFFF)
       : const Color(0xFF0F1412);
 
   Color get stationDetailBrandGreen => isLight

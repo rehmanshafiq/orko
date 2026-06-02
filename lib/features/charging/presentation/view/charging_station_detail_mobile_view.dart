@@ -468,14 +468,18 @@ class _PortAvailabilityCard extends StatelessWidget {
           duration: const Duration(milliseconds: 200),
           padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 14.h),
           decoration: BoxDecoration(
-            color: isSelected
-                ? context.revampedTheme.mintIconBackground.withValues(alpha: 0.55)
-                : context.revampedTheme.subtleSurface,
+            color:
+            // isSelected
+            //     ? context.revampedTheme.mintIconBackground
+            //     :
+            context.revampedTheme.chargerPortCardBackground,
             borderRadius: BorderRadius.circular(18.r),
             border: Border.all(
-              color: isSelected
-                  ? context.revampedTheme.stationDetailBrandGreen.withValues(alpha: 0.35)
-                  : AppColors.colorsOutlineColor.withValues(alpha: 0.7),
+              color:
+              // isSelected
+              //     ? context.revampedTheme.stationDetailBrandGreen.withValues(alpha: 0.35)
+              //     :
+              AppColors.colorsOutlineColor.withValues(alpha: 0.7),
             ),
             boxShadow: [
               BoxShadow(
@@ -566,7 +570,7 @@ class _ConnectorFilterChip extends StatelessWidget {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 8.h),
       decoration: BoxDecoration(
-        color: AppColors.shimmerGreyColor,
+        color: AppColors.darkGreyColor,
         borderRadius: BorderRadius.circular(999),
       ),
       child: AppText(

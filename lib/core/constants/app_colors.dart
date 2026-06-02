@@ -66,6 +66,7 @@ class AppColors {
   static const stationDetailAvailableText = Color(0xFF047857);
   static const stationDetailPortPurpleBg = Color(0xFFEDE9FE);
   static const stationDetailPortPurpleText = Color(0xFF6D28D9);
+  static const darkGreyColor = Color(0xFFE6E8EB);
 }
 
 /// Surfaces and typography that follow [ThemeData.brightness], built from [AppColors] only.
