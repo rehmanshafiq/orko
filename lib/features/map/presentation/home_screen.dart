@@ -7,7 +7,9 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
+import 'package:orko_hubco/core/constants/app_images.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
+import 'package:orko_hubco/core/utils/widgets/image_view/app_image_view.dart';
 import 'package:orko_hubco/core/utils/app_ui.dart';
 import 'package:orko_hubco/core/utils/helpers.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
@@ -764,17 +766,52 @@ class _StationPlugIconsRow extends StatelessWidget {
 
   final Color color;
 
+  static const _iconSize = 34.0;
+
   @override
   Widget build(BuildContext context) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(Icons.ev_station_outlined, color: color, size: 24.sp),
-        2.horizontalSpace,
-        Icon(Icons.bolt_outlined, color: color, size: 24.sp),
-        2.horizontalSpace,
-        Icon(Icons.power_outlined, color: color, size: 24.sp),
+        // _PlugIcon(assetPath: AppImages.icCcs, color: color),
+        // 2.horizontalSpace,
+        // _PlugIcon(assetPath: AppImages.icCcs1, color: color),
+        // 2.horizontalSpace,
+        _PlugIcon(assetPath: AppImages.icCss2, color: color),
+        50.horizontalSpace,
       ],
+    );
+  }
+}
+
+class _PlugIcon extends StatelessWidget {
+  const _PlugIcon({
+    required this.assetPath,
+    required this.color,
+  });
+
+  final String assetPath;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    final size = _StationPlugIconsRow._iconSize.sp;
+
+    if (assetPath.endsWith('.svg')) {
+      return AppSvgImageView(
+        appImagePath: assetPath,
+        width: size,
+        height: size,
+        fit: BoxFit.contain,
+        color: color,
+      );
+    }
+
+    return AppPngImageView(
+      appImagePath: assetPath,
+      width: size,
+      height: size,
+      fit: BoxFit.contain,
     );
   }
 }

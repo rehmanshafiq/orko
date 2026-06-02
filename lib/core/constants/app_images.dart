@@ -17,4 +17,7 @@ class AppImages {
   static final String icEasypaisa = '${iconPath}ic_easypaisa.png';
   static final String icJazzcash = '${iconPath}ic_jazzcash.webp';
   static final String icCash = '${iconPath}ic_cash.png';
+  static final String icCcs = '${iconPath}Ic_ccs.webp';
+  static final String icCcs1 = '${iconPath}ic_ccs1.jpg';
+  static final String icCss2 = '${iconPath}ic_css2.svg';
 }
