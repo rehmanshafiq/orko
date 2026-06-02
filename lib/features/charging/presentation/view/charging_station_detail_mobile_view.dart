@@ -312,8 +312,12 @@ class _ChargerAvailabilitySection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: context.revampedTheme.stationDetailContainerBackground,
-      padding: EdgeInsets.all(26),
+      margin: EdgeInsets.all(4.r),
+      padding: EdgeInsets.all(18.r),
+      decoration: BoxDecoration(
+        color: context.revampedTheme.stationDetailContainerBackground,
+        borderRadius: BorderRadius.circular(16.r),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -350,7 +354,7 @@ class _ChargerAvailabilitySection extends StatelessWidget {
             final uiPort = _portUiModelAt(context, index, ports[index]);
             final isSelected = ports[index].available && index == selectedPortIndex;
             return Padding(
-              padding: EdgeInsets.only(bottom: index == ports.length - 1 ? 0 : 10.h),
+              padding: EdgeInsets.only(bottom: index == ports.length - 1 ? 0 : 16.h),
               child: _PortAvailabilityCard(
                 port: uiPort,
                 isSelected: isSelected,
@@ -572,7 +576,7 @@ class _ConnectorFilterChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 8.h),
+      padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 4.h),
       decoration: BoxDecoration(
         color: AppColors.darkGreyColor,
         borderRadius: BorderRadius.circular(999),
@@ -660,28 +664,36 @@ class _AmenitiesSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final visibleAmenities = amenities.take(3).toList();
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        AppText(
-          'ON-SITE AMENITIES',
-          color: context.revampedTheme.textSecondary,
-          fontSize: FontSizes.font10Sp,
-          fontWeight: FontWeights.weight700,
-          letterSpacing: 1.4,
-        ),
-        16.verticalSpace,
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: visibleAmenities
-              .map(
-                (amenity) => Expanded(
-                  child: _AmenityItem(amenity: amenity),
-                ),
-              )
-              .toList(),
-        ),
-      ],
+    return Container(
+      margin: EdgeInsets.all(4.r),
+      padding: EdgeInsets.all(18.r),
+      decoration: BoxDecoration(
+        color: context.revampedTheme.stationDetailContainerBackground,
+        borderRadius: BorderRadius.circular(16.r),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          AppText(
+            'ON-SITE AMENITIES',
+            color: context.revampedTheme.textSecondary,
+            fontSize: FontSizes.font10Sp,
+            fontWeight: FontWeights.weight700,
+            letterSpacing: 1.4,
+          ),
+          16.verticalSpace,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: visibleAmenities
+                .map(
+                  (amenity) => Expanded(
+                    child: _AmenityItem(amenity: amenity),
+                  ),
+                )
+                .toList(),
+          ),
+        ],
+      ),
     );
   }
 }
