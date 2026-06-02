@@ -16,6 +16,7 @@ class PrimaryButtonWidget extends StatelessWidget {
   final Color? strokeColor;
   final Color? textColor;
   final String? icon;
+  final IconData? leadingIcon;
   final bool isEnabled;
   final double? iconHeight;
   final double? iconWidth;
@@ -38,6 +39,7 @@ class PrimaryButtonWidget extends StatelessWidget {
     this.strokeColor,
     this.textColor,
     this.icon,
+    this.leadingIcon,
     this.isEnabled = true,
     this.iconHeight,
     this.iconWidth,
@@ -85,7 +87,16 @@ class PrimaryButtonWidget extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                if (icon != null) ...[
+                if (leadingIcon != null) ...[
+                  Icon(
+                    leadingIcon,
+                    size: iconHeight ?? 18.sp,
+                    color: isEnabled
+                        ? (textColor ?? AppColors.whiteColor)
+                        : AppColors.greyColor,
+                  ),
+                  8.horizontalSpace,
+                ] else if (icon != null) ...[
                   AppSvgImageView(
                     height: iconHeight?.h,
                     width: iconWidth?.w,

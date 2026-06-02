@@ -28,7 +28,7 @@ class ChargingStationBottomActionsWidget extends StatelessWidget {
                   ),
                   padding: EdgeInsets.symmetric(vertical: 14.h),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12.r),
+                    borderRadius: BorderRadius.circular(32.r),
                   ),
                 ),
                 child: Row(
@@ -50,10 +50,12 @@ class ChargingStationBottomActionsWidget extends StatelessWidget {
             Expanded(
               child: PrimaryButtonWidget(
                 text: 'Book Slot',
+                leadingIcon: Icons.calendar_today_outlined,
+                iconHeight: 18.sp,
                 onPress: () => context.go('/bookings'),
                 buttonWidth: double.infinity,
                 buttonHeight: 48.h,
-                cornerRadius: 12.r,
+                cornerRadius: 32.r,
                 buttonColor: AppColors.primaryDarkColor,
                 textColor: AppColors.whiteColor,
                 fontSize: FontSizes.font14Sp,
