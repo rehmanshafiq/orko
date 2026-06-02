@@ -123,7 +123,7 @@ class AppRevampedTheme {
       : const Color(0xFF1E2E28);
 
   Color get pricingCardBackground => isLight
-      ? const Color(0xFFEEF2FF)
+      ? const Color(0xFFE2E0FA)
       : const Color(0xFF1E2438);
 
   Color get totalBoxBackground => subtleSurface;
@@ -265,6 +265,10 @@ class AppRevampedTheme {
   // ── Screen-specific light values (dark uses brighter accents) ───────────
 
   Color get stationDetailBackground => isLight
+      ? const Color(0xFFF3F5F8)
+      : const Color(0xFF0F1412);
+
+  Color get stationDetailContainerBackground => isLight
       ? const Color(0xFFFFFFFF)
       : const Color(0xFF0F1412);
 

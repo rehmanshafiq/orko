@@ -311,61 +311,65 @@ class _ChargerAvailabilitySection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: AppText(
-                'Charger Availability',
-                color: context.revampedTheme.textPrimary,
-                fontSize: FontSizes.font18Sp,
-                fontWeight: FontWeights.weight700,
+    return Container(
+      color: context.revampedTheme.stationDetailContainerBackground,
+      padding: EdgeInsets.all(26),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: AppText(
+                  'Charger Availability',
+                  color: context.revampedTheme.textPrimary,
+                  fontSize: FontSizes.font18Sp,
+                  fontWeight: FontWeights.weight700,
+                ),
               ),
-            ),
-            Container(
-              width: 6.w,
-              height: 6.w,
-              decoration: BoxDecoration(
-                color: context.revampedTheme.stationDetailBrandGreenLight,
-                shape: BoxShape.circle,
+              Container(
+                width: 6.w,
+                height: 6.w,
+                decoration: BoxDecoration(
+                  color: context.revampedTheme.stationDetailBrandGreenLight,
+                  shape: BoxShape.circle,
+                ),
               ),
-            ),
-            6.horizontalSpace,
-            AppText(
-              'LIVE STATUS',
-              color: context.revampedTheme.textSecondary,
-              fontSize: FontSizes.font10Sp,
-              fontWeight: FontWeights.weight600,
-              letterSpacing: 1.1,
-            ),
-          ],
-        ),
-        14.verticalSpace,
-        ...List.generate(ports.length, (index) {
-          final uiPort = _portUiModelAt(context, index, ports[index]);
-          final isSelected = ports[index].available && index == selectedPortIndex;
-          return Padding(
-            padding: EdgeInsets.only(bottom: index == ports.length - 1 ? 0 : 10.h),
-            child: _PortAvailabilityCard(
-              port: uiPort,
-              isSelected: isSelected,
-              onTap: ports[index].available ? () => onPortTap(index) : null,
-            ),
-          );
-        }),
-        14.verticalSpace,
-        Wrap(
-          spacing: 8.w,
-          runSpacing: 8.h,
-          children: const [
-            _ConnectorFilterChip(label: 'CCS'),
-            _ConnectorFilterChip(label: 'TYPE 2'),
-            _ConnectorFilterChip(label: 'CHADEMO'),
-          ],
-        ),
-      ],
+              6.horizontalSpace,
+              AppText(
+                'LIVE STATUS',
+                color: context.revampedTheme.textSecondary,
+                fontSize: FontSizes.font10Sp,
+                fontWeight: FontWeights.weight600,
+                letterSpacing: 1.1,
+              ),
+            ],
+          ),
+          14.verticalSpace,
+          ...List.generate(ports.length, (index) {
+            final uiPort = _portUiModelAt(context, index, ports[index]);
+            final isSelected = ports[index].available && index == selectedPortIndex;
+            return Padding(
+              padding: EdgeInsets.only(bottom: index == ports.length - 1 ? 0 : 10.h),
+              child: _PortAvailabilityCard(
+                port: uiPort,
+                isSelected: isSelected,
+                onTap: ports[index].available ? () => onPortTap(index) : null,
+              ),
+            );
+          }),
+          14.verticalSpace,
+          Wrap(
+            spacing: 8.w,
+            runSpacing: 8.h,
+            children: const [
+              _ConnectorFilterChip(label: 'CCS'),
+              _ConnectorFilterChip(label: 'TYPE 2'),
+              _ConnectorFilterChip(label: 'CHADEMO'),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }
