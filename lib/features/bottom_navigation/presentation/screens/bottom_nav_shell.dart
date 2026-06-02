@@ -24,64 +24,73 @@ class BottomNavShell extends StatelessWidget {
         top: false,
         child: Padding(
           padding: AppUtils.bottomNavOuterPadding,
-          child: Container(
-            height: 56.h,
-            padding: AppUtils.bottomNavInnerPadding,
+          child: DecoratedBox(
             decoration: BoxDecoration(
               color: ui.bottomNavContainerBg,
-              borderRadius: BorderRadius.circular(2.r),
-              border: Border.all(color: ui.bottomNavBorder),
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(26.r),
+                topRight: Radius.circular(26.r),
+              ),
               boxShadow: [
                 BoxShadow(
                   color: ui.bottomNavShadow,
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
+                  blurRadius: 16,
+                  offset: const Offset(0, 4),
                 ),
               ],
             ),
-            child: Row(
-              children: [
-                _buildNavItem(
-                  context: context,
-                  icon: Icons.map_outlined,
-                  label: 'Map',
-                  isActive: navigationShell.currentIndex == 0,
-                  onTap: () => _onTapBranch(0),
-                  activeBackground: true,
+            child: ClipRRect(
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(26.r),
+                topRight: Radius.circular(26.r),
+              ),
+              child: Padding(
+                padding: AppUtils.bottomNavInnerPadding,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    _buildNavItem(
+                      context: context,
+                      icon: Icons.map_outlined,
+                      activeIcon: Icons.map_rounded,
+                      label: 'Map',
+                      isActive: navigationShell.currentIndex == 0,
+                      onTap: () => _onTapBranch(0),
+                    ),
+                    _buildNavItem(
+                      context: context,
+                      icon: Icons.calendar_today_outlined,
+                      activeIcon: Icons.calendar_today_rounded,
+                      label: 'Bookings',
+                      isActive: navigationShell.currentIndex == 2,
+                      onTap: () => _onTapBranch(2),
+                    ),
+                    _buildNavItem(
+                      context: context,
+                      icon: Icons.alt_route_rounded,
+                      label: 'Trip',
+                      isActive: navigationShell.currentIndex == 3,
+                      onTap: () => _onTapBranch(3),
+                    ),
+                    _buildNavItem(
+                      context: context,
+                      icon: Icons.bolt_outlined,
+                      activeIcon: Icons.bolt_rounded,
+                      label: 'Charging',
+                      isActive: navigationShell.currentIndex == 4,
+                      onTap: () => _onTapBranch(4),
+                    ),
+                    _buildNavItem(
+                      context: context,
+                      icon: Icons.person_outline_rounded,
+                      activeIcon: Icons.person_rounded,
+                      label: 'Profile',
+                      isActive: navigationShell.currentIndex == 1,
+                      onTap: () => _onTapBranch(1),
+                    ),
+                  ],
                 ),
-                _buildNavItem(
-                  context: context,
-                  icon: Icons.calendar_today_outlined,
-                  label: 'Bookings',
-                  isActive: navigationShell.currentIndex == 2,
-                  onTap: () => _onTapBranch(2),
-                  activeBackground: true,
-                ),
-                _buildNavItem(
-                  context: context,
-                  icon: Icons.alt_route_rounded,
-                  label: 'Trip',
-                  isActive: navigationShell.currentIndex == 3,
-                  onTap: () => _onTapBranch(3),
-                  activeBackground: true,
-                ),
-                _buildNavItem(
-                  context: context,
-                  icon: Icons.bolt_outlined,
-                  label: 'Charging',
-                  isActive: navigationShell.currentIndex == 4,
-                  onTap: () => _onTapBranch(4),
-                  activeBackground: true,
-                ),
-                _buildNavItem(
-                  context: context,
-                  icon: Icons.person_outline_rounded,
-                  label: 'Profile',
-                  isActive: navigationShell.currentIndex == 1,
-                  onTap: () => _onTapBranch(1),
-                  activeBackground: true,
-                ),
-              ],
+              ),
             ),
           ),
         ),
@@ -99,37 +108,43 @@ class BottomNavShell extends StatelessWidget {
   Widget _buildNavItem({
     required BuildContext context,
     required IconData icon,
+    IconData? activeIcon,
     required String label,
     required bool isActive,
     required VoidCallback? onTap,
-    bool activeBackground = false,
   }) {
     final ui = AppUiColors.of(context);
-    final Color itemColor =
-        isActive ? ui.navActive : ui.navInactive;
+    final itemColor = isActive ? ui.navActive : ui.navInactive;
 
     return Expanded(
       child: GestureDetector(
         onTap: onTap,
         behavior: HitTestBehavior.opaque,
-        child: Container(
-          padding: AppUtils.bottomNavItemVerticalPadding,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 6.h),
           decoration: BoxDecoration(
-            color: activeBackground && isActive
-                ? AppColors.primaryDarkColor.withValues(alpha: 0.15)
-                : AppColors.transparentColor,
-            borderRadius: BorderRadius.circular(2.r),
+            color: isActive ? ui.navSelectedBackground : AppColors.transparentColor,
+            borderRadius: BorderRadius.circular(26.r),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, color: itemColor, size: 23),
+              Icon(
+                isActive ? (activeIcon ?? icon) : icon,
+                color: itemColor,
+                size: 22.sp,
+              ),
               2.verticalSpace,
               AppText(
                 label,
                 color: itemColor,
                 fontSize: FontSizes.font10Sp,
-                fontWeight: isActive ? FontWeights.weight500 : FontWeights.weight400,
+                fontWeight:
+                    isActive ? FontWeights.weight600 : FontWeights.weight400,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),

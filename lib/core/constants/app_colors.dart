@@ -133,6 +133,10 @@ class AppUiColors {
 
   Color get navActive => AppColors.primaryDarkColor;
 
+  Color get navSelectedBackground => isLight
+      ? AppColors.primaryDarkColor.withValues(alpha: 0.12)
+      : AppColors.primaryDarkColor.withValues(alpha: 0.22);
+
   Color get chipInactiveBg =>
       isLight ? AppColors.whiteColor : AppColors.fieldBackgroundColor;
 

@@ -60,9 +60,9 @@ class AppUtils {
       EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h);
   static EdgeInsets get homeStationCardPadding => EdgeInsets.all(10.r);
   static EdgeInsets get bottomNavOuterPadding =>
-      EdgeInsets.only(left: 6.w, right: 6.w, bottom: 8.h);
+      EdgeInsets.fromLTRB(16.w, 0, 16.w, 12.h);
   static EdgeInsets get bottomNavInnerPadding =>
-      EdgeInsets.symmetric(horizontal: 6.w, vertical: 4.h);
+      EdgeInsets.symmetric(horizontal: 8.w, vertical: 6.h);
   static EdgeInsets get bottomNavItemVerticalPadding =>
       EdgeInsets.symmetric(vertical: 2.h);
 }
