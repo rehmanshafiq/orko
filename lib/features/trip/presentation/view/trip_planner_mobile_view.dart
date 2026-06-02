@@ -64,17 +64,17 @@ class TripPlannerMobileView extends StatelessWidget {
                     currentBatteryPercent: state.currentBatteryPercent,
                   ),
                   14.verticalSpace,
-                  TripBatterySlidersWidget(
-                    currentBatteryPercent: state.currentBatteryPercent,
-                    targetArrivalBatteryPercent: state.targetArrivalBatteryPercent,
-                    kmPerPercentCharge: TripPlannerBloc.kmPerPercentCharge,
-                    onCurrentBatteryChanged: (v) =>
-                        context.read<TripPlannerBloc>().add(TripPlannerBatteryChanged(v)),
-                    onTargetArrivalBatteryChanged: (v) => context
-                        .read<TripPlannerBloc>()
-                        .add(TripPlannerArrivalBatteryChanged(v)),
-                  ),
-                  14.verticalSpace,
+                  // TripBatterySlidersWidget(
+                  //   currentBatteryPercent: state.currentBatteryPercent,
+                  //   targetArrivalBatteryPercent: state.targetArrivalBatteryPercent,
+                  //   kmPerPercentCharge: TripPlannerBloc.kmPerPercentCharge,
+                  //   onCurrentBatteryChanged: (v) =>
+                  //       context.read<TripPlannerBloc>().add(TripPlannerBatteryChanged(v)),
+                  //   onTargetArrivalBatteryChanged: (v) => context
+                  //       .read<TripPlannerBloc>()
+                  //       .add(TripPlannerArrivalBatteryChanged(v)),
+                  // ),
+                  // 14.verticalSpace,
                   PrimaryButtonWidget(
                     text: 'Plan Trip',
                     onPress: () => context
