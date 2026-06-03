@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
+import 'package:orko_hubco/core/constants/app_images.dart';
 import 'package:orko_hubco/core/constants/app_revamped_theme.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
@@ -23,38 +24,33 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
       ({
         String title,
         String subtitle,
-        IconData icon,
+        String iconAsset,
         Color iconBg,
-        Color? iconColor,
       })> _paymentMethods(AppRevampedTheme t) {
     return [
       (
         title: 'Visa card',
         subtitle: '•••• •••• •••• 4291',
-        icon: Icons.credit_card_rounded,
+        iconAsset: AppImages.icVisa,
         iconBg: t.paymentIconBlueBg,
-        iconColor: t.paymentPrimaryGreen,
       ),
       (
         title: 'EasyPaisa',
         subtitle: 'Linked Mobile Wallet',
-        icon: Icons.account_balance_wallet_rounded,
+        iconAsset: AppImages.icEasypaisa,
         iconBg: t.mintBadgeBackground,
-        iconColor: t.paymentPrimaryGreen,
       ),
       (
         title: 'JazzCash',
         subtitle: 'Instant Pay Enabled',
-        icon: Icons.payments_rounded,
+        iconAsset: AppImages.icJazzcash,
         iconBg: t.paymentIconRedBg,
-        iconColor: t.paymentIconRed,
       ),
       (
         title: 'Cash',
         subtitle: 'Pay at Counter',
-        icon: Icons.money_rounded,
+        iconAsset: AppImages.icCash,
         iconBg: t.totalBoxBackground,
-        iconColor: t.textPrimary,
       ),
     ];
   }
@@ -116,9 +112,8 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
                         child: _PaymentMethodTile(
                           title: method.title,
                           subtitle: method.subtitle,
-                          icon: method.icon,
+                          iconAsset: method.iconAsset,
                           iconBackground: method.iconBg,
-                          iconColor: method.iconColor ?? t.textPrimary,
                           selected: _selectedIndex == index,
                           onTap: () => setState(() => _selectedIndex = index),
                         ),
@@ -133,11 +128,24 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
               top: false,
               child: Padding(
                 padding: EdgeInsets.fromLTRB(20.w, 8.h, 20.w, 12.h),
-                child: _ContinuePaymentButton(
-                  onPressed: () => context.push(
-                    '/booking-confirmation',
-                    extra: PaymentMethodScreen._totalAmount.toInt(),
-                  ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _ContinuePaymentButton(
+                      onPressed: () => context.push(
+                        '/booking-confirmation',
+                        extra: PaymentMethodScreen._totalAmount.toInt(),
+                      ),
+                    ),
+                    12.verticalSpace,
+                    AppText(
+                      'Secure SSL Encrypted Transaction by HUBCO Enterprise',
+                      color: t.textMuted,
+                      fontSize: FontSizes.font12Sp,
+                      fontWeight: FontWeights.weight500,
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -412,18 +420,16 @@ class _PaymentMethodTile extends StatelessWidget {
   const _PaymentMethodTile({
     required this.title,
     required this.subtitle,
-    required this.icon,
+    required this.iconAsset,
     required this.iconBackground,
-    required this.iconColor,
     required this.selected,
     required this.onTap,
   });
 
   final String title;
   final String subtitle;
-  final IconData icon;
+  final String iconAsset;
   final Color iconBackground;
-  final Color iconColor;
   final bool selected;
   final VoidCallback onTap;
 
@@ -458,11 +464,15 @@ class _PaymentMethodTile extends StatelessWidget {
               Container(
                 width: 44.w,
                 height: 44.w,
+                padding: EdgeInsets.all(8.r),
                 decoration: BoxDecoration(
                   color: iconBackground,
                   borderRadius: BorderRadius.circular(10.r),
                 ),
-                child: Icon(icon, color: iconColor, size: 22.sp),
+                child: Image.asset(
+                  iconAsset,
+                  fit: BoxFit.contain,
+                ),
               ),
               14.horizontalSpace,
               Expanded(
@@ -538,7 +548,7 @@ class _ContinuePaymentButton extends StatelessWidget {
               t.paymentPrimaryGreen,
             ],
           ),
-          borderRadius: BorderRadius.circular(14.r),
+          borderRadius: BorderRadius.circular(24.r),
           boxShadow: [
             BoxShadow(
               color: t.paymentPrimaryGreen.withValues(alpha: 0.28),
@@ -558,7 +568,7 @@ class _ContinuePaymentButton extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   AppText(
-                    'Continue Payment',
+                    'Proceed to Pay',
                     color: t.textOnBrand,
                     fontSize: FontSizes.font16Sp,
                     fontWeight: FontWeights.weight700,

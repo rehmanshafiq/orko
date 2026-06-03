@@ -11,4 +11,8 @@ class AppImages {
   static final String chargingStationBanner =
       '${imagePath}charging_station_banner.png';
   static final String nawaTextIcon = '${iconPath}nawa_text_icon.svg';
+  static final String icVisa = '${iconPath}ic_visa.png';
+  static final String icEasypaisa = '${iconPath}ic_easypaisa.png';
+  static final String icJazzcash = '${iconPath}ic_jazzcash.png';
+  static final String icCash = '${iconPath}ic_cash.png';
 }
