@@ -124,46 +124,53 @@ class _StationInfoSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.revampedTheme;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        AppText(
-          'CURRENT STATION',
-          color: t.textMuted,
-          fontSize: FontSizes.font10Sp,
-          fontWeight: FontWeights.weight700,
-          letterSpacing: 1.2,
-        ),
-        6.verticalSpace,
-        AppText(
-          stationName,
-          color: t.textPrimary,
-          fontSize: FontSizes.font26Sp,
-          fontWeight: FontWeights.weight700,
-        ),
-        10.verticalSpace,
-        Row(
-          children: [
-            Container(
-              width: 8.w,
-              height: 8.w,
-              decoration: BoxDecoration(
-                color: t.sessionActiveDot,
-                shape: BoxShape.circle,
+    return SizedBox(
+      width: double.infinity,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          AppText(
+            'CURRENT STATION',
+            color: t.textMuted,
+            fontSize: FontSizes.font10Sp,
+            fontWeight: FontWeights.weight700,
+            letterSpacing: 1.2,
+            textAlign: TextAlign.center,
+          ),
+          6.verticalSpace,
+          AppText(
+            stationName,
+            color: t.textPrimary,
+            fontSize: FontSizes.font20Sp,
+            fontWeight: FontWeights.weight400,
+            textAlign: TextAlign.center,
+          ),
+          10.verticalSpace,
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Container(
+                width: 8.w,
+                height: 8.w,
+                decoration: BoxDecoration(
+                  color: t.sessionActiveDot,
+                  shape: BoxShape.circle,
+                ),
               ),
-            ),
-            8.horizontalSpace,
-            Expanded(
-              child: AppText(
+              8.horizontalSpace,
+              AppText(
                 sessionLabel,
                 color: t.textMuted,
                 fontSize: FontSizes.font12Sp,
                 fontWeight: FontWeights.weight500,
+                textAlign: TextAlign.center,
               ),
-            ),
-          ],
-        ),
-      ],
+            ],
+          ),
+        ],
+      ),
     );
   }
 }
