@@ -37,7 +37,7 @@ class ChargingStatusMobileView extends StatelessWidget {
                 ),
                 28.verticalSpace,
                 _BatteryGauge(percent: batteryPercent),
-                28.verticalSpace,
+                18.verticalSpace,
                 _StopChargingButton(onPressed: cubit.stopCharging),
                 24.verticalSpace,
                 _MetricsGrid(state: state),
@@ -294,10 +294,11 @@ class _StopChargingButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.revampedTheme;
-    return SizedBox(
-      width: double.infinity,
-      height: 56.h,
-      child: ElevatedButton(
+    return Center(
+      child: SizedBox(
+        width: 220.w,
+        height: 52.h,
+        child: ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
           backgroundColor: t.stopRed,
@@ -323,6 +324,7 @@ class _StopChargingButton extends StatelessWidget {
             ),
           ],
         ),
+      ),
       ),
     );
   }
@@ -360,25 +362,82 @@ class _MetricsGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.revampedTheme;
+    final cost = _formatCost(state.cost);
+    final costAmount = cost.startsWith('PKR ') ? cost.substring(4) : cost;
+
     return Column(
       children: [
         Row(
           children: [
             Expanded(
               child: _MetricCard(
-                icon: Icons.receipt_long_outlined,
+                backgroundColor: t.cardBackground,
+                icon: Icons.payments_outlined,
+                iconColor: t.textSecondary,
                 label: 'ESTIMATED COST',
-                value: _formatCost(state.cost),
-                valueColor: t.textPrimary,
+                labelColor: t.textSecondary,
+                value: RichText(
+                  text: TextSpan(
+                    style: TextStyle(
+                      fontFamily: AppFonts.lexend,
+                      height: 1.2,
+                    ),
+                    children: [
+                      TextSpan(
+                        text: 'PKR ',
+                        style: TextStyle(
+                          color: t.textPrimary,
+                          fontSize: FontSizes.font14Sp,
+                          fontWeight: FontWeights.weight400,
+                        ),
+                      ),
+                      TextSpan(
+                        text: costAmount,
+                        style: TextStyle(
+                          color: t.textPrimary,
+                          fontSize: FontSizes.font22Sp,
+                          fontWeight: FontWeights.weight700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
             12.horizontalSpace,
             Expanded(
               child: _MetricCard(
+                backgroundColor: t.cardBackground,
                 icon: Icons.bolt_rounded,
+                iconColor: t.textSecondary,
                 label: 'ENERGY DELIVERED',
-                value: '${state.energyDelivered} ${state.energyDeliveredUnit}',
-                valueColor: t.textPrimary,
+                labelColor: t.textSecondary,
+                value: RichText(
+                  text: TextSpan(
+                    style: TextStyle(
+                      fontFamily: AppFonts.lexend,
+                      height: 1.2,
+                    ),
+                    children: [
+                      TextSpan(
+                        text: state.energyDelivered,
+                        style: TextStyle(
+                          color: t.textPrimary,
+                          fontSize: FontSizes.font22Sp,
+                          fontWeight: FontWeights.weight700,
+                        ),
+                      ),
+                      TextSpan(
+                        text: ' ${state.energyDeliveredUnit}',
+                        style: TextStyle(
+                          color: t.textPrimary,
+                          fontSize: FontSizes.font14Sp,
+                          fontWeight: FontWeights.weight400,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
           ],
@@ -388,20 +447,53 @@ class _MetricsGrid extends StatelessWidget {
           children: [
             Expanded(
               child: _MetricCard(
+                backgroundColor: t.chargerPortCardBackground,
                 icon: Icons.speed_rounded,
+                iconColor: t.chargingStatusPrimaryGreen,
                 label: 'CURRENT SPEED',
-                value: '${state.chargingSpeed} ${state.chargingSpeedUnit}',
-                valueColor: t.chargingStatusPrimaryGreen,
                 labelColor: t.chargingStatusPrimaryGreen,
+                value: RichText(
+                  text: TextSpan(
+                    style: TextStyle(
+                      fontFamily: AppFonts.lexend,
+                      height: 1.2,
+                    ),
+                    children: [
+                      TextSpan(
+                        text: state.chargingSpeed,
+                        style: TextStyle(
+                          color: t.chargingStatusPrimaryGreen,
+                          fontSize: FontSizes.font22Sp,
+                          fontWeight: FontWeights.weight700,
+                        ),
+                      ),
+                      TextSpan(
+                        text: ' ${state.chargingSpeedUnit}',
+                        style: TextStyle(
+                          color: t.scheduleLabelGreen,
+                          fontSize: FontSizes.font14Sp,
+                          fontWeight: FontWeights.weight400,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
             12.horizontalSpace,
             Expanded(
               child: _MetricCard(
+                backgroundColor: t.chargerPortCardBackground,
                 icon: Icons.access_time_rounded,
+                iconColor: t.textSecondary,
                 label: 'SESSION TIME',
-                value: state.sessionTime,
-                valueColor: t.textPrimary,
+                labelColor: t.textSecondary,
+                value: AppText(
+                  state.sessionTime,
+                  color: t.textPrimary,
+                  fontSize: FontSizes.font22Sp,
+                  fontWeight: FontWeights.weight700,
+                ),
               ),
             ),
           ],
@@ -421,61 +513,63 @@ class _MetricsGrid extends StatelessWidget {
 
 class _MetricCard extends StatelessWidget {
   const _MetricCard({
+    required this.backgroundColor,
     required this.icon,
+    required this.iconColor,
     required this.label,
+    required this.labelColor,
     required this.value,
-    required this.valueColor,
-    this.labelColor,
   });
 
+  final Color backgroundColor;
   final IconData icon;
+  final Color iconColor;
   final String label;
-  final String value;
-  final Color valueColor;
-  final Color? labelColor;
+  final Color labelColor;
+  final Widget value;
 
   @override
   Widget build(BuildContext context) {
     final t = context.revampedTheme;
     return Container(
-      padding: EdgeInsets.all(14.r),
+      padding: EdgeInsets.all(16.r),
       decoration: BoxDecoration(
-        color: t.cardBackground,
-        borderRadius: BorderRadius.circular(16.r),
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(20.r),
         boxShadow: [
           BoxShadow(
             color: t.shadow,
-            blurRadius: 12,
-            offset: const Offset(0, 3),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            icon,
-            size: 18.sp,
-            color: labelColor ?? t.textMuted,
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                icon,
+                size: 16.sp,
+                color: iconColor,
+              ),
+              6.horizontalSpace,
+              Expanded(
+                child: AppText(
+                  label,
+                  color: labelColor,
+                  fontSize: FontSizes.font10Sp,
+                  fontWeight: FontWeights.weight500,
+                  letterSpacing: 0.6,
+                  maxLines: 2,
+                ),
+              ),
+            ],
           ),
-          10.verticalSpace,
-          AppText(
-            label,
-            color: labelColor ?? t.textMuted,
-            fontSize: FontSizes.font10Sp,
-            fontWeight: FontWeights.weight700,
-            letterSpacing: 0.6,
-            maxLines: 2,
-          ),
-          8.verticalSpace,
-          AppText(
-            value,
-            color: valueColor,
-            fontSize: FontSizes.font15Sp,
-            fontWeight: FontWeights.weight700,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
+          14.verticalSpace,
+          value,
         ],
       ),
     );
@@ -594,7 +688,7 @@ class _EcoContributionCard extends StatelessWidget {
           ),
           10.verticalSpace,
           AppText(
-            "You've offset 18.4 kg of CO₂ this session — equivalent to planting 2 trees.",
+            "You've offset 18.4 kg of CO₂ during this session",
             color: t.textOnBrand,
             fontSize: FontSizes.font14Sp,
             fontWeight: FontWeights.weight500,
