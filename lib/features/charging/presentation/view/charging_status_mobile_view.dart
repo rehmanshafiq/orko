@@ -188,44 +188,53 @@ class _BatteryGauge extends StatelessWidget {
     return SizedBox(
       height: 220.h,
       child: Center(
-        child: SizedBox(
-          width: 200.w,
-          height: 200.w,
-          child: CustomPaint(
-            painter: _BatteryGaugePainter(progress: progress, theme: t),
-            child: Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      AppText(
-                        '$percent',
-                        color: t.chargingStatusPrimaryGreen,
-                        fontSize: FontSizes.font36Sp,
-                        fontWeight: FontWeights.weight700,
-                        height: 1,
-                      ),
-                      AppText(
-                        '%',
-                        color: t.chargingStatusPrimaryGreen,
-                        fontSize: FontSizes.font18Sp,
-                        fontWeight: FontWeights.weight600,
-                        height: 1.4,
-                      ),
-                    ],
-                  ),
-                  6.verticalSpace,
-                  AppText(
-                    'BATTERY LEVEL',
-                    color: t.chargingStatusPrimaryGreen,
-                    fontSize: FontSizes.font10Sp,
-                    fontWeight: FontWeights.weight700,
-                    letterSpacing: 1.1,
-                  ),
-                ],
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: t.isLight ? t.cardBackground : null,
+            shape: BoxShape.circle,
+          ),
+          child: SizedBox(
+            width: 220.w,
+            height: 220.w,
+            child: CustomPaint(
+              painter: _BatteryGaugePainter(progress: progress, theme: t),
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        AppText(
+                          '$percent',
+                          color: t.chargingStatusPrimaryGreen,
+                          fontSize: FontSizes.font44Sp,
+                          fontWeight: FontWeights.weight700,
+                          height: 1,
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 16.0),
+                          child: AppText(
+                            '%',
+                            color: t.chargingStatusPrimaryGreen,
+                            fontSize: FontSizes.font12Sp,
+                            fontWeight: FontWeights.weight400,
+                            height: 2,
+                          ),
+                        ),
+                      ],
+                    ),
+                    6.verticalSpace,
+                    AppText(
+                      'BATTERY LEVEL',
+                      color: t.chargingStatusPrimaryGreen,
+                      fontSize: FontSizes.font10Sp,
+                      fontWeight: FontWeights.weight400,
+                      letterSpacing: 1.1,
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -245,7 +254,7 @@ class _BatteryGaugePainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
     final radius = size.width / 2 - 12;
-    const strokeWidth = 14.0;
+    const strokeWidth = 10.0;
     const startAngle = -math.pi / 2;
 
     final trackPaint = Paint()
