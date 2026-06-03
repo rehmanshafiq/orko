@@ -80,8 +80,8 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
                     AppText(
                       'Confirm Payment',
                       color: t.textPrimary,
-                      fontSize: FontSizes.font26Sp,
-                      fontWeight: FontWeights.weight700,
+                      fontSize: FontSizes.font24Sp,
+                      fontWeight: FontWeights.weight600,
                     ),
                     20.verticalSpace,
                     const _PaymentSummaryCard(),
@@ -164,18 +164,17 @@ class _PaymentHeader extends StatelessWidget {
           child: Icon(
             Icons.person_rounded,
             color: t.textMuted,
-            size: 22.sp,
+            size: 26.sp,
           ),
         ),
+        16.horizontalSpace,
         Expanded(
-          child: Center(
-            child: AppText(
-              'HUBCO',
-              color: t.paymentPrimaryGreen,
-              fontSize: FontSizes.font22Sp,
-              fontWeight: FontWeights.weight700,
-              letterSpacing: 0.5,
-            ),
+          child: AppText(
+            'HUBCO',
+            color: t.paymentPrimaryGreen,
+            fontSize: FontSizes.font20Sp,
+            fontWeight: FontWeights.weight400,
+            letterSpacing: 0.5,
           ),
         ),
         IconButton(
@@ -264,11 +263,13 @@ class _PaymentSummaryCard extends StatelessWidget {
                   unit: 'kWh',
                 ),
               ),
+              6.horizontalSpace,
+              const Spacer(),
               Expanded(
                 child: _MetricBlock(
                   label: 'DURATION',
-                  value: '42m',
-                  unit: '12s',
+                  value: '42m 12s',
+                  unit: '',
                 ),
               ),
             ],
@@ -334,14 +335,13 @@ class _MetricBlock extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      // crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         AppText(
           label,
           color: context.revampedTheme.textMuted,
-          fontSize: FontSizes.font10Sp,
+          fontSize: FontSizes.font9Sp,
           fontWeight: FontWeights.weight700,
-          letterSpacing: 0.6,
         ),
         6.verticalSpace,
         Row(
