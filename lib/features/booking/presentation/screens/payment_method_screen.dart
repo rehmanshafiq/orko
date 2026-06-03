@@ -255,6 +255,7 @@ class _PaymentSummaryCard extends StatelessWidget {
           ),
           18.verticalSpace,
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
                 child: _MetricBlock(
@@ -263,13 +264,13 @@ class _PaymentSummaryCard extends StatelessWidget {
                   unit: 'kWh',
                 ),
               ),
-              6.horizontalSpace,
-              const Spacer(),
               Expanded(
                 child: _MetricBlock(
                   label: 'DURATION',
                   value: '42m 12s',
                   unit: '',
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  textAlign: TextAlign.end,
                 ),
               ),
             ],
@@ -326,25 +327,31 @@ class _MetricBlock extends StatelessWidget {
     required this.label,
     required this.value,
     required this.unit,
+    this.crossAxisAlignment = CrossAxisAlignment.start,
+    this.textAlign = TextAlign.start,
   });
 
   final String label;
   final String value;
   final String unit;
+  final CrossAxisAlignment crossAxisAlignment;
+  final TextAlign textAlign;
 
   @override
   Widget build(BuildContext context) {
     return Column(
-      // crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: crossAxisAlignment,
       children: [
         AppText(
           label,
           color: context.revampedTheme.textMuted,
-          fontSize: FontSizes.font9Sp,
+          fontSize: FontSizes.font10Sp,
           fontWeight: FontWeights.weight700,
+          textAlign: textAlign,
         ),
         6.verticalSpace,
         Row(
+          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.baseline,
           textBaseline: TextBaseline.alphabetic,
           children: [
@@ -354,13 +361,15 @@ class _MetricBlock extends StatelessWidget {
               fontSize: FontSizes.font22Sp,
               fontWeight: FontWeights.weight700,
             ),
-            4.horizontalSpace,
-            AppText(
-              unit,
-              color: context.revampedTheme.textMuted,
-              fontSize: FontSizes.font12Sp,
-              fontWeight: FontWeights.weight500,
-            ),
+            if (unit.isNotEmpty) ...[
+              4.horizontalSpace,
+              AppText(
+                unit,
+                color: context.revampedTheme.textMuted,
+                fontSize: FontSizes.font12Sp,
+                fontWeight: FontWeights.weight500,
+              ),
+            ],
           ],
         ),
       ],
@@ -377,19 +386,22 @@ class _CostLine extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        AppText(
-          label,
-          color: context.revampedTheme.textMuted,
-          fontSize: FontSizes.font12Sp,
-          fontWeight: FontWeights.weight400,
+        Expanded(
+          child: AppText(
+            label,
+            color: context.revampedTheme.textMuted,
+            fontSize: FontSizes.font12Sp,
+            fontWeight: FontWeights.weight400,
+          ),
         ),
         AppText(
           value,
           color: context.revampedTheme.textPrimary,
           fontSize: FontSizes.font14Sp,
           fontWeight: FontWeights.weight600,
+          textAlign: TextAlign.end,
         ),
       ],
     );
