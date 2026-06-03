@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_revamped_theme.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
@@ -295,24 +296,57 @@ class _StopChargingButton extends StatelessWidget {
     final t = context.revampedTheme;
     return SizedBox(
       width: double.infinity,
-      height: 54.h,
-      child: ElevatedButton.icon(
+      height: 56.h,
+      child: ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
           backgroundColor: t.stopRed,
           foregroundColor: t.textOnBrand,
           elevation: 0,
+          shadowColor: AppColors.transparentColor,
+          padding: EdgeInsets.symmetric(horizontal: 24.w),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(999),
           ),
         ),
-        icon: Icon(Icons.stop_circle_outlined, size: 22.sp),
-        label: AppText(
-          'Stop Charging',
-          color: t.textOnBrand,
-          fontSize: FontSizes.font16Sp,
-          fontWeight: FontWeights.weight700,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _StopChargingIcon(stopColor: t.stopRed),
+            10.horizontalSpace,
+            AppText(
+              'Stop Charging',
+              color: t.textOnBrand,
+              fontSize: FontSizes.font16Sp,
+              fontWeight: FontWeights.weight700,
+            ),
+          ],
         ),
+      ),
+    );
+  }
+}
+
+class _StopChargingIcon extends StatelessWidget {
+  const _StopChargingIcon({required this.stopColor});
+
+  final Color stopColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 22.w,
+      height: 22.w,
+      decoration: const BoxDecoration(
+        color: AppColors.whiteColor,
+        shape: BoxShape.circle,
+      ),
+      alignment: Alignment.center,
+      child: Container(
+        width: 8.w,
+        height: 8.w,
+        color: stopColor,
       ),
     );
   }
