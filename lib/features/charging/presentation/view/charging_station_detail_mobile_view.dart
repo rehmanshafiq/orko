@@ -80,7 +80,7 @@ class ChargingStationDetailMobileView extends StatelessWidget {
                         const _PricingSection(),
                         24.verticalSpace,
                         _AmenitiesSection(amenities: state.amenities),
-                        24.verticalSpace,
+                        20.verticalSpace,
                         _LocationSection(station: hub),
                         96.verticalSpace,
                       ],
@@ -741,28 +741,40 @@ class _LocationSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        AppText(
-          'Location',
-          color: context.revampedTheme.textPrimary,
-          fontSize: FontSizes.font18Sp,
-          fontWeight: FontWeights.weight700,
-        ),
-        8.verticalSpace,
-        AppText(
-          'Adjacent to Green Garden Shopping Mall, Level B2 Parking.',
-          color: context.revampedTheme.textSecondary,
-          fontSize: FontSizes.font12Sp,
-          fontWeight: FontWeights.weight400,
-          height: 1.45,
-        ),
-        14.verticalSpace,
-        ClipRRect(
-          borderRadius: BorderRadius.circular(20.r),
-          child: SizedBox(
-            height: 150.h,
+    return Container(
+      margin: EdgeInsets.all(4.r),
+      decoration: BoxDecoration(
+        color: context.revampedTheme.stationDetailContainerBackground,
+        borderRadius: BorderRadius.circular(16.r),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: EdgeInsets.all(18.r),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                AppText(
+                  'Location',
+                  color: context.revampedTheme.textPrimary,
+                  fontSize: FontSizes.font18Sp,
+                  fontWeight: FontWeights.weight700,
+                ),
+                8.verticalSpace,
+                AppText(
+                  'Adjacent to Green Garden Shopping Mall, Level B2 Parking.',
+                  color: context.revampedTheme.textSecondary,
+                  fontSize: FontSizes.font12Sp,
+                  fontWeight: FontWeights.weight400,
+                  height: 1.45,
+                ),
+              ],
+            ),
+          ),
+          SizedBox(
+            height: 160.h,
             width: double.infinity,
             child: Stack(
               fit: StackFit.expand,
@@ -793,8 +805,8 @@ class _LocationSection extends StatelessWidget {
               ],
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -882,8 +894,8 @@ class _StationDetailBottomBar extends StatelessWidget {
               width: 54.w,
               height: 54.h,
               child: Material(
-                color: AppColors.whiteColor,
-                borderRadius: BorderRadius.circular(16.r),
+                color: AppColors.shimmerHighlightColor,
+                borderRadius: BorderRadius.circular(36.r),
                 child: InkWell(
                   onTap: () {},
                   borderRadius: BorderRadius.circular(16.r),
