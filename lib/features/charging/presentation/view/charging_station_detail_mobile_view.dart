@@ -193,6 +193,7 @@ class _HeroImageCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  const Spacer(),
                   Container(
                     padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
                     decoration: BoxDecoration(
@@ -207,7 +208,7 @@ class _HeroImageCard extends StatelessWidget {
                       letterSpacing: 0.8,
                     ),
                   ),
-                  const Spacer(),
+                  6.verticalSpace,
                   AppText(
                     station.name,
                     color: AppColors.whiteColor,
