@@ -477,8 +477,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Row(
                   children: [
                     Icon(
-                      Icons.search,
-                      color: ui.textMuted,
+                      Icons.location_on_rounded,
+                      color: AppColors.primaryDarkColor,
                       size: 22,
                     ),
                     8.horizontalSpace,

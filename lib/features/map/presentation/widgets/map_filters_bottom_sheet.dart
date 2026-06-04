@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
+import 'package:orko_hubco/core/constants/app_revamped_theme.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
-import 'package:orko_hubco/core/utils/widgets/primary_button_widget.dart';
 
 /// EV map filters — matches product UI (dark sheet, green accents).
 class MapFiltersBottomSheet extends StatefulWidget {
@@ -472,20 +472,58 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
   }
 
   Widget _applyButton(BuildContext context) {
+    final t = context.revampedTheme;
     final count = widget.stationCount;
     final suffix = count == 1 ? 'station' : 'stations';
 
-    return PrimaryButtonWidget(
-      text: 'Apply Filters',
-      subtitle: '$count $suffix found',
-      onPress: () => Navigator.of(context).pop(),
-      buttonWidth: double.infinity,
-      buttonHeight: 64.h,
-      cornerRadius: 16.r,
-      buttonColor: AppColors.primaryDarkColor,
-      textColor: AppColors.whiteColor,
-      fontSize: FontSizes.font14Sp,
-      fontWeight: FontWeights.weight700,
+    return SizedBox(
+      width: double.infinity,
+      height: 64.h,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              t.bookSlotDarkGreen,
+              t.bookSlotPrimaryGreen,
+            ],
+          ),
+          borderRadius: BorderRadius.circular(24.r),
+          boxShadow: [
+            BoxShadow(
+              color: t.bookSlotPrimaryGreen.withValues(alpha: 0.28),
+              blurRadius: 14,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: Material(
+          color: AppColors.transparentColor,
+          child: InkWell(
+            onTap: () => Navigator.of(context).pop(),
+            borderRadius: BorderRadius.circular(24.r),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                AppText(
+                  'Apply Filters',
+                  color: t.textOnBrand,
+                  fontSize: FontSizes.font14Sp,
+                  fontWeight: FontWeights.weight700,
+                ),
+                4.verticalSpace,
+                AppText(
+                  '$count $suffix found',
+                  color: t.textOnBrand.withValues(alpha: 0.92),
+                  fontSize: FontSizes.font12Sp,
+                  fontWeight: FontWeights.weight400,
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
