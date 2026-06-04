@@ -1,14 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/utils/app_ui.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
 
 /// Shell screen that wraps the bottom navigation bar.
-/// Uses [StatefulShellRoute] from go_router for nested navigation,
-/// preserving each tab's navigation stack independently.
+///
+/// Uses [PersistentTabView.router] from `persistent_bottom_nav_bar_v2`, wired to
+/// go_router's [StatefulShellRoute] so each tab keeps its own navigation stack.
+/// The visual nav bar is supplied via a custom [navBarBuilder] that matches the
+/// app design (icon above label, pill behind the active tab, rounded top
+/// corners).
+///
+/// IMPORTANT: the tab order here must match the branch order declared in
+/// `AppRouter` — PersistentTabView.router maps tab index → branch index 1:1.
 class BottomNavShell extends StatelessWidget {
   final StatefulNavigationShell navigationShell;
 
@@ -17,128 +25,92 @@ class BottomNavShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ui = AppUiColors.of(context);
-    return Scaffold(
+
+    return PersistentTabView.router(
+      navigationShell: navigationShell,
+      // Shown behind the rounded top corners of the nav bar.
       backgroundColor: ui.scaffoldBackground,
-      body: navigationShell,
-      bottomNavigationBar: SafeArea(
-        top: false,
-        child: Padding(
-          padding: AppUtils.bottomNavOuterPadding,
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              color: ui.bottomNavContainerBg,
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(26.r),
-                topRight: Radius.circular(26.r),
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: ui.bottomNavShadow,
-                  blurRadius: 16,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(26.r),
-                topRight: Radius.circular(26.r),
-              ),
-              child: Padding(
-                padding: AppUtils.bottomNavInnerPadding,
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    _buildNavItem(
-                      context: context,
-                      icon: Icons.map_outlined,
-                      activeIcon: Icons.map_rounded,
-                      label: 'Map',
-                      isActive: navigationShell.currentIndex == 0,
-                      onTap: () => _onTapBranch(0),
-                    ),
-                    _buildNavItem(
-                      context: context,
-                      icon: Icons.calendar_today_outlined,
-                      activeIcon: Icons.calendar_today_rounded,
-                      label: 'Bookings',
-                      isActive: navigationShell.currentIndex == 2,
-                      onTap: () => _onTapBranch(2),
-                    ),
-                    _buildNavItem(
-                      context: context,
-                      icon: Icons.alt_route_rounded,
-                      label: 'Trip',
-                      isActive: navigationShell.currentIndex == 3,
-                      onTap: () => _onTapBranch(3),
-                    ),
-                    _buildNavItem(
-                      context: context,
-                      icon: Icons.bolt_outlined,
-                      activeIcon: Icons.bolt_rounded,
-                      label: 'Charging',
-                      isActive: navigationShell.currentIndex == 4,
-                      onTap: () => _onTapBranch(4),
-                    ),
-                    _buildNavItem(
-                      context: context,
-                      icon: Icons.person_outline_rounded,
-                      activeIcon: Icons.person_rounded,
-                      label: 'Profile',
-                      isActive: navigationShell.currentIndex == 1,
-                      onTap: () => _onTapBranch(1),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+      // Let the tab content extend under the nav bar so the rounded top
+      // corners reveal the screen behind them instead of a flat fill.
+      navBarOverlap: const NavBarOverlap.full(),
+      tabs: _tabs(ui),
+      navBarBuilder: (navBarConfig) => DecoratedNavBar(
+        decoration: NavBarDecoration(
+          color: ui.bottomNavContainerBg,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(32.r),
+            topRight: Radius.circular(32.r),
           ),
+          padding: AppUtils.bottomNavInnerPadding,
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            for (int i = 0; i < navBarConfig.items.length; i++)
+              _buildNavItem(navBarConfig, i),
+          ],
         ),
       ),
     );
   }
 
-  void _onTapBranch(int index) {
-    navigationShell.goBranch(
-      index,
-      initialLocation: index == navigationShell.currentIndex,
-    );
-  }
+  /// Tab definitions. Order MUST match the branches in `AppRouter`.
+  List<PersistentRouterTabConfig> _tabs(AppUiColors ui) => [
+        _tab(ui, Icons.map_rounded, Icons.map_outlined, 'Map'),
+        _tab(ui, Icons.calendar_today_rounded, Icons.calendar_today_outlined,
+            'Bookings'),
+        _tab(ui, Icons.alt_route_rounded, Icons.alt_route_rounded, 'Trip'),
+        _tab(ui, Icons.bolt_rounded, Icons.bolt_outlined, 'Charging'),
+        _tab(ui, Icons.person_rounded, Icons.person_outline_rounded, 'Profile'),
+      ];
 
-  Widget _buildNavItem({
-    required BuildContext context,
-    required IconData icon,
-    IconData? activeIcon,
-    required String label,
-    required bool isActive,
-    required VoidCallback? onTap,
-  }) {
-    final ui = AppUiColors.of(context);
-    final itemColor = isActive ? ui.navActive : ui.navInactive;
+  PersistentRouterTabConfig _tab(
+    AppUiColors ui,
+    IconData activeIcon,
+    IconData inactiveIcon,
+    String title,
+  ) =>
+      PersistentRouterTabConfig(
+        item: ItemConfig(
+          icon: Icon(activeIcon),
+          inactiveIcon: Icon(inactiveIcon),
+          title: title,
+          activeForegroundColor: ui.navActive,
+          inactiveForegroundColor: ui.navInactive,
+          activeColorSecondary: ui.navSelectedBackground,
+        ),
+      );
+
+  Widget _buildNavItem(NavBarConfig config, int index) {
+    final item = config.items[index];
+    final isActive = config.selectedIndex == index;
+    final itemColor =
+        isActive ? item.activeForegroundColor : item.inactiveForegroundColor;
 
     return Expanded(
       child: GestureDetector(
-        onTap: onTap,
+        onTap: () => config.onItemSelected(index),
         behavior: HitTestBehavior.opaque,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 6.h),
           decoration: BoxDecoration(
-            color: isActive ? ui.navSelectedBackground : AppColors.transparentColor,
+            color: isActive
+                ? item.activeBackgroundColor
+                : AppColors.transparentColor,
             borderRadius: BorderRadius.circular(26.r),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                isActive ? (activeIcon ?? icon) : icon,
-                color: itemColor,
-                size: 22.sp,
+              IconTheme(
+                data: IconThemeData(color: itemColor, size: 22.sp),
+                child: isActive ? item.icon : item.inactiveIcon,
               ),
               2.verticalSpace,
               AppText(
-                label,
+                item.title ?? '',
                 color: itemColor,
                 fontSize: FontSizes.font10Sp,
                 fontWeight:

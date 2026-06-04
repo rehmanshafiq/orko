@@ -30,11 +30,11 @@ import 'package:orko_hubco/features/trip/presentation/page/trip_planner_page.dar
 ///   /login      → LoginScreen
 ///   /register   → RegisterScreen
 ///   /home       → BottomNavShell
-///     ├── /home          → HomeScreen     (tab 0)
-///     ├── /account       → ProfileScreen  (tab 1)
-///     ├── /bookings      → BookSlotPage (tab 2)
-///     ├── /trip          → TripPlannerPage (tab 3)
-///     └── /profile       → ChargingStatusPage (tab 4)
+///     ├── /home          → HomeScreen          (tab 0 · Map)
+///     ├── /bookings      → BookSlotPage        (tab 1 · Bookings)
+///     ├── /trip          → TripPlannerPage     (tab 2 · Trip)
+///     ├── /profile       → ChargingStatusPage  (tab 3 · Charging)
+///     └── /account       → ProfileScreen       (tab 4 · Profile)
 ///   /search              → SearchPage (modal stack from map search bar)
 class AppRouter {
   AppRouter._();
@@ -130,8 +130,11 @@ class AppRouter {
             child: BottomNavShell(navigationShell: navigationShell),
           );
         },
+        // NOTE: Branch order must match the tab order rendered in
+        // [BottomNavShell] (Map, Bookings, Trip, Charging, Profile), because
+        // PersistentTabView.router maps tab index → branch index 1:1.
         branches: [
-          // Tab 0: Home
+          // Tab 0: Map (Home)
           StatefulShellBranch(
             routes: [
               GoRoute(
@@ -145,21 +148,7 @@ class AppRouter {
             ],
           ),
 
-          // Tab 1: Profile (account)
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: '/account',
-                name: 'account',
-                builder: (context, state) => BlocProvider(
-                  create: (_) => sl<ProfileCubit>()..loadProfile(),
-                  child: const ProfileScreen(),
-                ),
-              ),
-            ],
-          ),
-
-          // Tab 2: Bookings
+          // Tab 1: Bookings
           StatefulShellBranch(
             routes: [
               GoRoute(
@@ -169,7 +158,8 @@ class AppRouter {
               ),
             ],
           ),
-          // Tab 3: Trip
+
+          // Tab 2: Trip
           StatefulShellBranch(
             routes: [
               GoRoute(
@@ -179,13 +169,28 @@ class AppRouter {
               ),
             ],
           ),
-          // Tab 4: Profile (Charging Status)
+
+          // Tab 3: Charging (Charging Status)
           StatefulShellBranch(
             routes: [
               GoRoute(
                 path: '/profile',
                 name: 'profile',
                 builder: (context, state) => const ChargingStatusPage(),
+              ),
+            ],
+          ),
+
+          // Tab 4: Profile (account)
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/account',
+                name: 'account',
+                builder: (context, state) => BlocProvider(
+                  create: (_) => sl<ProfileCubit>()..loadProfile(),
+                  child: const ProfileScreen(),
+                ),
               ),
             ],
           ),
