@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:geolocator/geolocator.dart';
@@ -69,7 +71,10 @@ class _HomeScreenState extends State<HomeScreen> {
   Set<Marker> _markers = const <Marker>{};
   List<HubcoLocationEntity> _locations = const [];
 
-  BitmapDescriptor? _chargingStationIcon;
+  static const int _portsPerMarker = 5;
+
+  final Map<_ChargingStationMarkerKind, BitmapDescriptor> _chargingStationIcons =
+      {};
 
   // ── Lifecycle ─────────────────────────────────────────────────────────────
 
@@ -146,13 +151,20 @@ class _HomeScreenState extends State<HomeScreen> {
     await Future.delayed(const Duration(milliseconds: 50));
     if (!mounted) return;
 
-    final stationIcon = await _resolveChargingStationIcon();
+    final stationIcons = await _resolveChargingStationIcon();
     if (!mounted) return;
 
     // Step 3 ── Update markers. The SDK flashes white here — it's hidden.
     setState(() {
       _locations = locations;
-      _markers = locations.map((s) => _toMarker(s, stationIcon)).toSet();
+      _markers = locations
+          .map(
+            (s) => _toMarker(
+              s,
+              stationIcons[_markerKindFor(s)],
+            ),
+          )
+          .toSet();
     });
 
     // Step 4 ── Reapply dark style; the SDK reverted it on redraw.
@@ -181,63 +193,89 @@ class _HomeScreenState extends State<HomeScreen> {
     unawaited(_syncMapMyLocationLayer());
   }
 
-  static const double _chargingStationMarkerSize = 34;
+  static const double _chargingStationMarkerSize = 20;
 
-  Future<BitmapDescriptor?> _resolveChargingStationIcon() async {
-    if (_chargingStationIcon != null) return _chargingStationIcon;
+  /// Loads green / grey / orange marker assets (cached). Each station maps to
+  /// one of five availability levels (0–5 ports) and picks the matching icon.
+  Future<Map<_ChargingStationMarkerKind, BitmapDescriptor?>>
+      _resolveChargingStationIcon() async {
+    if (_chargingStationIcons.length == _ChargingStationMarkerKind.values.length) {
+      return {
+        for (final kind in _ChargingStationMarkerKind.values)
+          kind: _chargingStationIcons[kind],
+      };
+    }
+    if (!mounted) return const {};
+
+    final results = await Future.wait([
+      _loadChargingStationMarkerAsset(
+        AppImages.markerGreen,
+        _ChargingStationMarkerKind.green,
+      ),
+      _loadChargingStationMarkerAsset(
+        AppImages.markerGrey,
+        _ChargingStationMarkerKind.grey,
+      ),
+      _loadChargingStationMarkerAsset(
+        AppImages.markerOrange,
+        _ChargingStationMarkerKind.orange,
+      ),
+    ]);
+
+    return {
+      for (final entry in results)
+        if (entry != null) entry.key: entry.value,
+    };
+  }
+
+  /// Google Maps on Android opens assets via the native AssetManager, which can
+  /// miss files under a directory-only pubspec entry. Load through [rootBundle]
+  /// and pass PNG bytes so markers render reliably after a full rebuild.
+  Future<MapEntry<_ChargingStationMarkerKind, BitmapDescriptor>?>
+      _loadChargingStationMarkerAsset(
+    String assetPath,
+    _ChargingStationMarkerKind kind,
+  ) async {
     if (!mounted) return null;
     try {
       final dpr = MediaQuery.devicePixelRatioOf(context);
-      final size = _chargingStationMarkerSize * dpr;
-      final pictureRecorder = ui.PictureRecorder();
-      final canvas = Canvas(pictureRecorder);
-      final center = Offset(size / 2, size / 2);
-      final radius = size * 0.38;
+      final targetWidth =
+          (_chargingStationMarkerSize * dpr).round().clamp(1, 512);
 
-      final fillPaint = Paint()..color = const Color(0xFFEF4444);
-      canvas.drawCircle(center, radius, fillPaint);
-
-      final borderPaint = Paint()
-        ..color = AppColors.whiteColor
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = size * 0.07;
-      canvas.drawCircle(center, radius - borderPaint.strokeWidth / 2, borderPaint);
-
-      final iconData = Icons.ev_station_rounded;
-      final iconPainter = TextPainter(
-        textDirection: TextDirection.ltr,
-        text: TextSpan(
-          text: String.fromCharCode(iconData.codePoint),
-          style: TextStyle(
-            fontSize: size * 0.42,
-            fontFamily: iconData.fontFamily,
-            package: iconData.fontPackage,
-            color: AppColors.whiteColor,
-          ),
-        ),
+      final data = await rootBundle.load(assetPath);
+      final codec = await ui.instantiateImageCodec(
+        data.buffer.asUint8List(),
+        targetWidth: targetWidth,
       );
-      iconPainter.layout();
-      iconPainter.paint(
-        canvas,
-        Offset(
-          center.dx - iconPainter.width / 2,
-          center.dy - iconPainter.height / 2,
-        ),
-      );
-
-      final picture = pictureRecorder.endRecording();
-      final image = await picture.toImage(size.toInt(), size.toInt());
-      final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+      final frame = await codec.getNextFrame();
+      final byteData =
+          await frame.image.toByteData(format: ui.ImageByteFormat.png);
+      frame.image.dispose();
 
       if (byteData == null) return null;
 
-      final icon = BitmapDescriptor.fromBytes(byteData.buffer.asUint8List());
-      _chargingStationIcon = icon;
-      return icon;
+      final icon = BitmapDescriptor.bytes(
+        byteData.buffer.asUint8List(),
+        width: _chargingStationMarkerSize,
+      );
+      _chargingStationIcons[kind] = icon;
+      return MapEntry(kind, icon);
     } catch (e, st) {
-      debugPrint('❌ Marker icon failed: $e\n$st');
+      debugPrint('❌ Marker asset $assetPath failed: $e\n$st');
       return null;
     }
+  }
+
+  int _availablePortsForMarker(HubcoLocationEntity station) {
+    if (!station.status) return 0;
+    return 1 + station.id % _portsPerMarker;
+  }
+
+  _ChargingStationMarkerKind _markerKindFor(HubcoLocationEntity station) {
+    final available = _availablePortsForMarker(station);
+    if (available == 0) return _ChargingStationMarkerKind.grey;
+    if (available <= 2) return _ChargingStationMarkerKind.orange;
+    return _ChargingStationMarkerKind.green;
   }
 
   /// Centers the map on the device location (same idea as Google Maps’ target button).
@@ -661,10 +699,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   String _stationAvailabilityLabel(HubcoLocationEntity station) {
-    final total = 4 + station.id % 5;
-    if (!station.status) return '0/$total Available';
-    final available = ((total * 0.65).round()).clamp(1, total);
-    return '$available/$total Available';
+    final available = _availablePortsForMarker(station);
+    return '$available/$_portsPerMarker Available';
   }
 
   String _stationPriceLabel(HubcoLocationEntity station) {
@@ -760,6 +796,8 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 }
+
+enum _ChargingStationMarkerKind { green, grey, orange }
 
 class _StationPlugIconsRow extends StatelessWidget {
   const _StationPlugIconsRow({required this.color});

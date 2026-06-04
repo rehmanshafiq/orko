@@ -106,6 +106,9 @@ flutter:
   assets:
     - assets/images/
     - assets/icons/
+    - assets/icons/marker_green.png
+    - assets/icons/marker_grey.png
+    - assets/icons/marker_orange.png
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 
