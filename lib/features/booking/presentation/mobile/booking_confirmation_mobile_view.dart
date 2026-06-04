@@ -60,6 +60,7 @@ class BookingConfirmationMobileView extends StatelessWidget {
                 EdgeInsets.only(bottom: 12.h, top: 8.h),
               ),
               child: PrimaryActionButton(
+
                 onPressed: () => context.go('/profile'),
               ),
             ),

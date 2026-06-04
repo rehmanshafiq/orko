@@ -141,7 +141,7 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
                     AppText(
                       'Secure SSL Encrypted Transaction by HUBCO Enterprise',
                       color: t.textMuted,
-                      fontSize: FontSizes.font12Sp,
+                      fontSize: FontSizes.font11Sp,
                       fontWeight: FontWeights.weight500,
                       textAlign: TextAlign.center,
                     ),
@@ -544,14 +544,14 @@ class _ContinuePaymentButton extends StatelessWidget {
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              t.continueGradientStart,
-              t.paymentPrimaryGreen,
+              t.bookSlotDarkGreen,
+              t.bookSlotPrimaryGreen,
             ],
           ),
           borderRadius: BorderRadius.circular(24.r),
           boxShadow: [
             BoxShadow(
-              color: t.paymentPrimaryGreen.withValues(alpha: 0.28),
+              color: t.bookSlotPrimaryGreen.withValues(alpha: 0.28),
               blurRadius: 14,
               offset: const Offset(0, 6),
             ),

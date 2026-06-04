@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
+import 'package:orko_hubco/core/constants/app_revamped_theme.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/utils/app_ui.dart';
-import 'package:orko_hubco/core/utils/widgets/primary_button_widget.dart';
+import 'package:orko_hubco/core/utils/widgets/app_text.dart';
 import 'package:orko_hubco/features/trip/presentation/bloc/trip_planner_bloc.dart';
 import 'package:orko_hubco/features/trip/presentation/bloc/trip_planner_event.dart';
 import 'package:orko_hubco/features/trip/presentation/bloc/trip_planner_state.dart';
@@ -75,15 +76,45 @@ class TripPlannerMobileView extends StatelessWidget {
                         .add(TripPlannerArrivalBatteryChanged(v)),
                   ),
                   14.verticalSpace,
-                  PrimaryButtonWidget(
-                    text: 'Plan Trip',
-                    onPress: () => context
-                        .read<TripPlannerBloc>()
-                        .add(const TripPlannerPlanTripPressed()),
-                    buttonColor: AppColors.primaryDarkColor,
-                    fontWeight: FontWeights.weight700,
-                    fontSize: FontSizes.font14Sp,
-                    cornerRadius: 8.r,
+                  SizedBox(
+                    width: double.infinity,
+                    height: 52.h,
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            context.revampedTheme.bookSlotDarkGreen,
+                            context.revampedTheme.bookSlotPrimaryGreen,
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(24.r),
+                        boxShadow: [
+                          BoxShadow(
+                            color: context.revampedTheme.bookSlotPrimaryGreen
+                                .withValues(alpha: 0.28),
+                            blurRadius: 14,
+                            offset: const Offset(0, 6),
+                          ),
+                        ],
+                      ),
+                      child: Material(
+                        color: AppColors.transparentColor,
+                        child: InkWell(
+                          onTap: () => context
+                              .read<TripPlannerBloc>()
+                              .add(const TripPlannerPlanTripPressed()),
+                          borderRadius: BorderRadius.circular(24.r),
+                          child: Center(
+                            child: AppText(
+                              'Plan Trip',
+                              color: context.revampedTheme.textOnBrand,
+                              fontSize: FontSizes.font14Sp,
+                              fontWeight: FontWeights.weight700,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
                   if (state.tripPlanned) ...[
                     16.verticalSpace,

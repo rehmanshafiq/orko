@@ -35,7 +35,7 @@ class ChargingStatusMobileView extends StatelessWidget {
                   stationName: _stationDisplayName(state.stationHeadline),
                   sessionLabel: _sessionDisplayLabel(state),
                 ),
-                28.verticalSpace,
+                38.verticalSpace,
                 _BatteryGauge(percent: batteryPercent),
                 18.verticalSpace,
                 _StopChargingButton(onPressed: cubit.stopCharging),
@@ -143,7 +143,7 @@ class _StationInfoSection extends StatelessWidget {
             stationName,
             color: t.textPrimary,
             fontSize: FontSizes.font20Sp,
-            fontWeight: FontWeights.weight400,
+            fontWeight: FontWeights.weight600,
             textAlign: TextAlign.center,
           ),
           10.verticalSpace,
@@ -296,8 +296,8 @@ class _StopChargingButton extends StatelessWidget {
     final t = context.revampedTheme;
     return Center(
       child: SizedBox(
-        width: 220.w,
-        height: 52.h,
+        width: 190.w,
+        height: 50.h,
         child: ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
@@ -319,7 +319,7 @@ class _StopChargingButton extends StatelessWidget {
             AppText(
               'Stop Charging',
               color: t.textOnBrand,
-              fontSize: FontSizes.font16Sp,
+              fontSize: FontSizes.font14Sp,
               fontWeight: FontWeights.weight700,
             ),
           ],
@@ -338,8 +338,8 @@ class _StopChargingIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 22.w,
-      height: 22.w,
+      width: 20.w,
+      height: 20.w,
       decoration: const BoxDecoration(
         color: AppColors.whiteColor,
         shape: BoxShape.circle,
