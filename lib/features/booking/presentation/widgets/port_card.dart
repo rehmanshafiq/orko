@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
+import 'package:orko_hubco/core/constants/app_images.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/utils/app_ui.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
+import 'package:orko_hubco/core/utils/widgets/image_view/app_image_view.dart';
 
 class PortCard extends StatelessWidget {
   const PortCard({
@@ -62,10 +64,15 @@ class PortCard extends StatelessWidget {
                     fontSize: FontSizes.font14Sp,
                     fontWeight: FontWeights.weight400,
                   ),
-                  Icon(
-                    Icons.electric_bolt_rounded,
-                    size: 22.sp,
-                    color: selected ? AppColors.whiteColor : AppColors.iconsGreyColor,
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4.0),
+                    child: AppSvgImageView(
+                      appImagePath: AppImages.icCss2Png,
+                      width: 42.sp,
+                      height: 42.sp,
+                      fit: BoxFit.contain,
+                      color: selected ? AppColors.whiteColor : AppColors.iconsGreyColor,
+                    ),
                   ),
                 ],
               ),

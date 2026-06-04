@@ -20,6 +20,7 @@ class AppImages {
   static final String icCcs = '${iconPath}Ic_ccs.webp';
   static final String icCcs1 = '${iconPath}ic_ccs1.jpg';
   static final String icCss2 = '${iconPath}ic_css2.svg';
+  static final String icCss2Png = '${iconPath}ic_css2.svg';
   static final String markerGreen = '${iconPath}marker_green.png';
   static final String markerGrey = '${iconPath}marker_grey.png';
   static final String markerOrange = '${iconPath}marker_orange.png';
