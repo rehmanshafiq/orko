@@ -34,7 +34,7 @@ class AppColors {
   /// Busy / warning time slots (mustard on dark UI).
   static const slotBusyYellowColor = Color(0xFF9A7B1E);
   /// Booked / unavailable slot chip background.
-  static const slotBookedBackgroundColor = Color(0xFF5C2424);
+  static const slotBookedBackgroundColor = Color(0xFF512324);
   static const darkNearbyColor = Color(0xFF222222);
   static const searchBackgroundColor = Color(0xFF23262D);
   static const iconGlassBackgroundColor = Color(0xFF4F5D6D);

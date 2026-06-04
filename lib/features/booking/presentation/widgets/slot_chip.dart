@@ -42,10 +42,10 @@ class SlotChip extends StatelessWidget {
         }
         break;
       case SlotStyle.booked:
-        bg = AppColors.slotBookedBackgroundColor.withValues(alpha: 0.5);
+        bg = AppColors.slotBookedBackgroundColor;
         border = ui.isLight
-            ? AppColors.slotBookedBackgroundColor.withValues(alpha: 0.88)
-            : AppColors.slotBookedBackgroundColor;
+            ? AppColors.slotBookedBackgroundColor.withValues(alpha: 0.2)
+            : AppColors.slotBookedBackgroundColor.withValues(alpha: 0.92);
         textColor =
             ui.isLight ? AppColors.whiteColor : AppColors.whiteColor.withValues(alpha: 0.94);
         break;
@@ -66,7 +66,7 @@ class SlotChip extends StatelessWidget {
       border = ui.isLight
           ? AppColors.primaryDarkColor.withValues(alpha: 0.95)
           : AppColors.primaryLightColor.withValues(alpha: 0.72);
-      textColor = AppColors.whiteColor;
+      textColor = AppColors.blackColor;
       chipShadow = [
         BoxShadow(
           color:
@@ -88,7 +88,7 @@ class SlotChip extends StatelessWidget {
           duration: const Duration(milliseconds: 150),
           curve: Curves.easeOut,
           width: width,
-          padding: EdgeInsets.symmetric(vertical: 10.h),
+          padding: EdgeInsets.symmetric(vertical: 4.h),
           decoration: BoxDecoration(
             color: bg,
             borderRadius: BorderRadius.circular(34.r),
@@ -106,12 +106,12 @@ class SlotChip extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(
-                          Icons.check_circle_rounded,
-                          size: 13.sp,
-                          color: AppColors.whiteColor.withValues(alpha: 0.95),
-                        ),
-                        3.horizontalSpace,
+                        // Icon(
+                        //   Icons.check_circle_rounded,
+                        //   size: 13.sp,
+                        //   color: AppColors.whiteColor.withValues(alpha: 0.95),
+                        // ),
+                        // 3.horizontalSpace,
                         AppText(
                           time,
                           color: textColor,

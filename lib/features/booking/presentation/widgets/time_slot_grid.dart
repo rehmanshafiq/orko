@@ -37,7 +37,7 @@ class TimeSlotGrid extends StatelessWidget {
       builder: (context, constraints) {
         const crossAxisCount = 4;
         final spacing = 8.w;
-        final itemWidth = ((constraints.maxWidth - spacing * (crossAxisCount - 1)) / crossAxisCount) - 18.w;
+        final itemWidth = ((constraints.maxWidth - spacing * (crossAxisCount - 1)) / crossAxisCount) - 6.w;
         final itemHeight = 30.h;
         final childAspectRatio = itemWidth / itemHeight;
 
