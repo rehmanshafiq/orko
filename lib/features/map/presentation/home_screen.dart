@@ -31,17 +31,17 @@ class _HomeScreenState extends State<HomeScreen> {
 
   static const String _tealMapStyle = '''
 [
-  {"elementType":"geometry","stylers":[{"color":"#0c4a4e"}]},
-  {"elementType":"labels.text.fill","stylers":[{"color":"#7dd3e8"}]},
-  {"elementType":"labels.text.stroke","stylers":[{"color":"#0c4a4e"}]},
-  {"featureType":"administrative","elementType":"geometry","stylers":[{"color":"#0f5c60"}]},
+  {"elementType":"geometry","stylers":[{"color":"#315E64"}]},
+  {"elementType":"labels.text.fill","stylers":[{"color":"#F7F9F8"}]},
+  {"elementType":"labels.text.stroke","stylers":[{"color":"#315E64"}]},
+  {"featureType":"administrative","elementType":"geometry","stylers":[{"color":"#F7F9F8"}]},
   {"featureType":"poi","elementType":"labels.text","stylers":[{"visibility":"off"}]},
-  {"featureType":"road","elementType":"geometry","stylers":[{"color":"#136b70"}]},
-  {"featureType":"road","elementType":"geometry.stroke","stylers":[{"color":"#5eead4"}]},
-  {"featureType":"road.arterial","elementType":"geometry","stylers":[{"color":"#17838a"}]},
-  {"featureType":"road.highway","elementType":"geometry","stylers":[{"color":"#1a9aa3"}]},
-  {"featureType":"transit","elementType":"geometry","stylers":[{"color":"#0f5c60"}]},
-  {"featureType":"water","elementType":"geometry","stylers":[{"color":"#083a3e"}]}
+  {"featureType":"road","elementType":"geometry","stylers":[{"color":"#F7F9F8"}]},
+  {"featureType":"road","elementType":"geometry.stroke","stylers":[{"color":"#315E64"}]},
+  {"featureType":"road.arterial","elementType":"geometry","stylers":[{"color":"#F7F9F8"}]},
+  {"featureType":"road.highway","elementType":"geometry","stylers":[{"color":"#F7F9F8"}]},
+  {"featureType":"transit","elementType":"geometry","stylers":[{"color":"#F7F9F8"}]},
+  {"featureType":"water","elementType":"geometry","stylers":[{"color":"#315E64"}]}
 ]
 ''';
 
@@ -745,15 +745,20 @@ class _HomeScreenState extends State<HomeScreen> {
                     color: AppColors.transparentColor,
                     child: InkWell(
                       onTap: () => context.push('/bookings'),
-                      borderRadius: BorderRadius.circular(12.r),
+                      borderRadius: BorderRadius.circular(24.r),
                       child: Ink(
                         padding: EdgeInsets.symmetric(
                           horizontal: 16.w,
                           vertical: 8.h,
                         ),
                         decoration: BoxDecoration(
-                          color: t.brandGreenBright,
-                          borderRadius: BorderRadius.circular(30.r),
+                          gradient: LinearGradient(
+                            colors: [
+                              t.bookSlotDarkGreen,
+                              t.bookSlotPrimaryGreen,
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(24.r),
                         ),
                         child: AppText(
                           'Book',

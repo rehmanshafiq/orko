@@ -3,12 +3,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
+import 'package:orko_hubco/core/constants/app_revamped_theme.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/utils/helpers.dart';
 import 'package:orko_hubco/core/utils/app_ui.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
 import 'package:orko_hubco/core/utils/widgets/image_view/app_image_view.dart';
-import 'package:orko_hubco/core/utils/widgets/primary_button_widget.dart';
 import 'package:orko_hubco/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:orko_hubco/features/auth/presentation/cubit/auth_state.dart';
 
@@ -96,7 +96,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     20.verticalSpace,
-                    _buildSignInButton(state, ui),
+                    _buildSignInButton(context, state, ui),
                     28.verticalSpace,
                     _buildContinueWith(ui),
                     18.verticalSpace,
@@ -383,34 +383,52 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildSignInButton(AuthState state, AppUiColors ui) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12.r),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primaryDarkColor.withValues(alpha: 0.35),
-            blurRadius: 14,
-            spreadRadius: 1,
-            offset: const Offset(0, 6),
+  Widget _buildSignInButton(
+    BuildContext context,
+    AuthState state,
+    AppUiColors ui,
+  ) {
+    return SizedBox(
+      height: 52.h,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              context.revampedTheme.bookSlotDarkGreen,
+              context.revampedTheme.bookSlotPrimaryGreen,
+            ],
           ),
-          BoxShadow(
-            color: ui.socialButtonShadow,
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+          borderRadius: BorderRadius.circular(24.r),
+          boxShadow: [
+            BoxShadow(
+              color: context.revampedTheme.bookSlotPrimaryGreen
+                  .withValues(alpha: 0.35),
+              blurRadius: 14,
+              spreadRadius: 1,
+              offset: const Offset(0, 6),
+            ),
+            BoxShadow(
+              color: ui.socialButtonShadow,
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Material(
+          color: AppColors.transparentColor,
+          child: InkWell(
+            onTap: state is AuthLoading ? null : _onLogin,
+            borderRadius: BorderRadius.circular(24.r),
+            child: Center(
+              child: AppText(
+                state is AuthLoading ? 'Signing In...' : 'Sign In',
+                color: context.revampedTheme.textOnBrand,
+                fontSize: FontSizes.font16Sp,
+                fontWeight: FontWeights.weight400,
+              ),
+            ),
           ),
-        ],
-      ),
-      child: PrimaryButtonWidget(
-        text: state is AuthLoading ? 'Signing In...' : 'Sign In',
-        onPress: _onLogin,
-        isEnabled: state is! AuthLoading,
-        buttonHeight: 52.h,
-        cornerRadius: 12.r,
-        buttonColor: AppColors.primaryDarkColor,
-        textColor: AppColors.whiteColor,
-        fontSize: FontSizes.font16Sp,
-        fontWeight: FontWeights.weight400,
+        ),
       ),
     );
   }

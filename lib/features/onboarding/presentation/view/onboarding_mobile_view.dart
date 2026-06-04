@@ -292,7 +292,7 @@ class _HeroImage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20.r),
+        borderRadius: BorderRadius.circular(2.r),
         boxShadow: [
           BoxShadow(
             color: t.shadow,
@@ -307,7 +307,7 @@ class _HeroImage extends StatelessWidget {
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(20.r),
+        borderRadius: BorderRadius.circular(2.r),
         child: AppPngImageView(
           appImagePath: imagePath,
           height: height,
