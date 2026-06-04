@@ -20,16 +20,17 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.revampedTheme;
     final ui = AppUiColors.of(context);
     return Scaffold(
-      backgroundColor: ui.scaffoldBackground,
+      backgroundColor: t.scaffoldBackground,
       body: SafeArea(
         child: BlocBuilder<ProfileCubit, ProfileState>(
           builder: (context, state) {
             if (state is ProfileLoading || state is ProfileInitial) {
               return Center(
                 child: CircularProgressIndicator(
-                  color: AppColors.primaryDarkColor,
+                  color: t.brandGreen,
                   strokeWidth: 2.5,
                 ),
               );
@@ -43,7 +44,7 @@ class ProfileScreen extends StatelessWidget {
                   children: [
                     Icon(
                       Icons.cloud_off_outlined,
-                      color: AppColors.iconsGreyColor,
+                      color: ui.textSecondary,
                       size: 48.r,
                     ),
                     16.verticalSpace,
@@ -131,18 +132,31 @@ class _ProfileHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.revampedTheme;
     final cubit = context.read<ProfileCubit>();
     final profile = state.profile;
     final bottomRadius = 20.r;
+    final headerAccent = t.bookSlotDarkGreen;
 
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: AppColors.primaryDarkColor,
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [t.ecoGradientStart, t.ecoGradientEnd],
+        ),
         borderRadius: BorderRadius.only(
           bottomLeft: Radius.circular(bottomRadius),
           bottomRight: Radius.circular(bottomRadius),
         ),
+        boxShadow: [
+          BoxShadow(
+            color: t.brandGreen.withValues(alpha: 0.22),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
       ),
       padding: EdgeInsets.fromLTRB(16.w, 12.h, 16.w, 14.h),
       child: Column(
@@ -178,14 +192,14 @@ class _ProfileHeader extends StatelessWidget {
                         color: AppColors.whiteColor,
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: AppColors.primaryDarkColor,
+                          color: headerAccent,
                           width: 2,
                         ),
                       ),
                       child: Icon(
                         Icons.photo_camera_outlined,
                         size: 14.r,
-                        color: AppColors.primaryDarkColor,
+                        color: headerAccent,
                       ),
                     ),
                   ),
@@ -277,6 +291,7 @@ class _HeaderTabChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.revampedTheme;
     return Material(
       color: AppColors.transparentColor,
       child: InkWell(
@@ -288,7 +303,7 @@ class _HeaderTabChip extends StatelessWidget {
           decoration: BoxDecoration(
             color: selected
                 ? AppColors.whiteColor
-                : AppColors.transparentColor,
+                : AppColors.whiteColor.withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(20.r),
             border: Border.all(
               color: selected
@@ -303,17 +318,13 @@ class _HeaderTabChip extends StatelessWidget {
               Icon(
                 icon,
                 size: 16.r,
-                color: selected
-                    ? AppColors.primaryDarkColor
-                    : AppColors.whiteColor,
+                color: selected ? t.brandGreen : AppColors.whiteColor,
               ),
               4.horizontalSpace,
               Flexible(
                 child: AppText(
                   label,
-                  color: selected
-                      ? AppColors.primaryDarkColor
-                      : AppColors.whiteColor,
+                  color: selected ? t.brandGreen : AppColors.whiteColor,
                   fontSize: FontSizes.font12Sp,
                   fontWeight: FontWeights.weight600,
                   maxLines: 1,
@@ -354,6 +365,7 @@ class _ProfileTabBody extends StatelessWidget {
 class _StatsGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final t = context.revampedTheme;
     final ui = AppUiColors.of(context);
     return Column(
       children: [
@@ -362,8 +374,8 @@ class _StatsGrid extends StatelessWidget {
             Expanded(
               child: _StatTile(
                 icon: Icons.bolt_rounded,
-                iconBg: AppColors.mapPinBlueColor.withValues(alpha: 0.2),
-                iconColor: AppColors.mapPinBlueColor,
+                iconBg: t.mintIconBackground,
+                iconColor: t.brandGreen,
                 value: '47',
                 valueColor: ui.textPrimary,
                 label: 'Total Charges',
@@ -373,10 +385,10 @@ class _StatsGrid extends StatelessWidget {
             Expanded(
               child: _StatTile(
                 icon: Icons.battery_charging_full_rounded,
-                iconBg: AppColors.primaryLightColor.withValues(alpha: 0.2),
-                iconColor: AppColors.primaryLightColor,
+                iconBg: t.mintIconBackground,
+                iconColor: t.brandGreenLight,
                 value: '1245',
-                valueColor: AppColors.primaryLightColor,
+                valueColor: t.brandGreenLight,
                 label: 'kWh Charged',
               ),
             ),
@@ -387,8 +399,8 @@ class _StatsGrid extends StatelessWidget {
           children: [
             Expanded(
               child: _StatTile(
-                icon: Icons.trending_up_rounded,
-                iconBg: AppColors.ratingStarColor.withValues(alpha: 0.2),
+                icon: Icons.savings_outlined,
+                iconBg: AppColors.ratingStarColor.withValues(alpha: 0.18),
                 iconColor: AppColors.ratingStarColor,
                 value: 'PKR 12,450',
                 valueColor: AppColors.ratingStarColor,
@@ -399,10 +411,10 @@ class _StatsGrid extends StatelessWidget {
             Expanded(
               child: _StatTile(
                 icon: Icons.eco_outlined,
-                iconBg: AppColors.primaryDarkColor.withValues(alpha: 0.25),
-                iconColor: AppColors.primaryLightColor,
+                iconBg: t.mintIconBackground,
+                iconColor: t.brandGreenBright,
                 value: '285 kg',
-                valueColor: AppColors.primaryLightColor,
+                valueColor: t.brandGreenBright,
                 label: 'CO2 Reduced',
               ),
             ),
@@ -432,15 +444,13 @@ class _StatTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ui = AppUiColors.of(context);
+    final t = context.revampedTheme;
     return Container(
       padding: AppUtils.all12Padding,
       decoration: BoxDecoration(
-        color: ui.cardBackground,
+        color: t.cardBackground,
         borderRadius: BorderRadius.circular(14.r),
-        border: Border.all(
-          color: ui.borderSubtle,
-        ),
+        border: Border.all(color: t.stationCardBorder),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -463,7 +473,7 @@ class _StatTile extends StatelessWidget {
           4.verticalSpace,
           AppText(
             label,
-            color: ui.textSecondary,
+            color: t.textSecondary,
             fontSize: FontSizes.font12Sp,
             fontWeight: FontWeights.weight400,
           ),
@@ -476,26 +486,14 @@ class _StatTile extends StatelessWidget {
 class _AchievementsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final ui = AppUiColors.of(context);
+    final t = context.revampedTheme;
     return _SectionCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Icon(
-                Icons.workspace_premium_outlined,
-                color: AppColors.primaryLightColor,
-                size: 22.r,
-              ),
-              8.horizontalSpace,
-              AppText(
-                'Achievements',
-                color: ui.textPrimary,
-                fontSize: FontSizes.font16Sp,
-                fontWeight: FontWeights.weight700,
-              ),
-            ],
+          _SectionTitleRow(
+            title: 'Achievements',
+            icon: Icons.workspace_premium_outlined,
           ),
           16.verticalSpace,
           Row(
@@ -504,19 +502,19 @@ class _AchievementsCard extends StatelessWidget {
               _AchievementBadge(
                 label: 'Early Adopter',
                 icon: Icons.military_tech_rounded,
-                circleColor: AppColors.slotBusyYellowColor.withValues(alpha: 0.35),
+                circleColor: AppColors.ratingStarColor.withValues(alpha: 0.22),
                 iconColor: AppColors.ratingStarColor,
               ),
               _AchievementBadge(
                 label: 'Eco Warrior',
-                icon: Icons.trending_up_rounded,
-                circleColor: AppColors.primaryDarkColor.withValues(alpha: 0.35),
-                iconColor: AppColors.primaryLightColor,
+                icon: Icons.eco_outlined,
+                circleColor: t.mintIconBackground,
+                iconColor: t.brandGreen,
               ),
               _AchievementBadge(
                 label: 'Road Tripper',
                 icon: Icons.directions_car_filled_rounded,
-                circleColor: AppColors.mapPinBlueColor.withValues(alpha: 0.25),
+                circleColor: AppColors.mapPinBlueColor.withValues(alpha: 0.18),
                 iconColor: AppColors.mapPinBlueColor,
               ),
             ],
@@ -557,7 +555,7 @@ class _AchievementBadge extends StatelessWidget {
         8.verticalSpace,
         AppText(
           label,
-          color: AppUiColors.of(context).textSecondary,
+          color: context.revampedTheme.textSecondary,
           fontSize: FontSizes.font12Sp,
           fontWeight: FontWeights.weight500,
           textAlign: TextAlign.center,
@@ -575,6 +573,7 @@ class _PersonalInfoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.revampedTheme;
     final ui = AppUiColors.of(context);
     return _SectionCard(
       child: Column(
@@ -583,11 +582,9 @@ class _PersonalInfoCard extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: AppText(
-                  'Personal Information',
-                  color: ui.textPrimary,
-                  fontSize: FontSizes.font16Sp,
-                  fontWeight: FontWeights.weight700,
+                child: _SectionTitleRow(
+                  title: 'Personal Information',
+                  icon: Icons.badge_outlined,
                 ),
               ),
               PrimaryButtonWidget(
@@ -597,8 +594,8 @@ class _PersonalInfoCard extends StatelessWidget {
                 buttonHeight: 36.h,
                 cornerRadius: 10.r,
                 buttonColor: ui.chipInactiveBg,
-                strokeColor: AppColors.primaryDarkColor,
-                textColor: AppColors.primaryDarkColor,
+                strokeColor: t.brandGreen,
+                textColor: t.brandGreen,
                 fontSize: FontSizes.font12Sp,
                 fontWeight: FontWeights.weight600,
               ),
@@ -673,25 +670,24 @@ class _DividerLine extends StatelessWidget {
 class _DrivingEfficiencyCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final t = context.revampedTheme;
     final ui = AppUiColors.of(context);
     return Container(
       width: double.infinity,
       padding: AppUtils.all18Padding,
       decoration: BoxDecoration(
-        color: ui.drivingEfficiencyBg,
+        color: t.mintIconBackground.withValues(alpha: ui.isLight ? 0.35 : 0.5),
         borderRadius: BorderRadius.circular(14.r),
         border: Border.all(
-          color: ui.drivingEfficiencyBorder,
+          color: t.brandGreen.withValues(alpha: 0.22),
         ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          AppText(
-            'Driving Efficiency',
-            color: ui.textPrimary,
-            fontSize: FontSizes.font16Sp,
-            fontWeight: FontWeights.weight700,
+          _SectionTitleRow(
+            title: 'Driving Efficiency',
+            icon: Icons.speed_outlined,
           ),
           14.verticalSpace,
           Row(
@@ -699,14 +695,14 @@ class _DrivingEfficiencyCard extends StatelessWidget {
               Expanded(
                 child: AppText(
                   'Overall Efficiency',
-                  color: ui.textSecondary,
+                  color: t.textSecondary,
                   fontSize: FontSizes.font12Sp,
                   fontWeight: FontWeights.weight400,
                 ),
               ),
               AppText(
                 '92%',
-                color: AppColors.primaryLightColor,
+                color: t.brandGreenLight,
                 fontSize: FontSizes.font14Sp,
                 fontWeight: FontWeights.weight700,
               ),
@@ -718,10 +714,8 @@ class _DrivingEfficiencyCard extends StatelessWidget {
             child: LinearProgressIndicator(
               value: 0.92,
               minHeight: 8.h,
-              backgroundColor: ui.progressTrack,
-              valueColor: AlwaysStoppedAnimation<Color>(
-                AppColors.primaryDarkColor,
-              ),
+              backgroundColor: t.progressTrack,
+              valueColor: AlwaysStoppedAnimation<Color>(t.brandGreen),
             ),
           ),
           14.verticalSpace,
@@ -747,12 +741,15 @@ class _DrivingEfficiencyCard extends StatelessWidget {
             width: double.infinity,
             padding: AppUtils.vertical10Horizontal12Padding,
             decoration: BoxDecoration(
-              color: ui.efficiencyTipBg,
+              color: t.subtleSurface,
               borderRadius: BorderRadius.circular(10.r),
+              border: Border.all(
+                color: t.brandGreen.withValues(alpha: 0.15),
+              ),
             ),
             child: AppText(
               'Efficiency Tip: Maintain steady speeds on highways to improve range by up to 15%.',
-              color: AppColors.primaryLightColor,
+              color: t.brandGreenLight,
               fontSize: FontSizes.font12Sp,
               fontWeight: FontWeights.weight400,
               height: 1.35,
@@ -772,29 +769,27 @@ class _MiniMetric extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ui = AppUiColors.of(context);
+    final t = context.revampedTheme;
     return Container(
       padding: AppUtils.all12Padding,
       decoration: BoxDecoration(
-        color: ui.innerCardBg,
+        color: t.subtleSurface,
         borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(
-          color: ui.borderSubtle,
-        ),
+        border: Border.all(color: t.stationCardBorder),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           AppText(
             title,
-            color: ui.textSecondary,
+            color: t.textSecondary,
             fontSize: FontSizes.font12Sp,
             fontWeight: FontWeights.weight400,
           ),
           6.verticalSpace,
           AppText(
             value,
-            color: ui.textPrimary,
+            color: t.textPrimary,
             fontSize: FontSizes.font14Sp,
             fontWeight: FontWeights.weight700,
           ),
@@ -910,12 +905,13 @@ class _VehicleCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.revampedTheme;
     final ui = AppUiColors.of(context);
     return Container(
       decoration: BoxDecoration(
-        color: ui.cardBackground,
+        color: t.cardBackground,
         borderRadius: BorderRadius.circular(14.r),
-        border: Border.all(color: AppColors.primaryDarkColor.withValues(alpha: 0.45)),
+        border: Border.all(color: t.stationCardBorder),
       ),
       clipBehavior: Clip.antiAlias,
       child: Column(
@@ -931,7 +927,7 @@ class _VehicleCard extends StatelessWidget {
                 child: Icon(
                   Icons.electric_car_rounded,
                   size: 72.r,
-                  color: AppColors.primaryDarkColor.withValues(alpha: 0.85),
+                  color: t.brandGreen.withValues(alpha: 0.75),
                 ),
               ),
               if (vehicle.isPrimary)
@@ -941,7 +937,7 @@ class _VehicleCard extends StatelessWidget {
                   child: Container(
                     padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
                     decoration: BoxDecoration(
-                      color: AppColors.primaryDarkColor,
+                      color: t.brandGreen,
                       borderRadius: BorderRadius.circular(8.r),
                     ),
                     child: AppText(
@@ -1004,8 +1000,11 @@ class _VehicleCard extends StatelessWidget {
                 Container(
                   padding: EdgeInsets.fromLTRB(12.w, 10.h, 12.w, 10.h),
                   decoration: BoxDecoration(
-                    color: AppColors.primaryDarkColor.withValues(alpha: 0.15),
+                    color: t.mintIconBackground.withValues(alpha: 0.45),
                     borderRadius: BorderRadius.circular(10.r),
+                    border: Border.all(
+                      color: t.brandGreen.withValues(alpha: 0.18),
+                    ),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1015,14 +1014,14 @@ class _VehicleCard extends StatelessWidget {
                           Expanded(
                             child: AppText(
                               'Current Range',
-                              color: ui.textPrimary.withValues(alpha: 0.85),
+                              color: t.textSecondary,
                               fontSize: FontSizes.font12Sp,
                               fontWeight: FontWeights.weight500,
                             ),
                           ),
                           AppText(
                             '${vehicle.rangeKm} km',
-                            color: AppColors.primaryLightColor,
+                            color: t.brandGreenLight,
                             fontSize: FontSizes.font14Sp,
                             fontWeight: FontWeights.weight700,
                           ),
@@ -1034,9 +1033,9 @@ class _VehicleCard extends StatelessWidget {
                         child: LinearProgressIndicator(
                           value: vehicle.rangeFraction,
                           minHeight: 6.h,
-                          backgroundColor: ui.progressTrack,
+                          backgroundColor: t.progressTrack,
                           valueColor: AlwaysStoppedAnimation<Color>(
-                            AppColors.primaryDarkColor,
+                            t.brandGreen,
                           ),
                         ),
                       ),
@@ -1099,8 +1098,8 @@ class _VehicleCard extends StatelessWidget {
                     buttonHeight: 44.h,
                     cornerRadius: 12.r,
                     buttonColor: ui.chipInactiveBg,
-                    strokeColor: AppColors.primaryDarkColor,
-                    textColor: AppColors.primaryLightColor,
+                    strokeColor: t.brandGreen,
+                    textColor: t.brandGreenLight,
                     fontSize: FontSizes.font14Sp,
                     fontWeight: FontWeights.weight600,
                   ),
@@ -1133,16 +1132,18 @@ class _VehicleStatBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.revampedTheme;
     final ui = AppUiColors.of(context);
     return Container(
       padding: EdgeInsets.symmetric(vertical: 10.h, horizontal: 6.w),
       decoration: BoxDecoration(
         color: ui.vehicleStatBoxBg,
         borderRadius: BorderRadius.circular(10.r),
+        border: Border.all(color: t.stationCardBorder),
       ),
       child: Column(
         children: [
-          Icon(icon, color: ui.textSecondary, size: 18.r),
+          Icon(icon, color: t.brandGreen, size: 18.r),
           6.verticalSpace,
           AppText(
             label,
@@ -1174,35 +1175,24 @@ class _ChargingPatternsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ui = AppUiColors.of(context);
+    final t = context.revampedTheme;
     return Container(
       width: double.infinity,
       padding: AppUtils.all12Padding,
       decoration: BoxDecoration(
-        color: ui.chargingPatternsBg,
+        color: t.pricingCardBackground.withValues(alpha: 0.35),
         borderRadius: BorderRadius.circular(12.r),
         border: Border.all(
-          color: ui.chargingPatternsBorder,
+          color: t.stationCardBorder,
         ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Icon(
-                Icons.calendar_month_outlined,
-                color: AppColors.mapPinBlueColor,
-                size: 20.r,
-              ),
-              8.horizontalSpace,
-              AppText(
-                'Charging Patterns',
-                color: ui.textPrimary,
-                fontSize: FontSizes.font14Sp,
-                fontWeight: FontWeights.weight700,
-              ),
-            ],
+          _SectionTitleRow(
+            title: 'Charging Patterns',
+            icon: Icons.calendar_month_outlined,
+            compact: true,
           ),
           12.verticalSpace,
           _PatternRow(label: 'Most Active Day', value: data.mostActiveDay),
@@ -1260,7 +1250,6 @@ class _SettingsTabBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<ProfileCubit>();
-    final ui = AppUiColors.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -1268,21 +1257,9 @@ class _SettingsTabBody extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  Icon(
-                    Icons.notifications_outlined,
-                    color: AppColors.primaryLightColor,
-                    size: 20.r,
-                  ),
-                  8.horizontalSpace,
-                  AppText(
-                    'Notifications',
-                    color: ui.textPrimary,
-                    fontSize: FontSizes.font16Sp,
-                    fontWeight: FontWeights.weight700,
-                  ),
-                ],
+              _SectionTitleRow(
+                title: 'Notifications',
+                icon: Icons.notifications_outlined,
               ),
               8.verticalSpace,
               _NotificationRow(
@@ -1322,11 +1299,9 @@ class _SettingsTabBody extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              AppText(
-                'Account',
-                color: ui.textPrimary,
-                fontSize: FontSizes.font16Sp,
-                fontWeight: FontWeights.weight700,
+              _SectionTitleRow(
+                title: 'Account',
+                icon: Icons.manage_accounts_outlined,
               ),
               10.verticalSpace,
               _AccountTile(
@@ -1353,6 +1328,7 @@ class _AppearanceSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.revampedTheme;
     final ui = AppUiColors.of(context);
     final themeCubit = context.read<ThemeCubit>();
     final isLight = Theme.of(context).brightness == Brightness.light;
@@ -1361,21 +1337,9 @@ class _AppearanceSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Icon(
-                Icons.brightness_6_outlined,
-                color: AppColors.primaryLightColor,
-                size: 20.r,
-              ),
-              8.horizontalSpace,
-              AppText(
-                'Appearance',
-                color: ui.textPrimary,
-                fontSize: FontSizes.font16Sp,
-                fontWeight: FontWeights.weight700,
-              ),
-            ],
+          _SectionTitleRow(
+            title: 'Appearance',
+            icon: Icons.brightness_6_outlined,
           ),
           14.verticalSpace,
           Row(
@@ -1386,11 +1350,9 @@ class _AppearanceSection extends StatelessWidget {
                   onPress: themeCubit.setLight,
                   buttonHeight: 44.h,
                   cornerRadius: 10.r,
-                  buttonColor:
-                      isLight ? AppColors.primaryDarkColor : ui.chipInactiveBg,
-                  strokeColor: AppColors.primaryDarkColor,
-                  textColor:
-                      isLight ? AppColors.whiteColor : ui.textPrimary,
+                  buttonColor: isLight ? t.brandGreen : ui.chipInactiveBg,
+                  strokeColor: t.brandGreen,
+                  textColor: isLight ? t.textOnBrand : t.textPrimary,
                   fontSize: FontSizes.font14Sp,
                   fontWeight: FontWeights.weight600,
                 ),
@@ -1402,11 +1364,9 @@ class _AppearanceSection extends StatelessWidget {
                   onPress: themeCubit.setDark,
                   buttonHeight: 44.h,
                   cornerRadius: 10.r,
-                  buttonColor:
-                      !isLight ? AppColors.primaryDarkColor : ui.chipInactiveBg,
-                  strokeColor: AppColors.primaryDarkColor,
-                  textColor:
-                      !isLight ? AppColors.whiteColor : ui.textPrimary,
+                  buttonColor: !isLight ? t.brandGreen : ui.chipInactiveBg,
+                  strokeColor: t.brandGreen,
+                  textColor: !isLight ? t.textOnBrand : t.textPrimary,
                   fontSize: FontSizes.font14Sp,
                   fontWeight: FontWeights.weight600,
                 ),
@@ -1414,56 +1374,6 @@ class _AppearanceSection extends StatelessWidget {
             ],
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _LanguageChip extends StatelessWidget {
-  const _LanguageChip({
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final ui = AppUiColors.of(context);
-    return Material(
-      color: AppColors.transparentColor,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(10.r),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          width: double.infinity,
-          padding: EdgeInsets.symmetric(vertical: 12.h),
-          decoration: BoxDecoration(
-            color: selected
-                ? AppColors.primaryDarkColor
-                : ui.chipInactiveBg,
-            borderRadius: BorderRadius.circular(10.r),
-            border: Border.all(
-              color: selected
-                  ? AppColors.primaryDarkColor
-                  : ui.chipInactiveBorder,
-            ),
-          ),
-          alignment: Alignment.center,
-          child: AppText(
-            label,
-            color: selected
-                ? AppColors.whiteColor
-                : ui.textPrimary.withValues(alpha: 0.88),
-            fontSize: FontSizes.font14Sp,
-            fontWeight: FontWeights.weight600,
-            textAlign: TextAlign.center,
-          ),
-        ),
       ),
     );
   }
@@ -1484,6 +1394,7 @@ class _NotificationRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.revampedTheme;
     final ui = AppUiColors.of(context);
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 10.h),
@@ -1515,9 +1426,9 @@ class _NotificationRow extends StatelessWidget {
             value: value,
             onChanged: onChanged,
             activeThumbColor: AppColors.whiteColor,
-            activeTrackColor: AppColors.primaryDarkColor,
+            activeTrackColor: t.brandGreen,
             inactiveThumbColor: AppColors.iconsGreyColor,
-            inactiveTrackColor: AppColors.greyColor.withValues(alpha: 0.45),
+            inactiveTrackColor: t.progressTrack,
           ),
         ],
       ),
@@ -1538,6 +1449,7 @@ class _AccountTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.revampedTheme;
     final ui = AppUiColors.of(context);
     return Material(
       color: AppColors.transparentColor,
@@ -1548,7 +1460,14 @@ class _AccountTile extends StatelessWidget {
           padding: EdgeInsets.symmetric(vertical: 12.h),
           child: Row(
             children: [
-              Icon(icon, color: AppColors.primaryLightColor, size: 22.r),
+              Container(
+                padding: EdgeInsets.all(8.r),
+                decoration: BoxDecoration(
+                  color: t.mintIconBackground.withValues(alpha: 0.5),
+                  borderRadius: BorderRadius.circular(10.r),
+                ),
+                child: Icon(icon, color: t.brandGreen, size: 20.r),
+              ),
               12.horizontalSpace,
               Expanded(
                 child: AppText(
@@ -1578,18 +1497,68 @@ class _SectionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ui = AppUiColors.of(context);
+    final t = context.revampedTheme;
     return Container(
       width: double.infinity,
       padding: AppUtils.all18Padding,
       decoration: BoxDecoration(
-        color: ui.cardBackground,
+        color: t.cardBackground,
         borderRadius: BorderRadius.circular(14.r),
-        border: Border.all(
-          color: ui.borderSubtle,
-        ),
+        border: Border.all(color: t.stationCardBorder),
+        boxShadow: [
+          BoxShadow(
+            color: t.shadow,
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: child,
+    );
+  }
+}
+
+/// Section heading with mint icon badge — matches booking / payment screens.
+class _SectionTitleRow extends StatelessWidget {
+  const _SectionTitleRow({
+    required this.title,
+    required this.icon,
+    this.compact = false,
+  });
+
+  final String title;
+  final IconData icon;
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.revampedTheme;
+    final titleSize =
+        compact ? FontSizes.font14Sp : FontSizes.font16Sp;
+    return Row(
+      children: [
+        Container(
+          padding: EdgeInsets.all(compact ? 6.r : 8.r),
+          decoration: BoxDecoration(
+            color: t.mintIconBackground.withValues(alpha: 0.55),
+            borderRadius: BorderRadius.circular(10.r),
+          ),
+          child: Icon(
+            icon,
+            color: t.brandGreen,
+            size: compact ? 18.r : 20.r,
+          ),
+        ),
+        8.horizontalSpace,
+        Expanded(
+          child: AppText(
+            title,
+            color: t.textPrimary,
+            fontSize: titleSize,
+            fontWeight: FontWeights.weight700,
+          ),
+        ),
+      ],
     );
   }
 }
