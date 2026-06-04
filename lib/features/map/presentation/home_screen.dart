@@ -192,7 +192,7 @@ class _HomeScreenState extends State<HomeScreen> {
       final center = Offset(size / 2, size / 2);
       final radius = size * 0.38;
 
-      final fillPaint = Paint()..color = const Color(0xFFEF4444);
+      final fillPaint = Paint()..color = AppColors.primaryDarkColor;
       canvas.drawCircle(center, radius, fillPaint);
 
       final borderPaint = Paint()
@@ -775,7 +775,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildPortIndicatorStack(BuildContext context) {
     final badgeSize = 28.w;
-    final overlap = 10.w;
+    final overlap = 4.w;
     final step = badgeSize - overlap;
 
     return SizedBox(
