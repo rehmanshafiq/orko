@@ -32,7 +32,7 @@ class SummaryBottomCard extends StatelessWidget {
       width: double.infinity,
       padding: AppUtils.all12Padding,
       decoration: BoxDecoration(
-        color: ui.cardBackground,
+        color: ui.cardBookingBackground,
         borderRadius: BorderRadius.circular(14.r),
         border: Border.all(color: ui.borderSubtle),
       ),
@@ -60,7 +60,7 @@ class SummaryBottomCard extends StatelessWidget {
             fontWeight: FontWeights.weight700,
             fontSize: FontSizes.font15Sp,
             buttonWidth: buttonWidth,
-            cornerRadius: 12.r,
+            cornerRadius: 32.r,
             isEnabled: isContinueEnabled,
           ),
         ],

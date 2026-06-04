@@ -26,6 +26,7 @@ class AppColors {
   static const primaryLightColor = Color(0xFF8FCF4D);
   static const primaryDarkColor = Color(0xFF329748);
   static const fieldBackgroundColor = Color(0xFF171717);
+  static const fieldBackgroundBookingColor = Color(0xFF27252B);
   static const mapPinBlueColor = Color(0xFF2A83FF);
   /// Star icons on reviews / ratings (warm gold on dark UI).
   static const ratingStarColor = Color(0xFFFFB74D);
@@ -58,6 +59,9 @@ class AppUiColors {
 
   Color get cardBackground =>
       isLight ? AppColors.whiteColor : AppColors.fieldBackgroundColor;
+
+  Color get cardBookingBackground =>
+      isLight ? AppColors.whiteColor : AppColors.fieldBackgroundBookingColor;
 
   Color get textPrimary =>
       isLight ? AppColors.blackColor : AppColors.whiteColor;

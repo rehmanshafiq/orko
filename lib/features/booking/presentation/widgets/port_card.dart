@@ -25,8 +25,12 @@ class PortCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final backgroundColor =
-        selected ? AppColors.primaryDarkColor.withValues(alpha: 0.95) : ui.cardBackground;
+    final backgroundColor = selected
+        ? Color.alphaBlend(
+            AppColors.primaryDarkColor.withValues(alpha: 0.28),
+            ui.cardBackground,
+          )
+        : ui.cardBackground;
     final borderColor = selected ? AppColors.primaryDarkColor : ui.borderSubtle;
     final glow = selected
         ? [
@@ -71,7 +75,7 @@ class PortCard extends StatelessWidget {
                       width: 42.sp,
                       height: 42.sp,
                       fit: BoxFit.contain,
-                      color: selected ? AppColors.whiteColor : AppColors.iconsGreyColor,
+                      color: selected ? AppColors.primaryDarkColor : AppColors.iconsGreyColor,
                     ),
                   ),
                 ],
@@ -79,7 +83,7 @@ class PortCard extends StatelessWidget {
               8.verticalSpace,
               AppText(
                 specs,
-                color: selected ? AppColors.whiteColor : ui.textSecondary,
+                color: ui.textSecondary,
                 fontSize: FontSizes.font12Sp,
                 fontWeight: FontWeights.weight400,
               ),
@@ -91,13 +95,13 @@ class PortCard extends StatelessWidget {
                   padding: AppUtils.horizontal8Vertical2Padding,
                   decoration: BoxDecoration(
                     color: selected
-                        ? AppColors.whiteColor.withValues(alpha: 0.25)
+                        ? AppColors.primaryDarkColor.withValues(alpha: 0.35)
                         : AppColors.primaryDarkColor.withValues(alpha: 0.35),
                     borderRadius: BorderRadius.circular(8.r),
                   ),
                   child: AppText(
                     'Available',
-                    color: AppColors.whiteColor.withValues(alpha: selected ? 1.0 : 0.9),
+                    color: AppColors.primaryLightColor,
                     fontSize: FontSizes.font10Sp,
                     fontWeight: FontWeights.weight400,
                   ),
