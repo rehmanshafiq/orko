@@ -118,11 +118,11 @@ class AppRevampedTheme {
       : const Color(0xFFC4B5FD);
 
   Color get mintBadgeBackground => isLight
-      ? const Color(0xFFD1FAE5)
+      ? AppColors.primaryLightColor
       : const Color(0xFF1A3328);
 
   Color get mintIconBackground => isLight
-      ? const Color(0xFFE8F5E9)
+      ? AppColors.primaryLightColor.withValues(alpha: 0.3)
       : const Color(0xFF1E2E28);
 
   Color get pricingCardBackground => isLight
