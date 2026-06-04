@@ -25,7 +25,7 @@ class StationInfoCard extends StatelessWidget {
       width: double.infinity,
       padding: AppUtils.all12Padding,
       decoration: BoxDecoration(
-        color: ui.cardBackground,
+        color: ui.cardBookingBackground,
         borderRadius: BorderRadius.circular(14.r),
         border: Border.all(color: ui.borderSubtle),
       ),

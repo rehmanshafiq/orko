@@ -30,7 +30,7 @@ class PortCard extends StatelessWidget {
             AppColors.primaryDarkColor.withValues(alpha: 0.28),
             ui.cardBackground,
           )
-        : ui.cardBackground;
+        : ui.cardBookingBackground;
     final borderColor = selected ? AppColors.primaryDarkColor : ui.borderSubtle;
     final glow = selected
         ? [
@@ -64,7 +64,9 @@ class PortCard extends StatelessWidget {
                 children: [
                   AppText(
                     portLabel,
-                    color: selected ? AppColors.whiteColor : ui.textPrimary,
+                    color: selected ?
+                    ui.isLight ? AppColors.blackColor  : AppColors.whiteColor
+                        : ui.textPrimary,
                     fontSize: FontSizes.font14Sp,
                     fontWeight: FontWeights.weight400,
                   ),
@@ -101,7 +103,7 @@ class PortCard extends StatelessWidget {
                   ),
                   child: AppText(
                     'Available',
-                    color: AppColors.primaryLightColor,
+                    color: ui.isLight ? AppColors.primaryDarkColor : AppColors.primaryLightColor,
                     fontSize: FontSizes.font10Sp,
                     fontWeight: FontWeights.weight400,
                   ),

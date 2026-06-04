@@ -61,7 +61,7 @@ class AppUiColors {
       isLight ? AppColors.whiteColor : AppColors.fieldBackgroundColor;
 
   Color get cardBookingBackground =>
-      isLight ? AppColors.whiteColor : AppColors.fieldBackgroundBookingColor;
+      isLight ? AppColors.sandColor.withValues(alpha: 0.55): AppColors.fieldBackgroundBookingColor;
 
   Color get textPrimary =>
       isLight ? AppColors.blackColor : AppColors.whiteColor;

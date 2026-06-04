@@ -30,7 +30,7 @@ class DateSelector extends StatelessWidget {
       width: double.infinity,
       padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
       decoration: BoxDecoration(
-        color: ui.innerCardBg,
+        color: ui.cardBookingBackground,
         borderRadius: BorderRadius.circular(100.r),
       ),
       child: Row(

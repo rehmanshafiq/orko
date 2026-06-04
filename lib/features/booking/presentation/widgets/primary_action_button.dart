@@ -21,7 +21,7 @@ class PrimaryActionButton extends StatelessWidget {
       onPress: onPressed,
       buttonWidth: double.infinity,
       buttonHeight: 52.h,
-      cornerRadius: 12.r,
+      cornerRadius: 32.r,
       buttonColor: AppColors.primaryDarkColor,
       textColor: AppColors.whiteColor,
       fontSize: FontSizes.font15Sp,

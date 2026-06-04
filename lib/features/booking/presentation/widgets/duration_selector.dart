@@ -89,7 +89,7 @@ class _RoundIconButton extends StatelessWidget {
           width: 22.w,
           height: 22.w,
           decoration: BoxDecoration(
-            color: ui.cardBackground,
+            color: ui.cardBookingBackground,
             shape: BoxShape.circle,
             border: Border.all(
               color: enabled
