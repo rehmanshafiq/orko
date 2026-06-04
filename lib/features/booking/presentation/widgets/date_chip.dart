@@ -61,7 +61,7 @@ class DateChip extends StatelessWidget {
           alignment: Alignment.center,
           decoration: selected
               ? BoxDecoration(
-                  color: AppColors.primaryDarkColor.withValues(alpha: 0.95),
+                  color: ui.brandPrimary,
                   shape: BoxShape.circle,
                 )
               : null,
@@ -90,13 +90,12 @@ class TodayDateChip extends StatelessWidget {
     /// Unselected circle: translucent primary on dark, tinted surface on light
     /// so contrast stays WCAG-ish for caption text without white-on-muted.
     final bg = selected
-        ? AppColors.primaryDarkColor.withValues(alpha: 0.95)
-        : ui.isLight
-            ? AppColors.primaryDarkColor.withValues(alpha: 0.12)
-            : AppColors.primaryDarkColor.withValues(alpha: 0.28);
+        ? ui.brandPrimary
+        : ui.brandSecondary.withValues(alpha: ui.isLight ? 0.12 : 0.28);
 
-    final labelColor =
-        selected ? AppColors.blackColor : ui.isLight ? AppColors.primaryDarkColor : AppColors.whiteColor;
+    final labelColor = selected
+        ? AppColors.blackColor
+        : ui.brandPrimary;
 
     return Material(
       color: AppColors.transparentColor,

@@ -10,6 +10,8 @@ abstract final class AppMaterialTheme {
         colorScheme: ColorScheme.fromSeed(
           seedColor: AppColors.primaryDarkColor,
           brightness: Brightness.light,
+          primary: AppColors.primaryDarkColor,
+          secondary: AppColors.primaryLightColor,
         ),
         appBarTheme: const AppBarTheme(
           centerTitle: true,
@@ -29,8 +31,10 @@ abstract final class AppMaterialTheme {
         brightness: Brightness.dark,
         scaffoldBackgroundColor: AppColors.blackColor,
         colorScheme: ColorScheme.fromSeed(
-          seedColor: AppColors.primaryDarkColor,
+          seedColor: AppColors.primaryLightColor,
           brightness: Brightness.dark,
+          primary: AppColors.primaryLightColor,
+          secondary: AppColors.primaryDarkColor,
         ),
         appBarTheme: const AppBarTheme(
           centerTitle: true,

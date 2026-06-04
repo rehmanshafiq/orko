@@ -132,8 +132,8 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
                 buttonWidth: double.infinity,
                 buttonHeight: 52.h,
                 cornerRadius: 32.r,
-                buttonColor: AppColors.primaryDarkColor,
-                textColor: AppColors.whiteColor,
+                buttonColor: ui.brandPrimary,
+                textColor: ui.isLight ? AppColors.whiteColor : AppColors.blackColor,
                 fontSize: FontSizes.font15Sp,
                 fontWeight: FontWeights.weight700,
               ),
@@ -246,15 +246,13 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
             color: ui.searchBackground,
             borderRadius: BorderRadius.circular(12.r),
             border: Border.all(
-              color: selected
-                  ? AppColors.primaryDarkColor
-                  : ui.borderSubtle,
+              color: selected ? ui.brandPrimary : ui.borderSubtle,
               width: selected ? 1.5 : 1,
             ),
             boxShadow: selected
                 ? [
                     BoxShadow(
-                      color: AppColors.primaryDarkColor.withValues(alpha: 0.42),
+                      color: ui.brandPrimary.withValues(alpha: 0.42),
                       blurRadius: 14,
                       spreadRadius: 0,
                     ),
@@ -309,7 +307,7 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
         shape: BoxShape.circle,
         border: Border.all(
           color: selected
-              ? AppColors.primaryDarkColor
+              ? ui.brandPrimary
               : ui.textSecondary.withValues(alpha: 0.45),
           width: 2,
         ),
@@ -320,8 +318,8 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
           ? Container(
               height: 10.r,
               width: 10.r,
-              decoration: const BoxDecoration(
-                color: AppColors.primaryDarkColor,
+              decoration: BoxDecoration(
+                color: ui.brandPrimary,
                 shape: BoxShape.circle,
               ),
             )
@@ -357,17 +355,18 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
       _paymentBrandIcon(AppImages.icJazzcash, round: true);
 
   Widget _hglWalletBrand() {
+    final ui = AppUiColors.of(context);
     return Container(
       width: 40.r,
       height: 40.r,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: AppColors.primaryDarkColor.withValues(alpha: 0.22),
-        border: Border.all(color: AppColors.primaryDarkColor.withValues(alpha: 0.6)),
+        color: ui.brandPrimary.withValues(alpha: 0.22),
+        border: Border.all(color: ui.brandPrimary.withValues(alpha: 0.6)),
       ),
       child: Icon(
         Icons.account_balance_wallet_outlined,
-        color: AppColors.primaryDarkColor,
+        color: ui.brandPrimary,
         size: 20.r,
       ),
     );
@@ -400,12 +399,12 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
                 height: 40.r,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppColors.primaryDarkColor.withValues(alpha: 0.2),
-                  border: Border.all(color: AppColors.primaryDarkColor),
+                  color: ui.brandPrimary.withValues(alpha: 0.2),
+                  border: Border.all(color: ui.brandPrimary),
                 ),
                 child: Icon(
                   Icons.add_rounded,
-                  color: AppColors.primaryDarkColor,
+                  color: ui.brandPrimary,
                   size: 24.r,
                 ),
               ),

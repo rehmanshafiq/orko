@@ -89,7 +89,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         child: AppText(
                           'Forgot Password?',
-                          color: AppColors.primaryDarkColor,
+                          color: ui.brandPrimary,
                           fontSize: FontSizes.font12Sp,
                           fontWeight: FontWeights.weight500,
                         ),
@@ -133,7 +133,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           onTap: () => context.push('/register'),
                           child: AppText(
                             'Sign Up',
-                            color: AppColors.primaryDarkColor,
+                            color: ui.brandPrimary,
                             fontSize: FontSizes.font12Sp,
                             fontWeight: FontWeights.weight600,
                           ),
@@ -167,8 +167,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      AppColors.primaryDarkColor.withValues(alpha: 0.28),
-                      AppColors.primaryDarkColor.withValues(alpha: 0.02),
+                      ui.brandPrimary.withValues(alpha: 0.28),
+                      ui.brandPrimary.withValues(alpha: 0.02),
                     ],
                   ),
                 ),
@@ -180,16 +180,16 @@ class _LoginScreenState extends State<LoginScreen> {
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.primaryDarkColor.withValues(alpha: 0.45),
+                      color: ui.brandPrimary.withValues(alpha: 0.45),
                       blurRadius: 22,
                       spreadRadius: 3,
                     ),
                   ],
                 ),
               ),
-              const Icon(
+              Icon(
                 Icons.bolt,
-                color: AppColors.primaryDarkColor,
+                color: ui.brandPrimary,
                 size: 42,
               ),
             ],
@@ -291,7 +291,7 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.primaryDarkColor),
+              borderSide: BorderSide(color: ui.brandPrimary),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
@@ -370,7 +370,7 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: AppColors.primaryDarkColor),
+        borderSide: BorderSide(color: ui.brandPrimary),
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
@@ -389,7 +389,7 @@ class _LoginScreenState extends State<LoginScreen> {
         borderRadius: BorderRadius.circular(12.r),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primaryDarkColor.withValues(alpha: 0.35),
+            color: ui.brandPrimary.withValues(alpha: 0.35),
             blurRadius: 14,
             spreadRadius: 1,
             offset: const Offset(0, 6),
@@ -407,8 +407,8 @@ class _LoginScreenState extends State<LoginScreen> {
         isEnabled: state is! AuthLoading,
         buttonHeight: 52.h,
         cornerRadius: 12.r,
-        buttonColor: AppColors.primaryDarkColor,
-        textColor: AppColors.whiteColor,
+        buttonColor: ui.brandPrimary,
+        textColor: ui.isLight ? AppColors.whiteColor : AppColors.blackColor,
         fontSize: FontSizes.font16Sp,
         fontWeight: FontWeights.weight400,
       ),
@@ -474,7 +474,7 @@ class _SocialButton extends StatelessWidget {
       style: OutlinedButton.styleFrom(
         foregroundColor: ui.textPrimary,
         side: BorderSide(
-          color: ui.isLight ? ui.inputBorder : AppColors.whiteColor,
+          color: ui.isLight ? ui.inputBorder : ui.brandPrimary,
         ),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),

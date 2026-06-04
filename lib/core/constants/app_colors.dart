@@ -23,7 +23,9 @@ class AppColors {
   static const sandColor = Color(0xFFE8E6DC);
   static const myAccountBorderColor = Color(0xFFE2E2E2);
   static const colorsOutlineColor = Color(0xFFEBEBEB);
+  /// Light green Pantone — primary on dark surfaces, secondary on light surfaces.
   static const primaryLightColor = Color(0xFF8FCF4D);
+  /// Dark green Pantone — primary on light surfaces, secondary on dark surfaces.
   static const primaryDarkColor = Color(0xFF329748);
   static const fieldBackgroundColor = Color(0xFF171717);
   static const fieldBackgroundBookingColor = Color(0xFF27252B);
@@ -53,6 +55,20 @@ class AppUiColors {
   final Brightness _brightness;
 
   bool get isLight => _brightness == Brightness.light;
+
+  /// Client brand: primary icons/features (light green on dark, dark green on light).
+  Color get brandPrimary =>
+      isLight ? AppColors.primaryDarkColor : AppColors.primaryLightColor;
+
+  /// Client brand: secondary accent (dark green on dark, light green on light).
+  Color get brandSecondary =>
+      isLight ? AppColors.primaryLightColor : AppColors.primaryDarkColor;
+
+  /// Dark green Pantone — same swatch in both themes (e.g. profile header).
+  Color get brandDarkGreen => AppColors.primaryDarkColor;
+
+  /// Light green Pantone — same swatch in both themes.
+  Color get brandLightGreen => AppColors.primaryLightColor;
 
   Color get scaffoldBackground =>
       isLight ? AppColors.scaffoldColor : AppColors.blackColor;
@@ -111,7 +127,7 @@ class AppUiColors {
       ? AppColors.greyColor
       : AppColors.whiteColor.withValues(alpha: 0.68);
 
-  Color get navActive => AppColors.primaryDarkColor;
+  Color get navActive => brandPrimary;
 
   Color get chipInactiveBg =>
       isLight ? AppColors.whiteColor : AppColors.fieldBackgroundColor;
@@ -134,9 +150,7 @@ class AppUiColors {
       ? AppColors.mapPinBlueColor.withValues(alpha: 0.18)
       : AppColors.mapPinBlueColor.withValues(alpha: 0.22);
 
-  Color get efficiencyTipBg => isLight
-      ? AppColors.primaryDarkColor.withValues(alpha: 0.1)
-      : AppColors.primaryDarkColor.withValues(alpha: 0.2);
+  Color get efficiencyTipBg => brandPrimary.withValues(alpha: isLight ? 0.1 : 0.2);
 
   Color get inputFill =>
       isLight ? AppColors.shimmerGreyColor : AppColors.fieldBackgroundColor;

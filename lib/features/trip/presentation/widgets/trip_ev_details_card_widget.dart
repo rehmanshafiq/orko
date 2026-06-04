@@ -159,7 +159,7 @@ class _BatteryGlyph extends StatelessWidget {
                   heightFactor: 1,
                   child: Container(
                     decoration: BoxDecoration(
-                      color: AppColors.primaryLightColor,
+                      color: ui.brandLightGreen,
                       borderRadius: BorderRadius.circular(2.r),
                     ),
                   ),
@@ -199,7 +199,7 @@ class _RangeGlyph extends StatelessWidget {
         Icon(
           Icons.compare_arrows_rounded,
           size: 14.sp,
-          color: AppColors.primaryLightColor,
+          color: AppUiColors.of(context).brandLightGreen,
         ),
         2.verticalSpace,
         _RoadShape(color: roadColor),

@@ -41,7 +41,7 @@ class TripChargingStopCardWidget extends StatelessWidget {
         color: ui.searchBackground,
         borderRadius: BorderRadius.circular(14.r),
         border: Border.all(
-          color: AppColors.primaryDarkColor,
+          color: ui.brandPrimary,
           width: 2,
         ),
       ),
@@ -100,7 +100,7 @@ class TripChargingStopCardWidget extends StatelessWidget {
                 child: TripChargingStopMetricWidget(
                   label: 'Depart',
                   value: '${info.departPct}%',
-                  valueColor: AppColors.primaryDarkColor,
+                  valueColor: ui.brandPrimary,
                 ),
               ),
               Expanded(

@@ -31,15 +31,11 @@ class SlotChip extends StatelessWidget {
 
     switch (style) {
       case SlotStyle.available:
-        if (ui.isLight) {
-          bg = AppColors.primaryDarkColor.withValues(alpha: 0.1);
-          border = AppColors.primaryDarkColor.withValues(alpha: 0.42);
-          textColor = AppColors.primaryDarkColor;
-        } else {
-          bg = AppColors.primaryDarkColor.withValues(alpha: 0.28);
-          border = AppColors.primaryDarkColor.withValues(alpha: 0.75);
-          textColor = AppColors.whiteColor.withValues(alpha: 0.96);
-        }
+        bg = ui.brandSecondary.withValues(alpha: ui.isLight ? 0.1 : 0.28);
+        border = ui.brandPrimary.withValues(alpha: ui.isLight ? 0.42 : 0.75);
+        textColor = ui.isLight
+            ? ui.brandPrimary
+            : AppColors.whiteColor.withValues(alpha: 0.96);
         break;
       case SlotStyle.booked:
         bg = AppColors.slotBookedBackgroundColor;
@@ -62,15 +58,12 @@ class SlotChip extends StatelessWidget {
     List<BoxShadow>? chipShadow;
 
     if (isSelected && style == SlotStyle.available) {
-      bg = AppColors.primaryDarkColor;
-      border = ui.isLight
-          ? AppColors.primaryDarkColor.withValues(alpha: 0.95)
-          : AppColors.primaryLightColor.withValues(alpha: 0.72);
+      bg = ui.brandPrimary;
+      border = ui.brandSecondary.withValues(alpha: 0.95);
       textColor = AppColors.blackColor;
       chipShadow = [
         BoxShadow(
-          color:
-              AppColors.primaryDarkColor.withValues(alpha: ui.isLight ? 0.35 : 0.5),
+          color: ui.brandPrimary.withValues(alpha: ui.isLight ? 0.35 : 0.5),
           blurRadius: 10,
           offset: const Offset(0, 3),
         ),

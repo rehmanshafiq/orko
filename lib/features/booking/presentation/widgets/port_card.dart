@@ -27,15 +27,15 @@ class PortCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final backgroundColor = selected
         ? Color.alphaBlend(
-            AppColors.primaryDarkColor.withValues(alpha: 0.28),
-            ui.cardBackground,
+            ui.brandSecondary.withValues(alpha: 0.28),
+            ui.cardBookingBackground,
           )
         : ui.cardBookingBackground;
-    final borderColor = selected ? AppColors.primaryDarkColor : ui.borderSubtle;
+    final borderColor = selected ? ui.brandPrimary : ui.borderSubtle;
     final glow = selected
         ? [
             BoxShadow(
-              color: AppColors.primaryDarkColor.withValues(alpha: 0.35),
+              color: ui.brandPrimary.withValues(alpha: 0.35),
               blurRadius: 12,
               spreadRadius: 0,
             ),
@@ -64,8 +64,8 @@ class PortCard extends StatelessWidget {
                 children: [
                   AppText(
                     portLabel,
-                    color: selected ?
-                    ui.isLight ? AppColors.blackColor  : AppColors.whiteColor
+                    color: selected
+                        ? (ui.isLight ? AppColors.blackColor : AppColors.whiteColor)
                         : ui.textPrimary,
                     fontSize: FontSizes.font14Sp,
                     fontWeight: FontWeights.weight400,
@@ -77,7 +77,7 @@ class PortCard extends StatelessWidget {
                       width: 42.sp,
                       height: 42.sp,
                       fit: BoxFit.contain,
-                      color: selected ? AppColors.primaryDarkColor : AppColors.iconsGreyColor,
+                      color: selected ? ui.brandPrimary : AppColors.iconsGreyColor,
                     ),
                   ),
                 ],
@@ -90,20 +90,17 @@ class PortCard extends StatelessWidget {
                 fontWeight: FontWeights.weight400,
               ),
               8.verticalSpace,
-              // const Spacer(),
               Align(
                 alignment: Alignment.centerLeft,
                 child: Container(
                   padding: AppUtils.horizontal8Vertical2Padding,
                   decoration: BoxDecoration(
-                    color: selected
-                        ? AppColors.primaryDarkColor.withValues(alpha: 0.35)
-                        : AppColors.primaryDarkColor.withValues(alpha: 0.35),
+                    color: ui.brandSecondary.withValues(alpha: 0.35),
                     borderRadius: BorderRadius.circular(8.r),
                   ),
                   child: AppText(
                     'Available',
-                    color: ui.isLight ? AppColors.primaryDarkColor : AppColors.primaryLightColor,
+                    color: ui.brandPrimary,
                     fontSize: FontSizes.font10Sp,
                     fontWeight: FontWeights.weight400,
                   ),

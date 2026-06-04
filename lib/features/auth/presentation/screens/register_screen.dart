@@ -168,14 +168,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       child: LinearProgressIndicator(
                         value: 0.8,
                         minHeight: 3,
-                        color: AppColors.primaryDarkColor,
+                        color: ui.brandPrimary,
                         backgroundColor: ui.progressTrack,
                       ),
                     ),
                     4.verticalSpace,
                     AppText(
                       'Strong',
-                      color: AppColors.primaryDarkColor,
+                      color: ui.brandPrimary,
                       fontSize: FontSizes.font10Sp,
                       fontWeight: FontWeights.weight500,
                     ),
@@ -204,7 +204,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             onChanged: (value) => setState(() => _isTermsAccepted = value ?? false),
                             fillColor: WidgetStateProperty.resolveWith<Color>(
                               (states) => states.contains(WidgetState.selected)
-                                  ? AppColors.primaryDarkColor
+                                  ? ui.brandPrimary
                                   : AppColors.transparentColor,
                             ),
                             side: BorderSide(color: ui.inputBorder),
@@ -222,7 +222,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               ),
                               AppText(
                                 'Terms and Conditions',
-                                color: AppColors.primaryDarkColor,
+                                color: ui.brandPrimary,
                                 fontSize: FontSizes.font12Sp,
                                 fontWeight: FontWeights.weight500,
                               ),
@@ -237,7 +237,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         borderRadius: BorderRadius.circular(12.r),
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.primaryDarkColor.withValues(alpha: 0.35),
+                            color: ui.brandPrimary.withValues(alpha: 0.35),
                             blurRadius: 14,
                             spreadRadius: 1,
                             offset: const Offset(0, 6),
@@ -250,8 +250,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         isEnabled: state is! AuthLoading,
                         buttonHeight: 52.h,
                         cornerRadius: 12.r,
-                        buttonColor: AppColors.primaryDarkColor,
-                        textColor: AppColors.whiteColor,
+                        buttonColor: ui.brandPrimary,
+                        textColor: ui.isLight ? AppColors.whiteColor : AppColors.blackColor,
                         fontSize: FontSizes.font16Sp,
                         fontWeight: FontWeights.weight600,
                       ),
@@ -270,7 +270,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           onTap: () => context.go('/login'),
                           child: AppText(
                             'Sign In',
-                            color: AppColors.primaryDarkColor,
+                            color: ui.brandPrimary,
                             fontSize: FontSizes.font12Sp,
                             fontWeight: FontWeights.weight600,
                           ),
@@ -295,7 +295,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: isActive
-            ? AppColors.primaryDarkColor
+            ? ui.brandPrimary
             : ui.textSecondary.withValues(alpha: 0.35),
       ),
     );
@@ -352,7 +352,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12.r),
-          borderSide: const BorderSide(color: AppColors.primaryDarkColor),
+          borderSide: BorderSide(color: ui.brandPrimary),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12.r),
@@ -408,7 +408,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12.r),
-          borderSide: const BorderSide(color: AppColors.primaryDarkColor),
+          borderSide: BorderSide(color: ui.brandPrimary),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12.r),

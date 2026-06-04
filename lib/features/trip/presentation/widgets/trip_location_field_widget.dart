@@ -29,7 +29,7 @@ class TripLocationFieldWidget extends StatelessWidget {
           Icon(
             Icons.location_on_rounded,
             size: 14.sp,
-            color: isStart ? AppColors.primaryDarkColor : AppColors.removeColor,
+            color: isStart ? ui.brandPrimary : AppColors.removeColor,
           ),
           8.horizontalSpace,
           Expanded(
@@ -42,7 +42,7 @@ class TripLocationFieldWidget extends StatelessWidget {
                 fontSize: FontSizes.font12Sp,
                 fontWeight: FontWeights.weight500,
               ),
-              cursorColor: AppColors.primaryDarkColor,
+              cursorColor: ui.brandPrimary,
               decoration: const InputDecoration(
                 isDense: true,
                 border: InputBorder.none,

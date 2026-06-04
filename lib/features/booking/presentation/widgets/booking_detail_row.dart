@@ -37,9 +37,7 @@ class BookingDetailRow extends StatelessWidget {
           flex: 3,
           child: AppText(
             value,
-            color: emphasizeValue
-                ? AppColors.primaryDarkColor
-                : ui.textPrimary,
+            color: emphasizeValue ? ui.brandPrimary : ui.textPrimary,
             fontSize: FontSizes.font14Sp,
             fontWeight: emphasizeValue
                 ? FontWeights.weight700

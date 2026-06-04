@@ -145,7 +145,7 @@ class _TripSummaryViewToggleState extends State<_TripSummaryViewToggle> {
   @override
   Widget build(BuildContext context) {
     final ui = AppUiColors.of(context);
-    final activeColor = AppColors.primaryLightColor;
+    final activeColor = ui.brandPrimary;
     final inactiveColor = ui.textMuted;
 
     return Row(
@@ -191,7 +191,8 @@ class _SummaryViewSwitch extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final trackColor = AppColors.primaryDarkColor.withValues(alpha: 0.35);
+    final ui = AppUiColors.of(context);
+    final trackColor = ui.brandSecondary.withValues(alpha: 0.35);
 
     return GestureDetector(
       onTap: () => onChanged(!isMapView),
@@ -212,14 +213,14 @@ class _SummaryViewSwitch extends StatelessWidget {
           child: Container(
             width: 20.w,
             height: 20.h,
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               shape: BoxShape.circle,
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  AppColors.primaryLightColor,
-                  AppColors.primaryDarkColor,
+                  ui.brandLightGreen,
+                  ui.brandDarkGreen,
                 ],
               ),
             ),

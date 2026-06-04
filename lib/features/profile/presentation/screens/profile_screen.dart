@@ -28,7 +28,7 @@ class ProfileScreen extends StatelessWidget {
             if (state is ProfileLoading || state is ProfileInitial) {
               return Center(
                 child: CircularProgressIndicator(
-                  color: AppColors.primaryDarkColor,
+                  color: ui.brandPrimary,
                   strokeWidth: 2.5,
                 ),
               );
@@ -61,8 +61,8 @@ class ProfileScreen extends StatelessWidget {
                       buttonWidth: double.infinity,
                       buttonHeight: 48.h,
                       cornerRadius: 12.r,
-                      buttonColor: AppColors.primaryDarkColor,
-                      textColor: AppColors.whiteColor,
+                      buttonColor: ui.brandPrimary,
+                      textColor: ui.isLight ? AppColors.whiteColor : AppColors.blackColor,
                       fontSize: FontSizes.font14Sp,
                       fontWeight: FontWeights.weight600,
                     ),
@@ -134,14 +134,17 @@ class _ProfileHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ui = AppUiColors.of(context);
     final cubit = context.read<ProfileCubit>();
     final profile = state.profile;
     final bottomRadius = 20.r;
 
+    final headerGreen = ui.isLight ? ui.brandPrimary : ui.brandSecondary;
+
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: AppColors.primaryDarkColor,
+        color: headerGreen,
         borderRadius: BorderRadius.only(
           bottomLeft: Radius.circular(bottomRadius),
           bottomRight: Radius.circular(bottomRadius),
@@ -181,14 +184,14 @@ class _ProfileHeader extends StatelessWidget {
                         color: AppColors.whiteColor,
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: AppColors.primaryDarkColor,
+                          color: ui.brandPrimary,
                           width: 2,
                         ),
                       ),
                       child: Icon(
                         Icons.photo_camera_outlined,
                         size: 14.r,
-                        color: AppColors.primaryDarkColor,
+                        color: ui.brandPrimary,
                       ),
                     ),
                   ),
@@ -280,6 +283,7 @@ class _HeaderTabChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ui = AppUiColors.of(context);
     return Material(
       color: AppColors.transparentColor,
       child: InkWell(
@@ -306,17 +310,13 @@ class _HeaderTabChip extends StatelessWidget {
               Icon(
                 icon,
                 size: 16.r,
-                color: selected
-                    ? AppColors.primaryDarkColor
-                    : AppColors.whiteColor,
+                color: selected ? ui.brandPrimary : AppColors.whiteColor,
               ),
               4.horizontalSpace,
               Flexible(
                 child: AppText(
                   label,
-                  color: selected
-                      ? AppColors.primaryDarkColor
-                      : AppColors.whiteColor,
+                  color: selected ? ui.brandPrimary : AppColors.whiteColor,
                   fontSize: FontSizes.font12Sp,
                   fontWeight: FontWeights.weight600,
                   maxLines: 1,
@@ -376,10 +376,10 @@ class _StatsGrid extends StatelessWidget {
             Expanded(
               child: _StatTile(
                 icon: Icons.battery_charging_full_rounded,
-                iconBg: AppColors.primaryLightColor.withValues(alpha: 0.2),
-                iconColor: AppColors.primaryLightColor,
+                iconBg: ui.brandLightGreen.withValues(alpha: 0.2),
+                iconColor: ui.brandLightGreen,
                 value: '1245',
-                valueColor: AppColors.primaryLightColor,
+                valueColor: ui.brandLightGreen,
                 label: 'kWh Charged',
               ),
             ),
@@ -402,10 +402,10 @@ class _StatsGrid extends StatelessWidget {
             Expanded(
               child: _StatTile(
                 icon: Icons.eco_outlined,
-                iconBg: AppColors.primaryDarkColor.withValues(alpha: 0.25),
-                iconColor: AppColors.primaryLightColor,
+                iconBg: ui.brandDarkGreen.withValues(alpha: 0.25),
+                iconColor: ui.brandLightGreen,
                 value: '285 kg',
-                valueColor: AppColors.primaryLightColor,
+                valueColor: ui.brandLightGreen,
                 label: 'CO2 Reduced',
               ),
             ),
@@ -488,7 +488,7 @@ class _AchievementsCard extends StatelessWidget {
             children: [
               Icon(
                 Icons.workspace_premium_outlined,
-                color: AppColors.primaryLightColor,
+                color: ui.brandLightGreen,
                 size: 22.r,
               ),
               8.horizontalSpace,
@@ -513,8 +513,8 @@ class _AchievementsCard extends StatelessWidget {
               _AchievementBadge(
                 label: 'Eco Warrior',
                 icon: Icons.trending_up_rounded,
-                circleColor: AppColors.primaryDarkColor.withValues(alpha: 0.35),
-                iconColor: AppColors.primaryLightColor,
+                circleColor: ui.brandDarkGreen.withValues(alpha: 0.35),
+                iconColor: ui.brandLightGreen,
               ),
               _AchievementBadge(
                 label: 'Road Tripper',
@@ -600,8 +600,8 @@ class _PersonalInfoCard extends StatelessWidget {
                 buttonHeight: 36.h,
                 cornerRadius: 10.r,
                 buttonColor: ui.chipInactiveBg,
-                strokeColor: AppColors.primaryDarkColor,
-                textColor: AppColors.primaryDarkColor,
+                strokeColor: ui.brandPrimary,
+                textColor: ui.brandPrimary,
                 fontSize: FontSizes.font12Sp,
                 fontWeight: FontWeights.weight600,
               ),
@@ -709,7 +709,7 @@ class _DrivingEfficiencyCard extends StatelessWidget {
               ),
               AppText(
                 '92%',
-                color: AppColors.primaryLightColor,
+                color: ui.brandPrimary,
                 fontSize: FontSizes.font14Sp,
                 fontWeight: FontWeights.weight700,
               ),
@@ -722,9 +722,7 @@ class _DrivingEfficiencyCard extends StatelessWidget {
               value: 0.92,
               minHeight: 8.h,
               backgroundColor: ui.progressTrack,
-              valueColor: AlwaysStoppedAnimation<Color>(
-                AppColors.primaryDarkColor,
-              ),
+              valueColor: AlwaysStoppedAnimation<Color>(ui.brandPrimary),
             ),
           ),
           14.verticalSpace,
@@ -755,7 +753,7 @@ class _DrivingEfficiencyCard extends StatelessWidget {
             ),
             child: AppText(
               'Efficiency Tip: Maintain steady speeds on highways to improve range by up to 15%.',
-              color: AppColors.primaryLightColor,
+              color: ui.brandPrimary,
               fontSize: FontSizes.font12Sp,
               fontWeight: FontWeights.weight400,
               height: 1.35,
@@ -844,6 +842,7 @@ class _VehiclesTabBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ui = AppUiColors.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -853,8 +852,8 @@ class _VehiclesTabBody extends StatelessWidget {
           buttonWidth: double.infinity,
           buttonHeight: 48.h,
           cornerRadius: 12.r,
-          buttonColor: AppColors.primaryDarkColor,
-          textColor: AppColors.whiteColor,
+          buttonColor: ui.brandPrimary,
+          textColor: ui.isLight ? AppColors.whiteColor : AppColors.blackColor,
           fontSize: FontSizes.font15Sp,
           fontWeight: FontWeights.weight700,
         ),
@@ -922,7 +921,7 @@ class _VehicleCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: ui.cardBackground,
         borderRadius: BorderRadius.circular(14.r),
-        border: Border.all(color: AppColors.primaryDarkColor.withValues(alpha: 0.45)),
+        border: Border.all(color: ui.brandPrimary.withValues(alpha: 0.45)),
       ),
       clipBehavior: Clip.antiAlias,
       child: Column(
@@ -938,7 +937,7 @@ class _VehicleCard extends StatelessWidget {
                 child: Icon(
                   Icons.electric_car_rounded,
                   size: 72.r,
-                  color: AppColors.primaryDarkColor.withValues(alpha: 0.85),
+                  color: ui.brandPrimary.withValues(alpha: 0.85),
                 ),
               ),
               if (vehicle.isPrimary)
@@ -948,7 +947,7 @@ class _VehicleCard extends StatelessWidget {
                   child: Container(
                     padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
                     decoration: BoxDecoration(
-                      color: AppColors.primaryDarkColor,
+                      color: ui.brandPrimary,
                       borderRadius: BorderRadius.circular(8.r),
                     ),
                     child: AppText(
@@ -1011,7 +1010,7 @@ class _VehicleCard extends StatelessWidget {
                 Container(
                   padding: EdgeInsets.fromLTRB(12.w, 10.h, 12.w, 10.h),
                   decoration: BoxDecoration(
-                    color: AppColors.primaryDarkColor.withValues(alpha: 0.15),
+                    color: ui.brandSecondary.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(10.r),
                   ),
                   child: Column(
@@ -1029,7 +1028,7 @@ class _VehicleCard extends StatelessWidget {
                           ),
                           AppText(
                             '${vehicle.rangeKm} km',
-                            color: AppColors.primaryLightColor,
+                            color: ui.brandPrimary,
                             fontSize: FontSizes.font14Sp,
                             fontWeight: FontWeights.weight700,
                           ),
@@ -1042,9 +1041,7 @@ class _VehicleCard extends StatelessWidget {
                           value: vehicle.rangeFraction,
                           minHeight: 6.h,
                           backgroundColor: ui.progressTrack,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            AppColors.primaryDarkColor,
-                          ),
+                          valueColor: AlwaysStoppedAnimation<Color>(ui.brandPrimary),
                         ),
                       ),
                     ],
@@ -1106,8 +1103,8 @@ class _VehicleCard extends StatelessWidget {
                     buttonHeight: 44.h,
                     cornerRadius: 12.r,
                     buttonColor: ui.chipInactiveBg,
-                    strokeColor: AppColors.primaryDarkColor,
-                    textColor: AppColors.primaryLightColor,
+                    strokeColor: ui.brandPrimary,
+                    textColor: ui.brandPrimary,
                     fontSize: FontSizes.font14Sp,
                     fontWeight: FontWeights.weight600,
                   ),
@@ -1279,7 +1276,7 @@ class _SettingsTabBody extends StatelessWidget {
                 children: [
                   Icon(
                     Icons.notifications_outlined,
-                    color: AppColors.primaryLightColor,
+                    color: ui.brandPrimary,
                     size: 20.r,
                   ),
                   8.horizontalSpace,
@@ -1372,7 +1369,7 @@ class _AppearanceSection extends StatelessWidget {
             children: [
               Icon(
                 Icons.brightness_6_outlined,
-                color: AppColors.primaryLightColor,
+                color: ui.brandPrimary,
                 size: 20.r,
               ),
               8.horizontalSpace,
@@ -1394,10 +1391,14 @@ class _AppearanceSection extends StatelessWidget {
                   buttonHeight: 44.h,
                   cornerRadius: 10.r,
                   buttonColor:
-                      isLight ? AppColors.primaryDarkColor : ui.chipInactiveBg,
-                  strokeColor: AppColors.primaryDarkColor,
-                  textColor:
-                      isLight ? AppColors.whiteColor : ui.textPrimary,
+                      isLight ? ui.brandPrimary : ui.chipInactiveBg,
+                  strokeColor:
+                      isLight ? ui.brandPrimary : ui.borderSubtle,
+                  textColor: isLight
+                      ? (ui.isLight
+                          ? AppColors.whiteColor
+                          : AppColors.blackColor)
+                      : ui.textPrimary,
                   fontSize: FontSizes.font14Sp,
                   fontWeight: FontWeights.weight600,
                 ),
@@ -1410,10 +1411,14 @@ class _AppearanceSection extends StatelessWidget {
                   buttonHeight: 44.h,
                   cornerRadius: 10.r,
                   buttonColor:
-                      !isLight ? AppColors.primaryDarkColor : ui.chipInactiveBg,
-                  strokeColor: AppColors.primaryDarkColor,
-                  textColor:
-                      !isLight ? AppColors.whiteColor : ui.textPrimary,
+                      !isLight ? ui.brandPrimary : ui.chipInactiveBg,
+                  strokeColor:
+                      !isLight ? ui.brandPrimary : ui.borderSubtle,
+                  textColor: !isLight
+                      ? (ui.isLight
+                          ? AppColors.whiteColor
+                          : AppColors.blackColor)
+                      : ui.textPrimary,
                   fontSize: FontSizes.font14Sp,
                   fontWeight: FontWeights.weight600,
                 ),
@@ -1450,21 +1455,17 @@ class _LanguageChip extends StatelessWidget {
           width: double.infinity,
           padding: EdgeInsets.symmetric(vertical: 12.h),
           decoration: BoxDecoration(
-            color: selected
-                ? AppColors.primaryDarkColor
-                : ui.chipInactiveBg,
+            color: selected ? ui.brandPrimary : ui.chipInactiveBg,
             borderRadius: BorderRadius.circular(10.r),
             border: Border.all(
-              color: selected
-                  ? AppColors.primaryDarkColor
-                  : ui.chipInactiveBorder,
+              color: selected ? ui.brandPrimary : ui.chipInactiveBorder,
             ),
           ),
           alignment: Alignment.center,
           child: AppText(
             label,
             color: selected
-                ? AppColors.whiteColor
+                ? (ui.isLight ? AppColors.whiteColor : AppColors.blackColor)
                 : ui.textPrimary.withValues(alpha: 0.88),
             fontSize: FontSizes.font14Sp,
             fontWeight: FontWeights.weight600,
@@ -1522,7 +1523,7 @@ class _NotificationRow extends StatelessWidget {
             value: value,
             onChanged: onChanged,
             activeThumbColor: AppColors.whiteColor,
-            activeTrackColor: AppColors.primaryDarkColor,
+            activeTrackColor: ui.brandPrimary,
             inactiveThumbColor: AppColors.iconsGreyColor,
             inactiveTrackColor: AppColors.greyColor.withValues(alpha: 0.45),
           ),
@@ -1555,7 +1556,7 @@ class _AccountTile extends StatelessWidget {
           padding: EdgeInsets.symmetric(vertical: 12.h),
           child: Row(
             children: [
-              Icon(icon, color: AppColors.primaryLightColor, size: 22.r),
+              Icon(icon, color: ui.brandPrimary, size: 22.r),
               12.horizontalSpace,
               Expanded(
                 child: AppText(

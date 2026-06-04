@@ -419,9 +419,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
                 // ── Loading spinner ────────────────────────────────────────
                 if (state is MapLoading)
-                  const Center(
+                  Center(
                     child: CircularProgressIndicator(
-                      color: AppColors.primaryDarkColor,
+                      color: ui.brandPrimary,
                     ),
                   ),
               ],
@@ -550,21 +550,19 @@ class _HomeScreenState extends State<HomeScreen> {
       height: isCompact ? 30.h : 52.h,
       width: isCompact ? 30.w : 52.w,
       decoration: BoxDecoration(
-        color: isPrimary
-            ? AppColors.primaryDarkColor
-            : ui.searchBackground,
+        color: isPrimary ? ui.brandPrimary : ui.searchBackground,
         borderRadius: radius,
         border: Border.all(
-          color: isPrimary
-              ? AppColors.primaryDarkColor
-              : ui.borderSubtle,
+          color: isPrimary ? ui.brandPrimary : ui.borderSubtle,
         ),
       ),
       alignment: Alignment.center,
       child: Icon(
         icon,
         size: isCompact ? 15 : 26,
-        color: isPrimary ? AppColors.whiteColor : ui.textMuted,
+        color: isPrimary
+            ? (ui.isLight ? AppColors.whiteColor : AppColors.blackColor)
+            : ui.textMuted,
       ),
     );
 
@@ -672,20 +670,16 @@ class _HomeScreenState extends State<HomeScreen> {
       padding: AppUtils.homeFilterChipPadding,
       decoration: BoxDecoration(
         color: isActive
-            ? AppColors.primaryDarkColor.withValues(alpha: 0.22)
+            ? ui.brandPrimary.withValues(alpha: 0.22)
             : ui.innerCardBg,
         borderRadius: BorderRadius.circular(20.r),
         border: Border.all(
-          color: isActive
-              ? AppColors.primaryDarkColor
-              : ui.borderSubtle,
+          color: isActive ? ui.brandPrimary : ui.borderSubtle,
         ),
       ),
       child: AppText(
         text,
-        color: isActive
-            ? AppColors.primaryDarkColor
-            : ui.textPrimary.withValues(alpha: 0.8),
+        color: isActive ? ui.brandPrimary : ui.textPrimary.withValues(alpha: 0.8),
         fontSize: FontSizes.font14Sp,
         fontWeight: FontWeights.weight400,
       ),
@@ -768,7 +762,7 @@ class _HomeScreenState extends State<HomeScreen> {
               4.verticalSpace,
               AppText(
                 _stationAvailabilityLabel(station),
-                color: AppColors.primaryLightColor,
+                color: ui.brandPrimary,
                 fontSize: FontSizes.font15Sp,
                 fontWeight: FontWeights.weight500,
               ),

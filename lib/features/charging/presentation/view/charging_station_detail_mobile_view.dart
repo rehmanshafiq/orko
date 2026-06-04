@@ -96,7 +96,7 @@ class ChargingStationDetailMobileView extends StatelessWidget {
                                   .read<ChargingStationDetailBloc>()
                                   .add(const ChargingStationDetailFavoriteToggled()),
                               iconColor: state.favorite
-                                  ? AppColors.primaryDarkColor
+                                  ? ui.brandPrimary
                                   : ui.textPrimary,
                             ),
                           ),

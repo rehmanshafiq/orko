@@ -116,7 +116,7 @@ class BottomNavShell extends StatelessWidget {
           padding: AppUtils.bottomNavItemVerticalPadding,
           decoration: BoxDecoration(
             color: activeBackground && isActive
-                ? AppColors.primaryDarkColor.withValues(alpha: 0.15)
+                ? ui.brandPrimary.withValues(alpha: 0.15)
                 : AppColors.transparentColor,
             borderRadius: BorderRadius.circular(2.r),
           ),

@@ -56,7 +56,8 @@ class SummaryBottomCard extends StatelessWidget {
           PrimaryButtonWidget(
             text: 'Continue to Payment',
             onPress: onContinueToPayment,
-            buttonColor: AppColors.primaryDarkColor,
+            buttonColor: ui.brandPrimary,
+            textColor: ui.isLight ? AppColors.whiteColor : AppColors.blackColor,
             fontWeight: FontWeights.weight700,
             fontSize: FontSizes.font15Sp,
             buttonWidth: buttonWidth,

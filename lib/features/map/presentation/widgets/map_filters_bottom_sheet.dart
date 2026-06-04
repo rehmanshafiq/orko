@@ -118,7 +118,7 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
                         onTap: _reset,
                         child: AppText(
                           'Reset',
-                          color: AppColors.primaryDarkColor,
+                          color: ui.brandPrimary,
                           fontSize: FontSizes.font14Sp,
                           fontWeight: FontWeights.weight600,
                         ),
@@ -190,8 +190,8 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
                               width: 6.w,
                               height: 6.w,
                               margin: EdgeInsets.only(right: 8.w),
-                              decoration: const BoxDecoration(
-                                color: AppColors.primaryDarkColor,
+                              decoration: BoxDecoration(
+                                color: ui.brandPrimary,
                                 shape: BoxShape.circle,
                               ),
                             ),
@@ -249,15 +249,13 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
         color: ui.innerCardBg,
         borderRadius: BorderRadius.circular(22.r),
         border: Border.all(
-          color: selected
-              ? AppColors.primaryDarkColor
-              : ui.borderSubtle,
+          color: selected ? ui.brandPrimary : ui.borderSubtle,
           width: selected ? 1.5 : 1,
         ),
         boxShadow: selected
             ? [
                 BoxShadow(
-                  color: AppColors.primaryDarkColor.withValues(alpha: 0.42),
+                  color: ui.brandPrimary.withValues(alpha: 0.42),
                   blurRadius: 12,
                   spreadRadius: 0,
                 ),
@@ -266,9 +264,7 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
       ),
       child: AppText(
         label,
-        color: selected
-            ? AppColors.primaryDarkColor
-            : ui.textPrimary,
+        color: selected ? ui.brandPrimary : ui.textPrimary,
         fontSize: FontSizes.font12Sp,
         fontWeight: FontWeights.weight600,
       ),
@@ -298,7 +294,7 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
           child: Center(
             child: AppText(
               '$low kW - $high kW',
-              color: AppColors.primaryDarkColor,
+              color: ui.brandPrimary,
               fontSize: FontSizes.font12Sp,
               fontWeight: FontWeights.weight600,
               textAlign: TextAlign.center,
@@ -323,6 +319,7 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
   }
 
   Widget _priceLabelsRow() {
+    final ui = AppUiColors.of(context);
     final left = _priceRange.start.round();
     final right = _priceRange.end.round();
     return Row(
@@ -330,13 +327,13 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
       children: [
         AppText(
           'Rs $left per kWh',
-          color: AppColors.primaryDarkColor,
+          color: ui.brandPrimary,
           fontSize: FontSizes.font12Sp,
           fontWeight: FontWeights.weight600,
         ),
         AppText(
           'Rs $right per kWh',
-          color: AppColors.primaryDarkColor,
+          color: ui.brandPrimary,
           fontSize: FontSizes.font12Sp,
           fontWeight: FontWeights.weight600,
         ),
@@ -361,9 +358,9 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
         ),
         overlayShape: RoundSliderOverlayShape(overlayRadius: 18.r),
         trackHeight: 4.h,
-        activeTrackColor: AppColors.primaryDarkColor,
+        activeTrackColor: ui.brandPrimary,
         inactiveTrackColor: ui.progressTrack,
-        thumbColor: AppColors.primaryDarkColor,
+        thumbColor: ui.brandPrimary,
       ),
       child: RangeSlider(
         values: values,
@@ -381,13 +378,13 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
       data: SwitchThemeData(
         thumbColor: WidgetStateProperty.resolveWith((s) {
           if (s.contains(WidgetState.selected)) {
-            return const Color(0xFF1A1C1B);
+            return ui.isLight ? AppColors.whiteColor : AppColors.blackColor;
           }
           return AppColors.whiteColor.withValues(alpha: 0.85);
         }),
         trackColor: WidgetStateProperty.resolveWith((s) {
           if (s.contains(WidgetState.selected)) {
-            return AppColors.primaryDarkColor;
+            return ui.brandPrimary;
           }
           return ui.progressTrack;
         }),
@@ -428,9 +425,7 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
               Expanded(
                 child: AppText(
                   name,
-                  color: on
-                      ? AppColors.primaryDarkColor
-                      : ui.textPrimary,
+                  color: on ? ui.brandPrimary : ui.textPrimary,
                   fontSize: FontSizes.font12Sp,
                   fontWeight: FontWeights.weight600,
                   maxLines: 2,
@@ -451,12 +446,10 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
       width: 20.w,
       height: 20.w,
       decoration: BoxDecoration(
-        color: checked ? AppColors.primaryDarkColor : Colors.transparent,
+        color: checked ? ui.brandPrimary : Colors.transparent,
         borderRadius: BorderRadius.circular(4.r),
         border: Border.all(
-          color: checked
-              ? AppColors.primaryDarkColor
-              : ui.borderSubtle,
+          color: checked ? ui.brandPrimary : ui.borderSubtle,
           width: 1.5,
         ),
       ),
@@ -465,13 +458,14 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
           ? Icon(
               Icons.check,
               size: 14.r,
-              color: AppColors.whiteColor,
+              color: ui.isLight ? AppColors.whiteColor : AppColors.blackColor,
             )
           : null,
     );
   }
 
   Widget _applyButton(BuildContext context) {
+    final ui = AppUiColors.of(context);
     final count = widget.stationCount;
     final suffix = count == 1 ? 'station' : 'stations';
 
@@ -482,8 +476,8 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
       buttonWidth: double.infinity,
       buttonHeight: 64.h,
       cornerRadius: 16.r,
-      buttonColor: AppColors.primaryDarkColor,
-      textColor: AppColors.whiteColor,
+      buttonColor: ui.brandPrimary,
+      textColor: ui.isLight ? AppColors.whiteColor : AppColors.blackColor,
       fontSize: FontSizes.font14Sp,
       fontWeight: FontWeights.weight700,
     );

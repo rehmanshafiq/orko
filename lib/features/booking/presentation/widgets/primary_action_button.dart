@@ -16,14 +16,15 @@ class PrimaryActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ui = AppUiColors.of(context);
     return PrimaryButtonWidget(
       text: text,
       onPress: onPressed,
       buttonWidth: double.infinity,
       buttonHeight: 52.h,
       cornerRadius: 32.r,
-      buttonColor: AppColors.primaryDarkColor,
-      textColor: AppColors.whiteColor,
+      buttonColor: ui.brandPrimary,
+      textColor: ui.isLight ? AppColors.whiteColor : AppColors.blackColor,
       fontSize: FontSizes.font15Sp,
       fontWeight: FontWeights.weight700,
     );

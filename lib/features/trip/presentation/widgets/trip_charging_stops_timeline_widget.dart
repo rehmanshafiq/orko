@@ -97,7 +97,7 @@ class TripChargingStopsTimelineWidget extends StatelessWidget {
             railColumn(
               children: [
                 circleNode(
-                  backgroundColor: AppColors.primaryDarkColor,
+                  backgroundColor: ui.brandPrimary,
                   child: Icon(
                     Icons.location_on_rounded,
                     size: 12.sp,
@@ -188,7 +188,7 @@ class TripChargingStopsTimelineWidget extends StatelessWidget {
                 children: [
                   flexibleConnector(),
                   circleNode(
-                    backgroundColor: AppColors.primaryLightColor,
+                    backgroundColor: ui.brandPrimary,
                     child: Icon(
                       Icons.navigation_rounded,
                       size: 11.sp,

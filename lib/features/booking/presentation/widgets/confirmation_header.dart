@@ -26,15 +26,15 @@ class ConfirmationHeader extends StatelessWidget {
           width: 88.r,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: AppColors.primaryDarkColor.withValues(alpha: 0.2),
+            color: ui.brandPrimary.withValues(alpha: 0.2),
             border: Border.all(
-              color: AppColors.primaryDarkColor,
+              color: ui.brandPrimary,
               width: 2,
             ),
           ),
           child: Icon(
             Icons.check_rounded,
-            color: AppColors.primaryDarkColor,
+            color: ui.brandPrimary,
             size: 48.r,
           ),
         ),
