@@ -285,8 +285,8 @@ class AppRevampedTheme {
       : const Color(0xFF2DD4A8);
 
   Color get bookSlotDarkGreen => isLight
-      ? const Color(0xFF004D40)
-      : const Color(0xFF003D32);
+      ? AppColors.primaryDarkColor
+      : AppColors.primaryLightColor;
 
   Color get paymentPrimaryGreen => isLight
       ? const Color(0xFF006B4D)

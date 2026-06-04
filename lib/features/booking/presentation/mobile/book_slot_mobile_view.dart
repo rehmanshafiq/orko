@@ -181,7 +181,7 @@ class _ScheduleSection extends StatelessWidget {
       children: [
         AppText(
           'SCHEDULE',
-          color: context.revampedTheme.scheduleLabelGreen,
+          color: context.revampedTheme.textMuted,
           fontSize: FontSizes.font10Sp,
           fontWeight: FontWeights.weight700,
           letterSpacing: 1.4,
@@ -546,7 +546,7 @@ class _DurationSection extends StatelessWidget {
                     ),
                   ),
                   if (showOptimal) ...[
-                    12.horizontalSpace,
+                    const Spacer(),
                     Container(
                       padding: EdgeInsets.symmetric(
                         horizontal: 10.w,
@@ -558,7 +558,7 @@ class _DurationSection extends StatelessWidget {
                       ),
                       child: AppText(
                         'OPTIMAL CHARGE',
-                        color: context.revampedTheme.bookSlotDarkGreen,
+                        color: context.revampedTheme.textPrimary,
                         fontSize: FontSizes.font10Sp,
                         fontWeight: FontWeights.weight700,
                         letterSpacing: 0.5,
@@ -592,14 +592,14 @@ class _DurationSection extends StatelessWidget {
                 children: [
                   AppText(
                     '15 MIN',
-                    color: context.revampedTheme.textMuted,
+                    color: context.revampedTheme.textPrimary,
                     fontSize: FontSizes.font10Sp,
                     fontWeight: FontWeights.weight600,
                     letterSpacing: 0.5,
                   ),
                   AppText(
                     '120 MIN',
-                    color: context.revampedTheme.textMuted,
+                    color: context.revampedTheme.textPrimary,
                     fontSize: FontSizes.font10Sp,
                     fontWeight: FontWeights.weight600,
                     letterSpacing: 0.5,
@@ -695,7 +695,7 @@ class _EstimatedCostCard extends StatelessWidget {
         children: [
           AppText(
             'ESTIMATED COST',
-            color: context.revampedTheme.textMuted,
+            color: context.revampedTheme.textPrimary,
             fontSize: FontSizes.font10Sp,
             fontWeight: FontWeights.weight700,
             letterSpacing: 1.2,
@@ -749,7 +749,7 @@ class _CostRow extends StatelessWidget {
       children: [
         AppText(
           label,
-          color: context.revampedTheme.textMuted,
+          color: context.revampedTheme.textPrimary,
           fontSize: FontSizes.font14Sp,
           fontWeight: FontWeights.weight400,
         ),
@@ -792,13 +792,13 @@ class _ContinueButton extends StatelessWidget {
                     t.disabledButtonGrey,
                   ],
           ),
-          borderRadius: BorderRadius.circular(14.r),
+          borderRadius: BorderRadius.circular(34.r),
         ),
         child: Material(
           color: AppColors.transparentColor,
           child: InkWell(
             onTap: enabled ? onPressed : null,
-            borderRadius: BorderRadius.circular(14.r),
+            borderRadius: BorderRadius.circular(34.r),
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: 24.w),
               child: Row(
