@@ -474,7 +474,7 @@ class _SocialButton extends StatelessWidget {
       style: OutlinedButton.styleFrom(
         foregroundColor: ui.textPrimary,
         side: BorderSide(
-          color: ui.inputBorder,
+          color: ui.isLight ? ui.inputBorder : AppColors.whiteColor,
         ),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
