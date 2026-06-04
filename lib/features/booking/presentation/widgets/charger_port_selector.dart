@@ -18,14 +18,14 @@ class ChargerPortSelector extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 128.h,
+      height: 148.h,
       child: ListView(
         scrollDirection: Axis.horizontal,
         children: [
           PortCard(
             ui: ui,
             portLabel: 'Port 1',
-            specs: 'CCS, 350kW',
+            specs: 'CCS,\n350kW',
             selected: selectedPortIndex == 0,
             onTap: () => onPortSelected(0),
           ),
@@ -33,7 +33,7 @@ class ChargerPortSelector extends StatelessWidget {
           PortCard(
             ui: ui,
             portLabel: 'Port 2',
-            specs: 'CCS 150 kW',
+            specs: 'CCS\n150 kW',
             selected: selectedPortIndex == 1,
             onTap: () => onPortSelected(1),
           ),
@@ -41,7 +41,7 @@ class ChargerPortSelector extends StatelessWidget {
           PortCard(
             ui: ui,
             portLabel: 'Port 3',
-            specs: 'Type 2, 22kW',
+            specs: 'Type 2,\n22kW',
             selected: selectedPortIndex == 2,
             onTap: () => onPortSelected(2),
           ),

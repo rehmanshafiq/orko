@@ -23,6 +23,8 @@ class AppUtils {
   static EdgeInsets get bottom34Padding => EdgeInsets.only(bottom: 34.h);
   static EdgeInsets get horizontal8Vertical4Padding =>
       EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h);
+  static EdgeInsets get horizontal8Vertical2Padding =>
+      EdgeInsets.symmetric(horizontal: 8.w, vertical: 2.h);
   static EdgeInsets get horizontal8Vertical8Padding =>
       EdgeInsets.symmetric(horizontal: 8.w, vertical: 8.h);
   static EdgeInsets get vertical8Padding => EdgeInsets.symmetric(vertical: 8.h);

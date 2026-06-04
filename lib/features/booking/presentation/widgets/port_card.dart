@@ -83,11 +83,12 @@ class PortCard extends StatelessWidget {
                 fontSize: FontSizes.font12Sp,
                 fontWeight: FontWeights.weight400,
               ),
-              const Spacer(),
+              8.verticalSpace,
+              // const Spacer(),
               Align(
                 alignment: Alignment.centerLeft,
                 child: Container(
-                  padding: AppUtils.horizontal8Vertical4Padding,
+                  padding: AppUtils.horizontal8Vertical2Padding,
                   decoration: BoxDecoration(
                     color: selected
                         ? AppColors.whiteColor.withValues(alpha: 0.25)

@@ -23,58 +23,49 @@ class DateChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final surface = selected
-        ? AppColors.primaryDarkColor.withValues(alpha: 0.95)
-        : ui.cardBackground;
-    final borderColor =
-        selected ? AppColors.primaryDarkColor : ui.borderSubtle;
     final dayColor = selected ? AppColors.whiteColor : ui.textMuted;
     final dateColor = selected ? AppColors.whiteColor : ui.textSecondary;
+
+    final content = Column(
+      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        AppText(
+          day,
+          color: dayColor,
+          fontSize: FontSizes.font10Sp,
+          fontWeight:
+              selected ? FontWeights.weight600 : FontWeights.weight500,
+        ),
+        4.verticalSpace,
+        AppText(
+          date,
+          color: dateColor,
+          fontSize: FontSizes.font12Sp,
+          fontWeight:
+              selected ? FontWeights.weight700 : FontWeights.weight600,
+        ),
+      ],
+    );
 
     return Material(
       color: AppColors.transparentColor,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12.r),
+        borderRadius: BorderRadius.circular(100.r),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 160),
           curve: Curves.easeOut,
-          padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 8.h),
-          decoration: BoxDecoration(
-            color: surface,
-            borderRadius: BorderRadius.circular(12.r),
-            border: Border.all(color: borderColor, width: selected ? 1.5 : 1),
-            boxShadow: selected
-                ? [
-                    BoxShadow(
-                      color: AppColors.primaryDarkColor
-                          .withValues(alpha: ui.isLight ? 0.12 : 0.22),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ]
-                : null,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              AppText(
-                day,
-                color: dayColor,
-                fontSize: FontSizes.font10Sp,
-                fontWeight:
-                    selected ? FontWeights.weight600 : FontWeights.weight500,
-              ),
-              4.verticalSpace,
-              AppText(
-                date,
-                color: dateColor,
-                fontSize: FontSizes.font12Sp,
-                fontWeight:
-                    selected ? FontWeights.weight700 : FontWeights.weight600,
-              ),
-            ],
-          ),
+          width: selected ? 44.w : null,
+          height: selected ? 44.w : null,
+          alignment: Alignment.center,
+          decoration: selected
+              ? BoxDecoration(
+                  color: AppColors.primaryDarkColor.withValues(alpha: 0.95),
+                  shape: BoxShape.circle,
+                )
+              : null,
+          child: content,
         ),
       ),
     );
@@ -105,13 +96,7 @@ class TodayDateChip extends StatelessWidget {
             : AppColors.primaryDarkColor.withValues(alpha: 0.28);
 
     final labelColor =
-        selected ? AppColors.whiteColor : ui.isLight ? AppColors.primaryDarkColor : AppColors.whiteColor;
-
-    final borderColor = selected
-        ? ui.isLight
-            ? AppColors.primaryDarkColor.withValues(alpha: 0.72)
-            : AppColors.primaryLightColor.withValues(alpha: 0.55)
-        : ui.borderSubtle;
+        selected ? AppColors.blackColor : ui.isLight ? AppColors.primaryDarkColor : AppColors.whiteColor;
 
     return Material(
       color: AppColors.transparentColor,
@@ -121,28 +106,17 @@ class TodayDateChip extends StatelessWidget {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 160),
           curve: Curves.easeOut,
-          width: 50.w,
-          height: 50.w,
+          width: 52.w,
+          height: 52.w,
           alignment: Alignment.center,
           decoration: BoxDecoration(
             color: bg,
             shape: BoxShape.circle,
-            border: Border.all(color: borderColor, width: selected ? 2 : 1),
-            boxShadow: selected
-                ? [
-                    BoxShadow(
-                      color: AppColors.primaryDarkColor
-                          .withValues(alpha: ui.isLight ? 0.28 : 0.45),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ]
-                : null,
           ),
           child: AppText(
             'Today',
             color: labelColor,
-            fontSize: FontSizes.font8Sp,
+            fontSize: FontSizes.font10Sp,
             fontWeight: FontWeights.weight700,
             maxLines: 1,
           ),

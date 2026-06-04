@@ -28,38 +28,36 @@ class DateSelector extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 10.h),
+      padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
       decoration: BoxDecoration(
         color: ui.innerCardBg,
-        borderRadius: BorderRadius.circular(14.r),
-        border: Border.all(color: ui.borderSubtle),
+        borderRadius: BorderRadius.circular(100.r),
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           TodayDateChip(
             ui: ui,
             selected: selectedDateSegment == 0,
             onTap: () => onSelectDate(0),
           ),
-          10.horizontalSpace,
-          Container(width: 1, height: 36.h, color: ui.dividerLine),
-          8.horizontalSpace,
-          ...List.generate(_weekPills.length, (i) {
-            final p = _weekPills[i];
-            final segment = i + 1;
-            return Expanded(
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 2.w),
-                child: DateChip(
+          12.horizontalSpace,
+          Expanded(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: List.generate(_weekPills.length, (i) {
+                final p = _weekPills[i];
+                final segment = i + 1;
+                return DateChip(
                   ui: ui,
                   day: p.day,
                   date: p.date,
                   selected: selectedDateSegment == segment,
                   onTap: () => onSelectDate(segment),
-                ),
-              ),
-            );
-          }),
+                );
+              }),
+            ),
+          ),
         ],
       ),
     );
