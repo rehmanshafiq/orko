@@ -107,7 +107,7 @@ class _OnboardingMobileViewState extends State<OnboardingMobileView> {
                         final item = state.items[index];
                         return _OnboardingSlide(
                           item: item,
-                          imageHeight: screenHeight * 0.42,
+                          imageHeight: screenHeight * 0.48,
                           textColor: ui.textPrimary,
                           descriptionColor: ui.textMuted,
                         );
