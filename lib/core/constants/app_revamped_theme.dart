@@ -24,6 +24,9 @@ class AppRevampedTheme {
   Color get brandGreenBright =>
       isLight ? const Color(0xFF00A878) : const Color(0xFF34D399);
 
+  Color get brandGreenLightBright =>
+      isLight ? AppColors.primaryLightColor : const Color(0xFF34D399);
+
   Color get accentGreen =>
       isLight ? const Color(0xFF0E8F68) : const Color(0xFF14B87A);
 
@@ -256,7 +259,7 @@ class AppRevampedTheme {
   Color get filterChipBackground => progressTrack;
 
   Color get portIndicatorActiveBg =>
-      brandGreenBright.withValues(alpha: isLight ? 0.18 : 0.28);
+      brandGreenLightBright.withValues(alpha: isLight ? null : 0.28);
 
   Color get heroMetaPillBackground => isLight
       ? AppColors.whiteColor.withValues(alpha: 0.94)

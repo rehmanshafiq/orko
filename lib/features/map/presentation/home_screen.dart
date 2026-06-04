@@ -67,7 +67,12 @@ class _HomeScreenState extends State<HomeScreen> {
   Set<Marker> _markers = const <Marker>{};
   List<HubcoLocationEntity> _locations = const [];
 
-  BitmapDescriptor? _chargingStationIcon;
+  /// Cache of generated marker bitmaps, keyed by fill color value.
+  final Map<int, BitmapDescriptor> _chargingStationIcons = {};
+
+  /// Number of leading markers drawn in [AppColors.removeColor]; the rest use
+  /// [AppColors.primaryDarkColor].
+  static const int _highlightedMarkerCount = 3;
 
   // ── Lifecycle ─────────────────────────────────────────────────────────────
 
@@ -144,13 +149,26 @@ class _HomeScreenState extends State<HomeScreen> {
     await Future.delayed(const Duration(milliseconds: 50));
     if (!mounted) return;
 
-    final stationIcon = await _resolveChargingStationIcon();
+    final removeIcon =
+        await _resolveChargingStationIcon(AppColors.removeColor);
+    final primaryIcon =
+        await _resolveChargingStationIcon(AppColors.primaryDarkColor);
     if (!mounted) return;
 
     // Step 3 ── Update markers. The SDK flashes white here — it's hidden.
+    // First [_highlightedMarkerCount] markers are red, the rest primary green.
     setState(() {
       _locations = locations;
-      _markers = locations.map((s) => _toMarker(s, stationIcon)).toSet();
+      _markers = locations
+          .asMap()
+          .entries
+          .map(
+            (entry) => _toMarker(
+              entry.value,
+              entry.key < _highlightedMarkerCount ? removeIcon : primaryIcon,
+            ),
+          )
+          .toSet();
     });
 
     // Step 4 ── Reapply dark style; the SDK reverted it on redraw.
@@ -181,8 +199,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   static const double _chargingStationMarkerSize = 40;
 
-  Future<BitmapDescriptor?> _resolveChargingStationIcon() async {
-    if (_chargingStationIcon != null) return _chargingStationIcon;
+  Future<BitmapDescriptor?> _resolveChargingStationIcon(Color color) async {
+    final cached = _chargingStationIcons[color.toARGB32()];
+    if (cached != null) return cached;
     if (!mounted) return null;
     try {
       final dpr = MediaQuery.devicePixelRatioOf(context);
@@ -192,7 +211,7 @@ class _HomeScreenState extends State<HomeScreen> {
       final center = Offset(size / 2, size / 2);
       final radius = size * 0.38;
 
-      final fillPaint = Paint()..color = AppColors.primaryDarkColor;
+      final fillPaint = Paint()..color = color;
       canvas.drawCircle(center, radius, fillPaint);
 
       final borderPaint = Paint()
@@ -230,7 +249,7 @@ class _HomeScreenState extends State<HomeScreen> {
       if (byteData == null) return null;
 
       final icon = BitmapDescriptor.fromBytes(byteData.buffer.asUint8List());
-      _chargingStationIcon = icon;
+      _chargingStationIcons[color.toARGB32()] = icon;
       return icon;
     } catch (e, st) {
       debugPrint('❌ Marker icon failed: $e\n$st');
