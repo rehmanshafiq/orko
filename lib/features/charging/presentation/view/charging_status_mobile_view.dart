@@ -51,14 +51,14 @@ class ChargingStatusMobileView extends StatelessWidget {
                     fontSize: FontSizes.font16Sp,
                     fontWeight: FontWeights.weight400,
                   ),
-                  18.verticalSpace,
+                  38.verticalSpace,
                   ChargingGaugeWidget(
                     progress: state.gaugeProgress,
                     percentLabel: state.gaugePercentLabel,
                     statusLabel: state.statusLabel,
                     ui: ui,
                   ),
-                  26.verticalSpace,
+                  30.verticalSpace,
                   MetricsGridWidget(metrics: state.metrics, ui: ui),
                   16.verticalSpace,
                   _ChargingSessionTargetCard(
