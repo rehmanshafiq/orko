@@ -31,10 +31,10 @@ abstract final class AppMaterialTheme {
         brightness: Brightness.dark,
         scaffoldBackgroundColor: AppColors.blackColor,
         colorScheme: ColorScheme.fromSeed(
-          seedColor: AppColors.primaryLightColor,
+          seedColor: AppColors.primaryDarkColor,
           brightness: Brightness.dark,
-          primary: AppColors.primaryLightColor,
-          secondary: AppColors.primaryDarkColor,
+          primary: AppColors.primaryDarkColor,
+          secondary: AppColors.primaryLightColor,
         ),
         appBarTheme: const AppBarTheme(
           centerTitle: true,

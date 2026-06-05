@@ -378,7 +378,7 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
       data: SwitchThemeData(
         thumbColor: WidgetStateProperty.resolveWith((s) {
           if (s.contains(WidgetState.selected)) {
-            return ui.isLight ? AppColors.whiteColor : AppColors.blackColor;
+            return AppColors.whiteColor;
           }
           return AppColors.whiteColor.withValues(alpha: 0.85);
         }),
@@ -458,7 +458,7 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
           ? Icon(
               Icons.check,
               size: 14.r,
-              color: ui.isLight ? AppColors.whiteColor : AppColors.blackColor,
+              color: AppColors.whiteColor,
             )
           : null,
     );
@@ -477,7 +477,7 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
       buttonHeight: 64.h,
       cornerRadius: 16.r,
       buttonColor: ui.brandPrimary,
-      textColor: ui.isLight ? AppColors.whiteColor : AppColors.blackColor,
+      textColor: AppColors.whiteColor,
       fontSize: FontSizes.font14Sp,
       fontWeight: FontWeights.weight700,
     );

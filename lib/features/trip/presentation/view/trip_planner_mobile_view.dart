@@ -81,7 +81,7 @@ class TripPlannerMobileView extends StatelessWidget {
                         .read<TripPlannerBloc>()
                         .add(const TripPlannerPlanTripPressed()),
                     buttonColor: ui.brandPrimary,
-                    textColor: ui.isLight ? AppColors.whiteColor : AppColors.blackColor,
+                    textColor: AppColors.whiteColor,
                     fontWeight: FontWeights.weight700,
                     fontSize: FontSizes.font14Sp,
                     cornerRadius: 24.r,

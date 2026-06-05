@@ -122,7 +122,7 @@ class _OnboardingMobileViewState extends State<OnboardingMobileView> {
                     PrimaryButtonWidget(
                       text: 'Get Started',
                       buttonHeight: 56.h,
-                      buttonColor: AppColors.primaryLightColor,
+                      buttonColor: ui.brandPrimary,
                       textColor: AppColors.whiteColor,
                       fontSize: FontSizes.font16Sp,
                       fontWeight: FontWeights.weight600,
@@ -219,7 +219,7 @@ class _PageIndicator extends StatelessWidget {
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: index == activeIndex
-                ? AppColors.primaryLightColor
+                ? ui.brandPrimary
                 : ui.textSecondary.withValues(alpha: 0.45),
           ),
         ),

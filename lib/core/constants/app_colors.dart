@@ -23,9 +23,9 @@ class AppColors {
   static const sandColor = Color(0xFFE8E6DC);
   static const myAccountBorderColor = Color(0xFFE2E2E2);
   static const colorsOutlineColor = Color(0xFFEBEBEB);
-  /// Light green Pantone — primary on dark surfaces, secondary on light surfaces.
+  /// Light green Pantone — primary on light surfaces, secondary on dark surfaces.
   static const primaryLightColor = Color(0xFF8FCF4D);
-  /// Dark green Pantone — primary on light surfaces, secondary on dark surfaces.
+  /// Dark green Pantone — primary on dark surfaces, secondary on light surfaces.
   static const primaryDarkColor = Color(0xFF329748);
   static const fieldBackgroundColor = Color(0xFF171717);
   static const fieldBackgroundBookingColor = Color(0xFF27252B);
@@ -56,13 +56,11 @@ class AppUiColors {
 
   bool get isLight => _brightness == Brightness.light;
 
-  /// Client brand: primary icons/features (light green on dark, dark green on light).
-  Color get brandPrimary =>
-      isLight ? AppColors.primaryDarkColor : AppColors.primaryLightColor;
+  /// Client brand: primary icons/features (dark green in both light and dark mode).
+  Color get brandPrimary => AppColors.primaryDarkColor;
 
-  /// Client brand: secondary accent (dark green on dark, light green on light).
-  Color get brandSecondary =>
-      isLight ? AppColors.primaryLightColor : AppColors.primaryDarkColor;
+  /// Client brand: secondary accent (light green in both light and dark mode).
+  Color get brandSecondary => AppColors.primaryDarkColor;
 
   /// Dark green Pantone — same swatch in both themes (e.g. profile header).
   Color get brandDarkGreen => AppColors.primaryDarkColor;

@@ -251,7 +251,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         buttonHeight: 52.h,
                         cornerRadius: 12.r,
                         buttonColor: ui.brandPrimary,
-                        textColor: ui.isLight ? AppColors.whiteColor : AppColors.blackColor,
+                        textColor: AppColors.whiteColor,
                         fontSize: FontSizes.font16Sp,
                         fontWeight: FontWeights.weight600,
                       ),

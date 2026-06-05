@@ -62,7 +62,7 @@ class ProfileScreen extends StatelessWidget {
                       buttonHeight: 48.h,
                       cornerRadius: 12.r,
                       buttonColor: ui.brandPrimary,
-                      textColor: ui.isLight ? AppColors.whiteColor : AppColors.blackColor,
+                      textColor: AppColors.whiteColor,
                       fontSize: FontSizes.font14Sp,
                       fontWeight: FontWeights.weight600,
                     ),
@@ -853,7 +853,7 @@ class _VehiclesTabBody extends StatelessWidget {
           buttonHeight: 48.h,
           cornerRadius: 12.r,
           buttonColor: ui.brandPrimary,
-          textColor: ui.isLight ? AppColors.whiteColor : AppColors.blackColor,
+          textColor: AppColors.whiteColor,
           fontSize: FontSizes.font15Sp,
           fontWeight: FontWeights.weight700,
         ),
@@ -1465,7 +1465,7 @@ class _LanguageChip extends StatelessWidget {
           child: AppText(
             label,
             color: selected
-                ? (ui.isLight ? AppColors.whiteColor : AppColors.blackColor)
+                ? (AppColors.whiteColor)
                 : ui.textPrimary.withValues(alpha: 0.88),
             fontSize: FontSizes.font14Sp,
             fontWeight: FontWeights.weight600,

@@ -575,7 +575,7 @@ class _HomeScreenState extends State<HomeScreen> {
         icon,
         size: isCompact ? 15 : 26,
         color: isPrimary
-            ? (ui.isLight ? AppColors.whiteColor : AppColors.blackColor)
+            ? AppColors.whiteColor
             : ui.textMuted,
       ),
     );
