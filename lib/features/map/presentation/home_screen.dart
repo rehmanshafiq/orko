@@ -110,8 +110,31 @@ class _HomeScreenState extends State<HomeScreen> {
 
     setState(() => _mapReady = true);
 
+    // Locations may have already loaded before the map was created (the asset
+    // loads fast, and the permission dialog can delay this callback). In that
+    // case the camera move in [_onLocationsLoaded] was skipped because the
+    // controller didn't exist yet — so position the camera now.
+    unawaited(_moveCameraToLocations());
+
     // Blue dot: enable native layer once location permission is known/granted.
     unawaited(_syncMapMyLocationLayer());
+  }
+
+  /// Animates the camera to frame the loaded stations. Safe to call from either
+  /// [_onMapCreated] or [_onLocationsLoaded]; it no-ops until both the map
+  /// controller and at least one location are available.
+  Future<void> _moveCameraToLocations() async {
+    final controller = _mapController;
+    if (controller == null || _locations.isEmpty) return;
+    final first = _locations.first;
+    await controller.animateCamera(
+      CameraUpdate.newCameraPosition(
+        CameraPosition(
+          target: LatLng(first.latitude, first.longitude),
+          zoom: 5.2,
+        ),
+      ),
+    );
   }
 
   /// Updates [GoogleMap.myLocationEnabled] from current Geolocator permission so
@@ -171,18 +194,9 @@ class _HomeScreenState extends State<HomeScreen> {
     await _applyMapStyleForTheme(Theme.of(context).brightness);
     if (!mounted) return;
 
-    // Step 5 ── Animate camera to first location.
-    if (locations.isNotEmpty && _mapController != null) {
-      final first = locations.first;
-      await _mapController!.animateCamera(
-        CameraUpdate.newCameraPosition(
-          CameraPosition(
-            target: LatLng(first.latitude, first.longitude),
-            zoom: 5.2,
-          ),
-        ),
-      );
-    }
+    // Step 5 ── Animate camera to first location. If the controller isn't ready
+    // yet, [_onMapCreated] will run this once the map is created.
+    await _moveCameraToLocations();
 
     if (!mounted) return;
 

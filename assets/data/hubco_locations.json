@@ -1,13 +1,5 @@
 [
   {
-    "id": 46,
-    "name": "HGL - APL Dandewal (N)",
-    "address": "Painsra Service Area (North) - M-4",
-    "latitude": 31.34959,
-    "longitude": 72.79716,
-    "status": true
-  },
-  {
     "id": 47,
     "name": "HGL - APL Dandewal (S)",
     "address": "Painsra Service Area (South) - M-4",
@@ -45,14 +37,6 @@
     "address": "HGL - PSO New Ali, N-5",
     "latitude": 26.69339,
     "longitude": 68.027244,
-    "status": true
-  },
-  {
-    "id": 35,
-    "name": "HGL - PSO Zahir Pir (N)",
-    "address": "HGL - PSO Zahir Pir (N), M-5",
-    "latitude": 28.922335,
-    "longitude": 70.622736,
     "status": true
   },
   {

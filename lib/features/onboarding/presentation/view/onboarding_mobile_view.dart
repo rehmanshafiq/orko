@@ -162,13 +162,13 @@ class _OnboardingSlide extends StatelessWidget {
       children: [
         Flexible(
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(2),
             child: SizedBox(
               width: double.infinity,
               child: AppPngImageView(
                 appImagePath: item.imagePath,
                 width: double.infinity,
-                fit: BoxFit.contain,
+                fit: BoxFit.fill,
                 imageAlignment: Alignment.center,
               ),
             ),
