@@ -40,7 +40,6 @@ class _OnboardingMobileViewState extends State<OnboardingMobileView> {
 
   @override
   Widget build(BuildContext context) {
-    final screenHeight = MediaQuery.sizeOf(context).height;
     final ui = AppUiColors.of(context);
 
     return Scaffold(
@@ -107,7 +106,6 @@ class _OnboardingMobileViewState extends State<OnboardingMobileView> {
                         final item = state.items[index];
                         return _OnboardingSlide(
                           item: item,
-                          imageHeight: screenHeight * 0.42,
                           textColor: ui.textPrimary,
                           descriptionColor: ui.textMuted,
                         );
@@ -150,13 +148,11 @@ class _OnboardingMobileViewState extends State<OnboardingMobileView> {
 class _OnboardingSlide extends StatelessWidget {
   const _OnboardingSlide({
     required this.item,
-    required this.imageHeight,
     required this.textColor,
     required this.descriptionColor,
   });
 
   final OnboardingItemEntity item;
-  final double imageHeight;
   final Color textColor;
   final Color descriptionColor;
 
@@ -164,13 +160,18 @@ class _OnboardingSlide extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(24),
-          child: AppPngImageView(
-            appImagePath: item.imagePath,
-            height: imageHeight,
-            width: double.infinity,
-            fit: BoxFit.fill,
+        Flexible(
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(24),
+            child: SizedBox(
+              width: double.infinity,
+              child: AppPngImageView(
+                appImagePath: item.imagePath,
+                width: double.infinity,
+                fit: BoxFit.contain,
+                imageAlignment: Alignment.center,
+              ),
+            ),
           ),
         ),
         28.verticalSpace,

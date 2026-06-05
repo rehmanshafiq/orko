@@ -63,6 +63,7 @@ class AppPngImageView extends StatelessWidget {
       height: height,
       width: width,
       color: color,
+      alignment: imageAlignment ?? Alignment.center,
       matchTextDirection: matchDirection ?? false,
     );
   }
