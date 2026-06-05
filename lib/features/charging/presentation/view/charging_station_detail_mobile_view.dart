@@ -177,6 +177,17 @@ class ChargingStationDetailMobileView extends StatelessWidget {
                                 fontSize: FontSizes.font14Sp,
                                 fontWeight: FontWeights.weight400,
                               ),
+                              8.verticalSpace,
+                              const ChargingStationSectionTitleWidget(
+                                title: 'Contact No.',
+                              ),
+                              6.verticalSpace,
+                              AppText(
+                                '03123456789',
+                                color: ui.textSecondary,
+                                fontSize: FontSizes.font14Sp,
+                                fontWeight: FontWeights.weight400,
+                              ),
                               4.verticalSpace,
                               const Divider(),
                               6.verticalSpace,

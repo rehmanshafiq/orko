@@ -51,14 +51,14 @@ class ChargingStatusMobileView extends StatelessWidget {
                     fontSize: FontSizes.font16Sp,
                     fontWeight: FontWeights.weight400,
                   ),
-                  18.verticalSpace,
+                  36.verticalSpace,
                   ChargingGaugeWidget(
                     progress: state.gaugeProgress,
                     percentLabel: state.gaugePercentLabel,
                     statusLabel: state.statusLabel,
                     ui: ui,
                   ),
-                  26.verticalSpace,
+                  36.verticalSpace,
                   MetricsGridWidget(metrics: state.metrics, ui: ui),
                   16.verticalSpace,
                   _ChargingSessionTargetCard(
@@ -74,11 +74,11 @@ class ChargingStatusMobileView extends StatelessWidget {
                     ui: ui,
                   ),
                   10.verticalSpace,
-                  ChargingActionButtonsWidget(
-                    onStopCharging: cubit.stopCharging,
-                    onEmergencyStop: cubit.emergencyStop,
-                  ),
-                  8.verticalSpace,
+                  // ChargingActionButtonsWidget(
+                  //   onStopCharging: cubit.stopCharging,
+                  //   onEmergencyStop: cubit.emergencyStop,
+                  // ),
+                  // 8.verticalSpace,
                 ],
               );
             },
@@ -136,14 +136,14 @@ class _ChargingSessionTargetCard extends StatelessWidget {
             fontSize: FontSizes.font13Sp,
             fontWeight: FontWeights.weight500,
           ),
-          10.verticalSpace,
-          SliderTheme(
-            data: sliderTheme,
-            child: Slider(
-              value: sliderValue,
-              onChanged: onSliderChanged,
-            ),
-          ),
+          8.verticalSpace,
+          // SliderTheme(
+          //   data: sliderTheme,
+          //   child: Slider(
+          //     value: sliderValue,
+          //     onChanged: onSliderChanged,
+          //   ),
+          // ),
         ],
       ),
     );

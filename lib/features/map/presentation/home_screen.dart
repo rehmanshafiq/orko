@@ -226,12 +226,12 @@ class _HomeScreenState extends State<HomeScreen> {
         AppImages.markerGreen,
         _ChargingStationMarkerKind.green,
       ),
+      // _loadChargingStationMarkerAsset(
+      //   AppImages.markerGrey,
+      //   _ChargingStationMarkerKind.grey,
+      // ),
       _loadChargingStationMarkerAsset(
         AppImages.markerGrey,
-        _ChargingStationMarkerKind.grey,
-      ),
-      _loadChargingStationMarkerAsset(
-        AppImages.markerOrange,
         _ChargingStationMarkerKind.orange,
       ),
     ]);
