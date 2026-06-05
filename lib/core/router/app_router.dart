@@ -9,6 +9,7 @@ import 'package:orko_hubco/features/auth/presentation/screens/login_screen.dart'
 import 'package:orko_hubco/features/auth/presentation/screens/register_screen.dart';
 import 'package:orko_hubco/features/booking/presentation/pages/book_slot_page.dart';
 import 'package:orko_hubco/features/booking/presentation/pages/booking_confirmation_page.dart';
+import 'package:orko_hubco/features/booking/presentation/pages/my_bookings_page.dart';
 import 'package:orko_hubco/features/booking/presentation/screens/payment_method_screen.dart';
 import 'package:orko_hubco/features/bottom_navigation/presentation/screens/bottom_nav_shell.dart';
 import 'package:orko_hubco/features/map/domain/entities/hubco_location_entity.dart';
@@ -32,7 +33,7 @@ import 'package:orko_hubco/features/trip/presentation/page/trip_planner_page.dar
 ///   /home       → BottomNavShell
 ///     ├── /home          → HomeScreen     (tab 0)
 ///     ├── /account       → ProfileScreen  (tab 1)
-///     ├── /bookings      → BookSlotPage (tab 2)
+///     ├── /bookings      → MyBookingsPage (tab 2)
 ///     ├── /trip          → TripPlannerPage (tab 3)
 ///     └── /profile       → ChargingStatusPage (tab 4)
 ///   /search              → SearchPage (modal stack from map search bar)
@@ -92,6 +93,22 @@ class AppRouter {
           final extra = state.extra;
           final station = extra is HubcoLocationEntity ? extra : null;
           return ChargingStationDetailPage(station: station);
+        },
+      ),
+
+      GoRoute(
+        path: '/book-slot',
+        name: 'book-slot',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final extra = state.extra;
+          if (extra is HubcoLocationEntity) {
+            return BookSlotPage(
+              stationName: extra.name,
+              stationAddress: extra.address,
+            );
+          }
+          return const BookSlotPage();
         },
       ),
 
@@ -165,7 +182,7 @@ class AppRouter {
               GoRoute(
                 path: '/bookings',
                 name: 'bookings',
-                builder: (context, state) => const BookSlotPage(),
+                builder: (context, state) => const MyBookingsPage(),
               ),
             ],
           ),

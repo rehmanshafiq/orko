@@ -400,10 +400,16 @@ class TripPlannerBloc extends Bloc<TripPlannerEvent, TripPlannerState> {
     );
   }
 
-  void openPreBook(BuildContext context) {
+  void openPreBook(
+    BuildContext context, {
+    required HubcoLocationEntity station,
+  }) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => const BookSlotPage(),
+        builder: (_) => BookSlotPage(
+          stationName: station.name,
+          stationAddress: station.address,
+        ),
       ),
     );
   }

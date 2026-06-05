@@ -27,7 +27,7 @@ class TripChargingStopsSectionWidget extends StatelessWidget {
   final int? expandedChargingStopIndex;
   final ValueChanged<int> onToggleChargingStop;
   final ValueChanged<int> onViewDetails;
-  final VoidCallback onPreBook;
+  final ValueChanged<int> onPreBook;
   final String Function(int) formatPkr;
 
   @override
@@ -63,7 +63,7 @@ class TripChargingStopsSectionWidget extends StatelessWidget {
                         expanded: expandedChargingStopIndex == i,
                         onToggleExpanded: () => onToggleChargingStop(i),
                         onViewDetails: () => onViewDetails(i),
-                        onPreBook: onPreBook,
+                        onPreBook: () => onPreBook(i),
                         formatPkr: formatPkr,
                       ),
                     ),

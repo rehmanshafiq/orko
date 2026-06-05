@@ -7,16 +7,16 @@ import 'package:orko_hubco/features/booking/presentation/widgets/slot_chip.dart'
 /// Mock slot grid: base availability only (three visual styles).
 const List<({String time, SlotStyle style})> kBookingSlotDefinitions = [
   (time: '08:00', style: SlotStyle.available),
-  (time: '09:00', style: SlotStyle.booked),
-  (time: '10:00', style: SlotStyle.busy),
+  (time: '09:00', style: SlotStyle.available),
+  (time: '10:00', style: SlotStyle.available),
   (time: '11:00', style: SlotStyle.available),
-  (time: '12:00', style: SlotStyle.booked),
-  (time: '13:00', style: SlotStyle.busy),
+  (time: '12:00', style: SlotStyle.available),
+  (time: '13:00', style: SlotStyle.available),
   (time: '14:00', style: SlotStyle.available),
   (time: '15:00', style: SlotStyle.available),
   (time: '16:00', style: SlotStyle.available),
-  (time: '17:00', style: SlotStyle.booked),
-  (time: '18:00', style: SlotStyle.busy),
+  (time: '17:00', style: SlotStyle.available),
+  (time: '18:00', style: SlotStyle.available),
 ];
 
 class TimeSlotGrid extends StatelessWidget {
@@ -53,16 +53,14 @@ class TimeSlotGrid extends StatelessWidget {
           ),
           itemBuilder: (context, index) {
             final s = kBookingSlotDefinitions[index];
-            final isSelected = s.style == SlotStyle.available && selectedTime == s.time;
+            final isSelected = selectedTime == s.time;
             return SlotChip(
               ui: ui,
               time: s.time,
               style: s.style,
               width: itemWidth,
               isSelected: isSelected,
-              onTap: s.style == SlotStyle.available
-                  ? () => onSlotTap(s.time, s.style)
-                  : null,
+              onTap: () => onSlotTap(s.time, s.style),
             );
           },
         );

@@ -17,10 +17,18 @@ import 'package:orko_hubco/features/booking/presentation/widgets/time_slot_grid.
 
 /// EV charging slot booking UI with local selection state.
 class BookSlotMobileView extends StatelessWidget {
-  const BookSlotMobileView({super.key});
+  const BookSlotMobileView({
+    super.key,
+    this.stationName,
+    this.stationAddress,
+  });
 
-  static const String _stationTitle = 'HGL Charging Hub Motorway M2';
-  static const String _stationAddress = 'Motorway M2, Near Exit 15, XYZ City';
+  final String? stationName;
+  final String? stationAddress;
+
+  static const String _defaultStationTitle = 'HGL Charging Hub Motorway M2';
+  static const String _defaultStationAddress =
+      'Motorway M2, Near Exit 15, XYZ City';
 
   @override
   Widget build(BuildContext context) {
@@ -69,8 +77,8 @@ class BookSlotMobileView extends StatelessWidget {
                       children: [
                         16.verticalSpace,
                         StationInfoCard(
-                          title: _stationTitle,
-                          address: _stationAddress,
+                          title: stationName ?? _defaultStationTitle,
+                          address: stationAddress ?? _defaultStationAddress,
                           ui: ui,
                         ),
                         20.verticalSpace,

@@ -121,7 +121,10 @@ class TripPlannerMobileView extends StatelessWidget {
                         context,
                         station: state.currentPlan!.stops[index],
                       ),
-                      onPreBook: () => bloc.openPreBook(context),
+                      onPreBook: (index) => bloc.openPreBook(
+                        context,
+                        station: state.currentPlan!.stops[index],
+                      ),
                       formatPkr: bloc.formatPkr,
                     ),
                     16.verticalSpace,

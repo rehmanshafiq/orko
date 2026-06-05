@@ -4,13 +4,23 @@ import 'package:orko_hubco/features/booking/presentation/cubit/booking_cubit.dar
 import 'package:orko_hubco/features/booking/presentation/mobile/book_slot_mobile_view.dart';
 
 class BookSlotPage extends StatelessWidget {
-  const BookSlotPage({super.key});
+  const BookSlotPage({
+    super.key,
+    this.stationName,
+    this.stationAddress,
+  });
+
+  final String? stationName;
+  final String? stationAddress;
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => BookingCubit(),
-      child: const BookSlotMobileView(),
+      child: BookSlotMobileView(
+        stationName: stationName,
+        stationAddress: stationAddress,
+      ),
     );
   }
 }

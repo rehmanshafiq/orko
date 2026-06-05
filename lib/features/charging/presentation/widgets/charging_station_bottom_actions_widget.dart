@@ -5,9 +5,15 @@ import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
 import 'package:orko_hubco/core/utils/widgets/primary_button_widget.dart';
+import 'package:orko_hubco/features/map/domain/entities/hubco_location_entity.dart';
 
 class ChargingStationBottomActionsWidget extends StatelessWidget {
-  const ChargingStationBottomActionsWidget({super.key});
+  const ChargingStationBottomActionsWidget({
+    super.key,
+    required this.station,
+  });
+
+  final HubcoLocationEntity station;
 
   @override
   Widget build(BuildContext context) {
@@ -52,7 +58,7 @@ class ChargingStationBottomActionsWidget extends StatelessWidget {
                 text: 'Book Slot',
                 leadingIcon: Icons.calendar_today_outlined,
                 iconHeight: 18.sp,
-                onPress: () => context.go('/bookings'),
+                onPress: () => context.push('/book-slot', extra: station),
                 buttonWidth: double.infinity,
                 buttonHeight: 48.h,
                 cornerRadius: 32.r,

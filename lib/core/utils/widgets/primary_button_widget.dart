@@ -52,19 +52,29 @@ class PrimaryButtonWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: buttonHeight ?? 44.h,
-      width: buttonWidth ?? ScreenUtil().screenWidth,
-      child: ElevatedButton(
+    // Filled, enabled buttons get the app-wide vertical brand gradient
+    // (light green on top, dark green at the bottom). Outlined buttons
+    // (with a [strokeColor]) and disabled buttons keep their solid color.
+    final bool useGradient = isEnabled && strokeColor == null;
+
+    final OutlinedBorder buttonShape = cornerRadius != null
+        ? RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(cornerRadius!),
+          )
+        : const StadiumBorder();
+
+    final Widget button = ElevatedButton(
         style: ElevatedButton.styleFrom(
-          backgroundColor: isEnabled
-              ? (buttonColor ?? AppColors.kPrimaryColor)
-              : AppColors.thumbBarGreyColor,
-          shape: cornerRadius != null
-              ? RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(cornerRadius!),
-                )
-              : null,
+          backgroundColor: !isEnabled
+              ? AppColors.thumbBarGreyColor
+              : useGradient
+                  ? AppColors.transparentColor
+                  : (buttonColor ?? AppColors.kPrimaryColor),
+          elevation: useGradient ? 0 : null,
+          shadowColor: useGradient ? AppColors.transparentColor : null,
+          surfaceTintColor:
+              useGradient ? AppColors.transparentColor : null,
+          shape: buttonShape,
           side: strokeColor != null
               ? BorderSide(
               color: isEnabled
@@ -133,7 +143,27 @@ class PrimaryButtonWidget extends StatelessWidget {
             ],
           ],
         ),
-      ),
+      );
+
+    return SizedBox(
+      height: buttonHeight ?? 44.h,
+      width: buttonWidth ?? ScreenUtil().screenWidth,
+      child: useGradient
+          ? DecoratedBox(
+              decoration: ShapeDecoration(
+                shape: buttonShape,
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    AppColors.primaryLightColor,
+                    AppColors.primaryDarkColor,
+                  ],
+                ),
+              ),
+              child: button,
+            )
+          : button,
     );
   }
 }

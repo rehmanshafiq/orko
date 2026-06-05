@@ -206,7 +206,7 @@ class ChargingStationDetailMobileView extends StatelessWidget {
                     ],
                   ),
                 ),
-                const ChargingStationBottomActionsWidget(),
+                ChargingStationBottomActionsWidget(station: hub),
               ],
             ),
           );

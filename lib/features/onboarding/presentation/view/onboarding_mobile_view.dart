@@ -84,7 +84,7 @@ class _OnboardingMobileViewState extends State<OnboardingMobileView> {
                               : () => _onSkipOrGetStarted(context),
                       child: AppText(
                         'Skip',
-                        color: ui.textMuted,
+                        color: ui.textPrimary,
                         fontSize: FontSizes.font16Sp,
                         fontWeight: FontWeights.weight500,
                       ),
