@@ -1,0 +1,90 @@
+[
+  {
+    "id": 46,
+    "name": "HGL - APL Dandewal (N)",
+    "address": "Painsra Service Area (North) - M-4",
+    "latitude": 31.34959,
+    "longitude": 72.79716,
+    "status": true
+  },
+  {
+    "id": 47,
+    "name": "HGL - APL Dandewal (S)",
+    "address": "Painsra Service Area (South) - M-4",
+    "latitude": 31.3487,
+    "longitude": 72.79834,
+    "status": true
+  },
+  {
+    "id": 32,
+    "name": "HGL - PSO Alfalah",
+    "address": "HGL - PSO Alfalah, N-5",
+    "latitude": 25.41644,
+    "longitude": 68.33912,
+    "status": true
+  },
+  {
+    "id": 34,
+    "name": "HGL - PSO Bedal",
+    "address": "HGL - PSO Bedal, N-5",
+    "latitude": 27.668496,
+    "longitude": 68.92955,
+    "status": true
+  },
+  {
+    "id": 45,
+    "name": "HGL - PSO Multan Petroleum Service (S)",
+    "address": "Multan Service Area (South) - M-5",
+    "latitude": 29.99486,
+    "longitude": 71.38793,
+    "status": true
+  },
+  {
+    "id": 33,
+    "name": "HGL - PSO New Ali",
+    "address": "HGL - PSO New Ali, N-5",
+    "latitude": 26.69339,
+    "longitude": 68.027244,
+    "status": true
+  },
+  {
+    "id": 35,
+    "name": "HGL - PSO Zahir Pir (N)",
+    "address": "HGL - PSO Zahir Pir (N), M-5",
+    "latitude": 28.922335,
+    "longitude": 70.622736,
+    "status": true
+  },
+  {
+    "id": 39,
+    "name": "HGL - PSO Zahir Pir (S)",
+    "address": "Zahir Pir Service Area (South), M-5",
+    "latitude": 28.92008,
+    "longitude": 70.62385,
+    "status": true
+  },
+  {
+    "id": 27,
+    "name": "HGL Ocean Mall",
+    "address": "Block 9 Clifton, Karachi, 75600, Pakistan",
+    "latitude": 24.8238165,
+    "longitude": 67.0355302,
+    "status": true
+  },
+  {
+    "id": 24,
+    "name": "HGL PSO BTL",
+    "address": "Plot No, 103/A Canal Gardens Main Rd, Executive Lodges Sector B Bahria Town, Lahore, 53720",
+    "latitude": 31.3847868,
+    "longitude": 74.1688703,
+    "status": true
+  },
+  {
+    "id": 30,
+    "name": "HGL Zeta Mall",
+    "address": "Main G.T. Rd, opposite DHA 2, Zaraj Housing Society Sector A, Islamabad",
+    "latitude": 33.519817,
+    "longitude": 73.158801,
+    "status": true
+  }
+]
