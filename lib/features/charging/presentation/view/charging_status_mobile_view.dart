@@ -74,11 +74,11 @@ class ChargingStatusMobileView extends StatelessWidget {
                     ui: ui,
                   ),
                   10.verticalSpace,
-                  ChargingActionButtonsWidget(
-                    onStopCharging: cubit.stopCharging,
-                    onEmergencyStop: cubit.emergencyStop,
-                  ),
-                  8.verticalSpace,
+                  // ChargingActionButtonsWidget(
+                  //   onStopCharging: cubit.stopCharging,
+                  //   onEmergencyStop: cubit.emergencyStop,
+                  // ),
+                  // 8.verticalSpace,
                 ],
               );
             },
@@ -136,14 +136,14 @@ class _ChargingSessionTargetCard extends StatelessWidget {
             fontSize: FontSizes.font13Sp,
             fontWeight: FontWeights.weight500,
           ),
-          10.verticalSpace,
-          SliderTheme(
-            data: sliderTheme,
-            child: Slider(
-              value: sliderValue,
-              onChanged: onSliderChanged,
-            ),
-          ),
+          // 10.verticalSpace,
+          // SliderTheme(
+          //   data: sliderTheme,
+          //   child: Slider(
+          //     value: sliderValue,
+          //     onChanged: onSliderChanged,
+          //   ),
+          // ),
         ],
       ),
     );
