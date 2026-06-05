@@ -66,11 +66,11 @@ class ChargingStationMetaRowWidget extends StatelessWidget {
           ),
         ),
         8.horizontalSpace,
-        ChargingStationAvailabilityBadgeWidget(
-          station: station,
-          available: availableCount,
-          total: totalPorts,
-        ),
+        // ChargingStationAvailabilityBadgeWidget(
+        //   station: station,
+        //   available: availableCount,
+        //   total: totalPorts,
+        // ),
       ],
     );
   }

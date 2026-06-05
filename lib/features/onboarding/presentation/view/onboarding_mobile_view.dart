@@ -77,22 +77,16 @@ class _OnboardingMobileViewState extends State<OnboardingMobileView> {
                 children: [
                   Align(
                     alignment: Alignment.topRight,
-                    child: Visibility(
-                      visible: !state.isLastPage,
-                      maintainAnimation: true,
-                      maintainState: true,
-                      maintainSize: true,
-                      child: TextButton(
-                        onPressed:
-                            state.isCompleting
-                                ? null
-                                : () => _onSkipOrGetStarted(context),
-                        child: AppText(
-                          'Skip',
-                          color: ui.textMuted,
-                          fontSize: FontSizes.font15Sp,
-                          fontWeight: FontWeights.weight500,
-                        ),
+                    child: TextButton(
+                      onPressed:
+                          state.isCompleting
+                              ? null
+                              : () => _onSkipOrGetStarted(context),
+                      child: AppText(
+                        'Skip',
+                        color: ui.textMuted,
+                        fontSize: FontSizes.font15Sp,
+                        fontWeight: FontWeights.weight500,
                       ),
                     ),
                   ),
