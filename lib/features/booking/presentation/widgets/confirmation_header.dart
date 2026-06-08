@@ -40,7 +40,7 @@ class ConfirmationHeader extends StatelessWidget {
         ),
         22.verticalSpace,
         AppText(
-          "Booking Received.",
+          "Payment Received.",
           color: ui.textPrimary,
           fontSize: FontSizes.font16Sp,
           fontWeight: FontWeights.weight700,
