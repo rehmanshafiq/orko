@@ -23,17 +23,40 @@ class SplashMobileView extends StatefulWidget {
   State<SplashMobileView> createState() => _SplashMobileViewState();
 }
 
-class _SplashMobileViewState extends State<SplashMobileView> {
+class _SplashMobileViewState extends State<SplashMobileView>
+    with SingleTickerProviderStateMixin {
   bool _hasNavigated = false;
+
+  late final AnimationController _animationController;
+  late final Animation<double> _scaleAnimation;
 
   @override
   void initState() {
     super.initState();
+
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1400),
+    );
+
+    // Continuous zoom-out/in pulse between the natural size and a larger scale.
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 1.25).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    );
+
+    _animationController.repeat(reverse: true);
+
     _startSplashFlow();
   }
 
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
   Future<void> _startSplashFlow() async {
-    await Future.delayed(const Duration(seconds: 2));
+    await Future.delayed(const Duration(seconds: 3));
 
     if (!mounted) return;
 
@@ -68,11 +91,14 @@ class _SplashMobileViewState extends State<SplashMobileView> {
     return Scaffold(
       backgroundColor: ui.scaffoldBackground,
       body: Center(
-        child: AppPngImageView(
-          appImagePath: ui.isLight
-              ? AppImages.hubcoLogoLight
-              : AppImages.hubcoLogo,
-          width: logoWidth,
+        child: ScaleTransition(
+          scale: _scaleAnimation,
+          child: AppPngImageView(
+            appImagePath: ui.isLight
+                ? AppImages.hubcoLogoLight
+                : AppImages.hubcoLogo,
+            width: logoWidth,
+          ),
         ),
       ),
     );
