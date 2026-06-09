@@ -23,6 +23,8 @@ class AppColors {
   static const sandColor = Color(0xFFE8E6DC);
   static const myAccountBorderColor = Color(0xFFE2E2E2);
   static const colorsOutlineColor = Color(0xFFEBEBEB);
+  static const primaryLightDarkColor = Color(0xFF699836);
+  static const primaryDarkButtonColor = Color(0xFF1C5528);
   /// Light green Pantone — primary on light surfaces, secondary on dark surfaces.
   static const primaryLightColor = Color(0xFF8FCF4D);
   /// Dark green Pantone — primary on dark surfaces, secondary on light surfaces.

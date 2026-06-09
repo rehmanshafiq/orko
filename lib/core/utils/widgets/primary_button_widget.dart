@@ -156,8 +156,8 @@ class PrimaryButtonWidget extends StatelessWidget {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    AppColors.primaryLightColor,
-                    AppColors.primaryDarkColor,
+                    AppColors.primaryLightDarkColor,
+                    AppColors.primaryDarkButtonColor,
                   ],
                 ),
               ),
