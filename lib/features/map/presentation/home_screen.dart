@@ -207,7 +207,7 @@ class _HomeScreenState extends State<HomeScreen> {
     unawaited(_syncMapMyLocationLayer());
   }
 
-  static const double _chargingStationMarkerSize = 20;
+  static const double _chargingStationMarkerSize = 44;
 
   /// Loads green / grey / orange marker assets (cached). Each station maps to
   /// one of five availability levels (0–5 ports) and picks the matching icon.
@@ -223,17 +223,18 @@ class _HomeScreenState extends State<HomeScreen> {
 
     final results = await Future.wait([
       _loadChargingStationMarkerAsset(
-        AppImages.markerGreen,
+        AppImages.icChargerMap,
         _ChargingStationMarkerKind.green,
+      ),
+      _loadChargingStationMarkerAsset(
+        AppImages.icChargerMap,
+        _ChargingStationMarkerKind.grey,
+        desaturate: true,
       ),
       // _loadChargingStationMarkerAsset(
       //   AppImages.markerGrey,
-      //   _ChargingStationMarkerKind.grey,
+      //   _ChargingStationMarkerKind.orange,
       // ),
-      _loadChargingStationMarkerAsset(
-        AppImages.markerGrey,
-        _ChargingStationMarkerKind.orange,
-      ),
     ]);
 
     return {
@@ -245,11 +246,16 @@ class _HomeScreenState extends State<HomeScreen> {
   /// Google Maps on Android opens assets via the native AssetManager, which can
   /// miss files under a directory-only pubspec entry. Load through [rootBundle]
   /// and pass PNG bytes so markers render reliably after a full rebuild.
+  ///
+  /// When [desaturate] is set, the decoded pixels are converted to grey
+  /// (alpha preserved) so the green charger asset can double as the
+  /// "grey"/unavailable marker without a separate file.
   Future<MapEntry<_ChargingStationMarkerKind, BitmapDescriptor>?>
       _loadChargingStationMarkerAsset(
     String assetPath,
-    _ChargingStationMarkerKind kind,
-  ) async {
+    _ChargingStationMarkerKind kind, {
+    bool desaturate = false,
+  }) async {
     if (!mounted) return null;
     try {
       final dpr = MediaQuery.devicePixelRatioOf(context);
@@ -262,14 +268,19 @@ class _HomeScreenState extends State<HomeScreen> {
         targetWidth: targetWidth,
       );
       final frame = await codec.getNextFrame();
-      final byteData =
-          await frame.image.toByteData(format: ui.ImageByteFormat.png);
-      frame.image.dispose();
+      final image = frame.image;
 
-      if (byteData == null) return null;
+      final Uint8List? pngBytes = desaturate
+          ? await _desaturatedPngBytes(image)
+          : (await image.toByteData(format: ui.ImageByteFormat.png))
+              ?.buffer
+              .asUint8List();
+      image.dispose();
+
+      if (pngBytes == null) return null;
 
       final icon = BitmapDescriptor.bytes(
-        byteData.buffer.asUint8List(),
+        pngBytes,
         width: _chargingStationMarkerSize,
       );
       _chargingStationIcons[kind] = icon;
@@ -280,6 +291,40 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  /// Returns PNG bytes of [source] with colors desaturated to grey (per-pixel
+  /// luminance), keeping the original alpha so the marker shape is preserved.
+  Future<Uint8List?> _desaturatedPngBytes(ui.Image source) async {
+    final rawData =
+        await source.toByteData(format: ui.ImageByteFormat.rawRgba);
+    if (rawData == null) return null;
+
+    final pixels = rawData.buffer.asUint8List();
+    for (var i = 0; i < pixels.length; i += 4) {
+      final lum = (0.2126 * pixels[i] +
+              0.7152 * pixels[i + 1] +
+              0.0722 * pixels[i + 2])
+          .round()
+          .clamp(0, 255);
+      pixels[i] = lum;
+      pixels[i + 1] = lum;
+      pixels[i + 2] = lum;
+      // pixels[i + 3] (alpha) left untouched.
+    }
+
+    final completer = Completer<ui.Image>();
+    ui.decodeImageFromPixels(
+      pixels,
+      source.width,
+      source.height,
+      ui.PixelFormat.rgba8888,
+      completer.complete,
+    );
+    final greyImage = await completer.future;
+    final pngData = await greyImage.toByteData(format: ui.ImageByteFormat.png);
+    greyImage.dispose();
+    return pngData?.buffer.asUint8List();
+  }
+
   int _availablePortsForMarker(HubcoLocationEntity station) {
     if (!station.status) return 0;
     return 1 + station.id % _portsPerMarker;
@@ -287,8 +332,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   _ChargingStationMarkerKind _markerKindFor(HubcoLocationEntity station) {
     final available = _availablePortsForMarker(station);
-    if (available == 0) return _ChargingStationMarkerKind.grey;
-    if (available <= 2) return _ChargingStationMarkerKind.orange;
+    if (available <= 2) return _ChargingStationMarkerKind.grey;
     return _ChargingStationMarkerKind.green;
   }
 
