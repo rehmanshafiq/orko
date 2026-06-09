@@ -25,4 +25,5 @@ class AppImages {
   static final String markerGrey = '${iconPath}marker_grey.png';
   static final String markerOrange = '${iconPath}marker_orange.png';
   static final String icChargerMap = '${iconPath}ic_charger_map.png';
+  static final String icPortCharger = '${imagePath}ic_port_charger.svg';
 }

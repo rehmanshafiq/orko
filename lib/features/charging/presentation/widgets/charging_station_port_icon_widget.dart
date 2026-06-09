@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
+import 'package:orko_hubco/core/constants/app_images.dart';
+import 'package:orko_hubco/core/utils/widgets/image_view/app_image_view.dart';
 
 class ChargingStationPortIconWidget extends StatelessWidget {
   const ChargingStationPortIconWidget({
@@ -20,10 +22,12 @@ class ChargingStationPortIconWidget extends StatelessWidget {
         shape: BoxShape.circle,
         color: ui.innerIconBg,
       ),
-      child: Icon(
-        Icons.ev_station_rounded,
+      alignment: Alignment.center,
+      child: AppSvgImageView(
+        appImagePath: AppImages.icPortCharger,
         color: ui.textPrimary.withValues(alpha: 0.88),
-        size: 18.r,
+        width: 19.r,
+        height: 19.r,
       ),
     );
   }

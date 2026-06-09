@@ -10,6 +10,7 @@ import 'package:orko_hubco/features/trip/presentation/bloc/trip_planner_event.da
 import 'package:orko_hubco/features/trip/presentation/bloc/trip_planner_state.dart';
 import 'package:orko_hubco/features/trip/presentation/widgets/trip_battery_sliders_widget.dart';
 import 'package:orko_hubco/features/trip/presentation/widgets/trip_charging_stops_section_widget.dart';
+import 'package:orko_hubco/features/trip/presentation/widgets/trip_current_battery_slider_widget.dart';
 import 'package:orko_hubco/features/trip/presentation/widgets/trip_ev_details_card_widget.dart';
 import 'package:orko_hubco/features/trip/presentation/widgets/trip_header_widget.dart';
 import 'package:orko_hubco/features/trip/presentation/widgets/trip_location_field_widget.dart';
@@ -75,6 +76,13 @@ class TripPlannerMobileView extends StatelessWidget {
                   //       .add(TripPlannerArrivalBatteryChanged(v)),
                   // ),
                   // 14.verticalSpace,
+                  TripCurrentBatterySliderWidget(
+                    currentBatteryPercent: state.currentBatteryPercent,
+                    onChanged: (v) => context
+                        .read<TripPlannerBloc>()
+                        .add(TripPlannerBatteryChanged(v)),
+                  ),
+                  16.verticalSpace,
                   PrimaryButtonWidget(
                     text: 'Plan Trip',
                     onPress: () => context

@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <mask id="cut">
+      
+      <g fill="#FFFFFF">
+        <path d="M 286 654 C 236 742, 198 762, 132 752" fill="none" stroke="#FFFFFF" stroke-width="72" stroke-linecap="round"></path>
+        <g transform="rotate(20 372 470)">
+          <rect x="300" y="430" width="150" height="316" rx="75"></rect>
+        </g>
+        <rect x="300" y="300" width="330" height="232" rx="84"></rect>
+        <rect x="588" y="320" width="86" height="192" rx="42"></rect>
+        <rect x="640" y="346" width="190" height="140" rx="52"></rect>
+        <rect x="808" y="362" width="32" height="108" rx="16"></rect>
+      </g>
+      
+      <g fill="none" stroke="#000000" stroke-width="34" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="430,360 496,416 430,472"></polyline>
+        <polyline points="508,360 574,416 508,472"></polyline>
+      </g>
+    </mask>
+  </defs>
+  <rect width="1024" height="1024" fill="#FFFFFF" mask="url(#cut)"></rect>
+</svg>
