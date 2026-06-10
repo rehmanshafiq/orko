@@ -8,6 +8,7 @@ import 'package:orko_hubco/features/booking/presentation/cubit/booking_confirmat
 import 'package:orko_hubco/features/booking/presentation/cubit/booking_confirmation_state.dart';
 import 'package:orko_hubco/features/booking/presentation/widgets/booking_details_card.dart';
 import 'package:orko_hubco/features/booking/presentation/widgets/confirmation_header.dart';
+import 'package:orko_hubco/features/booking/presentation/widgets/download_receipt_button.dart';
 import 'package:orko_hubco/features/booking/presentation/widgets/info_banner.dart';
 import 'package:orko_hubco/features/booking/presentation/widgets/primary_action_button.dart';
 
@@ -59,8 +60,25 @@ class BookingConfirmationMobileView extends StatelessWidget {
               padding: AppUtils.horizontal16Padding.add(
                 EdgeInsets.only(bottom: 12.h, top: 8.h),
               ),
-              child: PrimaryActionButton(
-                onPressed: () => context.go('/profile'),
+              child: Column(
+                children: [
+                  BlocBuilder<BookingConfirmationCubit,
+                      BookingConfirmationState>(
+                    builder: (context, state) {
+                      return DownloadReceiptButton(
+                        bookingRef: _bookingRef,
+                        stationName: _stationName,
+                        slotLabel: _slotLabel,
+                        paymentLabel: _paymentLabel,
+                        amountPaid: state.amountPaid,
+                      );
+                    },
+                  ),
+                  12.verticalSpace,
+                  PrimaryActionButton(
+                    onPressed: () => context.go('/profile'),
+                  ),
+                ],
               ),
             ),
           ],

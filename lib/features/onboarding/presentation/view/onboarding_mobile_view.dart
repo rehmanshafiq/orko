@@ -19,19 +19,51 @@ class OnboardingMobileView extends StatefulWidget {
   State<OnboardingMobileView> createState() => _OnboardingMobileViewState();
 }
 
-class _OnboardingMobileViewState extends State<OnboardingMobileView> {
+class _OnboardingMobileViewState extends State<OnboardingMobileView>
+    with SingleTickerProviderStateMixin {
   late final PageController _pageController;
+  late final AnimationController _entryController;
+  late final Animation<double> _entryFade;
+  late final Animation<Offset> _entrySlide;
 
   @override
   void initState() {
     super.initState();
     _pageController = PageController();
+
+    _entryController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 750),
+    );
+    _entryFade = CurvedAnimation(
+      parent: _entryController,
+      curve: Curves.easeOut,
+    );
+    _entrySlide = Tween<Offset>(
+      begin: const Offset(0, 0.06),
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(parent: _entryController, curve: Curves.easeOutCubic),
+    );
+
+    _entryController.forward();
   }
 
   @override
   void dispose() {
     _pageController.dispose();
+    _entryController.dispose();
     super.dispose();
+  }
+
+  /// Current page as a continuous double for swipe-linked animations. Falls
+  /// back to [fallback] before the PageView has been laid out.
+  double _pageOffset(double fallback) {
+    if (_pageController.hasClients &&
+        _pageController.position.haveDimensions) {
+      return _pageController.page ?? fallback;
+    }
+    return fallback;
   }
 
   Future<void> _onSkipOrGetStarted(BuildContext context) async {
@@ -71,65 +103,97 @@ class _OnboardingMobileViewState extends State<OnboardingMobileView> {
               );
             }
 
-            return Padding(
-              padding: AppUtils.horizontal20Padding,
-              child: Column(
-                children: [
-                  Align(
-                    alignment: Alignment.topRight,
-                    child: TextButton(
-                      onPressed:
-                          state.isCompleting
-                              ? null
-                              : () => _onSkipOrGetStarted(context),
-                      child: AppText(
-                        'Skip',
-                        color: ui.textPrimary,
-                        fontSize: FontSizes.font16Sp,
-                        fontWeight: FontWeights.weight500,
+            return FadeTransition(
+              opacity: _entryFade,
+              child: SlideTransition(
+                position: _entrySlide,
+                child: Padding(
+                  padding: AppUtils.horizontal20Padding,
+                  child: Column(
+                    children: [
+                      Align(
+                        alignment: Alignment.topRight,
+                        child: TextButton(
+                          onPressed:
+                              state.isCompleting
+                                  ? null
+                                  : () => _onSkipOrGetStarted(context),
+                          child: AppText(
+                            'Skip',
+                            color: ui.textPrimary,
+                            fontSize: FontSizes.font16Sp,
+                            fontWeight: FontWeights.weight500,
+                          ),
+                        ),
                       ),
-                    ),
+                      Expanded(
+                        child: PageView.builder(
+                          controller: _pageController,
+                          itemCount: state.items.length,
+                          onPageChanged:
+                              context.read<OnboardingCubit>().setCurrentIndex,
+                          itemBuilder: (context, index) {
+                            final item = state.items[index];
+                            return AnimatedBuilder(
+                              animation: _pageController,
+                              builder: (context, _) {
+                                final delta =
+                                    _pageOffset(
+                                          state.currentIndex.toDouble(),
+                                        ) -
+                                        index;
+                                return _OnboardingSlide(
+                                  item: item,
+                                  delta: delta,
+                                  textColor: ui.textPrimary,
+                                  descriptionColor: ui.textMuted,
+                                );
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                      12.verticalSpace,
+                      _PageIndicator(
+                        count: state.items.length,
+                        activeIndex: state.currentIndex,
+                      ),
+                      18.verticalSpace,
+                      AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 350),
+                        switchInCurve: Curves.easeOutBack,
+                        switchOutCurve: Curves.easeIn,
+                        transitionBuilder: (child, animation) => FadeTransition(
+                          opacity: animation,
+                          child: ScaleTransition(
+                            scale: animation,
+                            child: child,
+                          ),
+                        ),
+                        child: state.isLastPage
+                            ? PrimaryButtonWidget(
+                                key: const ValueKey('get-started'),
+                                text: 'Get Started',
+                                buttonHeight: 56.h,
+                                buttonColor: ui.brandPrimary,
+                                textColor: AppColors.whiteColor,
+                                fontSize: FontSizes.font16Sp,
+                                fontWeight: FontWeights.weight600,
+                                isEnabled: !state.isCompleting,
+                                onPress:
+                                    state.isCompleting
+                                        ? null
+                                        : () => _onSkipOrGetStarted(context),
+                              )
+                            : SizedBox(
+                                key: const ValueKey('button-spacer'),
+                                height: 56.h,
+                              ),
+                      ),
+                      12.verticalSpace,
+                    ],
                   ),
-                  Expanded(
-                    child: PageView.builder(
-                      controller: _pageController,
-                      itemCount: state.items.length,
-                      onPageChanged:
-                          context.read<OnboardingCubit>().setCurrentIndex,
-                      itemBuilder: (context, index) {
-                        final item = state.items[index];
-                        return _OnboardingSlide(
-                          item: item,
-                          textColor: ui.textPrimary,
-                          descriptionColor: ui.textMuted,
-                        );
-                      },
-                    ),
-                  ),
-                  12.verticalSpace,
-                  _PageIndicator(
-                    count: state.items.length,
-                    activeIndex: state.currentIndex,
-                  ),
-                  18.verticalSpace,
-                  if (state.isLastPage)
-                    PrimaryButtonWidget(
-                      text: 'Get Started',
-                      buttonHeight: 56.h,
-                      buttonColor: ui.brandPrimary,
-                      textColor: AppColors.whiteColor,
-                      fontSize: FontSizes.font16Sp,
-                      fontWeight: FontWeights.weight600,
-                      isEnabled: !state.isCompleting,
-                      onPress:
-                          state.isCompleting
-                              ? null
-                              : () => _onSkipOrGetStarted(context),
-                    )
-                  else
-                    56.verticalSpace,
-                  12.verticalSpace,
-                ],
+                ),
               ),
             );
           },
@@ -142,47 +206,82 @@ class _OnboardingMobileViewState extends State<OnboardingMobileView> {
 class _OnboardingSlide extends StatelessWidget {
   const _OnboardingSlide({
     required this.item,
+    required this.delta,
     required this.textColor,
     required this.descriptionColor,
   });
 
   final OnboardingItemEntity item;
+
+  /// Distance of this slide from the centered page (0 = centered, ±1 = one
+  /// page away). Drives the swipe-linked parallax and stagger.
+  final double delta;
   final Color textColor;
   final Color descriptionColor;
 
   @override
   Widget build(BuildContext context) {
+    final t = delta.abs().clamp(0.0, 1.0);
+    final contentOpacity = (1 - t).clamp(0.0, 1.0);
+
+    // Image drifts at a slower rate than the swipe (parallax) and eases back.
+    final imageDx = -delta * 60;
+    final imageScale = 1 - 0.12 * t;
+
     return Column(
       children: [
         Flexible(
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(2),
-            child: AspectRatio(
-              aspectRatio: 3 / 4,
-              child: AppPngImageView(
-                appImagePath: item.imagePath,
-                width: double.infinity,
-                fit: BoxFit.cover,
-                imageAlignment: Alignment.center,
+          child: Opacity(
+            opacity: (1 - t * 0.4).clamp(0.0, 1.0),
+            child: Transform.translate(
+              offset: Offset(imageDx, 0),
+              child: Transform.scale(
+                scale: imageScale,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(24.r),
+                  child: AspectRatio(
+                    aspectRatio: 3 / 4,
+                    child: AppPngImageView(
+                      appImagePath: item.imagePath,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      imageAlignment: Alignment.center,
+                    ),
+                  ),
+                ),
               ),
             ),
           ),
         ),
         28.verticalSpace,
-        AppText(
-          item.title,
-          textAlign: TextAlign.center,
-          color: textColor,
-          fontSize: FontSizes.font30Sp,
-          fontWeight: FontWeight.bold,
+        // Title rises into place as the slide settles.
+        Opacity(
+          opacity: contentOpacity,
+          child: Transform.translate(
+            offset: Offset(0, t * 36),
+            child: AppText(
+              item.title,
+              textAlign: TextAlign.center,
+              color: textColor,
+              fontSize: FontSizes.font30Sp,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ),
         14.verticalSpace,
-        AppText(
-          item.description,
-          textAlign: TextAlign.center,
-          color: descriptionColor,
-          fontSize: FontSizes.font16Sp,
-          fontWeight: FontWeights.weight400,
+        // Description follows the title with a larger offset → staggered feel.
+        Opacity(
+          opacity: contentOpacity,
+          child: Transform.translate(
+            offset: Offset(0, t * 56),
+            child: AppText(
+              item.description,
+              textAlign: TextAlign.center,
+              color: descriptionColor,
+              fontSize: FontSizes.font16Sp,
+              fontWeight: FontWeights.weight400,
+            ),
+          ),
         ),
       ],
     );
@@ -203,21 +302,22 @@ class _PageIndicator extends StatelessWidget {
     final ui = AppUiColors.of(context);
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
-      children: List.generate(
-        count,
-        (index) => AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
+      children: List.generate(count, (index) {
+        final isActive = index == activeIndex;
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOutCubic,
           margin: const EdgeInsets.symmetric(horizontal: 4),
-          width: 8,
+          width: isActive ? 24 : 8,
           height: 8,
           decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: index == activeIndex
+            borderRadius: BorderRadius.circular(4),
+            color: isActive
                 ? ui.brandPrimary
                 : ui.textSecondary.withValues(alpha: 0.45),
           ),
-        ),
-      ),
+        );
+      }),
     );
   }
 }
