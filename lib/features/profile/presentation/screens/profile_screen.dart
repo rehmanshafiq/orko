@@ -811,7 +811,7 @@ class _VehiclesTabBody extends StatelessWidget {
 
   static const List<_VehicleUi> _vehicles = [
     _VehicleUi(
-      nickname: 'BYD Atto 3',
+      nickname: 'BYD Atto 3 - Primary Vehicle',
       modelLine: '2023 Tesla Model 3',
       isPrimary: true,
       rangeKm: 245,
@@ -941,24 +941,24 @@ class _VehicleCard extends StatelessWidget {
                   color: ui.brandPrimary.withValues(alpha: 0.85),
                 ),
               ),
-              if (vehicle.isPrimary)
-                Positioned(
-                  top: 10.h,
-                  right: 10.w,
-                  child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
-                    decoration: BoxDecoration(
-                      color: ui.brandPrimary,
-                      borderRadius: BorderRadius.circular(8.r),
-                    ),
-                    child: AppText(
-                      'Primary Vehicle',
-                      color: AppColors.whiteColor,
-                      fontSize: FontSizes.font10Sp,
-                      fontWeight: FontWeights.weight600,
-                    ),
-                  ),
-                ),
+              // if (vehicle.isPrimary)
+              //   Positioned(
+              //     top: 10.h,
+              //     right: 10.w,
+              //     child: Container(
+              //       padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+              //       decoration: BoxDecoration(
+              //         color: ui.brandPrimary,
+              //         borderRadius: BorderRadius.circular(8.r),
+              //       ),
+              //       child: AppText(
+              //         'Primary Vehicle',
+              //         color: AppColors.whiteColor,
+              //         fontSize: FontSizes.font10Sp,
+              //         fontWeight: FontWeights.weight600,
+              //       ),
+              //     ),
+              //   ),
             ],
           ),
           Padding(
@@ -976,7 +976,7 @@ class _VehicleCard extends StatelessWidget {
                           AppText(
                             vehicle.nickname,
                             color: ui.textPrimary,
-                            fontSize: FontSizes.font16Sp,
+                            fontSize: FontSizes.font14Sp,
                             fontWeight: FontWeights.weight700,
                           ),
                           4.verticalSpace,
@@ -1011,7 +1011,7 @@ class _VehicleCard extends StatelessWidget {
                 Container(
                   padding: EdgeInsets.fromLTRB(12.w, 10.h, 12.w, 10.h),
                   decoration: BoxDecoration(
-                    color: ui.brandSecondary.withValues(alpha: 0.15),
+                    color: AppColors.transparentColor,
                     borderRadius: BorderRadius.circular(10.r),
                   ),
                   child: Column(
@@ -1029,7 +1029,7 @@ class _VehicleCard extends StatelessWidget {
                           ),
                           AppText(
                             '${vehicle.rangeKm} km',
-                            color: ui.brandPrimary,
+                            color: ui.textMuted,
                             fontSize: FontSizes.font14Sp,
                             fontWeight: FontWeights.weight700,
                           ),
@@ -1105,7 +1105,7 @@ class _VehicleCard extends StatelessWidget {
                     cornerRadius: 12.r,
                     buttonColor: ui.chipInactiveBg,
                     strokeColor: ui.brandPrimary,
-                    textColor: ui.brandPrimary,
+                    textColor: ui.textMuted,
                     fontSize: FontSizes.font14Sp,
                     fontWeight: FontWeights.weight600,
                   ),
@@ -1184,7 +1184,7 @@ class _ChargingPatternsSection extends StatelessWidget {
       width: double.infinity,
       padding: AppUtils.all12Padding,
       decoration: BoxDecoration(
-        color: ui.chargingPatternsBg,
+        // color: ui.chargingPatternsBg,
         borderRadius: BorderRadius.circular(12.r),
         border: Border.all(
           color: ui.chargingPatternsBorder,
@@ -1197,7 +1197,7 @@ class _ChargingPatternsSection extends StatelessWidget {
             children: [
               Icon(
                 Icons.calendar_month_outlined,
-                color: AppColors.mapPinBlueColor,
+                color: ui.textPrimary,
                 size: 20.r,
               ),
               8.horizontalSpace,
@@ -1277,7 +1277,7 @@ class _SettingsTabBody extends StatelessWidget {
                 children: [
                   Icon(
                     Icons.notifications_outlined,
-                    color: ui.brandPrimary,
+                    color: ui.textMuted,
                     size: 20.r,
                   ),
                   8.horizontalSpace,
@@ -1370,7 +1370,7 @@ class _AppearanceSection extends StatelessWidget {
             children: [
               Icon(
                 Icons.brightness_6_outlined,
-                color: ui.brandPrimary,
+                color: ui.textMuted,
                 size: 20.r,
               ),
               8.horizontalSpace,
@@ -1547,7 +1547,7 @@ class _AccountTile extends StatelessWidget {
           padding: EdgeInsets.symmetric(vertical: 12.h),
           child: Row(
             children: [
-              Icon(icon, color: ui.brandPrimary, size: 22.r),
+              Icon(icon, color: ui.textMuted, size: 22.r),
               12.horizontalSpace,
               Expanded(
                 child: AppText(
