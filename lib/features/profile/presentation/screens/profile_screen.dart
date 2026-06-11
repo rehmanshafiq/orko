@@ -146,8 +146,8 @@ class _ProfileHeader extends StatelessWidget {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            AppColors.primaryDarkColorTopGradient,
-            AppColors.primaryDarkButtonColor,
+            AppColors.transparentColor,
+            AppColors.transparentColor,
           ],
         ),
         borderRadius: BorderRadius.only(
@@ -298,14 +298,10 @@ class _HeaderTabChip extends StatelessWidget {
           duration: const Duration(milliseconds: 200),
           padding: EdgeInsets.symmetric(vertical: 8.h, horizontal: 6.w),
           decoration: BoxDecoration(
-            color: selected
-                ? AppColors.whiteColor
-                : AppColors.transparentColor,
+            color: AppColors.transparentColor,
             borderRadius: BorderRadius.circular(20.r),
             border: Border.all(
-              color: selected
-                  ? AppColors.whiteColor
-                  : AppColors.whiteColor.withValues(alpha: 0.35),
+              color: selected ? ui.brandPrimary : ui.borderSubtle,
             ),
           ),
           child: Row(
@@ -315,13 +311,13 @@ class _HeaderTabChip extends StatelessWidget {
               Icon(
                 icon,
                 size: 16.r,
-                color: selected ? ui.brandPrimary : AppColors.whiteColor,
+                color:ui.textMuted,
               ),
               4.horizontalSpace,
               Flexible(
                 child: AppText(
                   label,
-                  color: selected ? ui.brandPrimary : AppColors.whiteColor,
+                  color: ui.textMuted,
                   fontSize: FontSizes.font12Sp,
                   fontWeight: FontWeights.weight600,
                   maxLines: 1,
@@ -349,11 +345,11 @@ class _ProfileTabBody extends StatelessWidget {
       children: [
         _StatsGrid(),
         14.verticalSpace,
-        _AchievementsCard(),
-        14.verticalSpace,
+        // _AchievementsCard(),
+        // 14.verticalSpace,
         _PersonalInfoCard(profile: profile),
         14.verticalSpace,
-        _DrivingEfficiencyCard(),
+        // _DrivingEfficiencyCard(),
       ],
     );
   }
@@ -370,7 +366,7 @@ class _StatsGrid extends StatelessWidget {
             Expanded(
               child: _StatTile(
                 icon: Icons.bolt_rounded,
-                iconBg: AppColors.mapPinBlueColor.withValues(alpha: 0.2),
+                iconBg: AppColors.transparentColor,
                 iconColor: AppColors.mapPinBlueColor,
                 value: '47',
                 valueColor: ui.textPrimary,
@@ -381,10 +377,10 @@ class _StatsGrid extends StatelessWidget {
             Expanded(
               child: _StatTile(
                 icon: Icons.battery_charging_full_rounded,
-                iconBg: ui.brandLightGreen.withValues(alpha: 0.2),
+                iconBg: AppColors.transparentColor,
                 iconColor: ui.brandSecondary,
                 value: '1245',
-                valueColor: ui.brandSecondary,
+                valueColor: ui.textPrimary,
                 label: 'kWh Charged',
               ),
             ),
@@ -396,10 +392,10 @@ class _StatsGrid extends StatelessWidget {
             Expanded(
               child: _StatTile(
                 icon: Icons.trending_up_rounded,
-                iconBg: AppColors.ratingStarColor.withValues(alpha: 0.2),
+                iconBg: AppColors.transparentColor,
                 iconColor: AppColors.ratingStarColor,
                 value: 'PKR 12,450',
-                valueColor: AppColors.ratingStarColor,
+                valueColor: ui.textPrimary,
                 label: 'Money Saved',
               ),
             ),
@@ -407,10 +403,10 @@ class _StatsGrid extends StatelessWidget {
             Expanded(
               child: _StatTile(
                 icon: Icons.eco_outlined,
-                iconBg: ui.brandDarkGreen.withValues(alpha: 0.25),
+                iconBg: AppColors.transparentColor,
                 iconColor: ui.brandSecondary,
                 value: '285 kg',
-                valueColor: ui.brandSecondary,
+                valueColor: ui.textPrimary,
                 label: 'CO2 Reduced',
               ),
             ),
