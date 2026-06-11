@@ -19,6 +19,7 @@ import 'package:orko_hubco/features/trip/presentation/widgets/trip_route_options
 import 'package:orko_hubco/features/trip/presentation/widgets/trip_route_suggestion_card_widget.dart';
 import 'package:orko_hubco/features/trip/presentation/widgets/trip_section_title_widget.dart';
 import 'package:orko_hubco/features/trip/presentation/widgets/trip_summary_card_widget.dart';
+import 'package:orko_hubco/features/trip/presentation/widgets/silver_metallic_button_widget.dart';
 
 class TripPlannerMobileView extends StatelessWidget {
   const TripPlannerMobileView({super.key});
@@ -83,17 +84,101 @@ class TripPlannerMobileView extends StatelessWidget {
                         .add(TripPlannerBatteryChanged(v)),
                   ),
                   16.verticalSpace,
+                  // PrimaryButtonWidget(
+                  //   text: 'Plan Trip',
+                  //   onPress: () => context
+                  //       .read<TripPlannerBloc>()
+                  //       .add(const TripPlannerPlanTripPressed()),
+                  //   buttonColor: ui.brandPrimary,
+                  //   textColor: AppColors.whiteColor,
+                  //   fontWeight: FontWeights.weight700,
+                  //   fontSize: FontSizes.font14Sp,
+                  //   cornerRadius: 24.r,
+                  // ),
+
+                  12.verticalSpace,
                   PrimaryButtonWidget(
                     text: 'Plan Trip',
                     onPress: () => context
                         .read<TripPlannerBloc>()
                         .add(const TripPlannerPlanTripPressed()),
-                    buttonColor: ui.brandPrimary,
+                    gradientColors: const [
+                      AppColors.primaryDarkColor,
+                      AppColors.primaryDarkButtonColor,
+                    ],
                     textColor: AppColors.whiteColor,
                     fontWeight: FontWeights.weight700,
                     fontSize: FontSizes.font14Sp,
                     cornerRadius: 24.r,
                   ),
+                  // 12.verticalSpace,
+                  // PrimaryButtonWidget(
+                  //   text: 'Plan Trip',
+                  //   onPress: () => context
+                  //       .read<TripPlannerBloc>()
+                  //       .add(const TripPlannerPlanTripPressed()),
+                  //   gradientColors: const [
+                  //     Color(0xFF14845E),
+                  //     Color(0xFF0E6749),
+                  //     Color(0xFF094C3A),
+                  //   ],
+                  //   textColor: AppColors.whiteColor,
+                  //   fontWeight: FontWeights.weight700,
+                  //   fontSize: FontSizes.font14Sp,
+                  //   cornerRadius: 24.r,
+                  // ),
+                  12.verticalSpace,
+                  // PrimaryButtonWidget(
+                  //   text: 'Plan Trip',
+                  //   onPress: () => context
+                  //       .read<TripPlannerBloc>()
+                  //       .add(const TripPlannerPlanTripPressed()),
+                  //   gradientColors: const [
+                  //     AppColors.primaryDarkColor,
+                  //     AppColors.primaryDarkColor,
+                  //   ],
+                  //   textColor: AppColors.whiteColor,
+                  //   fontWeight: FontWeights.weight700,
+                  //   fontSize: FontSizes.font14Sp,
+                  //   cornerRadius: 24.r,
+                  // ),
+                  // // SilverMetallicButtonWidget(
+                  // //   text: 'Plan Trip',
+                  // //   onPress: () => context
+                  // //       .read<TripPlannerBloc>()
+                  // //       .add(const TripPlannerPlanTripPressed()),
+                  // //   cornerRadius: 24.r,
+                  // // ),
+                  // 12.verticalSpace,
+                  // PrimaryButtonWidget(
+                  //   text: 'Plan Trip',
+                  //   onPress: () => context
+                  //       .read<TripPlannerBloc>()
+                  //       .add(const TripPlannerPlanTripPressed()),
+                  //   gradientColors: const [
+                  //     Color(0xFF00C060),
+                  //     Color(0xFF010203),
+                  //   ],
+                  //   textColor: AppColors.whiteColor,
+                  //   fontWeight: FontWeights.weight700,
+                  //   fontSize: FontSizes.font14Sp,
+                  //   cornerRadius: 24.r,
+                  // ),
+                  // 12.verticalSpace,
+                  // PrimaryButtonWidget(
+                  //   text: 'Plan Trip',
+                  //   onPress: () => context
+                  //       .read<TripPlannerBloc>()
+                  //       .add(const TripPlannerPlanTripPressed()),
+                  //   gradientColors: const [
+                  //     Color(0xFF014122),
+                  //     Color(0xFF010203),
+                  //   ],
+                  //   textColor: AppColors.whiteColor,
+                  //   fontWeight: FontWeights.weight700,
+                  //   fontSize: FontSizes.font14Sp,
+                  //   cornerRadius: 24.r,
+                  // ),
                   if (state.tripPlanned) ...[
                     16.verticalSpace,
                     // TripRouteOptionsSectionWidget(

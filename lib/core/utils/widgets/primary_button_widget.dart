@@ -21,6 +21,8 @@ class PrimaryButtonWidget extends StatelessWidget {
   final double? iconHeight;
   final double? iconWidth;
   final double? cornerRadius;
+  /// When set, overrides the default brand button gradient (top → bottom).
+  final List<Color>? gradientColors;
   /// Optional second line (e.g. helper text), centered under [text].
   final String? subtitle;
   final Color? subtitleColor;
@@ -44,6 +46,7 @@ class PrimaryButtonWidget extends StatelessWidget {
     this.iconHeight,
     this.iconWidth,
     this.cornerRadius,
+    this.gradientColors,
     this.subtitle,
     this.subtitleColor,
     this.subtitleFontSize,
@@ -155,10 +158,11 @@ class PrimaryButtonWidget extends StatelessWidget {
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [
-                    AppColors.primaryLightDarkColor,
-                    AppColors.primaryDarkButtonColor,
-                  ],
+                  colors: gradientColors ??
+                      const [
+                        AppColors.primaryLightDarkColor,
+                        AppColors.primaryDarkButtonColor,
+                      ],
                 ),
               ),
               child: button,
