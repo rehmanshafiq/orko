@@ -39,12 +39,12 @@ class _SplashMobileViewState extends State<SplashMobileView>
       duration: const Duration(milliseconds: 1400),
     );
 
-    // Continuous zoom-out/in pulse between the natural size and a larger scale.
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 1.25).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    // Single zoom-out from a larger scale down to the natural size.
+    _scaleAnimation = Tween<double>(begin: 1.25, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
     );
 
-    _animationController.repeat(reverse: true);
+    _animationController.forward();
 
     _startSplashFlow();
   }
