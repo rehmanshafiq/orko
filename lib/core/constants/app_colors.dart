@@ -6,6 +6,8 @@ class AppColors {
   static const blackColor = Color(0xFF000000);
   static const redColor = Color(0xFFDD1212);
   static const scaffoldColor = Color(0xFFFFFFFF);
+  /// App scaffold background in dark mode.
+  static const darkScaffoldBackgroundColor = Color(0xFF1F2121);
   static const dividerColor = Color(0xFFDADADA);
   static const maroonColor = Color(0xFFA04838);
   static const removeColor = Color(0xFFDA3737);
@@ -25,10 +27,13 @@ class AppColors {
   static const colorsOutlineColor = Color(0xFFEBEBEB);
   static const primaryLightDarkColor = Color(0xFF699836);
   static const primaryDarkButtonColor = Color(0xFF1C5528);
+  static const primaryDarkColorTopGradient = Color(0xFF329748);
   /// Light green Pantone — primary on light surfaces, secondary on dark surfaces.
   static const primaryLightColor = Color(0xFF8FCF4D);
   /// Dark green Pantone — primary on dark surfaces, secondary on light surfaces.
   static const primaryDarkColor = Color(0xFF329748);
+  static const primaryDarkColorMap = Color(0xFF4ADE80);
+  static const primaryDarkColorMap2 = Color(0xFF58D68D);
   static const fieldBackgroundColor = Color(0xFF171717);
   static const fieldBackgroundBookingColor = Color(0xFF27252B);
   static const mapPinBlueColor = Color(0xFF2A83FF);
@@ -71,10 +76,10 @@ class AppUiColors {
   Color get brandLightGreen => AppColors.primaryLightColor;
 
   Color get scaffoldBackground =>
-      isLight ? AppColors.scaffoldColor : AppColors.blackColor;
+      isLight ? AppColors.scaffoldColor : AppColors.darkScaffoldBackgroundColor;
 
   Color get cardBackground =>
-      isLight ? AppColors.whiteColor : AppColors.fieldBackgroundColor;
+      isLight ? AppColors.whiteColor : AppColors.darkScaffoldBackgroundColor; //AppColors.fieldBackgroundColor;
 
   Color get cardBookingBackground =>
       isLight ? AppColors.sandColor.withValues(alpha: 0.55): AppColors.fieldBackgroundBookingColor;

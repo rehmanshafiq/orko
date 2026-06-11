@@ -1,10 +1,13 @@
 import 'dart:async';
+import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
+import 'package:orko_hubco/core/constants/app_images.dart';
 import 'package:orko_hubco/core/constants/charging_stations.dart';
 import 'package:orko_hubco/features/booking/presentation/pages/book_slot_page.dart';
 import 'package:orko_hubco/features/map/domain/entities/hubco_location_entity.dart';
@@ -38,9 +41,11 @@ class TripPlannerBloc extends Bloc<TripPlannerEvent, TripPlannerState> {
   /// Multiplier applied to great-circle distance to approximate road distance.
   static const double roadFactor = 1.15;
 
-  /// Logical (dp) marker side. Kept smaller than the home map because the
-  /// trip-planner mini-map is only ~212dp tall.
+  /// Logical (dp) marker side for start/end location pins on the mini-map.
   static const double stationMarkerSize = 12;
+
+  /// Charger stop pins — same logical size as home map markers.
+  static const double _chargerStopMarkerSize = 44;
 
   static const List<RouteStrategyModel> strategies = <RouteStrategyModel>[
     RouteStrategyModel(
@@ -170,11 +175,7 @@ class TripPlannerBloc extends Bloc<TripPlannerEvent, TripPlannerState> {
     if (state.iconsLoaded) return;
     emit(state.copyWith(iconsLoaded: true));
 
-    final stop = await _renderMarkerIcon(
-      iconData: Icons.bolt_outlined,
-      color: AppColors.primaryDarkColor,
-      dpr: event.devicePixelRatio,
-    );
+    final stop = await _loadChargerMapMarkerIcon(event.devicePixelRatio);
     final start = await _renderMarkerIcon(
       iconData: Icons.location_on_rounded,
       color: AppColors.primaryDarkColor,
@@ -320,6 +321,72 @@ class TripPlannerBloc extends Bloc<TripPlannerEvent, TripPlannerState> {
       costPkr: totalCostPkr,
       co2SavedKg: co2SavedKg,
     );
+  }
+
+  /// Same green charger pin as the home map (`ic_charger_map`).
+  Future<BitmapDescriptor?> _loadChargerMapMarkerIcon(double dpr) async {
+    try {
+      final targetWidth =
+          (_chargerStopMarkerSize * dpr).round().clamp(1, 512);
+
+      final data = await rootBundle.load(AppImages.icChargerMap);
+      final codec = await ui.instantiateImageCodec(
+        data.buffer.asUint8List(),
+        targetWidth: targetWidth,
+      );
+      final frame = await codec.getNextFrame();
+      final image = frame.image;
+
+      final pngBytes = await _tintedPngBytes(
+        image,
+        AppColors.primaryDarkColor,
+      );
+      image.dispose();
+
+      if (pngBytes == null) return null;
+
+      return BitmapDescriptor.bytes(
+        pngBytes,
+        width: _chargerStopMarkerSize,
+      );
+    } catch (e, st) {
+      debugPrint('❌ Trip-planner charger map marker failed: $e\n$st');
+      return null;
+    }
+  }
+
+  Future<Uint8List?> _tintedPngBytes(ui.Image source, Color tint) async {
+    final rawData =
+        await source.toByteData(format: ui.ImageByteFormat.rawRgba);
+    if (rawData == null) return null;
+
+    final pixels = rawData.buffer.asUint8List();
+    for (var i = 0; i < pixels.length; i += 4) {
+      final alpha = pixels[i + 3];
+      if (alpha == 0) continue;
+
+      final lum = (0.2126 * pixels[i] +
+              0.7152 * pixels[i + 1] +
+              0.0722 * pixels[i + 2]) /
+          255;
+
+      pixels[i] = (tint.red * lum).round().clamp(0, 255);
+      pixels[i + 1] = (tint.green * lum).round().clamp(0, 255);
+      pixels[i + 2] = (tint.blue * lum).round().clamp(0, 255);
+    }
+
+    final completer = Completer<ui.Image>();
+    ui.decodeImageFromPixels(
+      pixels,
+      source.width,
+      source.height,
+      ui.PixelFormat.rgba8888,
+      completer.complete,
+    );
+    final tintedImage = await completer.future;
+    final pngData = await tintedImage.toByteData(format: ui.ImageByteFormat.png);
+    tintedImage.dispose();
+    return pngData?.buffer.asUint8List();
   }
 
   Future<BitmapDescriptor?> _renderMarkerIcon({

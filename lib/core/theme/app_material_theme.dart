@@ -29,7 +29,7 @@ abstract final class AppMaterialTheme {
   static ThemeData get dark => ThemeData(
         useMaterial3: true,
         brightness: Brightness.dark,
-        scaffoldBackgroundColor: AppColors.blackColor,
+        scaffoldBackgroundColor: AppColors.darkScaffoldBackgroundColor,
         colorScheme: ColorScheme.fromSeed(
           seedColor: AppColors.primaryDarkColor,
           brightness: Brightness.dark,

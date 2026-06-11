@@ -26,7 +26,6 @@ class ConfirmationHeader extends StatelessWidget {
           width: 88.r,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: ui.brandPrimary.withValues(alpha: 0.2),
             border: Border.all(
               color: ui.brandPrimary,
               width: 2,

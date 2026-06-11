@@ -68,7 +68,7 @@ class StationCardWidget extends StatelessWidget {
           4.verticalSpace,
           AppText(
             available,
-            color: AppColors.primaryLightColor,
+            color: ui.brandSecondary,
             fontSize: FontSizes.font12Sp,
             fontWeight: FontWeights.weight500,
           ),

@@ -25,30 +25,35 @@ class ChargingStationBottomActionsWidget extends StatelessWidget {
         child: Row(
           children: [
             Expanded(
-              child: OutlinedButton(
-                onPressed: () {},
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: ui.textPrimary,
-                  side: BorderSide(
-                    color: ui.textPrimary.withValues(alpha: 0.85),
-                  ),
-                  padding: EdgeInsets.symmetric(vertical: 14.h),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(32.r),
-                  ),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.navigation_rounded, size: 18.r),
-                    8.horizontalSpace,
-                    AppText(
-                      'Directions',
-                      color: ui.textPrimary,
-                      fontSize: FontSizes.font14Sp,
-                      fontWeight: FontWeights.weight600,
+              child: SizedBox(
+                height: 38.h,
+                child: OutlinedButton(
+                  onPressed: () {},
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: ui.textPrimary,
+                    side: BorderSide(
+                      color: ui.textPrimary.withValues(alpha: 0.85),
                     ),
-                  ],
+                    padding: EdgeInsets.symmetric(horizontal: 12.w),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(32.r),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.navigation_rounded, size: 18.r),
+                      8.horizontalSpace,
+                      AppText(
+                        'Directions',
+                        color: ui.textPrimary,
+                        fontSize: FontSizes.font14Sp,
+                        fontWeight: FontWeights.weight600,
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -60,7 +65,7 @@ class ChargingStationBottomActionsWidget extends StatelessWidget {
                 iconHeight: 18.sp,
                 onPress: () => context.push('/book-slot', extra: station),
                 buttonWidth: double.infinity,
-                buttonHeight: 48.h,
+                buttonHeight: 38.h,
                 cornerRadius: 32.r,
                 buttonColor: ui.brandPrimary,
                 textColor: AppColors.whiteColor,

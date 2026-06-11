@@ -405,7 +405,7 @@ class _LoginScreenState extends State<LoginScreen> {
         text: state is AuthLoading ? 'Signing In...' : 'Sign In',
         onPress: _onLogin,
         isEnabled: state is! AuthLoading,
-        buttonHeight: 52.h,
+        buttonHeight: 38.h,
         cornerRadius: 32.r,
         buttonColor: ui.brandPrimary,
         textColor: AppColors.whiteColor,

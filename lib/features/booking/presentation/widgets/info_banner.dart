@@ -24,17 +24,16 @@ class InfoBanner extends StatelessWidget {
         vertical: 12.h,
       ),
       decoration: BoxDecoration(
-        color: ui.brandPrimary.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(12.r),
         border: Border.all(
-          color: ui.brandPrimary.withValues(alpha: 0.35),
+          color: ui.textMuted,
         ),
       ),
       child: Row(
         children: [
           Icon(
             Icons.info_outline_rounded,
-            color: ui.brandPrimary,
+            color: ui.textMuted,
             size: 20.r,
           ),
           10.horizontalSpace,

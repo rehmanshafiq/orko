@@ -56,7 +56,7 @@ class PrimaryButtonWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Filled, enabled buttons get the app-wide vertical brand gradient
-    // (light green on top, dark green at the bottom). Outlined buttons
+    // (brand green on top, dark green at the bottom). Outlined buttons
     // (with a [strokeColor]) and disabled buttons keep their solid color.
     final bool useGradient = isEnabled && strokeColor == null;
 

@@ -26,20 +26,32 @@ class SlotChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     late Color bg;
-    late Color border;
+    late Color borderColor;
     late Color textColor;
+    List<BoxShadow>? chipShadow;
 
     switch (style) {
       case SlotStyle.available:
-        bg = ui.brandSecondary.withValues(alpha: ui.isLight ? 0.1 : 0.28);
-        border = ui.brandPrimary.withValues(alpha: ui.isLight ? 0.42 : 0.75);
-        textColor = ui.isLight
-            ? ui.brandPrimary
-            : AppColors.whiteColor.withValues(alpha: 0.96);
+        bg = ui.cardBookingBackground;
+        borderColor = isSelected ? ui.brandPrimary : ui.borderSubtle;
+        textColor = isSelected
+            ? (ui.isLight ? AppColors.blackColor : AppColors.whiteColor)
+            : (ui.isLight
+                ? ui.brandPrimary
+                : AppColors.whiteColor.withValues(alpha: 0.96));
+        chipShadow = isSelected
+            ? [
+                BoxShadow(
+                  color: ui.brandPrimary.withValues(alpha: 0.35),
+                  blurRadius: 12,
+                  spreadRadius: 0,
+                ),
+              ]
+            : null;
         break;
       case SlotStyle.booked:
         bg = AppColors.slotBookedBackgroundColor;
-        border = ui.isLight
+        borderColor = ui.isLight
             ? AppColors.slotBookedBackgroundColor.withValues(alpha: 0.2)
             : AppColors.slotBookedBackgroundColor.withValues(alpha: 0.92);
         textColor =
@@ -47,27 +59,12 @@ class SlotChip extends StatelessWidget {
         break;
       case SlotStyle.busy:
         bg = AppColors.slotBusyYellowColor.withValues(alpha: 0.5);
-        border = ui.isLight
+        borderColor = ui.isLight
             ? AppColors.slotBusyYellowColor.withValues(alpha: 0.9)
             : AppColors.slotBusyYellowColor;
         textColor =
             ui.isLight ? AppColors.whiteColor : AppColors.whiteColor.withValues(alpha: 0.94);
         break;
-    }
-
-    List<BoxShadow>? chipShadow;
-
-    if (isSelected && style == SlotStyle.available) {
-      bg = ui.brandPrimary;
-      border = ui.brandSecondary.withValues(alpha: 0.95);
-      textColor = AppColors.blackColor;
-      chipShadow = [
-        BoxShadow(
-          color: ui.brandPrimary.withValues(alpha: ui.isLight ? 0.35 : 0.5),
-          blurRadius: 10,
-          offset: const Offset(0, 3),
-        ),
-      ];
     }
 
     final interactive = style == SlotStyle.available;
@@ -86,41 +83,24 @@ class SlotChip extends StatelessWidget {
             color: bg,
             borderRadius: BorderRadius.circular(34.r),
             border: Border.all(
-              color: border,
-              width: style == SlotStyle.available ? (isSelected ? 2 : 1.25) : 1,
+              color: borderColor,
+              width: style == SlotStyle.available ? (isSelected ? 2 : 1) : 1,
             ),
             boxShadow: chipShadow,
           ),
           child: Center(
             child: FittedBox(
               fit: BoxFit.scaleDown,
-              child: interactive && isSelected
-                  ? Row(
-                      mainAxisSize: MainAxisSize.min,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        // Icon(
-                        //   Icons.check_circle_rounded,
-                        //   size: 13.sp,
-                        //   color: AppColors.whiteColor.withValues(alpha: 0.95),
-                        // ),
-                        // 3.horizontalSpace,
-                        AppText(
-                          time,
-                          color: textColor,
-                          fontSize: FontSizes.font12Sp,
-                          fontWeight: FontWeights.weight600,
-                        ),
-                      ],
-                    )
-                  : AppText(
-                      time,
-                      color: interactive
-                          ? textColor.withValues(alpha: isSelected ? 1.0 : 0.94)
-                          : textColor.withValues(alpha: 0.92),
-                      fontSize: FontSizes.font12Sp,
-                      fontWeight: FontWeights.weight500,
-                    ),
+              child: AppText(
+                time,
+                color: interactive
+                    ? textColor.withValues(alpha: isSelected ? 1.0 : 0.94)
+                    : textColor.withValues(alpha: 0.92),
+                fontSize: FontSizes.font12Sp,
+                fontWeight: isSelected && interactive
+                    ? FontWeights.weight600
+                    : FontWeights.weight500,
+              ),
             ),
           ),
         ),

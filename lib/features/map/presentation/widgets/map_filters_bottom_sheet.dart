@@ -264,7 +264,7 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
       ),
       child: AppText(
         label,
-        color: selected ? ui.brandPrimary : ui.textPrimary,
+        color: ui.textPrimary,
         fontSize: FontSizes.font12Sp,
         fontWeight: FontWeights.weight600,
       ),
@@ -294,7 +294,7 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
           child: Center(
             child: AppText(
               '$low kW - $high kW',
-              color: ui.brandPrimary,
+              color: ui.textMuted,
               fontSize: FontSizes.font12Sp,
               fontWeight: FontWeights.weight600,
               textAlign: TextAlign.center,
@@ -327,13 +327,13 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
       children: [
         AppText(
           'Rs $left per kWh',
-          color: ui.brandPrimary,
+          color: ui.textMuted,
           fontSize: FontSizes.font12Sp,
           fontWeight: FontWeights.weight600,
         ),
         AppText(
           'Rs $right per kWh',
-          color: ui.brandPrimary,
+          color: ui.textMuted,
           fontSize: FontSizes.font12Sp,
           fontWeight: FontWeights.weight600,
         ),
@@ -425,7 +425,7 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
               Expanded(
                 child: AppText(
                   name,
-                  color: on ? ui.brandPrimary : ui.textPrimary,
+                  color: ui.textPrimary,
                   fontSize: FontSizes.font12Sp,
                   fontWeight: FontWeights.weight600,
                   maxLines: 2,

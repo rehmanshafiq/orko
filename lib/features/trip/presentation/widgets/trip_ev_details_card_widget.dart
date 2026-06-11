@@ -39,8 +39,8 @@ class TripEvDetailsCardWidget extends StatelessWidget {
                   size: 26.sp,
                   color: ui.textSecondary,
                 ),
-                value: 'Tesla',
-                label: 'Model 3',
+                value: 'BYD',
+                label: 'Atto 3',
               ),
             ),
             _SectionDivider(color: ui.borderSubtle),
@@ -136,7 +136,7 @@ class _BatteryGlyph extends StatelessWidget {
   Widget build(BuildContext context) {
     final ui = AppUiColors.of(context);
     final fillFraction = (percent.clamp(0, 100)) / 100.0;
-    final outlineColor = ui.textMuted;
+    final outlineColor = ui.brandSecondary;
 
     return SizedBox(
       width: 30.w,
@@ -159,7 +159,7 @@ class _BatteryGlyph extends StatelessWidget {
                   heightFactor: 1,
                   child: Container(
                     decoration: BoxDecoration(
-                      color: ui.brandLightGreen,
+                      color: ui.brandSecondary,
                       borderRadius: BorderRadius.circular(2.r),
                     ),
                   ),

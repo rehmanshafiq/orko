@@ -32,8 +32,8 @@ class ChargingStatusMobileView extends StatelessWidget {
                       AppColors.shimmerGreyColor,
                     ]
                   : [
-                      const Color(0xFF0A1220),
-                      AppColors.blackColor,
+                      AppColors.darkScaffoldBackgroundColor,
+                      AppColors.darkScaffoldBackgroundColor,
                     ],
             ),
           ),

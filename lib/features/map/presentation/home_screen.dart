@@ -209,8 +209,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   static const double _chargingStationMarkerSize = 44;
 
-  /// Loads green / grey / orange marker assets (cached). Each station maps to
-  /// one of five availability levels (0–5 ports) and picks the matching icon.
+  /// Loads green ([primaryDarkColor]) and grey markers (cached). Stations with
+  /// >2 available ports use green; ≤2 ports use grey.
   Future<Map<_ChargingStationMarkerKind, BitmapDescriptor?>>
       _resolveChargingStationIcon() async {
     if (_chargingStationIcons.length == _ChargingStationMarkerKind.values.length) {
@@ -225,16 +225,13 @@ class _HomeScreenState extends State<HomeScreen> {
       _loadChargingStationMarkerAsset(
         AppImages.icChargerMap,
         _ChargingStationMarkerKind.green,
+        tintColor: AppColors.primaryDarkColor,
       ),
       _loadChargingStationMarkerAsset(
         AppImages.icChargerMap,
         _ChargingStationMarkerKind.grey,
         desaturate: true,
       ),
-      // _loadChargingStationMarkerAsset(
-      //   AppImages.markerGrey,
-      //   _ChargingStationMarkerKind.orange,
-      // ),
     ]);
 
     return {
@@ -250,11 +247,15 @@ class _HomeScreenState extends State<HomeScreen> {
   /// When [desaturate] is set, the decoded pixels are converted to grey
   /// (alpha preserved) so the green charger asset can double as the
   /// "grey"/unavailable marker without a separate file.
+  ///
+  /// When [tintColor] is set, non-transparent pixels are recolored to that
+  /// brand green while preserving alpha and shading from the source asset.
   Future<MapEntry<_ChargingStationMarkerKind, BitmapDescriptor>?>
       _loadChargingStationMarkerAsset(
     String assetPath,
     _ChargingStationMarkerKind kind, {
     bool desaturate = false,
+    Color? tintColor,
   }) async {
     if (!mounted) return null;
     try {
@@ -272,9 +273,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
       final Uint8List? pngBytes = desaturate
           ? await _desaturatedPngBytes(image)
-          : (await image.toByteData(format: ui.ImageByteFormat.png))
-              ?.buffer
-              .asUint8List();
+          : tintColor != null
+              ? await _tintedPngBytes(image, tintColor)
+              : (await image.toByteData(format: ui.ImageByteFormat.png))
+                  ?.buffer
+                  .asUint8List();
       image.dispose();
 
       if (pngBytes == null) return null;
@@ -322,6 +325,42 @@ class _HomeScreenState extends State<HomeScreen> {
     final greyImage = await completer.future;
     final pngData = await greyImage.toByteData(format: ui.ImageByteFormat.png);
     greyImage.dispose();
+    return pngData?.buffer.asUint8List();
+  }
+
+  /// Returns PNG bytes of [source] recolored to [tint], preserving alpha and
+  /// using each pixel's luminance to keep light/shadow detail in the marker.
+  Future<Uint8List?> _tintedPngBytes(ui.Image source, Color tint) async {
+    final rawData =
+        await source.toByteData(format: ui.ImageByteFormat.rawRgba);
+    if (rawData == null) return null;
+
+    final pixels = rawData.buffer.asUint8List();
+    for (var i = 0; i < pixels.length; i += 4) {
+      final alpha = pixels[i + 3];
+      if (alpha == 0) continue;
+
+      final lum = (0.2126 * pixels[i] +
+              0.7152 * pixels[i + 1] +
+              0.0722 * pixels[i + 2]) /
+          255;
+
+      pixels[i] = (tint.red * lum).round().clamp(0, 255);
+      pixels[i + 1] = (tint.green * lum).round().clamp(0, 255);
+      pixels[i + 2] = (tint.blue * lum).round().clamp(0, 255);
+    }
+
+    final completer = Completer<ui.Image>();
+    ui.decodeImageFromPixels(
+      pixels,
+      source.width,
+      source.height,
+      ui.PixelFormat.rgba8888,
+      completer.complete,
+    );
+    final tintedImage = await completer.future;
+    final pngData = await tintedImage.toByteData(format: ui.ImageByteFormat.png);
+    tintedImage.dispose();
     return pngData?.buffer.asUint8List();
   }
 
@@ -608,7 +647,7 @@ class _HomeScreenState extends State<HomeScreen> {
       height: isCompact ? 30.h : 52.h,
       width: isCompact ? 30.w : 52.w,
       decoration: BoxDecoration(
-        color: isPrimary ? ui.brandPrimary : ui.searchBackground,
+        color: isPrimary ? ui.searchBackground : ui.searchBackground,
         borderRadius: radius,
         border: Border.all(
           color: isPrimary ? ui.brandPrimary : ui.borderSubtle,
@@ -728,7 +767,7 @@ class _HomeScreenState extends State<HomeScreen> {
       padding: AppUtils.homeFilterChipPadding,
       decoration: BoxDecoration(
         color: isActive
-            ? ui.brandPrimary.withValues(alpha: 0.22)
+            ? ui.innerCardBg
             : ui.innerCardBg,
         borderRadius: BorderRadius.circular(20.r),
         border: Border.all(
@@ -737,7 +776,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       child: AppText(
         text,
-        color: isActive ? ui.brandPrimary : ui.textPrimary.withValues(alpha: 0.8),
+        color: isActive ? ui.textPrimary.withValues(alpha: 0.8) : ui.textPrimary.withValues(alpha: 0.8),
         fontSize: FontSizes.font14Sp,
         fontWeight: FontWeights.weight400,
       ),
@@ -820,7 +859,7 @@ class _HomeScreenState extends State<HomeScreen> {
               4.verticalSpace,
               AppText(
                 _stationAvailabilityLabel(station),
-                color: ui.brandPrimary,
+                color: ui.textSecondary,
                 fontSize: FontSizes.font15Sp,
                 fontWeight: FontWeights.weight500,
               ),
@@ -849,7 +888,10 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-enum _ChargingStationMarkerKind { green, grey, orange }
+enum _ChargingStationMarkerKind {
+  grey,
+  green,
+}
 
 class _StationPlugIconsRow extends StatelessWidget {
   const _StationPlugIconsRow({required this.color});

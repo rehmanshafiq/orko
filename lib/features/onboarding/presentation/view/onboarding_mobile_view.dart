@@ -174,7 +174,7 @@ class _OnboardingMobileViewState extends State<OnboardingMobileView>
                             ? PrimaryButtonWidget(
                                 key: const ValueKey('get-started'),
                                 text: 'Get Started',
-                                buttonHeight: 56.h,
+                                buttonHeight: 38.h,
                                 buttonColor: ui.brandPrimary,
                                 textColor: AppColors.whiteColor,
                                 fontSize: FontSizes.font16Sp,
@@ -187,7 +187,7 @@ class _OnboardingMobileViewState extends State<OnboardingMobileView>
                               )
                             : SizedBox(
                                 key: const ValueKey('button-spacer'),
-                                height: 56.h,
+                                height: 38.h,
                               ),
                       ),
                       12.verticalSpace,

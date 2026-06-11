@@ -130,7 +130,7 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
                   extra: total.toInt(),
                 ),
                 buttonWidth: double.infinity,
-                buttonHeight: 52.h,
+                buttonHeight: 38.h,
                 cornerRadius: 32.r,
                 buttonColor: ui.brandPrimary,
                 textColor: AppColors.whiteColor,
@@ -399,12 +399,11 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
                 height: 40.r,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: ui.brandPrimary.withValues(alpha: 0.2),
-                  border: Border.all(color: ui.brandPrimary),
+                  border: Border.all(color: ui.textMuted),
                 ),
                 child: Icon(
                   Icons.add_rounded,
-                  color: ui.brandPrimary,
+                  color: ui.textMuted,
                   size: 24.r,
                 ),
               ),

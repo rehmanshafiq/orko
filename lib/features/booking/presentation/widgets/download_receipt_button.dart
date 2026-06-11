@@ -85,12 +85,12 @@ class _DownloadReceiptButtonState extends State<DownloadReceiptButton> {
                   Icon(
                     Icons.download_rounded,
                     size: 20.r,
-                    color: ui.brandPrimary,
+                    color: ui.textMuted,
                   ),
                   8.horizontalSpace,
                   AppText(
                     'Download Receipt (PDF)',
-                    color: ui.brandPrimary,
+                    color: ui.textMuted,
                     fontSize: FontSizes.font15Sp,
                     fontWeight: FontWeights.weight700,
                   ),

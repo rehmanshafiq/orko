@@ -73,7 +73,7 @@ class ChargingGaugeWidget extends StatelessWidget {
                 8.verticalSpace,
                 Icon(
                   Icons.bolt_rounded,
-                  color: ui.brandPrimary,
+                  color: ui.textMuted,
                   size: 40.sp,
                 ),
               ],

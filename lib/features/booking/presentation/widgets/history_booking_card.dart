@@ -115,10 +115,11 @@ class _CompletedBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ui = AppUiColors.of(context);
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 5.h),
       decoration: BoxDecoration(
-        color: AppColors.primaryDarkColor,
+        color: ui.brandSecondary,
         borderRadius: BorderRadius.circular(20.r),
       ),
       child: AppText(

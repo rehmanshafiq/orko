@@ -248,7 +248,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         text: state is AuthLoading ? 'Please wait...' : 'Continue',
                         onPress: _onRegister,
                         isEnabled: state is! AuthLoading,
-                        buttonHeight: 52.h,
+                        buttonHeight: 38.h,
                         cornerRadius: 32.r,
                         buttonColor: ui.brandPrimary,
                         textColor: AppColors.whiteColor,

@@ -23,8 +23,11 @@ class DateChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dayColor = selected ? AppColors.whiteColor : ui.textMuted;
-    final dateColor = selected ? AppColors.whiteColor : ui.textSecondary;
+    final borderColor = selected ? ui.brandPrimary : ui.borderSubtle;
+    final dayColor = ui.textMuted;
+    final dateColor = selected
+        ? (ui.isLight ? AppColors.blackColor : AppColors.whiteColor)
+        : ui.textSecondary;
 
     final content = Column(
       mainAxisSize: MainAxisSize.min,
@@ -56,15 +59,26 @@ class DateChip extends StatelessWidget {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 160),
           curve: Curves.easeOut,
-          width: selected ? 44.w : null,
-          height: selected ? 44.w : null,
+          width: 44.w,
+          height: 44.w,
           alignment: Alignment.center,
-          decoration: selected
-              ? BoxDecoration(
-                  color: ui.brandPrimary,
-                  shape: BoxShape.circle,
-                )
-              : null,
+          decoration: BoxDecoration(
+            color: ui.cardBookingBackground,
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: borderColor,
+              width: selected ? 2 : 1,
+            ),
+            boxShadow: selected
+                ? [
+                    BoxShadow(
+                      color: ui.brandPrimary.withValues(alpha: 0.35),
+                      blurRadius: 12,
+                      spreadRadius: 0,
+                    ),
+                  ]
+                : null,
+          ),
           child: content,
         ),
       ),
@@ -87,15 +101,8 @@ class TodayDateChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    /// Unselected circle: translucent primary on dark, tinted surface on light
-    /// so contrast stays WCAG-ish for caption text without white-on-muted.
-    final bg = selected
-        ? ui.brandPrimary
-        : ui.brandSecondary.withValues(alpha: ui.isLight ? 0.12 : 0.28);
-
-    final labelColor = selected
-        ? AppColors.blackColor
-        : ui.brandPrimary;
+    final borderColor = selected ? ui.brandPrimary : ui.borderSubtle;
+    final labelColor = ui.textMuted;
 
     return Material(
       color: AppColors.transparentColor,
@@ -109,8 +116,21 @@ class TodayDateChip extends StatelessWidget {
           height: 52.w,
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: bg,
+            color: ui.cardBookingBackground,
             shape: BoxShape.circle,
+            border: Border.all(
+              color: borderColor,
+              width: selected ? 2 : 1,
+            ),
+            boxShadow: selected
+                ? [
+                    BoxShadow(
+                      color: ui.brandPrimary.withValues(alpha: 0.35),
+                      blurRadius: 12,
+                      spreadRadius: 0,
+                    ),
+                  ]
+                : null,
           ),
           child: AppText(
             'Today',

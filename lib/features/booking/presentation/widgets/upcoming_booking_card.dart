@@ -142,7 +142,7 @@ class UpcomingBookingCard extends StatelessWidget {
                 child: PrimaryButtonWidget(
                   text: 'Modify',
                   onPress: onModify,
-                  buttonHeight: 48.h,
+                  buttonHeight: 38.h,
                   cornerRadius: 12.r,
                   strokeColor: ui.borderSubtle,
                   buttonColor: ui.cardBackground,
@@ -156,7 +156,7 @@ class UpcomingBookingCard extends StatelessWidget {
                 child: PrimaryButtonWidget(
                   text: 'Cancel',
                   onPress: onCancel,
-                  buttonHeight: 48.h,
+                  buttonHeight: 38.h,
                   cornerRadius: 12.r,
                   strokeColor: AppColors.removeColor,
                   buttonColor: ui.cardBackground,

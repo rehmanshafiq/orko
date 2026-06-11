@@ -25,12 +25,7 @@ class PortCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final backgroundColor = selected
-        ? Color.alphaBlend(
-            ui.brandSecondary.withValues(alpha: 0.28),
-            ui.cardBookingBackground,
-          )
-        : ui.cardBookingBackground;
+    final backgroundColor = ui.cardBookingBackground;
     final borderColor = selected ? ui.brandPrimary : ui.borderSubtle;
     final glow = selected
         ? [
@@ -77,7 +72,7 @@ class PortCard extends StatelessWidget {
                       width: 42.sp,
                       height: 42.sp,
                       fit: BoxFit.contain,
-                      color: selected ? ui.brandPrimary : AppColors.iconsGreyColor,
+                      color: AppColors.iconsGreyColor,
                     ),
                   ),
                 ],
@@ -92,18 +87,11 @@ class PortCard extends StatelessWidget {
               8.verticalSpace,
               Align(
                 alignment: Alignment.centerLeft,
-                child: Container(
-                  padding: AppUtils.horizontal8Vertical2Padding,
-                  decoration: BoxDecoration(
-                    color: ui.brandSecondary.withValues(alpha: 0.35),
-                    borderRadius: BorderRadius.circular(8.r),
-                  ),
-                  child: AppText(
-                    'Available',
-                    color: ui.brandPrimary,
-                    fontSize: FontSizes.font10Sp,
-                    fontWeight: FontWeights.weight400,
-                  ),
+                child: AppText(
+                  'Available',
+                  color: AppColors.whiteColor,
+                  fontSize: FontSizes.font10Sp,
+                  fontWeight: FontWeights.weight400,
                 ),
               ),
             ],

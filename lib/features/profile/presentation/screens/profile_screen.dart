@@ -59,7 +59,7 @@ class ProfileScreen extends StatelessWidget {
                       onPress: () =>
                           context.read<ProfileCubit>().loadProfile(),
                       buttonWidth: double.infinity,
-                      buttonHeight: 48.h,
+                      buttonHeight: 38.h,
                       cornerRadius: 12.r,
                       buttonColor: ui.brandPrimary,
                       textColor: AppColors.whiteColor,
@@ -139,12 +139,17 @@ class _ProfileHeader extends StatelessWidget {
     final profile = state.profile;
     final bottomRadius = 20.r;
 
-    final headerGreen = ui.isLight ? ui.brandPrimary : ui.brandSecondary;
-
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: headerGreen,
+        gradient: const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            AppColors.primaryDarkColorTopGradient,
+            AppColors.primaryDarkButtonColor,
+          ],
+        ),
         borderRadius: BorderRadius.only(
           bottomLeft: Radius.circular(bottomRadius),
           bottomRight: Radius.circular(bottomRadius),
@@ -377,9 +382,9 @@ class _StatsGrid extends StatelessWidget {
               child: _StatTile(
                 icon: Icons.battery_charging_full_rounded,
                 iconBg: ui.brandLightGreen.withValues(alpha: 0.2),
-                iconColor: ui.brandLightGreen,
+                iconColor: ui.brandSecondary,
                 value: '1245',
-                valueColor: ui.brandLightGreen,
+                valueColor: ui.brandSecondary,
                 label: 'kWh Charged',
               ),
             ),
@@ -403,9 +408,9 @@ class _StatsGrid extends StatelessWidget {
               child: _StatTile(
                 icon: Icons.eco_outlined,
                 iconBg: ui.brandDarkGreen.withValues(alpha: 0.25),
-                iconColor: ui.brandLightGreen,
+                iconColor: ui.brandSecondary,
                 value: '285 kg',
-                valueColor: ui.brandLightGreen,
+                valueColor: ui.brandSecondary,
                 label: 'CO2 Reduced',
               ),
             ),
@@ -597,7 +602,7 @@ class _PersonalInfoCard extends StatelessWidget {
                 text: 'Edit',
                 onPress: () {},
                 buttonWidth: 88.w,
-                buttonHeight: 36.h,
+                buttonHeight: 38.h,
                 cornerRadius: 10.r,
                 buttonColor: ui.chipInactiveBg,
                 strokeColor: ui.brandPrimary,
@@ -810,7 +815,7 @@ class _VehiclesTabBody extends StatelessWidget {
 
   static const List<_VehicleUi> _vehicles = [
     _VehicleUi(
-      nickname: 'My Tesla',
+      nickname: 'BYD Atto 3',
       modelLine: '2023 Tesla Model 3',
       isPrimary: true,
       rangeKm: 245,
@@ -850,7 +855,7 @@ class _VehiclesTabBody extends StatelessWidget {
           text: 'Add New Vehicle',
           onPress: () {},
           buttonWidth: double.infinity,
-          buttonHeight: 48.h,
+          buttonHeight: 38.h,
           cornerRadius: 12.r,
           buttonColor: ui.brandPrimary,
           textColor: AppColors.whiteColor,
@@ -1100,7 +1105,7 @@ class _VehicleCard extends StatelessWidget {
                     text: 'Set as Primary Vehicle',
                     onPress: () {},
                     buttonWidth: double.infinity,
-                    buttonHeight: 44.h,
+                    buttonHeight: 38.h,
                     cornerRadius: 12.r,
                     buttonColor: ui.chipInactiveBg,
                     strokeColor: ui.brandPrimary,
@@ -1388,17 +1393,12 @@ class _AppearanceSection extends StatelessWidget {
                 child: PrimaryButtonWidget(
                   text: 'Light',
                   onPress: themeCubit.setLight,
-                  buttonHeight: 44.h,
+                  buttonHeight: 38.h,
                   cornerRadius: 10.r,
-                  buttonColor:
-                      isLight ? ui.brandPrimary : ui.chipInactiveBg,
-                  strokeColor:
-                      isLight ? ui.brandPrimary : ui.borderSubtle,
-                  textColor: isLight
-                      ? (ui.isLight
-                          ? AppColors.whiteColor
-                          : AppColors.blackColor)
-                      : ui.textPrimary,
+                  buttonColor: ui.chipInactiveBg,
+                  strokeColor: isLight ? null : ui.borderSubtle,
+                  textColor:
+                      isLight ? AppColors.whiteColor : ui.textPrimary,
                   fontSize: FontSizes.font14Sp,
                   fontWeight: FontWeights.weight600,
                 ),
@@ -1408,17 +1408,12 @@ class _AppearanceSection extends StatelessWidget {
                 child: PrimaryButtonWidget(
                   text: 'Dark',
                   onPress: themeCubit.setDark,
-                  buttonHeight: 44.h,
+                  buttonHeight: 38.h,
                   cornerRadius: 10.r,
-                  buttonColor:
-                      !isLight ? ui.brandPrimary : ui.chipInactiveBg,
-                  strokeColor:
-                      !isLight ? ui.brandPrimary : ui.borderSubtle,
-                  textColor: !isLight
-                      ? (ui.isLight
-                          ? AppColors.whiteColor
-                          : AppColors.blackColor)
-                      : ui.textPrimary,
+                  buttonColor: ui.chipInactiveBg,
+                  strokeColor: !isLight ? null : ui.borderSubtle,
+                  textColor:
+                      !isLight ? AppColors.whiteColor : ui.textPrimary,
                   fontSize: FontSizes.font14Sp,
                   fontWeight: FontWeights.weight600,
                 ),
