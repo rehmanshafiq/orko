@@ -142,14 +142,15 @@ class _ProfileHeader extends StatelessWidget {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            AppColors.transparentColor,
-            AppColors.transparentColor,
-          ],
-        ),
+        color: ui.innerCardBg,
+        // gradient: const LinearGradient(
+        //   begin: Alignment.topCenter,
+        //   end: Alignment.bottomCenter,
+        //   colors: [
+        //     AppColors.transparentColor,
+        //     AppColors.transparentColor,
+        //   ],
+        // ),
         borderRadius: BorderRadius.only(
           bottomLeft: Radius.circular(bottomRadius),
           bottomRight: Radius.circular(bottomRadius),
@@ -167,8 +168,8 @@ class _ProfileHeader extends StatelessWidget {
                 children: [
                   CircleAvatar(
                     radius: 38.r,
-                    backgroundColor:
-                        AppColors.whiteColor.withValues(alpha: 0.2),
+                    backgroundColor: ui.textSecondary,
+                        // AppColors.whiteColor.withValues(alpha: 0.2),
                     backgroundImage: profile.avatarUrl != null
                         ? NetworkImage(profile.avatarUrl!)
                         : null,
@@ -209,7 +210,7 @@ class _ProfileHeader extends StatelessWidget {
                   children: [
                     AppText(
                       profile.name,
-                      color: AppColors.whiteColor,
+                      color: ui.textPrimary,
                       fontSize: FontSizes.font20Sp,
                       fontWeight: FontWeights.weight700,
                       maxLines: 2,
@@ -218,7 +219,7 @@ class _ProfileHeader extends StatelessWidget {
                     4.verticalSpace,
                     AppText(
                       profile.email,
-                      color: AppColors.whiteColor.withValues(alpha: 0.9),
+                      color: ui.textSecondary,
                       fontSize: FontSizes.font14Sp,
                       fontWeight: FontWeights.weight400,
                       maxLines: 2,
@@ -227,7 +228,7 @@ class _ProfileHeader extends StatelessWidget {
                     4.verticalSpace,
                     AppText(
                       'Member since Jan 2024',
-                      color: AppColors.whiteColor.withValues(alpha: 0.75),
+                      color: ui.textSecondary,
                       fontSize: FontSizes.font12Sp,
                       fontWeight: FontWeights.weight400,
                     ),
@@ -301,7 +302,8 @@ class _HeaderTabChip extends StatelessWidget {
             color: AppColors.transparentColor,
             borderRadius: BorderRadius.circular(20.r),
             border: Border.all(
-              color: selected ? ui.brandPrimary : ui.borderSubtle,
+              color: selected ? ui.brandPrimary : ui.textMuted,
+              width: selected ? 2.w : 1.w
             ),
           ),
           child: Row(
@@ -317,7 +319,7 @@ class _HeaderTabChip extends StatelessWidget {
               Flexible(
                 child: AppText(
                   label,
-                  color: ui.textMuted,
+                  color: ui.textPrimary,
                   fontSize: FontSizes.font12Sp,
                   fontWeight: FontWeights.weight600,
                   maxLines: 1,
@@ -440,7 +442,7 @@ class _StatTile extends StatelessWidget {
     return Container(
       padding: AppUtils.all12Padding,
       decoration: BoxDecoration(
-        color: ui.cardBackground,
+        color: ui.vehicleImagePlaceholder,
         borderRadius: BorderRadius.circular(14.r),
         border: Border.all(
           color: ui.borderSubtle,
@@ -600,9 +602,9 @@ class _PersonalInfoCard extends StatelessWidget {
                 buttonWidth: 88.w,
                 buttonHeight: 38.h,
                 cornerRadius: 10.r,
-                buttonColor: ui.chipInactiveBg,
+                buttonColor: ui.cardBackground,
                 strokeColor: ui.brandPrimary,
-                textColor: ui.brandPrimary,
+                textColor: ui.textPrimary,
                 fontSize: FontSizes.font12Sp,
                 fontWeight: FontWeights.weight600,
               ),
@@ -1582,7 +1584,7 @@ class _SectionCard extends StatelessWidget {
       width: double.infinity,
       padding: AppUtils.all18Padding,
       decoration: BoxDecoration(
-        color: ui.cardBackground,
+        color: ui.vehicleImagePlaceholder,
         borderRadius: BorderRadius.circular(14.r),
         border: Border.all(
           color: ui.borderSubtle,
