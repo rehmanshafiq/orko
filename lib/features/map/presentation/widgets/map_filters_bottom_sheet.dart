@@ -252,15 +252,15 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
           color: selected ? ui.brandPrimary : ui.borderSubtle,
           width: selected ? 1.5 : 1,
         ),
-        boxShadow: selected
-            ? [
-                BoxShadow(
-                  color: ui.brandPrimary.withValues(alpha: 0.42),
-                  blurRadius: 12,
-                  spreadRadius: 0,
-                ),
-              ]
-            : null,
+        // boxShadow: selected
+        //     ? [
+        //         BoxShadow(
+        //           color: ui.brandPrimary.withValues(alpha: 0.42),
+        //           blurRadius: 12,
+        //           spreadRadius: 0,
+        //         ),
+        //       ]
+        //     : null,
       ),
       child: AppText(
         label,
