@@ -69,15 +69,15 @@ class DateChip extends StatelessWidget {
               color: borderColor,
               width: selected ? 2 : 1,
             ),
-            boxShadow: selected
-                ? [
-                    BoxShadow(
-                      color: ui.brandPrimary.withValues(alpha: 0.35),
-                      blurRadius: 12,
-                      spreadRadius: 0,
-                    ),
-                  ]
-                : null,
+            // boxShadow: selected
+            //     ? [
+            //         BoxShadow(
+            //           color: ui.brandPrimary.withValues(alpha: 0.35),
+            //           blurRadius: 12,
+            //           spreadRadius: 0,
+            //         ),
+            //       ]
+            //     : null,
           ),
           child: content,
         ),
@@ -102,7 +102,7 @@ class TodayDateChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final borderColor = selected ? ui.brandPrimary : ui.borderSubtle;
-    final labelColor = ui.textMuted;
+    final labelColor = ui.textPrimary;
 
     return Material(
       color: AppColors.transparentColor,
@@ -122,15 +122,15 @@ class TodayDateChip extends StatelessWidget {
               color: borderColor,
               width: selected ? 2 : 1,
             ),
-            boxShadow: selected
-                ? [
-                    BoxShadow(
-                      color: ui.brandPrimary.withValues(alpha: 0.35),
-                      blurRadius: 12,
-                      spreadRadius: 0,
-                    ),
-                  ]
-                : null,
+            // boxShadow: selected
+            //     ? [
+            //         BoxShadow(
+            //           color: ui.brandPrimary.withValues(alpha: 0.35),
+            //           blurRadius: 12,
+            //           spreadRadius: 0,
+            //         ),
+            //       ]
+            //     : null,
           ),
           child: AppText(
             'Today',

@@ -119,12 +119,13 @@ class _CompletedBadge extends StatelessWidget {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 5.h),
       decoration: BoxDecoration(
-        color: ui.brandSecondary,
+        // color: ui.brandSecondary,
         borderRadius: BorderRadius.circular(20.r),
+        border: Border.all(width: 1.w, color: ui.brandSecondary)
       ),
       child: AppText(
         label,
-        color: AppColors.whiteColor,
+        color: ui.textSecondary,
         fontSize: FontSizes.font11Sp,
         fontWeight: FontWeights.weight600,
       ),

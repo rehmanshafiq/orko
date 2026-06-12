@@ -37,17 +37,17 @@ class SlotChip extends StatelessWidget {
         textColor = isSelected
             ? (ui.isLight ? AppColors.blackColor : AppColors.whiteColor)
             : (ui.isLight
-                ? ui.brandPrimary
+                ? ui.textSecondary
                 : AppColors.whiteColor.withValues(alpha: 0.96));
-        chipShadow = isSelected
-            ? [
-                BoxShadow(
-                  color: ui.brandPrimary.withValues(alpha: 0.35),
-                  blurRadius: 12,
-                  spreadRadius: 0,
-                ),
-              ]
-            : null;
+        // chipShadow = isSelected
+        //     ? [
+        //         BoxShadow(
+        //           color: ui.brandPrimary.withValues(alpha: 0.35),
+        //           blurRadius: 12,
+        //           spreadRadius: 0,
+        //         ),
+        //       ]
+        //     : null;
         break;
       case SlotStyle.booked:
         bg = AppColors.slotBookedBackgroundColor;

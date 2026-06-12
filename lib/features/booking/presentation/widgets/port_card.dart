@@ -49,7 +49,7 @@ class PortCard extends StatelessWidget {
             color: backgroundColor,
             borderRadius: BorderRadius.circular(14.r),
             border: Border.all(color: borderColor, width: selected ? 2 : 1),
-            boxShadow: glow,
+            // boxShadow: glow,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -89,7 +89,7 @@ class PortCard extends StatelessWidget {
                 alignment: Alignment.centerLeft,
                 child: AppText(
                   'Available',
-                  color: AppColors.whiteColor,
+                  color: ui.textSecondary,
                   fontSize: FontSizes.font10Sp,
                   fontWeight: FontWeights.weight400,
                 ),

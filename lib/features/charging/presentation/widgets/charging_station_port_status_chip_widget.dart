@@ -19,8 +19,8 @@ class ChargingStationPortStatusChipWidget extends StatelessWidget {
       padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
       decoration: BoxDecoration(
         color: available
-            ? (ui.isLight ? ui.brandPrimary : AppColors.transparentColor)
-                .withValues(alpha: ui.isLight ? 0.22 : 0.36)
+            ? (ui.isLight ? null : AppColors.transparentColor)
+                ?.withValues(alpha: ui.isLight ? 0.22 : 0.36)
             : AppColors.transparentColor,
         borderRadius: BorderRadius.circular(20.r),
         border: Border.all(color: available ? ui.brandSecondary : ui.textMuted)

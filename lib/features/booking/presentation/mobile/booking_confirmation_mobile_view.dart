@@ -12,6 +12,9 @@ import 'package:orko_hubco/features/booking/presentation/widgets/download_receip
 import 'package:orko_hubco/features/booking/presentation/widgets/info_banner.dart';
 import 'package:orko_hubco/features/booking/presentation/widgets/primary_action_button.dart';
 
+import '../../../../core/constants/app_sizes.dart';
+import '../../../../core/utils/widgets/primary_button_widget.dart';
+
 /// Shown after successful payment — booking summary & return to bookings.
 class BookingConfirmationMobileView extends StatelessWidget {
   const BookingConfirmationMobileView({super.key});
@@ -75,8 +78,18 @@ class BookingConfirmationMobileView extends StatelessWidget {
                     },
                   ),
                   12.verticalSpace,
-                  PrimaryActionButton(
-                    onPressed: () => context.go('/profile'),
+                  // PrimaryActionButton(
+                  //   onPressed: () => context.go('/profile'),
+                  // ),
+                  PrimaryButtonWidget(
+                    text: 'Start Charge',
+                    onPress: () => context.go('/profile'),
+                    buttonWidth: double.infinity,
+                    cornerRadius: 32.r,
+                    buttonColor: ui.brandPrimary,
+                    textColor: AppColors.whiteColor,
+                    fontSize: FontSizes.font15Sp,
+                    fontWeight: FontWeights.weight700,
                   ),
                 ],
               ),

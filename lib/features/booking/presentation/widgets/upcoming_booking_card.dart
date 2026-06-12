@@ -190,7 +190,7 @@ class _StatusBadge extends StatelessWidget {
       ),
       child: AppText(
         label,
-        color: ui.brandPrimary,
+        color: ui.textSecondary,
         fontSize: FontSizes.font12Sp,
         fontWeight: FontWeights.weight500,
       ),

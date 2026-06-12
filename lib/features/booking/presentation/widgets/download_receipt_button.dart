@@ -60,7 +60,7 @@ class _DownloadReceiptButtonState extends State<DownloadReceiptButton> {
     final ui = AppUiColors.of(context);
     return SizedBox(
       width: double.infinity,
-      height: 52.h,
+      height: 42.h,
       child: OutlinedButton(
         onPressed: _isGenerating ? null : _onDownload,
         style: OutlinedButton.styleFrom(
@@ -84,14 +84,14 @@ class _DownloadReceiptButtonState extends State<DownloadReceiptButton> {
                 children: [
                   Icon(
                     Icons.download_rounded,
-                    size: 20.r,
-                    color: ui.textMuted,
+                    size: 19.r,
+                    color: ui.textSecondary,
                   ),
                   8.horizontalSpace,
                   AppText(
                     'Download Receipt (PDF)',
-                    color: ui.textMuted,
-                    fontSize: FontSizes.font15Sp,
+                    color: ui.textSecondary,
+                    fontSize: FontSizes.font14Sp,
                     fontWeight: FontWeights.weight700,
                   ),
                 ],
