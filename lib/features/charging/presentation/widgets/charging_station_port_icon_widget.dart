@@ -24,10 +24,10 @@ class ChargingStationPortIconWidget extends StatelessWidget {
       ),
       alignment: Alignment.center,
       child: AppSvgImageView(
-        appImagePath: AppImages.icPortCharger,
+        appImagePath: AppImages.icCss2Png,
         color: ui.textPrimary.withValues(alpha: 0.88),
-        width: 19.r,
-        height: 19.r,
+        width: 28.r,
+        height: 28.r,
       ),
     );
   }

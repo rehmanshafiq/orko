@@ -45,7 +45,7 @@ class ChargingStationPortItemWidget extends StatelessWidget {
               ChargingStationPortIconWidget(
                 diameter: iconSize,
               ),
-                6.horizontalSpace,
+                8.horizontalSpace,
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -58,7 +58,7 @@ class ChargingStationPortItemWidget extends StatelessWidget {
                             child: AppText(
                               port.label,
                               color: ui.textPrimary,
-                              fontSize: FontSizes.font11Sp,
+                              fontSize: FontSizes.font12Sp,
                               fontWeight: FontWeights.weight600,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
