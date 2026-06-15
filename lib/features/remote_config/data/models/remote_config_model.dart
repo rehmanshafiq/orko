@@ -8,7 +8,6 @@ import 'package:equatable/equatable.dart';
 ///   "api_constants": {
 ///     "base_url_live": "https://apis-py.orkofleet.com/",
 ///     "base_url_qa": "https://staging-python.orkofleet.com/",
-///     "domain": "Hubco",
 ///     "api_endpoints": {
 ///       "charging_station_map": "api/v1/charging-station/nearest?",
 ///       "charging_station_detail": "api/v1/charging-station/"
@@ -53,13 +52,11 @@ class ApiConstants extends Equatable {
   const ApiConstants({
     required this.baseUrlLive,
     required this.baseUrlQa,
-    required this.domain,
     required this.apiEndpoints,
   });
 
   final String baseUrlLive;
   final String baseUrlQa;
-  final String domain;
   final ApiEndpoints apiEndpoints;
 
   /// Parses the inner `api_constants` object. This matches the value stored in
@@ -69,7 +66,6 @@ class ApiConstants extends Equatable {
     return ApiConstants(
       baseUrlLive: json['base_url_live'] as String? ?? '',
       baseUrlQa: json['base_url_qa'] as String? ?? '',
-      domain: json['domain'] as String? ?? '',
       apiEndpoints: ApiEndpoints.fromJson(
         rawEndpoints is Map
             ? Map<String, dynamic>.from(rawEndpoints)
@@ -82,7 +78,6 @@ class ApiConstants extends Equatable {
     return {
       'base_url_live': baseUrlLive,
       'base_url_qa': baseUrlQa,
-      'domain': domain,
       'api_endpoints': apiEndpoints.toJson(),
     };
   }
@@ -90,19 +85,17 @@ class ApiConstants extends Equatable {
   ApiConstants copyWith({
     String? baseUrlLive,
     String? baseUrlQa,
-    String? domain,
     ApiEndpoints? apiEndpoints,
   }) {
     return ApiConstants(
       baseUrlLive: baseUrlLive ?? this.baseUrlLive,
       baseUrlQa: baseUrlQa ?? this.baseUrlQa,
-      domain: domain ?? this.domain,
       apiEndpoints: apiEndpoints ?? this.apiEndpoints,
     );
   }
 
   @override
-  List<Object?> get props => [baseUrlLive, baseUrlQa, domain, apiEndpoints];
+  List<Object?> get props => [baseUrlLive, baseUrlQa, apiEndpoints];
 }
 
 /// API endpoint paths section of the remote config.
