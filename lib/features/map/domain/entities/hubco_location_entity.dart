@@ -8,6 +8,12 @@ class HubcoLocationEntity extends Equatable {
   final double longitude;
   final bool status;
 
+  /// Distance from the requesting device, in kilometers (0 when unknown).
+  final double distance;
+
+  /// Remote station icon URL (with background) when provided by the API.
+  final String iconUrl;
+
   const HubcoLocationEntity({
     required this.id,
     required this.name,
@@ -15,8 +21,19 @@ class HubcoLocationEntity extends Equatable {
     required this.latitude,
     required this.longitude,
     required this.status,
+    this.distance = 0,
+    this.iconUrl = '',
   });
 
   @override
-  List<Object?> get props => [id, name, address, latitude, longitude, status];
+  List<Object?> get props => [
+        id,
+        name,
+        address,
+        latitude,
+        longitude,
+        status,
+        distance,
+        iconUrl,
+      ];
 }

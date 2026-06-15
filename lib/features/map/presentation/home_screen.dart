@@ -369,10 +369,11 @@ class _HomeScreenState extends State<HomeScreen> {
     return 1 + station.id % _portsPerMarker;
   }
 
+  /// Green marker when the station is active (`status: true`), grey otherwise.
   _ChargingStationMarkerKind _markerKindFor(HubcoLocationEntity station) {
-    final available = _availablePortsForMarker(station);
-    if (available <= 2) return _ChargingStationMarkerKind.grey;
-    return _ChargingStationMarkerKind.green;
+    return station.status
+        ? _ChargingStationMarkerKind.green
+        : _ChargingStationMarkerKind.grey;
   }
 
   /// Centers the map on the device location (same idea as Google Maps’ target button).
@@ -781,10 +782,11 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  static const _stationDistances = ['1.8 km', '2.8 km'];
-
   String _stationDistanceLabel(HubcoLocationEntity station) {
-    return _stationDistances[station.id % _stationDistances.length];
+    final km = station.distance;
+    if (km <= 0) return '—';
+    if (km < 1) return '${(km * 1000).round()} m';
+    return '${km.toStringAsFixed(1)} km';
   }
 
   String _stationAvailabilityLabel(HubcoLocationEntity station) {
