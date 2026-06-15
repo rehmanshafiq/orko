@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
@@ -75,6 +76,21 @@ class _HomeScreenState extends State<HomeScreen> {
 
   final Map<_ChargingStationMarkerKind, BitmapDescriptor> _chargingStationIcons =
       {};
+
+  /// Custom green/grey cluster bubble bitmaps, cached by `${kind}_${count}`.
+  final Map<String, BitmapDescriptor> _clusterIcons = {};
+
+  /// Current map zoom, kept in sync via [GoogleMap.onCameraMove]. Drives the
+  /// grid clustering so markers re-cluster as the user zooms in/out.
+  double _currentZoom = 13.8;
+
+  /// Grid cell size (logical px) used to group nearby markers into a cluster.
+  static const double _clusterCellSize = 90;
+
+  /// Signature of the last rendered clustering; lets us skip redundant marker
+  /// updates (and the SDK's marker-redraw flicker) when panning doesn't change
+  /// the grouping.
+  String _lastClusterSignature = '';
 
   // ── Lifecycle ─────────────────────────────────────────────────────────────
 
@@ -174,21 +190,11 @@ class _HomeScreenState extends State<HomeScreen> {
     await Future.delayed(const Duration(milliseconds: 50));
     if (!mounted) return;
 
-    final stationIcons = await _resolveChargingStationIcon();
-    if (!mounted) return;
+    _locations = locations;
 
-    // Step 3 ── Update markers. The SDK flashes white here — it's hidden.
-    setState(() {
-      _locations = locations;
-      _markers = locations
-          .map(
-            (s) => _toMarker(
-              s,
-              stationIcons[_markerKindFor(s)],
-            ),
-          )
-          .toSet();
-    });
+    // Step 3 ── Build clustered markers. The SDK flashes white here — it's hidden.
+    await _rebuildClusters();
+    if (!mounted) return;
 
     // Step 4 ── Reapply dark style; the SDK reverted it on redraw.
     await _applyMapStyleForTheme(Theme.of(context).brightness);
@@ -376,6 +382,205 @@ class _HomeScreenState extends State<HomeScreen> {
         : _ChargingStationMarkerKind.grey;
   }
 
+  // ── Clustering ──────────────────────────────────────────────────────────
+
+  /// Re-clusters [_locations] for the current zoom and pushes the resulting
+  /// markers to the map. Single-item groups render the normal green/grey
+  /// station marker; multi-item groups render a colored cluster bubble.
+  Future<void> _rebuildClusters() async {
+    if (!mounted) return;
+
+    if (_locations.isEmpty) {
+      _lastClusterSignature = '';
+      setState(() => _markers = const <Marker>{});
+      return;
+    }
+
+    final clusters = _clusterStations(_locations, _currentZoom);
+
+    // Skip work when the grouping is identical to what's already on screen.
+    final signature = (clusters.map((c) => c.id).toList()..sort()).join('|');
+    if (signature == _lastClusterSignature && _markers.isNotEmpty) return;
+
+    final stationIcons = await _resolveChargingStationIcon();
+    if (!mounted) return;
+
+    final markers = <Marker>{};
+
+    for (final cluster in clusters) {
+      if (cluster.items.length == 1) {
+        final station = cluster.items.first;
+        markers.add(_toMarker(station, stationIcons[_markerKindFor(station)]));
+        continue;
+      }
+
+      // Green when the group has at least one active station, grey otherwise.
+      final hasActive = cluster.items.any((s) => s.status);
+      final kind = hasActive
+          ? _ChargingStationMarkerKind.green
+          : _ChargingStationMarkerKind.grey;
+      final icon = await _resolveClusterIcon(kind, cluster.items.length);
+      if (!mounted) return;
+
+      markers.add(
+        Marker(
+          markerId: MarkerId(cluster.id),
+          position: cluster.position,
+          icon: icon,
+          onTap: () => _onClusterTap(cluster),
+        ),
+      );
+    }
+
+    if (!mounted) return;
+    _lastClusterSignature = signature;
+    setState(() => _markers = markers);
+  }
+
+  /// Groups stations whose projected pixel positions (at [zoom]) fall in the
+  /// same grid cell. Uses Web Mercator world coordinates so the result is
+  /// deterministic and cheap (no per-marker screen-coordinate round trips).
+  List<_StationCluster> _clusterStations(
+    List<HubcoLocationEntity> stations,
+    double zoom,
+  ) {
+    final scale = math.pow(2.0, zoom).toDouble();
+    final buckets = <String, List<HubcoLocationEntity>>{};
+
+    for (final station in stations) {
+      final world = _projectToWorld(station.latitude, station.longitude);
+      final px = world.dx * scale;
+      final py = world.dy * scale;
+      final key = '${(px / _clusterCellSize).floor()}'
+          '_${(py / _clusterCellSize).floor()}';
+      (buckets[key] ??= <HubcoLocationEntity>[]).add(station);
+    }
+
+    return buckets.values.map((items) {
+      var lat = 0.0;
+      var lng = 0.0;
+      for (final s in items) {
+        lat += s.latitude;
+        lng += s.longitude;
+      }
+      return _StationCluster(
+        position: LatLng(lat / items.length, lng / items.length),
+        items: items,
+      );
+    }).toList();
+  }
+
+  /// Web Mercator projection into a 256×256 world space (independent of zoom).
+  Offset _projectToWorld(double latitude, double longitude) {
+    const tileSize = 256.0;
+    final siny = math.sin(latitude * math.pi / 180).clamp(-0.9999, 0.9999);
+    final x = tileSize * (0.5 + longitude / 360);
+    final y = tileSize *
+        (0.5 - math.log((1 + siny) / (1 - siny)) / (4 * math.pi));
+    return Offset(x, y);
+  }
+
+  /// Re-clusters whenever the camera stops moving so the grouping reflects the
+  /// new zoom level. No-ops until stations have loaded.
+  void _onCameraIdle() {
+    if (_locations.isEmpty) return;
+    unawaited(_rebuildClusters());
+  }
+
+  /// Tapping a cluster zooms in to break it apart; the camera-idle callback
+  /// then re-clusters at the new zoom.
+  Future<void> _onClusterTap(_StationCluster cluster) async {
+    final controller = _mapController;
+    if (controller == null) return;
+    final targetZoom = (_currentZoom + 2).clamp(1.0, 20.0).toDouble();
+    await controller.animateCamera(
+      CameraUpdate.newLatLngZoom(cluster.position, targetZoom),
+    );
+  }
+
+  /// Returns (and caches) a cluster bubble bitmap for [kind] with [count].
+  Future<BitmapDescriptor> _resolveClusterIcon(
+    _ChargingStationMarkerKind kind,
+    int count,
+  ) async {
+    final key = '${kind.name}_$count';
+    final cached = _clusterIcons[key];
+    if (cached != null) return cached;
+
+    final color = kind == _ChargingStationMarkerKind.green
+        ? AppColors.primaryDarkColor
+        : AppColors.greyColor;
+    final icon = await _buildClusterBitmap(color: color, count: count);
+    _clusterIcons[key] = icon;
+    return icon;
+  }
+
+  static const double _clusterMarkerSize = 54;
+
+  /// Draws a circular cluster bubble (translucent halo + solid center + white
+  /// border) with the station count, and returns it as a [BitmapDescriptor].
+  Future<BitmapDescriptor> _buildClusterBitmap({
+    required Color color,
+    required int count,
+  }) async {
+    final dpr = mounted ? MediaQuery.devicePixelRatioOf(context) : 3.0;
+    final size = (_clusterMarkerSize * dpr).clamp(1.0, 256.0).toDouble();
+    final center = Offset(size / 2, size / 2);
+    final radius = size / 2;
+
+    final recorder = ui.PictureRecorder();
+    final canvas = Canvas(recorder);
+
+    canvas.drawCircle(
+      center,
+      radius,
+      Paint()..color = color.withValues(alpha: 0.25),
+    );
+    canvas.drawCircle(
+      center,
+      radius * 0.72,
+      Paint()..color = color,
+    );
+    canvas.drawCircle(
+      center,
+      radius * 0.72,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = size * 0.05
+        ..color = AppColors.whiteColor,
+    );
+
+    final label = count > 99 ? '99+' : '$count';
+    final textPainter = TextPainter(
+      textDirection: TextDirection.ltr,
+      text: TextSpan(
+        text: label,
+        style: TextStyle(
+          color: AppColors.whiteColor,
+          fontSize: radius * (label.length > 2 ? 0.5 : 0.62),
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    )..layout();
+    textPainter.paint(
+      canvas,
+      center - Offset(textPainter.width / 2, textPainter.height / 2),
+    );
+
+    final image = await recorder.endRecording().toImage(
+          size.round(),
+          size.round(),
+        );
+    final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
+    image.dispose();
+
+    if (bytes == null) return BitmapDescriptor.defaultMarker;
+    return BitmapDescriptor.bytes(
+      bytes.buffer.asUint8List(),
+      width: _clusterMarkerSize,
+    );
+  }
+
   /// Centers the map on the device location (same idea as Google Maps’ target button).
   Future<void> _goToMyLocation() async {
     final controller = _mapController;
@@ -467,6 +672,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       zoom: 13.8,
                     ),
                     onMapCreated: _onMapCreated,
+                    onCameraMove: (position) => _currentZoom = position.zoom,
+                    onCameraIdle: _onCameraIdle,
                     compassEnabled: false,
                     mapToolbarEnabled: false,
                     myLocationButtonEnabled: false,
@@ -891,6 +1098,20 @@ class _HomeScreenState extends State<HomeScreen> {
 enum _ChargingStationMarkerKind {
   grey,
   green,
+}
+
+/// A group of nearby stations rendered as a single cluster bubble.
+class _StationCluster {
+  _StationCluster({required this.position, required this.items});
+
+  final LatLng position;
+  final List<HubcoLocationEntity> items;
+
+  /// Stable id derived from the cell contents so the SDK can diff markers.
+  String get id {
+    final ids = items.map((s) => s.id).toList()..sort();
+    return 'cluster_${ids.join('_')}';
+  }
 }
 
 class _StationPlugIconsRow extends StatelessWidget {
