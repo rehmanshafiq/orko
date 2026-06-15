@@ -12,6 +12,8 @@ import 'package:orko_hubco/features/remote_config/data/services/remote_config_se
 
 import 'firebase_options.dart';
 
+import 'firebase_options.dart';
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -22,10 +24,6 @@ Future<void> main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-
-  // Warm the remote config (Firebase → GetStorage → asset fallback).
-  // Never throws for individual layer failures; safe to await at startup.
-  await RemoteConfigService.instance.initialize();
 
   // Initialize all dependencies
   await initDependencies();
