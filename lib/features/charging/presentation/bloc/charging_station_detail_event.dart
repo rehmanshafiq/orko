@@ -7,6 +7,22 @@ abstract class ChargingStationDetailEvent extends Equatable {
   List<Object?> get props => [];
 }
 
+/// Triggers loading the station detail from the API.
+class ChargingStationDetailRequested extends ChargingStationDetailEvent {
+  const ChargingStationDetailRequested({
+    required this.stationId,
+    required this.latitude,
+    required this.longitude,
+  });
+
+  final String stationId;
+  final double latitude;
+  final double longitude;
+
+  @override
+  List<Object?> get props => [stationId, latitude, longitude];
+}
+
 class ChargingStationDetailFavoriteToggled extends ChargingStationDetailEvent {
   const ChargingStationDetailFavoriteToggled();
 }

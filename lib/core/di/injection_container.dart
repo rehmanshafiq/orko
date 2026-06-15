@@ -7,6 +7,7 @@ import 'package:orko_hubco/core/services/barcode_scanner_service.dart';
 import 'package:orko_hubco/core/services/local_storage_service.dart';
 import 'package:orko_hubco/core/theme/theme_cubit.dart';
 import 'package:orko_hubco/features/auth/di/auth_injection.dart';
+import 'package:orko_hubco/features/charging/di/charging_injection.dart';
 import 'package:orko_hubco/features/map/di/map_injection.dart';
 import 'package:orko_hubco/features/onboarding/di/onboarding_injection.dart';
 import 'package:orko_hubco/features/profile/di/profile_injection.dart';
@@ -36,6 +37,7 @@ Future<void> initDependencies() async {
   // ── Features ──────────────────────────────────────────────────────────
 
   initAuthDependencies();
+  initChargingDependencies();
   initMapDependencies();
   initOnboardingDependencies();
   initProfileDependencies();
