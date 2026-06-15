@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "60291270702",
+    "project_id": "orko-hgl",
+    "storage_bucket": "orko-hgl.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:60291270702:android:6fa8bce4b64357438777bf",
+        "android_client_info": {
+          "package_name": "com.orko_hubco.mobile.orko_hubco2"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDMvN4eQcoFwX8cY4wNPaNxzSsjJOAgSco"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
