@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:orko_hubco/core/constants/api_constants.dart';
 import 'package:orko_hubco/core/network/interceptors/auth_interceptor.dart';
 import 'package:orko_hubco/core/network/interceptors/logging_interceptor.dart';
+import 'package:orko_hubco/features/remote_config/data/services/remote_config_service.dart';
 
 /// Centralized API client wrapping Dio.
 /// All features use this for HTTP communication.
@@ -20,6 +21,7 @@ class ApiClient {
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
+          'Domain': _resolveDomain(),
         },
       ),
     );
@@ -28,6 +30,13 @@ class ApiClient {
       AuthInterceptor(),
       LoggingInterceptor(),
     ]);
+  }
+
+  /// Domain header value from Remote Config, defaulting to `Hubco` when the
+  /// config hasn't resolved or doesn't provide one.
+  static String _resolveDomain() {
+    final domain = RemoteConfigService.config?.apiConstants.domain;
+    return (domain == null || domain.trim().isEmpty) ? 'Hubco' : domain;
   }
 
   /// GET request
