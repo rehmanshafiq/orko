@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
+import 'package:orko_hubco/core/di/injection_container.dart';
 import 'package:orko_hubco/core/utils/app_ui.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
 import 'package:orko_hubco/features/charging/presentation/bloc/charging_station_detail_bloc.dart';
@@ -49,11 +50,19 @@ class ChargingStationDetailMobileView extends StatelessWidget {
     }
 
     return BlocProvider(
-      create: (_) => ChargingStationDetailBloc(),
+      create: (_) => sl<ChargingStationDetailBloc>()
+        ..add(
+          ChargingStationDetailRequested(
+            stationId: hub.id.toString(),
+            latitude: hub.latitude,
+            longitude: hub.longitude,
+          ),
+        ),
       child: BlocBuilder<ChargingStationDetailBloc, ChargingStationDetailState>(
         builder: (context, state) {
           final availableCount = state.ports.where((p) => p.available).length;
           final totalPorts = state.ports.length;
+          final stationName = state.name.isNotEmpty ? state.name : hub.name;
 
           return Scaffold(
             backgroundColor: ui.scaffoldBackground,
@@ -110,99 +119,146 @@ class ChargingStationDetailMobileView extends StatelessWidget {
                           background: const ChargingStationBannerWidget(),
                         ),
                       ),
-                      SliverToBoxAdapter(
-                        child: Padding(
-                          padding: AppUtils.horizontal16Padding,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              16.verticalSpace,
-                              AppText(
-                                hub.name,
-                                color: ui.textPrimary,
-                                fontSize: FontSizes.font26Sp,
-                                fontWeight: FontWeights.weight700,
-                              ),
-                              6.verticalSpace,
-                              ChargingStationMetaRowWidget(
-                                station: hub,
-                                availableCount: availableCount,
-                                totalPorts: totalPorts,
-                              ),
-                              4.verticalSpace,
-                              const Divider(),
-                              4.verticalSpace,
-                              const ChargingStationSectionTitleWidget(
-                                title: 'Charger Ports',
-                              ),
-                              8.verticalSpace,
-                              ChargingStationPortsListWidget(
-                                ports: state.ports,
-                                selectedPortIndex: state.selectedPortIndex,
-                                onAvailablePortTap: (i) => context
-                                    .read<ChargingStationDetailBloc>()
-                                    .add(ChargingStationDetailPortSelected(i)),
-                              ),
-                              4.verticalSpace,
-                              const Divider(),
-                              4.verticalSpace,
-                              const ChargingStationSectionTitleWidget(
-                                title: 'Amenities',
-                              ),
-                              6.verticalSpace,
-                              ChargingStationAmenitiesWidget(
-                                amenities: state.amenities,
-                              ),
-                              8.verticalSpace,
-                              const Divider(),
-                              4.verticalSpace,
-                              const ChargingStationSectionTitleWidget(
-                                title: 'Operating Hours',
-                              ),
-                              4.verticalSpace,
-                              AppText(
-                                '24 hours 7 days',
-                                color: ui.textSecondary,
-                                fontSize: FontSizes.font12Sp,
-                                fontWeight: FontWeights.weight400,
-                              ),
-                              8.verticalSpace,
-                              const ChargingStationSectionTitleWidget(
-                                title: 'Pricing',
-                              ),
-                              6.verticalSpace,
-                              AppText(
-                                'Rs 45 per kWh, minimum 30 minutes',
-                                color: ui.textSecondary,
-                                fontSize: FontSizes.font14Sp,
-                                fontWeight: FontWeights.weight400,
-                              ),
-                              8.verticalSpace,
-                              const ChargingStationSectionTitleWidget(
-                                title: 'Contact No.',
-                              ),
-                              6.verticalSpace,
-                              AppText(
-                                '03123456789',
-                                color: ui.textSecondary,
-                                fontSize: FontSizes.font14Sp,
-                                fontWeight: FontWeights.weight400,
-                              ),
-                              4.verticalSpace,
-                              const Divider(),
-                              6.verticalSpace,
-                              const ChargingStationSectionTitleWidget(
-                                title: 'Reviews',
-                              ),
-                              6.verticalSpace,
-                              ChargingStationReviewsWidget(
-                                reviews: state.reviews,
-                              ),
-                              50.verticalSpace,
-                            ],
+                      if (state.isLoading && !state.isSuccess)
+                        SliverFillRemaining(
+                          hasScrollBody: false,
+                          child: Center(
+                            child: CircularProgressIndicator(
+                              color: ui.brandPrimary,
+                            ),
+                          ),
+                        )
+                      else if (state.isFailure)
+                        SliverFillRemaining(
+                          hasScrollBody: false,
+                          child: _ErrorView(
+                            message: state.errorMessage,
+                            stationName: stationName,
+                            onRetry: () => context
+                                .read<ChargingStationDetailBloc>()
+                                .add(
+                                  ChargingStationDetailRequested(
+                                    stationId: hub.id.toString(),
+                                    latitude: hub.latitude,
+                                    longitude: hub.longitude,
+                                  ),
+                                ),
+                          ),
+                        )
+                      else
+                        SliverToBoxAdapter(
+                          child: Padding(
+                            padding: AppUtils.horizontal16Padding,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                16.verticalSpace,
+                                AppText(
+                                  stationName,
+                                  color: ui.textPrimary,
+                                  fontSize: FontSizes.font26Sp,
+                                  fontWeight: FontWeights.weight700,
+                                ),
+                                6.verticalSpace,
+                                ChargingStationMetaRowWidget(
+                                  station: hub,
+                                  availableCount: availableCount,
+                                  totalPorts: totalPorts,
+                                  rating: state.averageRating,
+                                  reviewCount: state.totalReviews,
+                                  distanceKm: state.distanceKm,
+                                ),
+                                4.verticalSpace,
+                                const Divider(),
+                                4.verticalSpace,
+                                const ChargingStationSectionTitleWidget(
+                                  title: 'Charger Ports',
+                                ),
+                                8.verticalSpace,
+                                if (state.ports.isEmpty)
+                                  _EmptyText(
+                                    text: 'No charger ports available',
+                                  )
+                                else
+                                  ChargingStationPortsListWidget(
+                                    ports: state.ports,
+                                    selectedPortIndex: state.selectedPortIndex,
+                                    onAvailablePortTap: (i) => context
+                                        .read<ChargingStationDetailBloc>()
+                                        .add(ChargingStationDetailPortSelected(i)),
+                                  ),
+                                4.verticalSpace,
+                                const Divider(),
+                                4.verticalSpace,
+                                const ChargingStationSectionTitleWidget(
+                                  title: 'Amenities',
+                                ),
+                                6.verticalSpace,
+                                if (state.amenities.isEmpty)
+                                  _EmptyText(text: 'No amenities listed')
+                                else
+                                  ChargingStationAmenitiesWidget(
+                                    amenities: state.amenities,
+                                  ),
+                                8.verticalSpace,
+                                const Divider(),
+                                4.verticalSpace,
+                                const ChargingStationSectionTitleWidget(
+                                  title: 'Operating Hours',
+                                ),
+                                4.verticalSpace,
+                                AppText(
+                                  state.operatingHours.isNotEmpty
+                                      ? state.operatingHours
+                                      : 'Not available',
+                                  color: ui.textSecondary,
+                                  fontSize: FontSizes.font12Sp,
+                                  fontWeight: FontWeights.weight400,
+                                ),
+                                8.verticalSpace,
+                                const ChargingStationSectionTitleWidget(
+                                  title: 'Pricing',
+                                ),
+                                6.verticalSpace,
+                                AppText(
+                                  state.pricing.isNotEmpty
+                                      ? state.pricing
+                                      : 'Not available',
+                                  color: ui.textSecondary,
+                                  fontSize: FontSizes.font14Sp,
+                                  fontWeight: FontWeights.weight400,
+                                ),
+                                8.verticalSpace,
+                                const ChargingStationSectionTitleWidget(
+                                  title: 'Contact No.',
+                                ),
+                                6.verticalSpace,
+                                AppText(
+                                  state.contactNumber.isNotEmpty
+                                      ? state.contactNumber
+                                      : 'Not available',
+                                  color: ui.textSecondary,
+                                  fontSize: FontSizes.font14Sp,
+                                  fontWeight: FontWeights.weight400,
+                                ),
+                                4.verticalSpace,
+                                const Divider(),
+                                6.verticalSpace,
+                                const ChargingStationSectionTitleWidget(
+                                  title: 'Reviews',
+                                ),
+                                6.verticalSpace,
+                                if (state.reviews.isEmpty)
+                                  _EmptyText(text: 'No reviews yet')
+                                else
+                                  ChargingStationReviewsWidget(
+                                    reviews: state.reviews,
+                                  ),
+                                50.verticalSpace,
+                              ],
+                            ),
                           ),
                         ),
-                      ),
                     ],
                   ),
                 ),
@@ -211,6 +267,86 @@ class ChargingStationDetailMobileView extends StatelessWidget {
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+class _EmptyText extends StatelessWidget {
+  const _EmptyText({required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final ui = AppUiColors.of(context);
+    return AppText(
+      text,
+      color: ui.textSecondary,
+      fontSize: FontSizes.font12Sp,
+      fontWeight: FontWeights.weight400,
+    );
+  }
+}
+
+class _ErrorView extends StatelessWidget {
+  const _ErrorView({
+    required this.message,
+    required this.stationName,
+    required this.onRetry,
+  });
+
+  final String message;
+  final String stationName;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final ui = AppUiColors.of(context);
+    return Padding(
+      padding: AppUtils.horizontal16Padding,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.error_outline_rounded,
+            color: ui.textSecondary,
+            size: 40.r,
+          ),
+          12.verticalSpace,
+          AppText(
+            'Unable to load $stationName',
+            color: ui.textPrimary,
+            fontSize: FontSizes.font16Sp,
+            fontWeight: FontWeights.weight600,
+            textAlign: TextAlign.center,
+          ),
+          6.verticalSpace,
+          AppText(
+            message.isNotEmpty ? message : 'Something went wrong',
+            color: ui.textSecondary,
+            fontSize: FontSizes.font12Sp,
+            fontWeight: FontWeights.weight400,
+            textAlign: TextAlign.center,
+          ),
+          16.verticalSpace,
+          OutlinedButton(
+            onPressed: onRetry,
+            style: OutlinedButton.styleFrom(
+              foregroundColor: ui.textPrimary,
+              side: BorderSide(color: ui.textPrimary.withValues(alpha: 0.85)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(32.r),
+              ),
+            ),
+            child: AppText(
+              'Retry',
+              color: ui.textPrimary,
+              fontSize: FontSizes.font14Sp,
+              fontWeight: FontWeights.weight600,
+            ),
+          ),
+        ],
       ),
     );
   }

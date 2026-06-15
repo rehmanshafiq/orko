@@ -13,15 +13,24 @@ class ChargingStationMetaRowWidget extends StatelessWidget {
     required this.station,
     required this.availableCount,
     required this.totalPorts,
+    this.rating = 0,
+    this.reviewCount = 0,
+    this.distanceKm = 0,
   });
 
   final HubcoLocationEntity station;
   final int availableCount;
   final int totalPorts;
+  final double rating;
+  final int reviewCount;
+  final double distanceKm;
 
   @override
   Widget build(BuildContext context) {
     final ui = AppUiColors.of(context);
+    final distanceText = distanceKm > 0
+        ? '${distanceKm.toStringAsFixed(distanceKm >= 10 ? 0 : 1)} km'
+        : '—';
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
@@ -41,14 +50,14 @@ class ChargingStationMetaRowWidget extends StatelessWidget {
                   ),
                   4.horizontalSpace,
                   AppText(
-                    '4.8',
+                    rating.toStringAsFixed(1),
                     color: ui.textPrimary,
                     fontSize: FontSizes.font12Sp,
                     fontWeight: FontWeights.weight600,
                   ),
                   4.horizontalSpace,
                   AppText(
-                    '(127 reviews)',
+                    '($reviewCount reviews)',
                     color: ui.textSecondary,
                     fontSize: FontSizes.font12Sp,
                     fontWeight: FontWeights.weight500,
@@ -57,7 +66,7 @@ class ChargingStationMetaRowWidget extends StatelessWidget {
               ),
               ChargingStationMetaItemWidget(
                 icon: Icons.location_on_rounded,
-                text: '2.3 km',
+                text: distanceText,
                 iconColor: AppColors.mapPinBlueColor,
                 textColor: AppColors.mapPinBlueColor,
                 textFontWeight: FontWeights.weight600,
