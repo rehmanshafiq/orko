@@ -1,3 +1,4 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -8,6 +9,8 @@ import 'package:orko_hubco/core/router/app_router.dart';
 import 'package:orko_hubco/core/theme/app_material_theme.dart';
 import 'package:orko_hubco/core/theme/theme_cubit.dart';
 
+import 'firebase_options.dart';
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -15,9 +18,9 @@ Future<void> main() async {
   await GetStorage.init();
 
   // Initialize Firebase (uncomment when firebase is configured)
-  // await Firebase.initializeApp(
-  //   options: DefaultFirebaseOptions.currentPlatform,
-  // );
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
 
   // Initialize all dependencies
   await initDependencies();
