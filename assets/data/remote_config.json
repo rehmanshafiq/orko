@@ -2,6 +2,7 @@
   "api_constants": {
     "base_url_live": "https://apis-py.orkofleet.com/",
     "base_url_qa": "https://staging-python.orkofleet.com/",
+    "domain": "Hubco",
     "api_endpoints": {
       "charging_station_map": "api/v1/charging-station/nearest?",
       "charging_station_detail": "api/v1/charging-station/"
