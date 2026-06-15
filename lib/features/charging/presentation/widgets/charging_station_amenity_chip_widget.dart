@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
@@ -28,11 +29,7 @@ class ChargingStationAmenityChipWidget extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            amenity.icon,
-            size: 16.r,
-            color: ui.textPrimary.withValues(alpha: 0.85),
-          ),
+          _buildLeading(ui),
           6.horizontalSpace,
           AppText(
             amenity.label,
@@ -42,6 +39,25 @@ class ChargingStationAmenityChipWidget extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildLeading(AppUiColors ui) {
+    final iconColor = ui.textPrimary.withValues(alpha: 0.85);
+    const fallbackIcon = Icons.local_offer_rounded;
+
+    if (!amenity.hasImage) {
+      return Icon(amenity.icon ?? fallbackIcon, size: 16.r, color: iconColor);
+    }
+
+    return CachedNetworkImage(
+      imageUrl: amenity.imageUrl!,
+      width: 16.r,
+      height: 16.r,
+      fit: BoxFit.contain,
+      placeholder: (_, __) => SizedBox(width: 16.r, height: 16.r),
+      errorWidget: (_, __, ___) =>
+          Icon(amenity.icon ?? fallbackIcon, size: 16.r, color: iconColor),
     );
   }
 }

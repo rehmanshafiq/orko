@@ -1106,8 +1106,6 @@ const Map<String, List<String>> _evMakeModels = {
 
 class _AddVehicleDialogState extends State<_AddVehicleDialog> {
   final _formKey = GlobalKey<FormState>();
-  final _yearController = TextEditingController();
-  final _registrationController = TextEditingController();
 
   String? _selectedMake;
   String? _selectedModel;
@@ -1130,15 +1128,6 @@ class _AddVehicleDialogState extends State<_AddVehicleDialog> {
         _selectedModel = initial.model;
       }
     }
-    _yearController.text = initial.year ?? '';
-    _registrationController.text = initial.registration ?? '';
-  }
-
-  @override
-  void dispose() {
-    _yearController.dispose();
-    _registrationController.dispose();
-    super.dispose();
   }
 
   void _submit() {
@@ -1146,8 +1135,6 @@ class _AddVehicleDialogState extends State<_AddVehicleDialog> {
 
     final make = _selectedMake!;
     final model = _selectedModel!;
-    final year = _yearController.text.trim();
-    final registration = _registrationController.text.trim().toUpperCase();
 
     final base = widget.initial;
     final result = (base ??
@@ -1164,11 +1151,9 @@ class _AddVehicleDialogState extends State<_AddVehicleDialog> {
             ))
         .copyWith(
       nickname: '$make $model',
-      modelLine: '$year $make $model',
+      modelLine: '$make $model',
       make: make,
       model: model,
-      year: year,
-      registration: registration,
     );
 
     Navigator.of(context).pop(result);
@@ -1269,45 +1254,6 @@ class _AddVehicleDialogState extends State<_AddVehicleDialog> {
                     setState(() => _selectedModel = value);
                   },
                 ),
-                14.verticalSpace,
-                _AddVehicleField(
-                  ui: ui,
-                  label: 'Year',
-                  hintText: 'e.g. 2023',
-                  controller: _yearController,
-                  keyboardType: TextInputType.number,
-                  textInputAction: TextInputAction.next,
-                  maxLength: 4,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.digitsOnly,
-                  ],
-                  validator: (value) {
-                    final text = value?.trim() ?? '';
-                    if (text.isEmpty) return 'Year is required';
-                    final year = int.tryParse(text);
-                    final currentYear = DateTime.now().year;
-                    if (year == null || text.length != 4) {
-                      return 'Enter a valid year';
-                    }
-                    if (year < 1900 || year > currentYear + 1) {
-                      return 'Enter a year between 1900 and ${currentYear + 1}';
-                    }
-                    return null;
-                  },
-                ),
-                14.verticalSpace,
-                _AddVehicleField(
-                  ui: ui,
-                  label: 'Registration Number',
-                  hintText: 'e.g. ABC-123',
-                  controller: _registrationController,
-                  textInputAction: TextInputAction.done,
-                  textCapitalization: TextCapitalization.characters,
-                  onFieldSubmitted: (_) => _submit(),
-                  validator: (value) => (value == null || value.trim().isEmpty)
-                      ? 'Registration number is required'
-                      : null,
-                ),
                 22.verticalSpace,
                 Row(
                   children: [
@@ -1346,100 +1292,6 @@ class _AddVehicleDialogState extends State<_AddVehicleDialog> {
           ),
         ),
       ),
-    );
-  }
-}
-
-class _AddVehicleField extends StatelessWidget {
-  const _AddVehicleField({
-    required this.ui,
-    required this.label,
-    required this.hintText,
-    required this.controller,
-    this.validator,
-    this.keyboardType,
-    this.textInputAction = TextInputAction.next,
-    this.textCapitalization = TextCapitalization.none,
-    this.maxLength,
-    this.inputFormatters,
-    this.onFieldSubmitted,
-  });
-
-  final AppUiColors ui;
-  final String label;
-  final String hintText;
-  final TextEditingController controller;
-  final String? Function(String?)? validator;
-  final TextInputType? keyboardType;
-  final TextInputAction textInputAction;
-  final TextCapitalization textCapitalization;
-  final int? maxLength;
-  final List<TextInputFormatter>? inputFormatters;
-  final ValueChanged<String>? onFieldSubmitted;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        AppText(
-          label,
-          color: ui.textPrimary,
-          fontSize: FontSizes.font12Sp,
-          fontWeight: FontWeights.weight600,
-        ),
-        6.verticalSpace,
-        TextFormField(
-          controller: controller,
-          validator: validator,
-          keyboardType: keyboardType,
-          textInputAction: textInputAction,
-          textCapitalization: textCapitalization,
-          maxLength: maxLength,
-          inputFormatters: inputFormatters,
-          onFieldSubmitted: onFieldSubmitted,
-          style: TextStyle(
-            color: ui.textPrimary,
-            fontSize: FontSizes.font14Sp,
-            fontWeight: FontWeights.weight500,
-          ),
-          decoration: InputDecoration(
-            hintText: hintText,
-            counterText: '',
-            hintStyle: TextStyle(
-              color: AppColors.hintColor,
-              fontSize: FontSizes.font14Sp,
-              fontWeight: FontWeights.weight400,
-            ),
-            filled: true,
-            fillColor: ui.inputFill,
-            isDense: true,
-            contentPadding:
-                EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12.r),
-              borderSide: BorderSide(color: ui.inputBorder),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12.r),
-              borderSide: BorderSide(color: ui.brandPrimary),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12.r),
-              borderSide: const BorderSide(color: AppColors.redColor),
-            ),
-            focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12.r),
-              borderSide: const BorderSide(color: AppColors.redColor),
-            ),
-            errorStyle: TextStyle(
-              color: AppColors.redColor,
-              fontSize: FontSizes.font10Sp,
-              fontWeight: FontWeights.weight400,
-            ),
-          ),
-        ),
-      ],
     );
   }
 }
