@@ -818,29 +818,30 @@ class _VehiclesTabBody extends StatelessWidget {
       isPrimary: true,
       rangeKm: 245,
       rangeFraction: 0.72,
-      capacityKwh: '75 kWh',
-      efficiency: '15.2 kWh',
+      capacityKwh: '50 kWh',
+      efficiency: '6.4 KM/kWh',
       charges: '47',
       totalEnergyKwh: '1245 kWh',
+      imagePath: 'assets/images/byd_atto3.jpg',
       chargingPatterns: null,
     ),
-    _VehicleUi(
-      nickname: 'City Runner',
-      modelLine: '2022 Nissan Leaf',
-      isPrimary: false,
-      rangeKm: 168,
-      rangeFraction: 0.58,
-      capacityKwh: '40 kWh',
-      efficiency: '16.8 kWh',
-      charges: '23',
-      totalEnergyKwh: '542 kWh',
-      chargingPatterns: _ChargingPatternsUi(
-        mostActiveDay: 'Saturday',
-        preferredTime: 'Evening (6-9 PM)',
-        avgDuration: '42 minutes',
-        favoriteStation: 'HUBCO Clifton',
-      ),
-    ),
+    // _VehicleUi(
+    //   nickname: 'City Runner',
+    //   modelLine: '2022 Nissan Leaf',
+    //   isPrimary: false,
+    //   rangeKm: 168,
+    //   rangeFraction: 0.58,
+    //   capacityKwh: '40 kWh',
+    //   efficiency: '16.8 kWh',
+    //   charges: '23',
+    //   totalEnergyKwh: '542 kWh',
+    //   chargingPatterns: _ChargingPatternsUi(
+    //     mostActiveDay: 'Saturday',
+    //     preferredTime: 'Evening (6-9 PM)',
+    //     avgDuration: '42 minutes',
+    //     favoriteStation: 'HUBCO Clifton',
+    //   ),
+    // ),
   ];
 
   @override
@@ -897,6 +898,7 @@ class _VehicleUi {
     required this.efficiency,
     required this.charges,
     required this.totalEnergyKwh,
+    this.imagePath,
     this.chargingPatterns,
   });
 
@@ -909,6 +911,7 @@ class _VehicleUi {
   final String efficiency;
   final String charges;
   final String totalEnergyKwh;
+  final String? imagePath;
   final _ChargingPatternsUi? chargingPatterns;
 }
 
@@ -916,6 +919,20 @@ class _VehicleCard extends StatelessWidget {
   const _VehicleCard({required this.vehicle});
 
   final _VehicleUi vehicle;
+
+  Widget _vehicleImagePlaceholder(AppUiColors ui) {
+    return Container(
+      height: 140.h,
+      width: double.infinity,
+      color: ui.vehicleImagePlaceholder,
+      alignment: Alignment.center,
+      child: Icon(
+        Icons.electric_car_rounded,
+        size: 72.r,
+        color: ui.brandPrimary.withValues(alpha: 0.85),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -932,17 +949,17 @@ class _VehicleCard extends StatelessWidget {
         children: [
           Stack(
             children: [
-              Container(
-                height: 140.h,
-                width: double.infinity,
-                color: ui.vehicleImagePlaceholder,
-                alignment: Alignment.center,
-                child: Icon(
-                  Icons.electric_car_rounded,
-                  size: 72.r,
-                  color: ui.brandPrimary.withValues(alpha: 0.85),
-                ),
-              ),
+              if (vehicle.imagePath != null)
+                Image.asset(
+                  vehicle.imagePath!,
+                  height: 140.h,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) =>
+                      _vehicleImagePlaceholder(ui),
+                )
+              else
+                _vehicleImagePlaceholder(ui),
               // if (vehicle.isPrimary)
               //   Positioned(
               //     top: 10.h,
