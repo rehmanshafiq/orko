@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
+import 'package:orko_hubco/core/constants/storage_constants.dart';
+import 'package:orko_hubco/core/di/injection_container.dart';
+import 'package:orko_hubco/core/services/local_storage_service.dart';
 import 'package:orko_hubco/core/theme/theme_cubit.dart';
 import 'package:orko_hubco/core/utils/app_ui.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
@@ -808,41 +812,85 @@ class _MiniMetric extends StatelessWidget {
   }
 }
 
-class _VehiclesTabBody extends StatelessWidget {
+class _VehiclesTabBody extends StatefulWidget {
   const _VehiclesTabBody();
 
-  static const List<_VehicleUi> _vehicles = [
-    _VehicleUi(
-      nickname: 'BYD Atto 3 - Primary Vehicle',
-      modelLine: '2023 Tesla Model 3',
-      isPrimary: true,
-      rangeKm: 245,
-      rangeFraction: 0.72,
-      capacityKwh: '50 kWh',
-      efficiency: '6.4 KM/kWh',
-      charges: '47',
-      totalEnergyKwh: '1245 kWh',
-      imagePath: 'assets/images/byd_atto3.jpg',
-      chargingPatterns: null,
-    ),
-    // _VehicleUi(
-    //   nickname: 'City Runner',
-    //   modelLine: '2022 Nissan Leaf',
-    //   isPrimary: false,
-    //   rangeKm: 168,
-    //   rangeFraction: 0.58,
-    //   capacityKwh: '40 kWh',
-    //   efficiency: '16.8 kWh',
-    //   charges: '23',
-    //   totalEnergyKwh: '542 kWh',
-    //   chargingPatterns: _ChargingPatternsUi(
-    //     mostActiveDay: 'Saturday',
-    //     preferredTime: 'Evening (6-9 PM)',
-    //     avgDuration: '42 minutes',
-    //     favoriteStation: 'HUBCO Clifton',
-    //   ),
-    // ),
-  ];
+  @override
+  State<_VehiclesTabBody> createState() => _VehiclesTabBodyState();
+}
+
+class _VehiclesTabBodyState extends State<_VehiclesTabBody> {
+  static const _VehicleUi _seedVehicle = _VehicleUi(
+    nickname: 'BYD Atto 3 - Primary Vehicle',
+    modelLine: '2023 BYD Atto 3',
+    make: 'BYD',
+    model: 'Atto 3',
+    year: '2023',
+    isPrimary: true,
+    rangeKm: 245,
+    rangeFraction: 0.72,
+    capacityKwh: '50 kWh',
+    efficiency: '6.4 KM/kWh',
+    charges: '47',
+    totalEnergyKwh: '1245 kWh',
+    imagePath: 'assets/images/byd_atto3.jpg',
+    chargingPatterns: null,
+  );
+
+  final LocalStorageService _storage = sl<LocalStorageService>();
+
+  late final List<_VehicleUi> _vehicles = _loadVehicles();
+
+  List<_VehicleUi> _loadVehicles() {
+    final initialized =
+        _storage.read<bool>(StorageConstants.vehiclesInitialized) ?? false;
+    if (!initialized) {
+      _storage.write(StorageConstants.vehiclesInitialized, true);
+      _storage.write(
+        StorageConstants.vehicles,
+        [_seedVehicle.toJson()],
+      );
+      return [_seedVehicle];
+    }
+    final raw = _storage.read<List<dynamic>>(StorageConstants.vehicles);
+    if (raw == null) return [];
+    return raw
+        .whereType<Map>()
+        .map((e) => _VehicleUi.fromJson(Map<String, dynamic>.from(e)))
+        .toList();
+  }
+
+  Future<void> _persistVehicles() {
+    return _storage.write(
+      StorageConstants.vehicles,
+      _vehicles.map((v) => v.toJson()).toList(),
+    );
+  }
+
+  Future<void> _addVehicle() async {
+    final vehicle = await _showAddVehicleDialog(context);
+    if (vehicle == null) return;
+    setState(() => _vehicles.add(vehicle));
+    await _persistVehicles();
+  }
+
+  Future<void> _editVehicle(int index) async {
+    final updated =
+        await _showAddVehicleDialog(context, initial: _vehicles[index]);
+    if (updated == null) return;
+    setState(() => _vehicles[index] = updated);
+    await _persistVehicles();
+  }
+
+  Future<void> _deleteVehicle(int index) async {
+    final confirmed = await _showDeleteVehicleDialog(
+      context,
+      _vehicles[index],
+    );
+    if (confirmed != true) return;
+    setState(() => _vehicles.removeAt(index));
+    await _persistVehicles();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -852,7 +900,7 @@ class _VehiclesTabBody extends StatelessWidget {
       children: [
         PrimaryButtonWidget(
           text: 'Add New Vehicle',
-          onPress: () {},
+          onPress: _addVehicle,
           buttonWidth: double.infinity,
           buttonHeight: 38.h,
           cornerRadius: 12.r,
@@ -862,10 +910,641 @@ class _VehiclesTabBody extends StatelessWidget {
           fontWeight: FontWeights.weight700,
         ),
         14.verticalSpace,
-        ..._vehicles.map(
-          (v) => Padding(
-            padding: EdgeInsets.only(bottom: 14.h),
-            child: _VehicleCard(vehicle: v),
+        if (_vehicles.isEmpty)
+          _EmptyVehiclesPlaceholder(ui: ui)
+        else
+          ...List.generate(
+            _vehicles.length,
+            (index) => Padding(
+              padding: EdgeInsets.only(bottom: 14.h),
+              child: _VehicleCard(
+                vehicle: _vehicles[index],
+                onEdit: () => _editVehicle(index),
+                onDelete: () => _deleteVehicle(index),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _EmptyVehiclesPlaceholder extends StatelessWidget {
+  const _EmptyVehiclesPlaceholder({required this.ui});
+
+  final AppUiColors ui;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(vertical: 32.h, horizontal: 16.w),
+      decoration: BoxDecoration(
+        color: ui.vehicleImagePlaceholder,
+        borderRadius: BorderRadius.circular(14.r),
+        border: Border.all(color: ui.borderSubtle),
+      ),
+      child: Column(
+        children: [
+          Icon(
+            Icons.directions_car_outlined,
+            size: 44.r,
+            color: ui.textSecondary,
+          ),
+          12.verticalSpace,
+          AppText(
+            'No vehicles yet',
+            color: ui.textPrimary,
+            fontSize: FontSizes.font14Sp,
+            fontWeight: FontWeights.weight700,
+          ),
+          6.verticalSpace,
+          AppText(
+            'Tap "Add New Vehicle" to add your first one.',
+            color: ui.textSecondary,
+            fontSize: FontSizes.font12Sp,
+            fontWeight: FontWeights.weight400,
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+Future<_VehicleUi?> _showAddVehicleDialog(
+  BuildContext context, {
+  _VehicleUi? initial,
+}) {
+  return showDialog<_VehicleUi>(
+    context: context,
+    barrierColor: AppColors.blackColor.withValues(alpha: 0.55),
+    builder: (_) => _AddVehicleDialog(initial: initial),
+  );
+}
+
+Future<bool?> _showDeleteVehicleDialog(
+  BuildContext context,
+  _VehicleUi vehicle,
+) {
+  final ui = AppUiColors.of(context);
+  return showDialog<bool>(
+    context: context,
+    barrierColor: AppColors.blackColor.withValues(alpha: 0.55),
+    builder: (dialogContext) => Dialog(
+      backgroundColor: ui.cardBackground,
+      insetPadding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 24.h),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(18.r),
+      ),
+      child: Padding(
+        padding: AppUtils.all18Padding,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: EdgeInsets.all(8.r),
+                  decoration: BoxDecoration(
+                    color: AppColors.removeColor.withValues(alpha: 0.12),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.delete_outline_rounded,
+                    color: AppColors.removeColor,
+                    size: 22.r,
+                  ),
+                ),
+                12.horizontalSpace,
+                Expanded(
+                  child: AppText(
+                    'Delete Vehicle',
+                    color: ui.textPrimary,
+                    fontSize: FontSizes.font18Sp,
+                    fontWeight: FontWeights.weight700,
+                  ),
+                ),
+              ],
+            ),
+            14.verticalSpace,
+            AppText(
+              'Are you sure you want to delete "${vehicle.nickname}"? This action cannot be undone.',
+              color: ui.textSecondary,
+              fontSize: FontSizes.font13Sp,
+              fontWeight: FontWeights.weight400,
+              height: 1.4,
+            ),
+            22.verticalSpace,
+            Row(
+              children: [
+                Expanded(
+                  child: PrimaryButtonWidget(
+                    text: 'Cancel',
+                    onPress: () => Navigator.of(dialogContext).pop(false),
+                    buttonWidth: double.infinity,
+                    // buttonHeight: 42.h,
+                    cornerRadius: 12.r,
+                    buttonColor: ui.chipInactiveBg,
+                    strokeColor: ui.borderSubtle,
+                    textColor: ui.textPrimary,
+                    fontSize: FontSizes.font14Sp,
+                    fontWeight: FontWeights.weight600,
+                  ),
+                ),
+                12.horizontalSpace,
+                Expanded(
+                  child: PrimaryButtonWidget(
+                    text: 'Delete',
+                    onPress: () => Navigator.of(dialogContext).pop(true),
+                    buttonWidth: double.infinity,
+                    buttonHeight: 42.h,
+                    cornerRadius: 12.r,
+                    buttonColor: AppColors.removeColor,
+                    textColor: AppColors.whiteColor,
+                    fontSize: FontSizes.font14Sp,
+                    fontWeight: FontWeights.weight700,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
+class _AddVehicleDialog extends StatefulWidget {
+  const _AddVehicleDialog({this.initial});
+
+  final _VehicleUi? initial;
+
+  @override
+  State<_AddVehicleDialog> createState() => _AddVehicleDialogState();
+}
+
+/// Electric & hybrid vehicle makes mapped to their popular models.
+const Map<String, List<String>> _evMakeModels = {
+  'Tesla': ['Model 3', 'Model Y', 'Model S', 'Model X', 'Cybertruck'],
+  'BYD': ['Atto 3', 'Dolphin', 'Seal', 'Han', 'Tang'],
+  'BMW': ['i4', 'iX', 'i7', 'iX3', '330e', 'X5 xDrive45e'],
+  'Mercedes-Benz': ['EQA', 'EQB', 'EQC', 'EQE', 'EQS', 'C 300 e'],
+  'Audi': ['e-tron GT', 'Q4 e-tron', 'Q8 e-tron', 'A6 e-tron'],
+  'Nissan': ['Leaf', 'Ariya'],
+  'Hyundai': ['Ioniq 5', 'Ioniq 6', 'Kona Electric'],
+  'Kia': ['EV6', 'Niro EV', 'Niro Hybrid', 'Sorento Hybrid'],
+  'Toyota': ['Prius', 'bZ4X', 'Corolla Hybrid', 'RAV4 Hybrid', 'Camry Hybrid'],
+  'Volkswagen': ['ID.3', 'ID.4', 'ID.Buzz'],
+  'MG': ['MG4 EV', 'MG ZS EV', 'MG HS PHEV'],
+  'Porsche': ['Taycan', 'Cayenne E-Hybrid', 'Panamera E-Hybrid'],
+  'Polestar': ['Polestar 2', 'Polestar 3', 'Polestar 4'],
+  'Volvo': ['EX30', 'EX90', 'XC40 Recharge', 'XC60 Recharge'],
+  'Honda': ['e:Ny1', 'CR-V Hybrid', 'Accord Hybrid'],
+};
+
+class _AddVehicleDialogState extends State<_AddVehicleDialog> {
+  final _formKey = GlobalKey<FormState>();
+  final _yearController = TextEditingController();
+  final _registrationController = TextEditingController();
+
+  String? _selectedMake;
+  String? _selectedModel;
+
+  bool get _isEditing => widget.initial != null;
+
+  List<String> get _availableModels =>
+      _selectedMake == null ? const [] : (_evMakeModels[_selectedMake] ?? const []);
+
+  @override
+  void initState() {
+    super.initState();
+    final initial = widget.initial;
+    if (initial == null) return;
+
+    if (initial.make != null && _evMakeModels.containsKey(initial.make)) {
+      _selectedMake = initial.make;
+      if (initial.model != null &&
+          _evMakeModels[initial.make]!.contains(initial.model)) {
+        _selectedModel = initial.model;
+      }
+    }
+    _yearController.text = initial.year ?? '';
+    _registrationController.text = initial.registration ?? '';
+  }
+
+  @override
+  void dispose() {
+    _yearController.dispose();
+    _registrationController.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+
+    final make = _selectedMake!;
+    final model = _selectedModel!;
+    final year = _yearController.text.trim();
+    final registration = _registrationController.text.trim().toUpperCase();
+
+    final base = widget.initial;
+    final result = (base ??
+            const _VehicleUi(
+              nickname: '',
+              modelLine: '',
+              isPrimary: false,
+              rangeKm: 0,
+              rangeFraction: 0,
+              capacityKwh: 'N/A',
+              efficiency: 'N/A',
+              charges: '0',
+              totalEnergyKwh: '0 kWh',
+            ))
+        .copyWith(
+      nickname: '$make $model',
+      modelLine: '$year $make $model',
+      make: make,
+      model: model,
+      year: year,
+      registration: registration,
+    );
+
+    Navigator.of(context).pop(result);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final ui = AppUiColors.of(context);
+    return Dialog(
+      backgroundColor: ui.cardBackground,
+      insetPadding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 24.h),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(18.r),
+      ),
+      child: Padding(
+        padding: AppUtils.all18Padding,
+        child: SingleChildScrollView(
+          child: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.all(8.r),
+                      decoration: BoxDecoration(
+                        color: ui.brandPrimary.withValues(alpha: 0.12),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.directions_car_outlined,
+                        color: ui.brandPrimary,
+                        size: 22.r,
+                      ),
+                    ),
+                    12.horizontalSpace,
+                    Expanded(
+                      child: AppText(
+                        _isEditing ? 'Edit Vehicle' : 'Add New Vehicle',
+                        color: ui.textPrimary,
+                        fontSize: FontSizes.font18Sp,
+                        fontWeight: FontWeights.weight700,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () => Navigator.of(context).pop(),
+                      behavior: HitTestBehavior.opaque,
+                      child: Icon(
+                        Icons.close_rounded,
+                        color: ui.textSecondary,
+                        size: 22.r,
+                      ),
+                    ),
+                  ],
+                ),
+                6.verticalSpace,
+                AppText(
+                  _isEditing
+                      ? 'Update your vehicle details below.'
+                      : 'Enter your vehicle details below.',
+                  color: ui.textSecondary,
+                  fontSize: FontSizes.font12Sp,
+                  fontWeight: FontWeights.weight400,
+                ),
+                18.verticalSpace,
+                _AddVehicleDropdownField(
+                  ui: ui,
+                  label: 'Make',
+                  hintText: 'Select make',
+                  value: _selectedMake,
+                  items: _evMakeModels.keys.toList(),
+                  validator: (value) =>
+                      value == null ? 'Make is required' : null,
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedMake = value;
+                      _selectedModel = null;
+                    });
+                  },
+                ),
+                14.verticalSpace,
+                _AddVehicleDropdownField(
+                  ui: ui,
+                  label: 'Model',
+                  hintText: _selectedMake == null
+                      ? 'Select make first'
+                      : 'Select model',
+                  value: _selectedModel,
+                  items: _availableModels,
+                  enabled: _selectedMake != null,
+                  validator: (value) =>
+                      value == null ? 'Model is required' : null,
+                  onChanged: (value) {
+                    setState(() => _selectedModel = value);
+                  },
+                ),
+                14.verticalSpace,
+                _AddVehicleField(
+                  ui: ui,
+                  label: 'Year',
+                  hintText: 'e.g. 2023',
+                  controller: _yearController,
+                  keyboardType: TextInputType.number,
+                  textInputAction: TextInputAction.next,
+                  maxLength: 4,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                  ],
+                  validator: (value) {
+                    final text = value?.trim() ?? '';
+                    if (text.isEmpty) return 'Year is required';
+                    final year = int.tryParse(text);
+                    final currentYear = DateTime.now().year;
+                    if (year == null || text.length != 4) {
+                      return 'Enter a valid year';
+                    }
+                    if (year < 1900 || year > currentYear + 1) {
+                      return 'Enter a year between 1900 and ${currentYear + 1}';
+                    }
+                    return null;
+                  },
+                ),
+                14.verticalSpace,
+                _AddVehicleField(
+                  ui: ui,
+                  label: 'Registration Number',
+                  hintText: 'e.g. ABC-123',
+                  controller: _registrationController,
+                  textInputAction: TextInputAction.done,
+                  textCapitalization: TextCapitalization.characters,
+                  onFieldSubmitted: (_) => _submit(),
+                  validator: (value) => (value == null || value.trim().isEmpty)
+                      ? 'Registration number is required'
+                      : null,
+                ),
+                22.verticalSpace,
+                Row(
+                  children: [
+                    Expanded(
+                      child: PrimaryButtonWidget(
+                        text: 'Cancel',
+                        onPress: () => Navigator.of(context).pop(),
+                        buttonWidth: double.infinity,
+                        buttonHeight: 42.h,
+                        cornerRadius: 12.r,
+                        buttonColor: ui.chipInactiveBg,
+                        strokeColor: ui.borderSubtle,
+                        textColor: ui.textPrimary,
+                        fontSize: FontSizes.font14Sp,
+                        fontWeight: FontWeights.weight600,
+                      ),
+                    ),
+                    12.horizontalSpace,
+                    Expanded(
+                      child: PrimaryButtonWidget(
+                        text: _isEditing ? 'Save' : 'Add Vehicle',
+                        onPress: _submit,
+                        buttonWidth: double.infinity,
+                        buttonHeight: 42.h,
+                        cornerRadius: 12.r,
+                        buttonColor: ui.brandPrimary,
+                        textColor: AppColors.whiteColor,
+                        fontSize: FontSizes.font14Sp,
+                        fontWeight: FontWeights.weight700,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _AddVehicleField extends StatelessWidget {
+  const _AddVehicleField({
+    required this.ui,
+    required this.label,
+    required this.hintText,
+    required this.controller,
+    this.validator,
+    this.keyboardType,
+    this.textInputAction = TextInputAction.next,
+    this.textCapitalization = TextCapitalization.none,
+    this.maxLength,
+    this.inputFormatters,
+    this.onFieldSubmitted,
+  });
+
+  final AppUiColors ui;
+  final String label;
+  final String hintText;
+  final TextEditingController controller;
+  final String? Function(String?)? validator;
+  final TextInputType? keyboardType;
+  final TextInputAction textInputAction;
+  final TextCapitalization textCapitalization;
+  final int? maxLength;
+  final List<TextInputFormatter>? inputFormatters;
+  final ValueChanged<String>? onFieldSubmitted;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        AppText(
+          label,
+          color: ui.textPrimary,
+          fontSize: FontSizes.font12Sp,
+          fontWeight: FontWeights.weight600,
+        ),
+        6.verticalSpace,
+        TextFormField(
+          controller: controller,
+          validator: validator,
+          keyboardType: keyboardType,
+          textInputAction: textInputAction,
+          textCapitalization: textCapitalization,
+          maxLength: maxLength,
+          inputFormatters: inputFormatters,
+          onFieldSubmitted: onFieldSubmitted,
+          style: TextStyle(
+            color: ui.textPrimary,
+            fontSize: FontSizes.font14Sp,
+            fontWeight: FontWeights.weight500,
+          ),
+          decoration: InputDecoration(
+            hintText: hintText,
+            counterText: '',
+            hintStyle: TextStyle(
+              color: AppColors.hintColor,
+              fontSize: FontSizes.font14Sp,
+              fontWeight: FontWeights.weight400,
+            ),
+            filled: true,
+            fillColor: ui.inputFill,
+            isDense: true,
+            contentPadding:
+                EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12.r),
+              borderSide: BorderSide(color: ui.inputBorder),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12.r),
+              borderSide: BorderSide(color: ui.brandPrimary),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12.r),
+              borderSide: const BorderSide(color: AppColors.redColor),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12.r),
+              borderSide: const BorderSide(color: AppColors.redColor),
+            ),
+            errorStyle: TextStyle(
+              color: AppColors.redColor,
+              fontSize: FontSizes.font10Sp,
+              fontWeight: FontWeights.weight400,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _AddVehicleDropdownField extends StatelessWidget {
+  const _AddVehicleDropdownField({
+    required this.ui,
+    required this.label,
+    required this.hintText,
+    required this.value,
+    required this.items,
+    required this.onChanged,
+    this.validator,
+    this.enabled = true,
+  });
+
+  final AppUiColors ui;
+  final String label;
+  final String hintText;
+  final String? value;
+  final List<String> items;
+  final ValueChanged<String?> onChanged;
+  final String? Function(String?)? validator;
+  final bool enabled;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        AppText(
+          label,
+          color: ui.textPrimary,
+          fontSize: FontSizes.font12Sp,
+          fontWeight: FontWeights.weight600,
+        ),
+        6.verticalSpace,
+        DropdownButtonFormField<String>(
+          initialValue: value,
+          isExpanded: true,
+          validator: validator,
+          onChanged: enabled ? onChanged : null,
+          icon: Icon(
+            Icons.keyboard_arrow_down_rounded,
+            color: enabled ? ui.textSecondary : ui.textMuted,
+            size: 22.r,
+          ),
+          dropdownColor: ui.cardBackground,
+          borderRadius: BorderRadius.circular(12.r),
+          style: TextStyle(
+            color: ui.textPrimary,
+            fontSize: FontSizes.font14Sp,
+            fontWeight: FontWeights.weight500,
+            fontFamily: AppFonts.lexend,
+          ),
+          hint: AppText(
+            hintText,
+            color: AppColors.hintColor,
+            fontSize: FontSizes.font14Sp,
+            fontWeight: FontWeights.weight400,
+          ),
+          items: items
+              .map(
+                (item) => DropdownMenuItem<String>(
+                  value: item,
+                  child: AppText(
+                    item,
+                    color: ui.textPrimary,
+                    fontSize: FontSizes.font14Sp,
+                    fontWeight: FontWeights.weight500,
+                  ),
+                ),
+              )
+              .toList(),
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: ui.inputFill,
+            isDense: true,
+            contentPadding:
+                EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12.r),
+              borderSide: BorderSide(color: ui.inputBorder),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12.r),
+              borderSide: BorderSide(color: ui.brandPrimary),
+            ),
+            disabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12.r),
+              borderSide: BorderSide(color: ui.inputBorder),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12.r),
+              borderSide: const BorderSide(color: AppColors.redColor),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12.r),
+              borderSide: const BorderSide(color: AppColors.redColor),
+            ),
+            errorStyle: TextStyle(
+              color: AppColors.redColor,
+              fontSize: FontSizes.font10Sp,
+              fontWeight: FontWeights.weight400,
+            ),
           ),
         ),
       ],
@@ -885,6 +1564,22 @@ class _ChargingPatternsUi {
   final String preferredTime;
   final String avgDuration;
   final String favoriteStation;
+
+  Map<String, dynamic> toJson() => {
+        'mostActiveDay': mostActiveDay,
+        'preferredTime': preferredTime,
+        'avgDuration': avgDuration,
+        'favoriteStation': favoriteStation,
+      };
+
+  factory _ChargingPatternsUi.fromJson(Map<String, dynamic> json) {
+    return _ChargingPatternsUi(
+      mostActiveDay: json['mostActiveDay'] as String? ?? '',
+      preferredTime: json['preferredTime'] as String? ?? '',
+      avgDuration: json['avgDuration'] as String? ?? '',
+      favoriteStation: json['favoriteStation'] as String? ?? '',
+    );
+  }
 }
 
 class _VehicleUi {
@@ -898,12 +1593,20 @@ class _VehicleUi {
     required this.efficiency,
     required this.charges,
     required this.totalEnergyKwh,
+    this.make,
+    this.model,
+    this.year,
+    this.registration,
     this.imagePath,
     this.chargingPatterns,
   });
 
   final String nickname;
   final String modelLine;
+  final String? make;
+  final String? model;
+  final String? year;
+  final String? registration;
   final bool isPrimary;
   final int rangeKm;
   final double rangeFraction;
@@ -913,12 +1616,87 @@ class _VehicleUi {
   final String totalEnergyKwh;
   final String? imagePath;
   final _ChargingPatternsUi? chargingPatterns;
+
+  _VehicleUi copyWith({
+    String? nickname,
+    String? modelLine,
+    String? make,
+    String? model,
+    String? year,
+    String? registration,
+    bool? isPrimary,
+  }) {
+    return _VehicleUi(
+      nickname: nickname ?? this.nickname,
+      modelLine: modelLine ?? this.modelLine,
+      make: make ?? this.make,
+      model: model ?? this.model,
+      year: year ?? this.year,
+      registration: registration ?? this.registration,
+      isPrimary: isPrimary ?? this.isPrimary,
+      rangeKm: rangeKm,
+      rangeFraction: rangeFraction,
+      capacityKwh: capacityKwh,
+      efficiency: efficiency,
+      charges: charges,
+      totalEnergyKwh: totalEnergyKwh,
+      imagePath: imagePath,
+      chargingPatterns: chargingPatterns,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'nickname': nickname,
+        'modelLine': modelLine,
+        'make': make,
+        'model': model,
+        'year': year,
+        'registration': registration,
+        'isPrimary': isPrimary,
+        'rangeKm': rangeKm,
+        'rangeFraction': rangeFraction,
+        'capacityKwh': capacityKwh,
+        'efficiency': efficiency,
+        'charges': charges,
+        'totalEnergyKwh': totalEnergyKwh,
+        'imagePath': imagePath,
+        'chargingPatterns': chargingPatterns?.toJson(),
+      };
+
+  factory _VehicleUi.fromJson(Map<String, dynamic> json) {
+    final patterns = json['chargingPatterns'];
+    return _VehicleUi(
+      nickname: json['nickname'] as String? ?? '',
+      modelLine: json['modelLine'] as String? ?? '',
+      make: json['make'] as String?,
+      model: json['model'] as String?,
+      year: json['year'] as String?,
+      registration: json['registration'] as String?,
+      isPrimary: json['isPrimary'] as bool? ?? false,
+      rangeKm: (json['rangeKm'] as num?)?.toInt() ?? 0,
+      rangeFraction: (json['rangeFraction'] as num?)?.toDouble() ?? 0,
+      capacityKwh: json['capacityKwh'] as String? ?? 'N/A',
+      efficiency: json['efficiency'] as String? ?? 'N/A',
+      charges: json['charges'] as String? ?? '0',
+      totalEnergyKwh: json['totalEnergyKwh'] as String? ?? '0 kWh',
+      imagePath: json['imagePath'] as String?,
+      chargingPatterns: patterns is Map
+          ? _ChargingPatternsUi.fromJson(Map<String, dynamic>.from(patterns))
+          : null,
+    );
+  }
 }
 
 class _VehicleCard extends StatelessWidget {
-  const _VehicleCard({required this.vehicle});
+  const _VehicleCard({
+    required this.vehicle,
+    this.onEdit,
+    this.onDelete,
+  });
 
   final _VehicleUi vehicle;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
 
   Widget _vehicleImagePlaceholder(AppUiColors ui) {
     return Container(
@@ -1005,11 +1783,29 @@ class _VehicleCard extends StatelessWidget {
                             fontSize: FontSizes.font12Sp,
                             fontWeight: FontWeights.weight400,
                           ),
+                          if (vehicle.registration != null &&
+                              vehicle.registration!.isNotEmpty) ...[
+                            6.verticalSpace,
+                            Container(
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 8.w, vertical: 3.h),
+                              decoration: BoxDecoration(
+                                color: ui.brandPrimary.withValues(alpha: 0.12),
+                                borderRadius: BorderRadius.circular(6.r),
+                              ),
+                              child: AppText(
+                                vehicle.registration!,
+                                color: ui.brandPrimary,
+                                fontSize: FontSizes.font10Sp,
+                                fontWeight: FontWeights.weight600,
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                     ),
                     IconButton(
-                      onPressed: () {},
+                      onPressed: onEdit,
                       icon: Icon(
                         Icons.edit_outlined,
                         color: ui.textSecondary,
@@ -1017,7 +1813,7 @@ class _VehicleCard extends StatelessWidget {
                       ),
                     ),
                     IconButton(
-                      onPressed: () {},
+                      onPressed: onDelete,
                       icon: Icon(
                         Icons.delete_outline_rounded,
                         color: AppColors.removeColor,

@@ -9,4 +9,6 @@ class StorageConstants {
   static const String onboardingComplete = 'onboarding_complete';
   static const String themeMode = 'theme_mode';
   static const String languageCode = 'language_code';
+  static const String vehicles = 'vehicles';
+  static const String vehiclesInitialized = 'vehicles_initialized';
 }

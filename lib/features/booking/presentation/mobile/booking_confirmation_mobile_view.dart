@@ -32,6 +32,25 @@ class BookingConfirmationMobileView extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
+            Padding(
+              padding: EdgeInsets.fromLTRB(8.w, 4.h, 8.w, 0),
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: IconButton(
+                  onPressed: () => context.go('/home'),
+                  icon: Icon(
+                    Icons.close_rounded,
+                    color: ui.textSecondary,
+                    size: 24.r,
+                  ),
+                  padding: EdgeInsets.all(8.r),
+                  constraints: BoxConstraints(
+                    minWidth: 40.w,
+                    minHeight: 40.h,
+                  ),
+                ),
+              ),
+            ),
             Expanded(
               child: BlocBuilder<BookingConfirmationCubit, BookingConfirmationState>(
                 builder: (context, state) {
@@ -81,16 +100,16 @@ class BookingConfirmationMobileView extends StatelessWidget {
                   // PrimaryActionButton(
                   //   onPressed: () => context.go('/profile'),
                   // ),
-                  PrimaryButtonWidget(
-                    text: 'Start Charge',
-                    onPress: () => context.go('/profile'),
-                    buttonWidth: double.infinity,
-                    cornerRadius: 32.r,
-                    buttonColor: ui.brandPrimary,
-                    textColor: AppColors.whiteColor,
-                    fontSize: FontSizes.font15Sp,
-                    fontWeight: FontWeights.weight700,
-                  ),
+                  // PrimaryButtonWidget(
+                  //   text: 'Start Charge',
+                  //   onPress: () => context.go('/profile'),
+                  //   buttonWidth: double.infinity,
+                  //   cornerRadius: 32.r,
+                  //   buttonColor: ui.brandPrimary,
+                  //   textColor: AppColors.whiteColor,
+                  //   fontSize: FontSizes.font15Sp,
+                  //   fontWeight: FontWeights.weight700,
+                  // ),
                 ],
               ),
             ),

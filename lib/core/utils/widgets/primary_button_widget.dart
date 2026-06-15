@@ -120,13 +120,18 @@ class PrimaryButtonWidget extends StatelessWidget {
                   ),
                   9.horizontalSpace,
                 ],
-                AppText(
-                  text,
-                  color: isEnabled
-                      ? (textColor ?? AppColors.whiteColor)
-                      : AppColors.greyColor,
-                  fontSize: fontSize ?? FontSizes.font12Sp,
-                  fontWeight: fontWeight,
+                Flexible(
+                  child: AppText(
+                    text,
+                    color: isEnabled
+                        ? (textColor ?? AppColors.whiteColor)
+                        : AppColors.greyColor,
+                    fontSize: fontSize ?? FontSizes.font12Sp,
+                    fontWeight: fontWeight,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                  ),
                 ),
               ],
             ),
