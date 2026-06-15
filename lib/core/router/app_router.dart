@@ -45,7 +45,7 @@ class AppRouter {
   static final GoRouter router = GoRouter(
     navigatorKey: _rootNavigatorKey,
     initialLocation: '/splash',
-    debugLogDiagnostics: true,
+    debugLogDiagnostics: false,
     routes: [
       // ── Splash Route ────────────────────────────────────────────────
       GoRoute(
