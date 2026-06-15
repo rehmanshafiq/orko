@@ -12,4 +12,5 @@ class StorageConstants {
   static const String languageCode = 'language_code';
   static const String vehicles = 'vehicles';
   static const String vehiclesInitialized = 'vehicles_initialized';
+  static const String remoteConfigCache = 'remote_config_cache';
 }
