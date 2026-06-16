@@ -26,8 +26,8 @@ Future<void> initDependencies() async {
   // Services
   sl.registerLazySingleton<LocalStorageService>(() => LocalStorageService());
   sl.registerLazySingleton<AnalyticsService>(() => AnalyticsService());
-  sl.registerLazySingleton<ThemeCubit>(
-    () => ThemeCubit(localStorageService: sl()),
+  sl.registerSingleton<ThemeCubit>(
+    await ThemeCubit.create(localStorageService: sl()),
   );
 
   // ── Features ──────────────────────────────────────────────────────────
