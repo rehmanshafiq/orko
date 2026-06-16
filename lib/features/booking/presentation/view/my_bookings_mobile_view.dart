@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
+import 'package:orko_hubco/core/services/barcode_scanner_service.dart';
+import 'package:orko_hubco/core/utils/helpers.dart';
 import 'package:orko_hubco/core/utils/app_ui.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
 import 'package:orko_hubco/features/booking/presentation/cubit/my_bookings_cubit.dart';
@@ -165,9 +167,36 @@ class _UpcomingTab extends StatelessWidget {
           booking: booking,
           onModify: () {},
           onCancel: () => cubit.cancelUpcoming(booking),
+          onScanQr: () => _scanBookingQrCode(context, booking),
         );
       },
     );
+  }
+}
+
+Future<void> _scanBookingQrCode(
+  BuildContext context,
+  UpcomingBooking booking,
+) async {
+  final result = await BarcodeScannerService.scanBookingQrCode();
+  if (!context.mounted) return;
+
+  switch (result) {
+    case BookingQrScanSuccess(:final code):
+      AppHelpers.showSnackBar(
+        context,
+        'QR scanned for ${booking.stationName}: $code',
+      );
+    case BookingQrScanPermissionDenied():
+      AppHelpers.showSnackBar(
+        context,
+        'Camera permission is required to scan QR codes',
+        isError: true,
+      );
+    case BookingQrScanFailure(:final message):
+      AppHelpers.showSnackBar(context, message, isError: true);
+    case BookingQrScanCancelled():
+      break;
   }
 }
 

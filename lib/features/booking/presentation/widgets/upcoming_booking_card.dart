@@ -14,12 +14,14 @@ class UpcomingBookingCard extends StatelessWidget {
     required this.booking,
     required this.onModify,
     required this.onCancel,
+    required this.onScanQr,
   });
 
   final AppUiColors ui;
   final UpcomingBooking booking;
   final VoidCallback onModify;
   final VoidCallback onCancel;
+  final VoidCallback onScanQr;
 
   @override
   Widget build(BuildContext context) {
@@ -144,6 +146,16 @@ class UpcomingBookingCard extends StatelessWidget {
             ),
           ),
           16.verticalSpace,
+          PrimaryButtonWidget(
+            text: 'Scan QR Code',
+            leadingIcon: Icons.qr_code_scanner_rounded,
+            onPress: onScanQr,
+            buttonHeight: 38.h,
+            cornerRadius: 12.r,
+            fontSize: FontSizes.font14Sp,
+            fontWeight: FontWeights.weight700,
+          ),
+          12.verticalSpace,
           Row(
             children: [
               Expanded(
