@@ -14,6 +14,8 @@ class BookingEmptyState extends StatelessWidget {
     required this.subtitle,
     this.accentColor,
     this.iconBackgroundColor,
+    this.iconOutlined = false,
+    this.iconBorderColor,
   });
 
   final AppUiColors ui;
@@ -22,6 +24,8 @@ class BookingEmptyState extends StatelessWidget {
   final String subtitle;
   final Color? accentColor;
   final Color? iconBackgroundColor;
+  final bool iconOutlined;
+  final Color? iconBorderColor;
 
   @override
   Widget build(BuildContext context) {
@@ -41,9 +45,17 @@ class BookingEmptyState extends StatelessWidget {
             height: 72.r,
             width: 72.r,
             decoration: BoxDecoration(
-              color: iconBackgroundColor ??
-                  accent.withValues(alpha: ui.isLight ? 0.12 : 0.2),
+              color: iconOutlined
+                  ? Colors.transparent
+                  : (iconBackgroundColor ??
+                      accent.withValues(alpha: ui.isLight ? 0.12 : 0.2)),
               shape: BoxShape.circle,
+              border: iconOutlined
+                  ? Border.all(
+                      color: iconBorderColor ?? ui.iconContainerOutline,
+                      width: 1.5,
+                    )
+                  : null,
             ),
             child: Icon(icon, color: accent, size: 32.sp),
           ),

@@ -448,7 +448,7 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
           ? Icon(
               Icons.check,
               size: 12.r,
-              color: AppColors.whiteColor,
+              color: ui.isLight ? AppColors.greyColor : AppColors.whiteColor,
             )
           : null,
     );

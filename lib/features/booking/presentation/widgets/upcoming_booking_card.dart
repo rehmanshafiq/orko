@@ -41,8 +41,9 @@ class UpcomingBookingCard extends StatelessWidget {
                 height: 44.r,
                 width: 44.r,
                 decoration: BoxDecoration(
-                  color: ui.brandPrimary.withValues(alpha: 0.12),
+                  color: Colors.transparent,
                   borderRadius: BorderRadius.circular(12.r),
+                  border: Border.all(color: ui.iconContainerOutline, width: 1.5),
                 ),
                 child: Icon(
                   Icons.calendar_today_outlined,
@@ -114,8 +115,9 @@ class UpcomingBookingCard extends StatelessWidget {
             width: double.infinity,
             padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 14.h),
             decoration: BoxDecoration(
-              color: ui.brandPrimary.withValues(alpha: ui.isLight ? 0.1 : 0.18),
+              color: Colors.transparent,
               borderRadius: BorderRadius.circular(12.r),
+              border: Border.all(color: ui.iconContainerOutline, width: 1.5),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -144,7 +146,7 @@ class UpcomingBookingCard extends StatelessWidget {
                   onPress: onModify,
                   buttonHeight: 38.h,
                   cornerRadius: 12.r,
-                  strokeColor: ui.borderSubtle,
+                  strokeColor: ui.iconContainerOutline,
                   buttonColor: ui.cardBackground,
                   textColor: ui.textPrimary,
                   fontSize: FontSizes.font14Sp,

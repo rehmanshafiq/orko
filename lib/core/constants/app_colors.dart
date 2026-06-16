@@ -184,4 +184,7 @@ class AppUiColors {
   Color get innerIconBg => isLight
       ? AppColors.sandColor.withValues(alpha: 0.55)
       : AppColors.iconInnerColor;
+
+  Color get iconContainerOutline =>
+      isLight ? AppColors.thumbBarGreyColor : AppColors.whiteColor;
 }

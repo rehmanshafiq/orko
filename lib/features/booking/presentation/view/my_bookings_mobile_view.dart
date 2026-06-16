@@ -108,7 +108,7 @@ class _ActiveTab extends StatelessWidget {
             title: 'No Active Sessions',
             subtitle: "You don't have any active charging sessions",
             accentColor: ui.brandPrimary,
-            iconBackgroundColor: ui.brandPrimary.withValues(alpha: 0.12),
+            iconOutlined: true,
           ),
         ],
       );
@@ -149,6 +149,7 @@ class _UpcomingTab extends StatelessWidget {
             title: 'No Upcoming Bookings',
             subtitle: "You don't have any upcoming reservations",
             accentColor: ui.brandPrimary,
+            iconOutlined: true,
           ),
         ],
       );
@@ -188,6 +189,7 @@ class _HistoryTab extends StatelessWidget {
             title: 'No History',
             subtitle: "You haven't completed any charging sessions yet",
             accentColor: ui.brandPrimary,
+            iconOutlined: true,
           ),
         ],
       );

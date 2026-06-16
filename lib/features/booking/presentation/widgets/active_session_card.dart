@@ -41,8 +41,9 @@ class ActiveSessionCard extends StatelessWidget {
                   height: 44.r,
                   width: 44.r,
                   decoration: BoxDecoration(
-                    color: ui.brandPrimary.withValues(alpha: 0.12),
+                    color: Colors.transparent,
                     shape: BoxShape.circle,
+                    border: Border.all(color: ui.iconContainerOutline, width: 1.5),
                   ),
                   child: Icon(Icons.bolt, color: ui.brandPrimary, size: 22.sp),
                 ),
