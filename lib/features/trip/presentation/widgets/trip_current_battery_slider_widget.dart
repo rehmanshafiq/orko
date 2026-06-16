@@ -4,9 +4,7 @@ import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
 
-/// "Current Battery" slider: bold title with the live percentage on the right
-/// and a track with a white, hollow (bordered) thumb. Colors follow the app
-/// theme via [AppUiColors].
+/// "Current Battery" slider: bold title with the live percentage on the right.
 class TripCurrentBatterySliderWidget extends StatelessWidget {
   const TripCurrentBatterySliderWidget({
     required this.currentBatteryPercent,
@@ -46,18 +44,16 @@ class TripCurrentBatterySliderWidget extends StatelessWidget {
         6.verticalSpace,
         SliderTheme(
           data: SliderTheme.of(context).copyWith(
-            trackHeight: 6.h,
-            trackShape: const RoundedRectSliderTrackShape(),
+            trackHeight: 4.h,
             activeTrackColor: ui.brandPrimary,
             inactiveTrackColor: ui.progressTrack,
-            thumbShape: _HollowSliderThumbShape(
-              radius: 11.r,
-              borderColor: ui.brandPrimary,
+            thumbShape: RoundSliderThumbShape(
+              enabledThumbRadius: 6.r,
+              elevation: 0,
+              pressedElevation: 0,
             ),
-            overlayShape: RoundSliderOverlayShape(overlayRadius: 18.r),
-            overlayColor: WidgetStateColor.resolveWith(
-              (_) => ui.brandPrimary.withValues(alpha: 0.16),
-            ),
+            overlayShape: RoundSliderOverlayShape(overlayRadius: 12.r),
+            thumbColor: ui.brandPrimary,
           ),
           child: Slider(
             value: currentBatteryPercent.clamp(0, 100),
@@ -67,62 +63,6 @@ class TripCurrentBatterySliderWidget extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-/// A white, filled circular thumb with a colored ring and a soft shadow —
-/// the "hollow" look from the reference design.
-class _HollowSliderThumbShape extends SliderComponentShape {
-  const _HollowSliderThumbShape({
-    required this.radius,
-    required this.borderColor,
-  });
-
-  final double radius;
-  final Color borderColor;
-
-  @override
-  Size getPreferredSize(bool isEnabled, bool isDiscrete) =>
-      Size.fromRadius(radius);
-
-  @override
-  void paint(
-    PaintingContext context,
-    Offset center, {
-    required Animation<double> activationAnimation,
-    required Animation<double> enableAnimation,
-    required bool isDiscrete,
-    required TextPainter labelPainter,
-    required RenderBox parentBox,
-    required SliderThemeData sliderTheme,
-    required TextDirection textDirection,
-    required double value,
-    required double textScaleFactor,
-    required Size sizeWithOverflow,
-  }) {
-    final canvas = context.canvas;
-
-    // Soft shadow under the thumb.
-    canvas.drawCircle(
-      center.translate(0, 1),
-      radius,
-      Paint()
-        ..color = Colors.black.withValues(alpha: 0.18)
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2),
-    );
-
-    // White fill.
-    canvas.drawCircle(center, radius, Paint()..color = Colors.white);
-
-    // Colored ring.
-    canvas.drawCircle(
-      center,
-      radius,
-      Paint()
-        ..color = borderColor
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.5,
     );
   }
 }

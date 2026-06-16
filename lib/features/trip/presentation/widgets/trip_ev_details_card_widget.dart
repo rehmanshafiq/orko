@@ -37,7 +37,7 @@ class TripEvDetailsCardWidget extends StatelessWidget {
                 icon: Icon(
                   Icons.directions_car_rounded,
                   size: 26.sp,
-                  color: ui.textSecondary,
+                  color: ui.brandSecondary,
                 ),
                 value: 'BYD',
                 label: 'Atto 3',
@@ -46,7 +46,7 @@ class TripEvDetailsCardWidget extends StatelessWidget {
             _SectionDivider(color: ui.borderSubtle),
             Expanded(
               child: _TripEvMetric(
-                icon: _RangeGlyph(roadColor: ui.textSecondary),
+                icon: _RangeGlyph(roadColor: ui.brandSecondary),
                 value: '280 km',
                 label: 'range',
               ),
@@ -199,7 +199,7 @@ class _RangeGlyph extends StatelessWidget {
         Icon(
           Icons.compare_arrows_rounded,
           size: 14.sp,
-          color: AppUiColors.of(context).brandLightGreen,
+          color: roadColor,
         ),
         2.verticalSpace,
         _RoadShape(color: roadColor),

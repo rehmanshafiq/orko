@@ -192,7 +192,6 @@ class _SummaryViewSwitch extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ui = AppUiColors.of(context);
-    final trackColor = ui.brandSecondary.withValues(alpha: 0.35);
 
     return GestureDetector(
       onTap: () => onChanged(!isMapView),
@@ -203,26 +202,20 @@ class _SummaryViewSwitch extends StatelessWidget {
         height: 24.h,
         padding: EdgeInsets.all(2.r),
         decoration: BoxDecoration(
-          color: trackColor,
+          color: Colors.transparent,
           borderRadius: BorderRadius.circular(12.r),
+          border: Border.all(color: ui.brandPrimary, width: 1.5),
         ),
         child: AnimatedAlign(
           duration: const Duration(milliseconds: 200),
           curve: Curves.easeInOut,
           alignment: isMapView ? Alignment.centerLeft : Alignment.centerRight,
           child: Container(
-            width: 20.w,
-            height: 20.h,
+            width: 16.w,
+            height: 16.h,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  ui.brandLightGreen,
-                  ui.brandDarkGreen,
-                ],
-              ),
+              color: ui.brandPrimary,
             ),
           ),
         ),

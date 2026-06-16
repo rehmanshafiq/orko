@@ -372,7 +372,7 @@ class _StatsGrid extends StatelessWidget {
               child: _StatTile(
                 icon: Icons.bolt_rounded,
                 iconBg: AppColors.transparentColor,
-                iconColor: AppColors.mapPinBlueColor,
+                iconColor: ui.isLight ? AppColors.greyColor : AppColors.whiteColor,
                 value: '47',
                 valueColor: ui.textPrimary,
                 label: 'Total Charges',
@@ -398,7 +398,7 @@ class _StatsGrid extends StatelessWidget {
               child: _StatTile(
                 icon: Icons.trending_up_rounded,
                 iconBg: AppColors.transparentColor,
-                iconColor: AppColors.ratingStarColor,
+                iconColor: ui.isLight ? AppColors.greyColor : AppColors.whiteColor,
                 value: 'PKR 12,450',
                 valueColor: ui.textPrimary,
                 label: 'Money Saved',
@@ -605,8 +605,8 @@ class _PersonalInfoCard extends StatelessWidget {
                 buttonWidth: 88.w,
                 buttonHeight: 38.h,
                 cornerRadius: 10.r,
-                buttonColor: ui.cardBackground,
-                strokeColor: ui.brandPrimary,
+                buttonColor: ui.chipInactiveBg,
+                strokeColor: ui.borderSubtle,
                 textColor: ui.textPrimary,
                 fontSize: FontSizes.font12Sp,
                 fontWeight: FontWeights.weight600,

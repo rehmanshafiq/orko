@@ -32,20 +32,14 @@ class MetricCardWidget extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Container(
+          SizedBox(
             width: 28.w,
             height: 30.w,
-            padding: AppUtils.all4Padding,
-            decoration: BoxDecoration(
-              color: ui.innerIconBg,
-              borderRadius: BorderRadius.circular(5.r),
-              border: Border.all(color: ui.borderSubtle, width: 1),
-            ),
             child: Center(
               child: Icon(
                 icon,
                 size: 19.sp,
-                color: ui.textSecondary,
+                color: ui.isLight ? ui.brandPrimary : AppColors.whiteColor,
               ),
             ),
           ),
