@@ -76,6 +76,7 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
   Widget build(BuildContext context) {
     final ui = AppUiColors.of(context);
     final bottomInset = MediaQuery.paddingOf(context).bottom;
+    final topInset = MediaQuery.paddingOf(context).top;
 
     return Align(
       alignment: Alignment.bottomCenter,
@@ -185,25 +186,14 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
                               fontWeight: FontWeights.weight500,
                             ),
                           ),
-                          if (_availableNow) ...[
-                            Container(
-                              width: 6.w,
-                              height: 6.w,
-                              margin: EdgeInsets.only(right: 8.w),
-                              decoration: BoxDecoration(
-                                color: ui.brandPrimary,
-                                shape: BoxShape.circle,
-                              ),
-                            ),
-                          ],
                           _availabilitySwitch(),
                         ],
                       ),
-                      22.verticalSpace,
+                      16.verticalSpace,
                       _sectionTitle('Amenities'),
-                      12.verticalSpace,
+                      8.verticalSpace,
                       _amenitiesGrid(),
-                      22.verticalSpace,
+                      16.verticalSpace,
                       _sectionTitle('Price Range'),
                       8.verticalSpace,
                       _priceLabelsRow(),
@@ -352,11 +342,11 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
     return SliderTheme(
       data: SliderTheme.of(context).copyWith(
         rangeThumbShape: RoundRangeSliderThumbShape(
-          enabledThumbRadius: 10.r,
+          enabledThumbRadius: 6.r,
           elevation: 0,
           pressedElevation: 0,
         ),
-        overlayShape: RoundSliderOverlayShape(overlayRadius: 18.r),
+        overlayShape: RoundSliderOverlayShape(overlayRadius: 12.r),
         trackHeight: 4.h,
         activeTrackColor: ui.brandPrimary,
         inactiveTrackColor: ui.progressTrack,
@@ -404,9 +394,9 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
       crossAxisCount: 3,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      mainAxisSpacing: 12.h,
+      mainAxisSpacing: 6.h,
       crossAxisSpacing: 10.w,
-      childAspectRatio: 2.35,
+      childAspectRatio: 2.7,
       children: _amenities.map((name) {
         final on = _selectedAmenities.contains(name);
         return GestureDetector(
@@ -446,7 +436,7 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
       width: 20.w,
       height: 20.w,
       decoration: BoxDecoration(
-        color: checked ? ui.brandPrimary : Colors.transparent,
+        color: Colors.transparent,
         borderRadius: BorderRadius.circular(4.r),
         border: Border.all(
           color: checked ? ui.brandPrimary : ui.borderSubtle,
@@ -457,7 +447,7 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
       child: checked
           ? Icon(
               Icons.check,
-              size: 14.r,
+              size: 12.r,
               color: AppColors.whiteColor,
             )
           : null,
@@ -474,7 +464,7 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
       subtitle: '$count $suffix found',
       onPress: () => Navigator.of(context).pop(),
       buttonWidth: double.infinity,
-      buttonHeight: 64.h,
+      buttonHeight: 62.h,
       cornerRadius: 16.r,
       buttonColor: ui.brandPrimary,
       textColor: AppColors.whiteColor,
