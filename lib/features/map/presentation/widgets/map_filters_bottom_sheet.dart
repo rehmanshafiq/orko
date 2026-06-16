@@ -162,7 +162,7 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
                           }).toList(),
                         ),
                       ),
-                      22.verticalSpace,
+                      20.verticalSpace,
                       _sectionTitle('Power Output'),
                       8.verticalSpace,
                       _powerLabelsRow(),
