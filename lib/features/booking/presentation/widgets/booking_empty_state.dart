@@ -52,7 +52,8 @@ class BookingEmptyState extends StatelessWidget {
               shape: BoxShape.circle,
               border: iconOutlined
                   ? Border.all(
-                      color: iconBorderColor ?? ui.iconContainerOutline,
+                      color: iconBorderColor ??
+                          (ui.isLight ? ui.iconContainerOutline : accent),
                       width: 1.5,
                     )
                   : null,

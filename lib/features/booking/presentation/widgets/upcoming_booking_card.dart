@@ -43,7 +43,10 @@ class UpcomingBookingCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: Colors.transparent,
                   borderRadius: BorderRadius.circular(12.r),
-                  border: Border.all(color: ui.iconContainerOutline, width: 1.5),
+                  border: Border.all(
+                    color: ui.isLight ? ui.iconContainerOutline : ui.brandPrimary,
+                    width: 1.5,
+                  ),
                 ),
                 child: Icon(
                   Icons.calendar_today_outlined,
@@ -117,7 +120,10 @@ class UpcomingBookingCard extends StatelessWidget {
             decoration: BoxDecoration(
               color: Colors.transparent,
               borderRadius: BorderRadius.circular(12.r),
-              border: Border.all(color: ui.iconContainerOutline, width: 1.5),
+              border: Border.all(
+                color: ui.isLight ? ui.iconContainerOutline : ui.brandPrimary,
+                width: 1.5,
+              ),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,

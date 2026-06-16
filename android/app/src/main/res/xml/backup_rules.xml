@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <full-backup-content>
-    <!-- Prevent theme and other prefs from being restored after reinstall. -->
-    <exclude domain="file" path="app_flutter/GetStorage.gs" />
-    <exclude domain="file" path="app_flutter/GetStorage.bak" />
+    <!-- Prevent theme and other prefs from being restored after reinstall.
+         get_storage writes to getApplicationDocumentsDirectory (app_flutter),
+         which lives at the app-data root — NOT under the "file" (files/) domain. -->
+    <exclude domain="root" path="app_flutter/GetStorage.gs" />
+    <exclude domain="root" path="app_flutter/GetStorage.bak" />
 </full-backup-content>
