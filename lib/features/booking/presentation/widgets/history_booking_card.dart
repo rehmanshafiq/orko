@@ -35,7 +35,10 @@ class HistoryBookingCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: Colors.transparent,
                   shape: BoxShape.circle,
-                  border: Border.all(color: ui.iconContainerOutline, width: 1.5),
+                  border: Border.all(
+                    color: ui.isLight ? ui.iconContainerOutline : ui.brandPrimary,
+                    width: 1.5,
+                  ),
                 ),
                 child: Icon(
                   Icons.bolt,

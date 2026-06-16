@@ -372,7 +372,7 @@ class _StatsGrid extends StatelessWidget {
               child: _StatTile(
                 icon: Icons.bolt_rounded,
                 iconBg: AppColors.transparentColor,
-                iconColor: ui.isLight ? AppColors.greyColor : AppColors.whiteColor,
+                iconColor: ui.brandSecondary,
                 value: '47',
                 valueColor: ui.textPrimary,
                 label: 'Total Charges',
@@ -398,7 +398,7 @@ class _StatsGrid extends StatelessWidget {
               child: _StatTile(
                 icon: Icons.trending_up_rounded,
                 iconBg: AppColors.transparentColor,
-                iconColor: ui.isLight ? AppColors.greyColor : AppColors.whiteColor,
+                iconColor: ui.brandSecondary,
                 value: 'PKR 12,450',
                 valueColor: ui.textPrimary,
                 label: 'Money Saved',
