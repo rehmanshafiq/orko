@@ -27,6 +27,16 @@ class AppColors {
   static const colorsOutlineColor = Color(0xFFEBEBEB);
   static const primaryLightDarkColor = Color(0xFF699836);
   static const primaryDarkButtonColor = Color(0xFF1C5528);
+  /// Brand button gradient stops (top → bottom), shared by primary buttons and toggles.
+  static const List<Color> brandButtonGradientColors = [
+    primaryLightDarkColor,
+    primaryDarkButtonColor,
+  ];
+  static LinearGradient get brandButtonGradient => const LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: brandButtonGradientColors,
+      );
   static const primaryDarkColorTopGradient = Color(0xFF329748);
   /// Light green Pantone — primary on light surfaces, secondary on dark surfaces.
   static const primaryLightColor = Color(0xFF8FCF4D);

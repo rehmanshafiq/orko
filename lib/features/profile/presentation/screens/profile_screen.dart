@@ -10,6 +10,7 @@ import 'package:orko_hubco/core/services/local_storage_service.dart';
 import 'package:orko_hubco/core/theme/theme_cubit.dart';
 import 'package:orko_hubco/core/utils/app_ui.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
+import 'package:orko_hubco/core/utils/widgets/gradient_switch.dart';
 import 'package:orko_hubco/core/utils/widgets/primary_button_widget.dart';
 import 'package:orko_hubco/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:orko_hubco/features/profile/domain/entities/profile_entity.dart';
@@ -2176,13 +2177,9 @@ class _NotificationRow extends StatelessWidget {
             ),
           ),
           8.horizontalSpace,
-          Switch(
+          GradientSwitch(
             value: value,
             onChanged: onChanged,
-            activeThumbColor: AppColors.whiteColor,
-            activeTrackColor: ui.brandPrimary,
-            inactiveThumbColor: AppColors.iconsGreyColor,
-            inactiveTrackColor: AppColors.greyColor.withValues(alpha: 0.45),
           ),
         ],
       ),

@@ -163,11 +163,7 @@ class PrimaryButtonWidget extends StatelessWidget {
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: gradientColors ??
-                      const [
-                        AppColors.primaryLightDarkColor,
-                        AppColors.primaryDarkButtonColor,
-                      ],
+                  colors: gradientColors ?? AppColors.brandButtonGradientColors,
                 ),
               ),
               child: button,
