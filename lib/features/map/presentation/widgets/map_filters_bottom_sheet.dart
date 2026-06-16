@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
+import 'package:orko_hubco/core/utils/widgets/gradient_switch.dart';
 import 'package:orko_hubco/core/utils/widgets/primary_button_widget.dart';
 
 /// EV map filters — matches product UI (dark sheet, green accents).
@@ -363,28 +364,9 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
   }
 
   Widget _availabilitySwitch() {
-    final ui = AppUiColors.of(context);
-    return SwitchTheme(
-      data: SwitchThemeData(
-        thumbColor: WidgetStateProperty.resolveWith((s) {
-          if (s.contains(WidgetState.selected)) {
-            return AppColors.whiteColor;
-          }
-          return AppColors.whiteColor.withValues(alpha: 0.85);
-        }),
-        trackColor: WidgetStateProperty.resolveWith((s) {
-          if (s.contains(WidgetState.selected)) {
-            return ui.brandPrimary;
-          }
-          return ui.progressTrack;
-        }),
-        trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
-      ),
-      child: Switch(
-        value: _availableNow,
-        onChanged: (v) => setState(() => _availableNow = v),
-        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-      ),
+    return GradientSwitch(
+      value: _availableNow,
+      onChanged: (v) => setState(() => _availableNow = v),
     );
   }
 
