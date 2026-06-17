@@ -54,7 +54,7 @@ class ChargingStationDetailBloc
           address: detail.address,
           operatingHours: _formatOperatingHours(detail),
           pricing: _formatPricing(detail),
-          contactNumber: detail.contactNumber,
+          contactNumber: _formatContactNumber(detail.contactNumber),
           averageRating: detail.averageRating,
           totalReviews: detail.totalReviews,
           distance: detail.distance,
@@ -131,30 +131,85 @@ class ChargingStationDetailBloc
   }
 
   String _formatOperatingHours(ChargingStationDetailEntity detail) {
-    final open = _formatTime(detail.openingTime);
-    final close = _formatTime(detail.closingTime);
-    if (open.isEmpty && close.isEmpty) return 'Not available';
-    if (open.isEmpty) return close;
-    if (close.isEmpty) return open;
-    return '$open - $close';
+    final openMinutes = _timeToMinutes(detail.openingTime);
+    final closeMinutes = _timeToMinutes(detail.closingTime);
+
+    if (openMinutes == null && closeMinutes == null) return 'Not available';
+
+    if (openMinutes != null && closeMinutes != null) {
+      if (openMinutes == closeMinutes) return '24 hours';
+
+      var durationMinutes = closeMinutes - openMinutes;
+      if (durationMinutes <= 0) durationMinutes += 24 * 60;
+      if (durationMinutes >= 24 * 60) return '24 hours';
+
+      return '${_formatTimeAmPm(openMinutes)} to ${_formatTimeAmPm(closeMinutes)}';
+    }
+
+    if (openMinutes != null) return _formatTimeAmPm(openMinutes);
+    return _formatTimeAmPm(closeMinutes!);
   }
 
-  /// Trims a `HH:mm:ss` time string down to `HH:mm`.
-  String _formatTime(String raw) {
+  /// Converts `HH:mm:ss` into total minutes from midnight.
+  int? _timeToMinutes(String raw) {
     final value = raw.trim();
-    if (value.isEmpty) return '';
+    if (value.isEmpty) return null;
     final parts = value.split(':');
-    if (parts.length >= 2) return '${parts[0]}:${parts[1]}';
-    return value;
+    if (parts.isEmpty) return null;
+    final hours = int.tryParse(parts[0]) ?? 0;
+    final minutes = parts.length > 1 ? int.tryParse(parts[1]) ?? 0 : 0;
+    return hours * 60 + minutes;
+  }
+
+  /// Formats a clock time as `6:00 am` or `4:30 pm`.
+  String _formatTimeAmPm(int totalMinutes) {
+    final normalized = totalMinutes % (24 * 60);
+    final hours24 = normalized ~/ 60;
+    final minutes = normalized % 60;
+    final period = hours24 >= 12 ? 'pm' : 'am';
+    final hours12 = hours24 % 12;
+    final displayHour = hours12 == 0 ? 12 : hours12;
+    final minutePart = ':${minutes.toString().padLeft(2, '0')}';
+    return '$displayHour$minutePart $period';
   }
 
   String _formatPricing(ChargingStationDetailEntity detail) {
     for (final connector in detail.connectors) {
-      if (connector.price != null) {
-        return _connectorPrice(connector.price);
+      final price = connector.price;
+      if (price != null) {
+        return _sectionPriceLabel(price);
       }
     }
     return 'Not available';
+  }
+
+  String _sectionPriceLabel(ConnectorPriceEntity price) {
+    final amount = price.price == price.price.roundToDouble()
+        ? price.price.toStringAsFixed(0)
+        : price.price.toStringAsFixed(2);
+    final currency = price.currency.trim();
+    final mode = price.pricingMode.trim().toLowerCase();
+
+    final buffer = StringBuffer();
+    if (currency.isNotEmpty) buffer.write(currency);
+    buffer.write(' $amount');
+
+    if (mode == 'kwh') {
+      buffer.write(' per kWh');
+    } else if (mode == 'time_duration') {
+      buffer.write(' per time duration');
+    } else if (mode.isNotEmpty) {
+      buffer.write(' per ${_prettyLabel(mode).toLowerCase()}');
+    }
+
+    return buffer.toString().trim();
+  }
+
+  String _formatContactNumber(String raw) {
+    final digits = raw.replaceAll(RegExp(r'\D'), '');
+    if (digits.isEmpty) return '';
+    if (digits.startsWith('0')) return digits;
+    return '0$digits';
   }
 
   /// `time_duration` → `Time Duration`.
