@@ -160,13 +160,13 @@ class _OnboardingMobileViewState extends State<OnboardingMobileView>
                       ),
                       18.verticalSpace,
                       AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 350),
-                        switchInCurve: Curves.easeOutBack,
+                        duration: const Duration(milliseconds: 250),
+                        switchInCurve: Curves.easeOut,
                         switchOutCurve: Curves.easeIn,
                         transitionBuilder: (child, animation) => FadeTransition(
                           opacity: animation,
                           child: ScaleTransition(
-                            scale: animation,
+                            scale: Tween<double>(begin: 0.97, end: 1).animate(animation),
                             child: child,
                           ),
                         ),
@@ -229,14 +229,14 @@ class _OnboardingSlide extends StatelessWidget {
     final contentOpacity = (1 - t).clamp(0.0, 1.0);
 
     // Image drifts at a slower rate than the swipe (parallax) and eases back.
-    final imageDx = -delta * 60;
-    final imageScale = 1 - 0.12 * t;
+    final imageDx = -delta * 24;
+    final imageScale = 1 - 0.04 * t;
 
     return Column(
       children: [
         Flexible(
           child: Opacity(
-            opacity: (1 - t * 0.4).clamp(0.0, 1.0),
+            opacity: (1 - t * 0.2).clamp(0.0, 1.0),
             child: Transform.translate(
               offset: Offset(imageDx, 0),
               child: Transform.scale(
@@ -262,7 +262,7 @@ class _OnboardingSlide extends StatelessWidget {
         Opacity(
           opacity: contentOpacity,
           child: Transform.translate(
-            offset: Offset(0, t * 36),
+            offset: Offset(0, t * 16),
             child: AppText(
               item.title,
               textAlign: TextAlign.center,
@@ -277,7 +277,7 @@ class _OnboardingSlide extends StatelessWidget {
         Opacity(
           opacity: contentOpacity,
           child: Transform.translate(
-            offset: Offset(0, t * 56),
+            offset: Offset(0, t * 24),
             child: AppText(
               item.description,
               textAlign: TextAlign.center,
