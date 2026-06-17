@@ -57,7 +57,7 @@ class ChargingStationDetailBloc
           contactNumber: detail.contactNumber,
           averageRating: detail.averageRating,
           totalReviews: detail.totalReviews,
-          distanceKm: detail.distance / 1000,
+          distance: detail.distance,
         ));
       },
     );

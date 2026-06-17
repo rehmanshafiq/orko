@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
+import 'package:orko_hubco/features/charging/data/models/charging_station_detail_model.dart';
 import 'package:orko_hubco/features/charging/presentation/models/amenity_model.dart';
 
 class ChargingStationAmenityChipWidget extends StatelessWidget {
@@ -43,18 +44,26 @@ class ChargingStationAmenityChipWidget extends StatelessWidget {
   }
 
   Widget _buildLeading(AppUiColors ui) {
-    final iconColor = ui.textPrimary.withValues(alpha: 0.85);
+    final iconColor =
+        ui.isLight ? AppColors.blackColor : AppColors.whiteColor;
     const fallbackIcon = Icons.local_offer_rounded;
 
     if (!amenity.hasImage) {
       return Icon(amenity.icon ?? fallbackIcon, size: 16.r, color: iconColor);
     }
 
+    final imageUrl = ChargingStationDetailModel.themedAmenityImageUrl(
+      amenity.imageUrl!,
+      isLight: ui.isLight,
+    );
+
     return CachedNetworkImage(
-      imageUrl: amenity.imageUrl!,
+      imageUrl: imageUrl,
       width: 16.r,
       height: 16.r,
       fit: BoxFit.contain,
+      color: iconColor,
+      colorBlendMode: BlendMode.srcIn,
       placeholder: (_, __) => SizedBox(width: 16.r, height: 16.r),
       errorWidget: (_, __, ___) =>
           Icon(amenity.icon ?? fallbackIcon, size: 16.r, color: iconColor),
