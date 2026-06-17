@@ -983,10 +983,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   String _stationDistanceLabel(HubcoLocationEntity station) {
-    final km = station.distance;
-    if (km <= 0) return '—';
-    if (km < 1) return '${(km * 1000).round()} m';
-    return '${km.toStringAsFixed(1)} km';
+    return AppHelpers.formatDistanceKm(station.distance);
   }
 
   String _stationAvailabilityLabel(HubcoLocationEntity station) {

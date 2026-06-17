@@ -39,6 +39,7 @@ class ChargingStatusState extends Equatable {
     required this.estimatedTimeLabel,
     required this.stationInfoText,
     required this.status,
+    this.distanceKm = 0,
   });
 
   factory ChargingStatusState.initial() {
@@ -70,6 +71,9 @@ class ChargingStatusState extends Equatable {
   final String estimatedTimeLabel;
   final String stationInfoText;
   final ChargingSessionStatus status;
+
+  /// Distance from nearby-stations API, in kilometers.
+  final double distanceKm;
 
   double get gaugeProgress =>
       (chargingPercentage / 100).clamp(0.0, 1.0).toDouble();
@@ -134,6 +138,7 @@ class ChargingStatusState extends Equatable {
     String? estimatedTimeLabel,
     String? stationInfoText,
     ChargingSessionStatus? status,
+    double? distanceKm,
   }) {
     return ChargingStatusState(
       stationHeadline: stationHeadline ?? this.stationHeadline,
@@ -148,6 +153,7 @@ class ChargingStatusState extends Equatable {
       estimatedTimeLabel: estimatedTimeLabel ?? this.estimatedTimeLabel,
       stationInfoText: stationInfoText ?? this.stationInfoText,
       status: status ?? this.status,
+      distanceKm: distanceKm ?? this.distanceKm,
     );
   }
 
@@ -165,5 +171,6 @@ class ChargingStatusState extends Equatable {
         estimatedTimeLabel,
         stationInfoText,
         status,
+        distanceKm,
       ];
 }

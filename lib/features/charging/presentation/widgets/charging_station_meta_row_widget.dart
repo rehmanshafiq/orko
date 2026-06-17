@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
+import 'package:orko_hubco/core/utils/helpers.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
 import 'package:orko_hubco/features/charging/presentation/widgets/charging_station_availability_badge_widget.dart';
 import 'package:orko_hubco/features/charging/presentation/widgets/charging_station_meta_item_widget.dart';
@@ -15,7 +16,6 @@ class ChargingStationMetaRowWidget extends StatelessWidget {
     required this.totalPorts,
     this.rating = 0,
     this.reviewCount = 0,
-    this.distanceKm = 0,
   });
 
   final HubcoLocationEntity station;
@@ -23,14 +23,11 @@ class ChargingStationMetaRowWidget extends StatelessWidget {
   final int totalPorts;
   final double rating;
   final int reviewCount;
-  final double distanceKm;
 
   @override
   Widget build(BuildContext context) {
     final ui = AppUiColors.of(context);
-    final distanceText = distanceKm > 0
-        ? '${distanceKm.toStringAsFixed(distanceKm >= 10 ? 0 : 1)} km'
-        : '—';
+    final distanceText = AppHelpers.formatDistanceKm(station.distance);
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [

@@ -166,7 +166,6 @@ class ChargingStationDetailMobileView extends StatelessWidget {
                                   totalPorts: totalPorts,
                                   rating: state.averageRating,
                                   reviewCount: state.totalReviews,
-                                  distanceKm: state.distanceKm,
                                 ),
                                 4.verticalSpace,
                                 const Divider(),

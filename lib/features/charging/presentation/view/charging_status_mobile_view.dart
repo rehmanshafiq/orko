@@ -4,11 +4,13 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/utils/app_ui.dart';
+import 'package:orko_hubco/core/utils/helpers.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
 import 'package:orko_hubco/features/charging/presentation/cubit/charging_status_cubit.dart';
 import 'package:orko_hubco/features/charging/presentation/cubit/charging_status_state.dart';
 import 'package:orko_hubco/features/charging/presentation/widgets/charging_action_buttons_widget.dart';
 import 'package:orko_hubco/features/charging/presentation/widgets/charging_gauge_widget.dart';
+import 'package:orko_hubco/features/charging/presentation/widgets/charging_station_meta_item_widget.dart';
 import 'package:orko_hubco/features/charging/presentation/widgets/metrics_grid_widget.dart';
 import 'package:orko_hubco/features/charging/presentation/widgets/station_info_widget.dart';
 
@@ -73,6 +75,19 @@ class ChargingStatusMobileView extends StatelessWidget {
                     infoText: state.stationInfoText,
                     ui: ui,
                   ),
+                  if (state.distanceKm > 0) ...[
+                    8.verticalSpace,
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: ChargingStationMetaItemWidget(
+                        icon: Icons.location_on_rounded,
+                        text: AppHelpers.formatDistanceKm(state.distanceKm),
+                        iconColor: AppColors.mapPinBlueColor,
+                        textColor: AppColors.mapPinBlueColor,
+                        textFontWeight: FontWeights.weight600,
+                      ),
+                    ),
+                  ],
                   10.verticalSpace,
                   // ChargingActionButtonsWidget(
                   //   onStopCharging: cubit.stopCharging,

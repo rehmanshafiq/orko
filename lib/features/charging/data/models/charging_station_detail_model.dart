@@ -60,6 +60,23 @@ class ChargingStationDetailModel extends ChargingStationDetailEntity {
     );
   }
 
+  /// Amenity icons from the detail API are imgix assets; this applies a
+  /// monochrome tint so glyphs read black in light mode and white in dark mode.
+  static String themedAmenityImageUrl(String imageUrl, {required bool isLight}) {
+    if (imageUrl.isEmpty) return imageUrl;
+
+    final uri = Uri.tryParse(imageUrl);
+    if (uri == null) return imageUrl;
+
+    final host = uri.host.toLowerCase();
+    if (!host.contains('imgix.net')) return imageUrl;
+
+    final monochrome = isLight ? '000000' : 'FFFFFF';
+    final params = Map<String, String>.from(uri.queryParameters);
+    params['monochrome'] = monochrome;
+    return uri.replace(queryParameters: params).toString();
+  }
+
   static ChargerEntity _chargerFromJson(Map<String, dynamic> json) {
     return ChargerEntity(
       id: _asInt(json['id']),

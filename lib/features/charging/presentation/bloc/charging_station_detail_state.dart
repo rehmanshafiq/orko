@@ -21,7 +21,7 @@ class ChargingStationDetailState extends Equatable {
     this.contactNumber = '',
     this.averageRating = 0,
     this.totalReviews = 0,
-    this.distanceKm = 0,
+    this.distance = 0,
   });
 
   final ChargingDetailStatus status;
@@ -40,7 +40,8 @@ class ChargingStationDetailState extends Equatable {
   final String contactNumber;
   final double averageRating;
   final int totalReviews;
-  final double distanceKm;
+  /// Distance from the requesting device, in meters (`distance` API key).
+  final double distance;
 
   bool get isLoading => status == ChargingDetailStatus.loading;
   bool get isFailure => status == ChargingDetailStatus.failure;
@@ -61,7 +62,7 @@ class ChargingStationDetailState extends Equatable {
     String? contactNumber,
     double? averageRating,
     int? totalReviews,
-    double? distanceKm,
+    double? distance,
   }) {
     return ChargingStationDetailState(
       status: status ?? this.status,
@@ -78,7 +79,7 @@ class ChargingStationDetailState extends Equatable {
       contactNumber: contactNumber ?? this.contactNumber,
       averageRating: averageRating ?? this.averageRating,
       totalReviews: totalReviews ?? this.totalReviews,
-      distanceKm: distanceKm ?? this.distanceKm,
+      distance: distance ?? this.distance,
     );
   }
 
@@ -98,6 +99,6 @@ class ChargingStationDetailState extends Equatable {
         contactNumber,
         averageRating,
         totalReviews,
-        distanceKm,
+        distance,
       ];
 }
