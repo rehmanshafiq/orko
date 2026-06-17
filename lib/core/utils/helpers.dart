@@ -32,4 +32,11 @@ class AppHelpers {
     if (value.length < 8) return 'Password must be at least 8 characters';
     return null;
   }
+
+  /// Formats station `distance` from the nearby-stations API (kilometers).
+  static String formatDistanceKm(double km) {
+    if (km <= 0) return '—';
+    if (km < 1) return '${(km * 1000).round()} m';
+    return '${km.toStringAsFixed(1)} km';
+  }
 }

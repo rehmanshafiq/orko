@@ -147,6 +147,9 @@ class AppUiColors {
   Color get chipInactiveBg =>
       isLight ? AppColors.whiteColor : AppColors.fieldBackgroundColor;
 
+  Color get chipInactiveBg2 =>
+      isLight ? AppColors.whiteColor : AppColors.whiteColor;
+
   Color get chipInactiveBorder => borderSubtle;
 
   Color get drivingEfficiencyBg => isLight
@@ -164,6 +167,10 @@ class AppUiColors {
   Color get chargingPatternsBorder => isLight
       ? AppColors.mapPinBlueColor.withValues(alpha: 0.18)
       : AppColors.mapPinBlueColor.withValues(alpha: 0.22);
+
+  Color get editButtonColor => isLight
+      ? AppColors.whiteColor
+      : AppColors.whiteColor.withValues(alpha: 0.16);
 
   Color get efficiencyTipBg => brandPrimary.withValues(alpha: isLight ? 0.1 : 0.2);
 
