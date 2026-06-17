@@ -2061,8 +2061,8 @@ class _AppearanceSection extends StatelessWidget {
                   onPress: themeCubit.setLight,
                   buttonHeight: 38.h,
                   cornerRadius: 24.r,
-                  // buttonColor: !isLight ? AppColors.whiteColor.withValues(alpha: 0.16) : null,
-                  gradientColors: !isLight ? [
+                  buttonColor: !isLight ? AppColors.whiteColor.withValues(alpha: 0.12) : null,
+                  gradientColors: isLight ? [
                     AppColors.primaryDarkColor,
                     AppColors.primaryDarkButtonColor,
                   ] : null,
