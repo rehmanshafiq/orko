@@ -82,6 +82,15 @@ class _HomeScreenState extends State<HomeScreen> {
   /// grid clustering so markers re-cluster as the user zooms in/out.
   double _currentZoom = 13.8;
 
+  /// Zoom used when framing stations on first load.
+  static const double _initialZoom = 5.2;
+
+  /// Camera position after the map first frames loaded stations; restored by zoom out.
+  CameraPosition? _initialCameraPosition;
+
+  /// Whether the zoom-out control is visible (user has zoomed in past the initial level).
+  bool _showZoomOutButton = false;
+
   /// Grid cell size (logical px) used to group nearby markers into a cluster.
   static const double _clusterCellSize = 90;
 
@@ -141,14 +150,26 @@ class _HomeScreenState extends State<HomeScreen> {
     final controller = _mapController;
     if (controller == null || _locations.isEmpty) return;
     final first = _locations.first;
-    await controller.animateCamera(
-      CameraUpdate.newCameraPosition(
-        CameraPosition(
-          target: LatLng(first.latitude, first.longitude),
-          zoom: 5.2,
-        ),
-      ),
+    final position = CameraPosition(
+      target: LatLng(first.latitude, first.longitude),
+      zoom: _initialZoom,
     );
+    _initialCameraPosition = position;
+    _currentZoom = _initialZoom;
+    if (_showZoomOutButton) {
+      setState(() => _showZoomOutButton = false);
+    }
+    await controller.animateCamera(CameraUpdate.newCameraPosition(position));
+  }
+
+  double get _baselineZoom => _initialCameraPosition?.zoom ?? 13.8;
+
+  void _onCameraPositionChanged(double zoom) {
+    _currentZoom = zoom;
+    final show = zoom > _baselineZoom + 0.05;
+    if (show != _showZoomOutButton) {
+      setState(() => _showZoomOutButton = show);
+    }
   }
 
   /// Updates [GoogleMap.myLocationEnabled] from current Geolocator permission so
@@ -632,6 +653,17 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  /// Restores the camera to the initial framing used when stations first load.
+  Future<void> _zoomOutToInitial() async {
+    final controller = _mapController;
+    if (controller == null || !mounted) return;
+
+    final position = _initialCameraPosition ??
+        const CameraPosition(target: _center, zoom: 13.8);
+
+    await controller.animateCamera(CameraUpdate.newCameraPosition(position));
+  }
+
   // ── Build ─────────────────────────────────────────────────────────────────
 
   @override
@@ -665,7 +697,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       zoom: 13.8,
                     ),
                     onMapCreated: _onMapCreated,
-                    onCameraMove: (position) => _currentZoom = position.zoom,
+                    onCameraMove: (position) =>
+                        _onCameraPositionChanged(position.zoom),
                     onCameraIdle: _onCameraIdle,
                     compassEnabled: false,
                     mapToolbarEnabled: false,
@@ -706,7 +739,24 @@ class _HomeScreenState extends State<HomeScreen> {
                           alignment: Alignment.bottomRight,
                           child: Padding(
                             padding: const EdgeInsets.only(right: 16, bottom: 16),
-                            child: _buildMyLocationButton(context),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                if (_showZoomOutButton) ...[
+                                  _buildMapControlButton(
+                                    context,
+                                    icon: Icons.zoom_out_map_rounded,
+                                    onTap: _zoomOutToInitial,
+                                  ),
+                                  8.verticalSpace,
+                                ],
+                                _buildMapControlButton(
+                                  context,
+                                  icon: Icons.my_location_rounded,
+                                  onTap: _goToMyLocation,
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
@@ -732,12 +782,16 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // ── Reusable widgets ──────────────────────────────────────────────────────
 
-  Widget _buildMyLocationButton(BuildContext context) {
+  Widget _buildMapControlButton(
+    BuildContext context, {
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
     final ui = AppUiColors.of(context);
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: _goToMyLocation,
+        onTap: onTap,
         borderRadius: BorderRadius.circular(8.r),
         child: Ink(
           height: 52.h,
@@ -750,7 +804,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           child: Icon(
-            Icons.my_location_rounded,
+            icon,
             size: 26,
             color: ui.textPrimary,
           ),
