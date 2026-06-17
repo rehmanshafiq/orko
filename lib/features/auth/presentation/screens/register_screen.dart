@@ -249,8 +249,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         onPress: _onRegister,
                         isEnabled: state is! AuthLoading,
                         buttonHeight: 38.h,
-                        cornerRadius: 32.r,
-                        buttonColor: ui.brandPrimary,
+                        cornerRadius: 24.r,
+                        gradientColors: const [
+                          AppColors.primaryDarkColor,
+                          AppColors.primaryDarkButtonColor,
+                        ],
                         textColor: AppColors.whiteColor,
                         fontSize: FontSizes.font16Sp,
                         fontWeight: FontWeights.weight600,

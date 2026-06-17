@@ -174,8 +174,12 @@ class _OnboardingMobileViewState extends State<OnboardingMobileView>
                             ? PrimaryButtonWidget(
                                 key: const ValueKey('get-started'),
                                 text: 'Get Started',
-                                buttonHeight: 38.h,
-                                buttonColor: ui.brandPrimary,
+                                // buttonHeight: 38.h,
+                                gradientColors: const [
+                                  AppColors.primaryDarkColor,
+                                  AppColors.primaryDarkButtonColor,
+                                ],
+                                cornerRadius: 24.r,
                                 textColor: AppColors.whiteColor,
                                 fontSize: FontSizes.font16Sp,
                                 fontWeight: FontWeights.weight600,

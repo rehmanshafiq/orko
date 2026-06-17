@@ -443,12 +443,15 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
 
     return PrimaryButtonWidget(
       text: 'Apply Filters',
-      subtitle: '$count $suffix found',
+      // subtitle: '$count $suffix found',
       onPress: () => Navigator.of(context).pop(),
       buttonWidth: double.infinity,
-      buttonHeight: 62.h,
-      cornerRadius: 16.r,
-      buttonColor: ui.brandPrimary,
+      // buttonHeight: 62.h,
+      cornerRadius: 24.r,
+      gradientColors: const [
+        AppColors.primaryDarkColor,
+        AppColors.primaryDarkButtonColor,
+      ],
       textColor: AppColors.whiteColor,
       fontSize: FontSizes.font14Sp,
       fontWeight: FontWeights.weight700,

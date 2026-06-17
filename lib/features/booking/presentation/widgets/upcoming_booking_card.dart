@@ -151,11 +151,15 @@ class UpcomingBookingCard extends StatelessWidget {
             leadingIcon: Icons.qr_code_scanner_rounded,
             onPress: onScanQr,
             buttonHeight: 38.h,
-            cornerRadius: 12.r,
+            cornerRadius: 24.r,
+            gradientColors: const [
+              AppColors.primaryDarkColor,
+              AppColors.primaryDarkButtonColor,
+            ],
             fontSize: FontSizes.font14Sp,
             fontWeight: FontWeights.weight700,
           ),
-          12.verticalSpace,
+          16.verticalSpace,
           Row(
             children: [
               Expanded(

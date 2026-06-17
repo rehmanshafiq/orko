@@ -130,8 +130,11 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
                   extra: total.toInt(),
                 ),
                 buttonWidth: double.infinity,
-                cornerRadius: 32.r,
-                buttonColor: ui.brandPrimary,
+                cornerRadius: 24.r,
+                gradientColors: const [
+                  AppColors.primaryDarkColor,
+                  AppColors.primaryDarkButtonColor,
+                ],
                 textColor: AppColors.whiteColor,
                 fontSize: FontSizes.font15Sp,
                 fontWeight: FontWeights.weight700,

@@ -66,8 +66,11 @@ class ChargingStationBottomActionsWidget extends StatelessWidget {
                 onPress: () => context.push('/book-slot', extra: station),
                 buttonWidth: double.infinity,
                 buttonHeight: 38.h,
-                cornerRadius: 32.r,
-                buttonColor: ui.brandPrimary,
+                cornerRadius: 24.r,
+                gradientColors: const [
+                  AppColors.primaryDarkColor,
+                  AppColors.primaryDarkButtonColor,
+                ],
                 textColor: AppColors.whiteColor,
                 fontSize: FontSizes.font14Sp,
                 fontWeight: FontWeights.weight700,
