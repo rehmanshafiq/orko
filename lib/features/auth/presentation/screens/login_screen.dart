@@ -72,9 +72,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    10.verticalSpace,
-                    _buildHeader(ui),
                     26.verticalSpace,
+                    _buildHeader(ui),
+                    24.verticalSpace,
                     _buildPhoneNumberField(ui),
                     14.verticalSpace,
                     _buildPasswordField(ui),
@@ -98,9 +98,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     16.verticalSpace,
                     _buildSignInButton(state, ui),
-                    22.verticalSpace,
+                    20.verticalSpace,
                     _buildContinueWith(ui),
-                    18.verticalSpace,
+                    16.verticalSpace,
                     Row(
                       children: [
                         Expanded(

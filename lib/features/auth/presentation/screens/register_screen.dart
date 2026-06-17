@@ -3,10 +3,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
+import 'package:orko_hubco/core/constants/app_images.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/utils/app_ui.dart';
 import 'package:orko_hubco/core/utils/helpers.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
+import 'package:orko_hubco/core/utils/widgets/image_view/app_image_view.dart';
 import 'package:orko_hubco/core/utils/widgets/primary_button_widget.dart';
 import 'package:orko_hubco/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:orko_hubco/features/auth/presentation/cubit/auth_state.dart';
@@ -69,28 +71,39 @@ class _RegisterScreenState extends State<RegisterScreen> {
         },
         builder: (context, state) {
           return SafeArea(
-            child: SingleChildScrollView(
-              padding: AppUtils.horizontal24Padding,
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    12.verticalSpace,
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: IconButton(
-                        onPressed: () => context.pop(),
-                        padding: AppUtils.zeroPadding,
-                        constraints: const BoxConstraints(),
-                        icon: Icon(
-                          Icons.arrow_back,
-                          color: ui.textPrimary,
-                          size: 24,
-                        ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding: EdgeInsets.only(left: 24.w, top: 4.h, right: 24.w),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: GestureDetector(
+                      onTap: () => context.pop(),
+                      behavior: HitTestBehavior.opaque,
+                      child: Icon(
+                        Icons.arrow_back,
+                        color: ui.textPrimary,
+                        size: 24,
                       ),
                     ),
-                    10.verticalSpace,
+                  ),
+                ),
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: AppUtils.horizontal24Padding.copyWith(top: 4.h),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Center(
+                            child: AppPngImageView(
+                              appImagePath: ui.isLight ? AppImages.hubcoLogoLight : AppImages.hubcoLogo,
+                              width: MediaQuery.sizeOf(context).width * 0.45,
+                            ),
+                          ),
+                          12.verticalSpace,
                     AppText(
                       'Create Account',
                       textAlign: TextAlign.center,
@@ -107,15 +120,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       fontWeight: FontWeights.weight400,
                     ),
                     16.verticalSpace,
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        _buildStepperDot(ui, isActive: true),
-                        8.horizontalSpace,
-                        _buildStepperDot(ui, isActive: false),
-                      ],
-                    ),
-                    24.verticalSpace,
                     _buildField(
                       ui,
                       hintText: 'Full Name',
@@ -123,7 +127,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       validator: (v) => (v == null || v.isEmpty) ? 'Name is required' : null,
                       prefixIcon: const Icon(Icons.person_outline, color: AppColors.hintColor, size: 18),
                     ),
-                    12.verticalSpace,
+                    8.verticalSpace,
                     Row(
                       children: [
                         8.horizontalSpace,
@@ -137,7 +141,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                     8.verticalSpace,
                     _buildPhoneField(ui),
-                    12.verticalSpace,
+                    8.verticalSpace,
                     _buildField(
                       ui,
                       hintText: 'Email Address',
@@ -146,7 +150,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       validator: AppHelpers.validateEmail,
                       prefixIcon: const Icon(Icons.mail_outline, color: AppColors.hintColor, size: 18),
                     ),
-                    12.verticalSpace,
+                    8.verticalSpace,
                     _buildField(
                       ui,
                       hintText: 'Password',
@@ -179,7 +183,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       fontSize: FontSizes.font10Sp,
                       fontWeight: FontWeights.weight500,
                     ),
-                    10.verticalSpace,
+                    8.verticalSpace,
                     _buildField(
                       ui,
                       hintText: 'Confirm Password',
@@ -193,7 +197,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         return null;
                       },
                     ),
-                    20.verticalSpace,
+                    8.verticalSpace,
                     Row(
                       children: [
                         SizedBox(
@@ -232,32 +236,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ],
                     ),
                     18.verticalSpace,
-                    Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12.r),
-                        boxShadow: [
-                          BoxShadow(
-                            color: ui.brandPrimary.withValues(alpha: 0.35),
-                            blurRadius: 14,
-                            spreadRadius: 1,
-                            offset: const Offset(0, 6),
-                          ),
-                        ],
-                      ),
-                      child: PrimaryButtonWidget(
-                        text: state is AuthLoading ? 'Please wait...' : 'Continue',
-                        onPress: _onRegister,
-                        isEnabled: state is! AuthLoading,
-                        buttonHeight: 38.h,
-                        cornerRadius: 24.r,
-                        gradientColors: const [
-                          AppColors.primaryDarkColor,
-                          AppColors.primaryDarkButtonColor,
-                        ],
-                        textColor: AppColors.whiteColor,
-                        fontSize: FontSizes.font16Sp,
-                        fontWeight: FontWeights.weight600,
-                      ),
+                    PrimaryButtonWidget(
+                      text: state is AuthLoading ? 'Please wait...' : 'Continue',
+                      onPress: _onRegister,
+                      isEnabled: state is! AuthLoading,
+                      buttonHeight: 38.h,
+                      cornerRadius: 24.r,
+                      gradientColors: const [
+                        AppColors.primaryDarkColor,
+                        AppColors.primaryDarkButtonColor,
+                      ],
+                      textColor: AppColors.whiteColor,
+                      fontSize: FontSizes.font16Sp,
+                      fontWeight: FontWeights.weight600,
                     ),
                     32.verticalSpace,
                     Row(
@@ -281,25 +272,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ],
                     ),
                     20.verticalSpace,
-                  ],
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
-              ),
+              ],
             ),
           );
         },
-      ),
-    );
-  }
-
-  Widget _buildStepperDot(AppUiColors ui, {required bool isActive}) {
-    return Container(
-      height: 14.h,
-      width: 14.w,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: isActive
-            ? ui.brandPrimary
-            : ui.textSecondary.withValues(alpha: 0.35),
       ),
     );
   }
