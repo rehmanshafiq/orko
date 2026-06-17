@@ -51,7 +51,14 @@ class MapCubit extends Cubit<MapState> {
         return null;
       }
 
-      return await Geolocator.getCurrentPosition();
+      // Never block the loader indefinitely on a cold GPS fix; fall back to the
+      // default location if a position can't be obtained in time.
+      return await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+          timeLimit: Duration(seconds: 10),
+        ),
+      );
     } catch (e) {
       log('[Map] Failed to resolve current position: $e');
       return null;

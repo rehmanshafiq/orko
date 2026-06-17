@@ -174,23 +174,28 @@ class _HomeScreenState extends State<HomeScreen> {
 
   /// Updates [GoogleMap.myLocationEnabled] from current Geolocator permission so
   /// the blue “current location” dot can render.
+  ///
+  /// This only *checks* permission — it never requests it. [MapCubit] owns the
+  /// single permission request on load; requesting here too races with it and
+  /// throws `PermissionRequestInProgressException`, which can stall the location
+  /// flow on first launch.
   Future<void> _syncMapMyLocationLayer() async {
     if (!mounted) return;
 
-    final serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      if (mounted) setState(() => _mapMyLocationEnabled = false);
-      return;
-    }
+    try {
+      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        if (mounted) setState(() => _mapMyLocationEnabled = false);
+        return;
+      }
 
-    var permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
+      final permission = await Geolocator.checkPermission();
+      final show = permission == LocationPermission.whileInUse ||
+          permission == LocationPermission.always;
+      if (mounted) setState(() => _mapMyLocationEnabled = show);
+    } catch (_) {
+      // Permission still being requested elsewhere; leave the layer as-is.
     }
-
-    final show = permission == LocationPermission.whileInUse ||
-        permission == LocationPermission.always;
-    if (mounted) setState(() => _mapMyLocationEnabled = show);
   }
 
   /// Called by BlocConsumer listener on every [MapLoaded] event.
