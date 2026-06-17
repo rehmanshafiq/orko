@@ -100,6 +100,25 @@ flutter_launcher_icons:
   adaptive_icon_foreground_inset: 0 # logo is pre-sized into the safe zone within the square source
   min_sdk_android: 21 # android min sdk min:16, default 21
 
+# Native launch screen — renders the same HUBCO logo on the OS launch window so it
+# blends seamlessly into SplashMobileView (the only branded/animated splash).
+# Colors mirror AppUiColors.scaffoldBackground (white / #1F2121).
+flutter_native_splash:
+  color: "#000000"
+  color_dark: "#000000"
+  image: assets/images/native_splash_dark.png
+  image_dark: assets/images/native_splash_dark.png
+  android: true
+  ios: true
+  web: false
+  android_12:
+    # Android 12 masks the splash icon to a circle, so use square assets with the
+    # logo padded into the keyline safe zone (~55% width) — keeps it off the edge.
+    image: assets/images/native_splash_android12_dark.png
+    image_dark: assets/images/native_splash_android12_dark.png
+    icon_background_color: "#000000"
+    icon_background_color_dark: "#000000"
+
 flutter:
 
   # The following line ensures that the Material Icons font is
