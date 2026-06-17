@@ -105,7 +105,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       children: [
                         Expanded(
                           child: _SocialButton(
-                              imagePath: 'assets/icons/google_logo.png',
+                            imagePath: 'assets/icons/ic_google.png',
                             text: 'Google',
                             onTap: () {},
                           ),
@@ -113,8 +113,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         14.horizontalSpace,
                         Expanded(
                           child: _SocialButton(
-                            icon: Icons.apple,
-                            text: 'Apple',
+                            icon: Icons.person_outline,
+                            text: 'Guest',
                             onTap: () {},
                           ),
                         ),
@@ -420,10 +420,10 @@ class _SocialButton extends StatelessWidget {
         imagePath != null
             ? AppPngImageView(
                 appImagePath: imagePath!,
-                height: 22.h,
-                width: 22.w,
+                height: 26.h,
+                width: 26.w,
               )
-            : Icon(icon, size: 24.r);
+            : Icon(icon, size: 19.r);
 
     return OutlinedButton.icon(
       onPressed: onTap,
