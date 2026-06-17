@@ -3,7 +3,6 @@ import 'package:get_it/get_it.dart';
 import 'package:orko_hubco/core/network/api_client.dart';
 import 'package:orko_hubco/core/network/network_info.dart';
 import 'package:orko_hubco/core/services/analytics_service.dart';
-import 'package:orko_hubco/core/services/barcode_scanner_service.dart';
 import 'package:orko_hubco/core/services/local_storage_service.dart';
 import 'package:orko_hubco/core/theme/theme_cubit.dart';
 import 'package:orko_hubco/features/auth/di/auth_injection.dart';
@@ -30,8 +29,6 @@ Future<void> initDependencies() async {
   sl.registerSingleton<ThemeCubit>(
     await ThemeCubit.create(localStorageService: sl()),
   );
-
-  await BarcodeScannerService.initialize();
 
   // ── Features ──────────────────────────────────────────────────────────
 

@@ -178,7 +178,7 @@ Future<void> _scanBookingQrCode(
   BuildContext context,
   UpcomingBooking booking,
 ) async {
-  final result = await BarcodeScannerService.scanBookingQrCode();
+  final result = await BarcodeScannerService.scanBookingQrCode(context);
   if (!context.mounted) return;
 
   switch (result) {
