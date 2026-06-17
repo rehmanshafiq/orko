@@ -10,6 +10,9 @@ class HubcoLocationModel extends HubcoLocationEntity {
     required super.status,
     super.distance,
     super.iconUrl,
+    super.numberOfConnectors,
+    super.availableConnectors,
+    super.prices,
   });
 
   /// Parses the bundled-asset / flat shape (`hubco_locations.json`).
@@ -40,6 +43,31 @@ class HubcoLocationModel extends HubcoLocationEntity {
       status: json['status'] == true,
       distance: (json['distance'] as num?)?.toDouble() ?? 0,
       iconUrl: (json['icon_with_background'] ?? '').toString(),
+      numberOfConnectors: _asInt(json['number_of_connectors']),
+      availableConnectors: _asInt(json['available_connectors']),
+      prices: _asList(json['prices']).map(_priceFromJson).toList(growable: false),
     );
+  }
+
+  static StationPriceEntity _priceFromJson(Map<String, dynamic> json) {
+    return StationPriceEntity(
+      pricingMode: (json['pricing_mode'] ?? '').toString(),
+      currency: (json['currency'] ?? '').toString(),
+      price: (json['price'] as num?)?.toDouble() ?? 0,
+    );
+  }
+
+  static List<Map<String, dynamic>> _asList(dynamic value) {
+    if (value is! List) return const [];
+    return value
+        .whereType<Map>()
+        .map((e) => Map<String, dynamic>.from(e))
+        .toList(growable: false);
+  }
+
+  static int _asInt(dynamic value) {
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    return int.tryParse('$value') ?? 0;
   }
 }

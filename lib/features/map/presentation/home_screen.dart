@@ -72,8 +72,6 @@ class _HomeScreenState extends State<HomeScreen> {
   Set<Marker> _markers = const <Marker>{};
   List<HubcoLocationEntity> _locations = const [];
 
-  static const int _portsPerMarker = 5;
-
   final Map<_ChargingStationMarkerKind, BitmapDescriptor> _chargingStationIcons =
       {};
 
@@ -368,11 +366,6 @@ class _HomeScreenState extends State<HomeScreen> {
     final pngData = await tintedImage.toByteData(format: ui.ImageByteFormat.png);
     tintedImage.dispose();
     return pngData?.buffer.asUint8List();
-  }
-
-  int _availablePortsForMarker(HubcoLocationEntity station) {
-    if (!station.status) return 0;
-    return 1 + station.id % _portsPerMarker;
   }
 
   /// Green marker when the station is active (`status: true`), grey otherwise.
@@ -997,13 +990,34 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   String _stationAvailabilityLabel(HubcoLocationEntity station) {
-    final available = _availablePortsForMarker(station);
-    return '$available/$_portsPerMarker Available';
+    final total = station.numberOfConnectors;
+    if (total <= 0) return '—';
+    return '${station.availableConnectors}/$total Available';
   }
 
   String _stationPriceLabel(HubcoLocationEntity station) {
-    final price = 45 + station.id % 35;
-    return 'Rs $price/kWh';
+    if (station.prices.isEmpty) return '—';
+
+    final price = station.prices.first;
+    final amount = price.price == price.price.roundToDouble()
+        ? price.price.toStringAsFixed(0)
+        : price.price.toStringAsFixed(2);
+    final currency = price.currency.trim();
+    final mode = price.pricingMode.trim().toLowerCase();
+
+    final buffer = StringBuffer();
+    if (currency.isNotEmpty) {
+      buffer.write(currency == 'PKR' ? 'Rs' : currency);
+      buffer.write(' ');
+    }
+    buffer.write(amount);
+    if (mode == 'kwh') {
+      buffer.write('/kWh');
+    } else if (mode.isNotEmpty) {
+      buffer.write('/');
+      buffer.write(mode.replaceAll('_', ' '));
+    }
+    return buffer.toString();
   }
 
   Widget _stationCard(BuildContext context, HubcoLocationEntity station) {
@@ -1079,7 +1093,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: AppText(
                       _stationPriceLabel(station),
                       color: ui.textSecondary,
-                      fontSize: FontSizes.font15Sp,
+                      fontSize: FontSizes.font13Sp,
                       fontWeight: FontWeights.weight400,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
