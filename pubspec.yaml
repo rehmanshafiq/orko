@@ -93,11 +93,11 @@ dev_dependencies:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/images/hubco_splash.png"
+  image_path: "assets/images/hubco_launcher.png"
   remove_alpha_ios: true
   adaptive_icon_background: "#000000"
-  adaptive_icon_foreground: "assets/images/hubco_splash.png"
-  adaptive_icon_foreground_inset: 28 # padding so the logo isn't tight to the circle
+  adaptive_icon_foreground: "assets/images/hubco_launcher.png"
+  adaptive_icon_foreground_inset: 0 # logo is pre-sized into the safe zone within the square source
   min_sdk_android: 21 # android min sdk min:16, default 21
 
 flutter:

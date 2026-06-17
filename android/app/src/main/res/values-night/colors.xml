@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Native launch window background in dark mode — matches darkScaffoldBackgroundColor
+         so the OS launch screen blends into SplashMobileView. -->
+    <color name="launch_background">#1F2121</color>
+</resources>
