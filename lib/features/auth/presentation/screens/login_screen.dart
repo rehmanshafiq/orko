@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
+import 'package:orko_hubco/core/constants/app_images.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/utils/helpers.dart';
 import 'package:orko_hubco/core/utils/app_ui.dart';
@@ -71,9 +72,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    50.verticalSpace,
+                    10.verticalSpace,
                     _buildHeader(ui),
-                    30.verticalSpace,
+                    26.verticalSpace,
                     _buildPhoneNumberField(ui),
                     14.verticalSpace,
                     _buildPasswordField(ui),
@@ -95,9 +96,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                     ),
-                    20.verticalSpace,
+                    16.verticalSpace,
                     _buildSignInButton(state, ui),
-                    28.verticalSpace,
+                    22.verticalSpace,
                     _buildContinueWith(ui),
                     18.verticalSpace,
                     Row(
@@ -119,7 +120,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ],
                     ),
-                    60.verticalSpace,
+                    30.verticalSpace,
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -152,61 +153,13 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Widget _buildHeader(AppUiColors ui) {
+    final logoWidth = MediaQuery.sizeOf(context).width * 0.45;
+
     return Column(
       children: [
-        SizedBox(
-          height: 56,
-          width: 56,
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              Container(
-                height: 20,
-                width: 20,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: RadialGradient(
-                    colors: [
-                      ui.brandPrimary.withValues(alpha: 0.28),
-                      ui.brandPrimary.withValues(alpha: 0.02),
-                    ],
-                  ),
-                ),
-              ),
-              Container(
-                height: 20,
-                width: 20,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: ui.brandPrimary.withValues(alpha: 0.45),
-                      blurRadius: 22,
-                      spreadRadius: 3,
-                    ),
-                  ],
-                ),
-              ),
-              Icon(
-                Icons.bolt,
-                color: ui.brandPrimary,
-                size: 42,
-              ),
-            ],
-          ),
-        ),
-        2.verticalSpace,
-        AppText(
-          'HGL',
-          color: ui.textPrimary,
-          fontSize: FontSizes.font24Sp,
-          fontWeight: FontWeights.weight400,
-        ),
-        AppText(
-          'HUBCO Green Limited',
-          color: ui.textMuted,
-          fontSize: FontSizes.font4Sp,
-          fontWeight: FontWeights.weight400,
+        AppPngImageView(
+          appImagePath: ui.isLight ? AppImages.hubcoLogoLight : AppImages.hubcoLogo,
+          width: logoWidth,
         ),
         20.verticalSpace,
         AppText(
@@ -476,9 +429,7 @@ class _SocialButton extends StatelessWidget {
       onPressed: onTap,
       style: OutlinedButton.styleFrom(
         foregroundColor: ui.textPrimary,
-        side: BorderSide(
-          color: ui.isLight ? ui.inputBorder : ui.brandPrimary,
-        ),
+        side: BorderSide(color: ui.inputBorder),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
       ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:orko_hubco/core/constants/app_colors.dart';
 
 /// Common helper methods used across the app.
 class AppHelpers {
@@ -9,7 +10,7 @@ class AppHelpers {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: isError ? Colors.red.shade700 : Colors.green.shade700,
+        backgroundColor: isError ? AppColors.removeColor : Colors.green.shade700,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         margin: const EdgeInsets.all(16),
