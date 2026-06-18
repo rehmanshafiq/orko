@@ -174,7 +174,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   child: Align(
                     alignment: Alignment.centerLeft,
                     child: GestureDetector(
-                      onTap: () => context.pop(),
+                      onTap: () =>
+                          context.canPop() ? context.pop() : context.go('/login'),
                       behavior: HitTestBehavior.opaque,
                       child: Icon(
                         Icons.arrow_back,

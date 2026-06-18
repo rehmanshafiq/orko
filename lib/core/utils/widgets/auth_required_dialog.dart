@@ -76,7 +76,7 @@ class _AuthRequiredDialogBody extends StatelessWidget {
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: ui.brandPrimary.withValues(alpha: 0.12),
+                  border: Border.all(color: ui.brandPrimary)
                 ),
                 child: Icon(
                   Icons.lock_outline_rounded,
