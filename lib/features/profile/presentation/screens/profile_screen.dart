@@ -17,6 +17,7 @@ import 'package:orko_hubco/core/utils/widgets/gradient_switch.dart';
 import 'package:orko_hubco/core/utils/widgets/primary_button_widget.dart';
 import 'package:orko_hubco/features/auth/data/models/user_model.dart';
 import 'package:orko_hubco/features/auth/presentation/cubit/auth_cubit.dart';
+import 'package:orko_hubco/features/auth/presentation/cubit/auth_state.dart';
 import 'package:orko_hubco/features/profile/domain/entities/profile_entity.dart';
 import 'package:orko_hubco/features/profile/presentation/cubit/profile_cubit.dart';
 import 'package:orko_hubco/features/profile/presentation/cubit/profile_state.dart';
@@ -99,25 +100,30 @@ class ProfileScreen extends StatelessWidget {
                             _SettingsTabBody(state: state),
                           24.verticalSpace,
                           Center(
-                            child: TextButton(
-                              onPressed: () async {
-                                await context.read<AuthCubit>().logout();
-                                // logout() clears the auth cache (tokens, cached
-                                // user, login flags). Also drop this user's
-                                // vehicle data, but keep app-level settings
-                                // (theme, onboarding, language…) intact.
-                                final storage = sl<LocalStorageService>();
-                                await storage.remove(StorageConstants.vehicles);
-                                await storage.remove(
-                                    StorageConstants.vehiclesInitialized);
-                                if (context.mounted) context.go('/login');
+                            child: BlocBuilder<AuthCubit, AuthState>(
+                              builder: (context, authState) {
+                                final isLoggingOut = authState is AuthLoading;
+                                return TextButton(
+                                  onPressed: isLoggingOut
+                                      ? null
+                                      : () => _onSignOut(context),
+                                  child: isLoggingOut
+                                      ? SizedBox(
+                                          height: 18.r,
+                                          width: 18.r,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            color: AppColors.removeColor,
+                                          ),
+                                        )
+                                      : AppText(
+                                          'Sign out',
+                                          color: AppColors.removeColor,
+                                          fontSize: FontSizes.font14Sp,
+                                          fontWeight: FontWeights.weight600,
+                                        ),
+                                );
                               },
-                              child: AppText(
-                                'Sign out',
-                                color: AppColors.removeColor,
-                                fontSize: FontSizes.font14Sp,
-                                fontWeight: FontWeights.weight600,
-                              ),
                             ),
                           ),
                           16.verticalSpace,
@@ -141,6 +147,48 @@ class ProfileScreen extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Handles the Sign out action.
+///
+/// For guests there is no server session, so the logout API is skipped — we
+/// just clear local user data and return to login. For authenticated users we
+/// call the logout API first and only clear/navigate on success; a failure
+/// surfaces a snackbar and leaves the user signed in.
+Future<void> _onSignOut(BuildContext context) async {
+  final storage = sl<LocalStorageService>();
+
+  if (storage.isGuest) {
+    await storage.setGuest(false);
+    await _clearUserData(storage);
+    if (context.mounted) context.go('/login');
+    return;
+  }
+
+  final authCubit = context.read<AuthCubit>();
+  await authCubit.logout();
+  if (!context.mounted) return;
+
+  if (authCubit.state is AuthError) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text((authCubit.state as AuthError).message),
+        backgroundColor: AppColors.removeColor,
+      ),
+    );
+    return;
+  }
+
+  // API succeeded — clear user-specific data and navigate. App-level settings
+  // (theme, onboarding, language) are left intact.
+  await _clearUserData(storage);
+  if (context.mounted) context.go('/login');
+}
+
+/// Removes this user's vehicle data while keeping app-level settings intact.
+Future<void> _clearUserData(LocalStorageService storage) async {
+  await storage.remove(StorageConstants.vehicles);
+  await storage.remove(StorageConstants.vehiclesInitialized);
 }
 
 /// Reads the persisted logged-in user from local storage. Returns `null` when

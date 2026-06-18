@@ -118,6 +118,7 @@ class ApiEndpoints extends Equatable {
     required this.verifyOtp,
     required this.loginApi,
     required this.loginWithGoogle,
+    required this.logoutApi,
   });
 
   final String chargingStationMap;
@@ -126,6 +127,7 @@ class ApiEndpoints extends Equatable {
   final String verifyOtp;
   final String loginApi;
   final String loginWithGoogle;
+  final String logoutApi;
 
   factory ApiEndpoints.fromJson(Map<String, dynamic> json) {
     return ApiEndpoints(
@@ -135,6 +137,7 @@ class ApiEndpoints extends Equatable {
       verifyOtp: json['verify_otp'] as String? ?? '',
       loginApi: json['login_api'] as String? ?? '',
       loginWithGoogle: json['login_with_google'] as String? ?? '',
+      logoutApi: json['logout_api'] as String? ?? '',
     );
   }
 
@@ -146,6 +149,7 @@ class ApiEndpoints extends Equatable {
       'verify_otp': verifyOtp,
       'login_api': loginApi,
       'login_with_google': loginWithGoogle,
+      'logout_api': logoutApi,
     };
   }
 
@@ -156,6 +160,7 @@ class ApiEndpoints extends Equatable {
     String? verifyOtp,
     String? loginApi,
     String? loginWithGoogle,
+    String? logoutApi,
   }) {
     return ApiEndpoints(
       chargingStationMap: chargingStationMap ?? this.chargingStationMap,
@@ -164,6 +169,7 @@ class ApiEndpoints extends Equatable {
       verifyOtp: verifyOtp ?? this.verifyOtp,
       loginApi: loginApi ?? this.loginApi,
       loginWithGoogle: loginWithGoogle ?? this.loginWithGoogle,
+      logoutApi: logoutApi ?? this.logoutApi,
     );
   }
 
@@ -175,5 +181,6 @@ class ApiEndpoints extends Equatable {
     verifyOtp,
     loginApi,
     loginWithGoogle,
+    logoutApi,
   ];
 }

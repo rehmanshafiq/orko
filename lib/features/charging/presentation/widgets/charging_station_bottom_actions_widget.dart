@@ -14,11 +14,13 @@ class ChargingStationBottomActionsWidget extends StatelessWidget {
     required this.station,
     required this.latitude,
     required this.longitude,
+    this.isEnabled = true,
   });
 
   final HubcoLocationEntity station;
   final double latitude;
   final double longitude;
+  final bool isEnabled;
 
   @override
   Widget build(BuildContext context) {
@@ -33,11 +35,13 @@ class ChargingStationBottomActionsWidget extends StatelessWidget {
               child: SizedBox(
                 height: 38.h,
                 child: OutlinedButton(
-                  onPressed: () => _openDirections(context),
+                  onPressed: isEnabled ? () => _openDirections(context) : null,
                   style: OutlinedButton.styleFrom(
                     foregroundColor: ui.textPrimary,
                     side: BorderSide(
-                      color: ui.textPrimary.withValues(alpha: 0.85),
+                      color: ui.textPrimary.withValues(
+                        alpha: isEnabled ? 0.85 : 0.35,
+                      ),
                     ),
                     padding: EdgeInsets.symmetric(horizontal: 12.w),
                     minimumSize: Size.zero,
@@ -69,6 +73,7 @@ class ChargingStationBottomActionsWidget extends StatelessWidget {
                 leadingIcon: Icons.calendar_today_outlined,
                 iconHeight: 18.sp,
                 onPress: () => context.push('/book-slot', extra: station),
+                isEnabled: isEnabled,
                 buttonWidth: double.infinity,
                 buttonHeight: 38.h,
                 cornerRadius: 24.r,

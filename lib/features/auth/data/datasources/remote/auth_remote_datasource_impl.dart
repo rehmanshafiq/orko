@@ -289,8 +289,45 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   @override
   Future<void> logout() async {
     try {
-      await apiClient.post(ApiConstants.logout);
+      final config = RemoteConfigService.config;
+      if (config == null) {
+        throw const ServerException(message: 'Remote config not initialized');
+      }
+
+      final endpoint = config.apiConstants.apiEndpoints.logoutApi;
+      if (endpoint.trim().isEmpty) {
+        throw const ServerException(
+          message: 'Logout is not available right now',
+        );
+      }
+
+      final url = _buildUrl(config.apiConstants.baseUrlQa, endpoint);
+      log('[Auth] Logout URL: $url');
+
+      final response = await apiClient.get(url);
+
+      final data = response.data;
+      final isOk = response.statusCode == 200 &&
+          (data is! Map || data['status'] == null || data['status'] == 200);
+      if (isOk) return;
+
+      throw ServerException(
+        message: (data is Map && data['message'] != null)
+            ? data['message'].toString()
+            : 'Logout failed',
+        statusCode: response.statusCode,
+      );
+    } on DioException catch (e) {
+      final data = e.response?.data;
+      throw ServerException(
+        message: (data is Map && data['message'] != null)
+            ? data['message'].toString()
+            : (e.message ?? 'Logout failed'),
+        statusCode: e.response?.statusCode,
+        originalError: e,
+      );
     } catch (e) {
+      if (e is ServerException) rethrow;
       throw ServerException(message: e.toString(), originalError: e);
     }
   }
