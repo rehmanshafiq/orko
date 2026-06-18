@@ -74,6 +74,7 @@ dependencies:
   pdf: ^3.12.0
   printing: ^5.14.3
   mobile_scanner: ^7.0.0
+  google_sign_in: ^6.2.2
 
 dev_dependencies:
   flutter_test:

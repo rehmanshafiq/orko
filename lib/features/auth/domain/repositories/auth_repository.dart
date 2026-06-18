@@ -15,6 +15,14 @@ abstract class AuthRepository {
     required String password,
   });
 
+  /// Authenticates with a Google account via the `login_with_google` endpoint.
+  /// Sends `{ name, email }`, persists the issued access token + user, and
+  /// returns the [SignUpResultEntity] on success or a [Failure] on error.
+  Future<Either<Failure, SignUpResultEntity>> loginWithGoogle({
+    required String name,
+    required String email,
+  });
+
   /// Registers a new user.
   Future<Either<Failure, UserEntity>> register({
     required String name,

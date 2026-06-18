@@ -12,6 +12,14 @@ abstract class AuthRemoteDataSource {
     required String password,
   });
 
+  /// Calls the Google sign-in API (`login_with_google` endpoint from Remote
+  /// Config) with `{ name, email }`. Returns the access token and user.
+  /// Throws [ServerException] on failure.
+  Future<SignUpResultModel> loginWithGoogle({
+    required String name,
+    required String email,
+  });
+
   /// Calls the register API.
   /// Throws [ServerException] on failure.
   Future<UserModel> register({

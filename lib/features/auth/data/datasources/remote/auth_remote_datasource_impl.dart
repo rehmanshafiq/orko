@@ -76,6 +76,61 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   }
 
   @override
+  Future<SignUpResultModel> loginWithGoogle({
+    required String name,
+    required String email,
+  }) async {
+    try {
+      final config = RemoteConfigService.config;
+      if (config == null) {
+        throw const ServerException(message: 'Remote config not initialized');
+      }
+
+      final endpoint = config.apiConstants.apiEndpoints.loginWithGoogle;
+      if (endpoint.trim().isEmpty) {
+        throw const ServerException(
+          message: 'Google sign-in is not available right now',
+        );
+      }
+
+      final url = _buildUrl(config.apiConstants.baseUrlQa, endpoint);
+      log('[Auth] Login-with-google URL: $url');
+
+      final response = await apiClient.post(
+        url,
+        data: {'name': name, 'email': email},
+      );
+
+      final data = response.data;
+      if (response.statusCode == 200 && data is Map<String, dynamic>) {
+        final body = data['body'];
+        if (body is Map) {
+          return SignUpResultModel.fromJson(Map<String, dynamic>.from(body));
+        }
+      }
+
+      throw ServerException(
+        message: (data is Map<String, dynamic> && data['message'] != null)
+            ? data['message'].toString()
+            : 'Google sign-in failed',
+        statusCode: response.statusCode,
+      );
+    } on DioException catch (e) {
+      final data = e.response?.data;
+      throw ServerException(
+        message: (data is Map && data['message'] != null)
+            ? data['message'].toString()
+            : (e.message ?? 'Google sign-in failed'),
+        statusCode: e.response?.statusCode,
+        originalError: e,
+      );
+    } catch (e) {
+      if (e is ServerException) rethrow;
+      throw ServerException(message: e.toString(), originalError: e);
+    }
+  }
+
+  @override
   Future<UserModel> register({
     required String name,
     required String email,

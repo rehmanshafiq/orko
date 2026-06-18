@@ -1,6 +1,8 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:orko_hubco/core/services/google_auth_service.dart';
 import 'package:orko_hubco/core/usecase/usecase.dart';
 import 'package:orko_hubco/features/auth/domain/usecases/login_usecase.dart';
+import 'package:orko_hubco/features/auth/domain/usecases/login_with_google_usecase.dart';
 import 'package:orko_hubco/features/auth/domain/usecases/register_usecase.dart';
 import 'package:orko_hubco/features/auth/domain/usecases/signup_usecase.dart';
 import 'package:orko_hubco/features/auth/domain/usecases/verify_otp_usecase.dart';
@@ -12,22 +14,28 @@ import '../../domain/usecases/logout_usecase.dart';
 /// Depends only on use cases (domain layer), never on data layer directly.
 class AuthCubit extends Cubit<AuthState> {
   final LoginUseCase _loginUseCase;
+  final LoginWithGoogleUseCase _loginWithGoogleUseCase;
   final RegisterUseCase _registerUseCase;
   final SignUpUseCase _signUpUseCase;
   final VerifyOtpUseCase _verifyOtpUseCase;
   final LogoutUseCase _logoutUseCase;
+  final GoogleAuthService _googleAuthService;
 
   AuthCubit({
     required LoginUseCase loginUseCase,
+    required LoginWithGoogleUseCase loginWithGoogleUseCase,
     required RegisterUseCase registerUseCase,
     required SignUpUseCase signUpUseCase,
     required VerifyOtpUseCase verifyOtpUseCase,
     required LogoutUseCase logoutUseCase,
+    required GoogleAuthService googleAuthService,
   })  : _loginUseCase = loginUseCase,
+        _loginWithGoogleUseCase = loginWithGoogleUseCase,
         _registerUseCase = registerUseCase,
         _signUpUseCase = signUpUseCase,
         _verifyOtpUseCase = verifyOtpUseCase,
         _logoutUseCase = logoutUseCase,
+        _googleAuthService = googleAuthService,
         super(const AuthInitial());
 
   /// Performs login via the `login_api` endpoint. On success the access token +
@@ -45,6 +53,38 @@ class AuthCubit extends Cubit<AuthState> {
         countryCode: countryCode,
         password: password,
       ),
+    );
+
+    result.fold(
+      (failure) => emit(AuthError(failure.message)),
+      (loginResult) => emit(AuthAuthenticated(loginResult.user)),
+    );
+  }
+
+  /// Signs in with Google: launches the native account picker, then exchanges
+  /// the account's name + email for a session via `login_with_google`. On
+  /// success the access token + user are persisted and [AuthAuthenticated] is
+  /// emitted. If the user dismisses the picker, returns silently to
+  /// [AuthInitial] without surfacing an error.
+  Future<void> loginWithGoogle() async {
+    emit(const AuthLoading());
+
+    final GoogleAccountInfo? account;
+    try {
+      account = await _googleAuthService.signIn();
+    } catch (_) {
+      emit(const AuthError('Google sign-in failed. Please try again.'));
+      return;
+    }
+
+    if (account == null) {
+      // User cancelled the picker — no error, just reset.
+      emit(const AuthInitial());
+      return;
+    }
+
+    final result = await _loginWithGoogleUseCase(
+      LoginWithGoogleParams(name: account.name, email: account.email),
     );
 
     result.fold(

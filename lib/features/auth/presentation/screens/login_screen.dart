@@ -62,6 +62,14 @@ class _LoginScreenState extends State<LoginScreen> {
     return null;
   }
 
+  /// Starts the Google sign-in flow. The cubit drives the rest: success emits
+  /// [AuthAuthenticated] (handled by the listener → `/home`); cancellation
+  /// resets silently; failures surface a snackbar via [AuthError].
+  void _onGoogleLogin() {
+    FocusScope.of(context).unfocus();
+    context.read<AuthCubit>().loginWithGoogle();
+  }
+
   /// Enters the app as a guest. Guests can browse but not book; the guest flag
   /// is cleared automatically once they log in or sign up.
   Future<void> _onContinueAsGuest() async {
@@ -128,7 +136,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           child: _SocialButton(
                             imagePath: 'assets/icons/ic_google.png',
                             text: 'Google',
-                            onTap: () {},
+                            isLoading: state is AuthLoading,
+                            enabled: state is! AuthLoading,
+                            onTap: _onGoogleLogin,
                           ),
                         ),
                         14.horizontalSpace,
@@ -136,6 +146,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           child: _SocialButton(
                             icon: Icons.person_outline,
                             text: 'Guest',
+                            enabled: state is! AuthLoading,
                             onTap: _onContinueAsGuest,
                           ),
                         ),
@@ -427,19 +438,31 @@ class _SocialButton extends StatelessWidget {
   final String? imagePath;
   final String text;
   final VoidCallback onTap;
+  final bool isLoading;
+  final bool enabled;
 
   const _SocialButton({
     this.icon,
     this.imagePath,
     required this.text,
     required this.onTap,
+    this.isLoading = false,
+    this.enabled = true,
   }) : assert(icon != null || imagePath != null, 'Provide icon or imagePath');
 
   @override
   Widget build(BuildContext context) {
     final ui = AppUiColors.of(context);
-    final Widget leadingIcon =
-        imagePath != null
+    final Widget leadingIcon = isLoading
+        ? SizedBox(
+            height: 19.r,
+            width: 19.r,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: ui.brandPrimary,
+            ),
+          )
+        : imagePath != null
             ? AppPngImageView(
                 appImagePath: imagePath!,
                 height: 26.h,
@@ -448,7 +471,7 @@ class _SocialButton extends StatelessWidget {
             : Icon(icon, size: 19.r);
 
     return OutlinedButton.icon(
-      onPressed: onTap,
+      onPressed: enabled ? onTap : null,
       style: OutlinedButton.styleFrom(
         foregroundColor: ui.textPrimary,
         side: BorderSide(color: ui.inputBorder),

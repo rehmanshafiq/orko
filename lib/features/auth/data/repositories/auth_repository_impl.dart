@@ -57,6 +57,37 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<Either<Failure, SignUpResultEntity>> loginWithGoogle({
+    required String name,
+    required String email,
+  }) async {
+    if (!await networkInfo.isConnected) {
+      return const Left(NetworkFailure());
+    }
+
+    try {
+      final result = await remoteDataSource.loginWithGoogle(
+        name: name,
+        email: email,
+      );
+
+      // Persist the issued access token + user locally (same as login).
+      if (result.accessToken.isNotEmpty) {
+        await localDataSource.cacheTokens(accessToken: result.accessToken);
+      }
+      await localDataSource.cacheUser(result.user as UserModel);
+
+      return Right(result);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
+    } on UnauthorizedException catch (e) {
+      return Left(UnauthorizedFailure(message: e.message));
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
+    }
+  }
+
+  @override
   Future<Either<Failure, UserEntity>> register({
     required String name,
     required String email,

@@ -14,7 +14,8 @@ import 'package:equatable/equatable.dart';
 ///       "charging_station_detail": "api/v1/charging-station/",
 ///       "sign_up_form": "api/v1/orko-auth/complete-signup",
 ///       "verify_otp": "api/v1/orko-auth/verify-otp",
-///       "login_api": "api/v1/orko-auth/login-with-password"
+///       "login_api": "api/v1/orko-auth/login-with-password",
+///       "login_with_google": "api/v1/orko-auth/login-with-google"
 ///     }
 ///   }
 /// }
@@ -116,6 +117,7 @@ class ApiEndpoints extends Equatable {
     required this.signUpForm,
     required this.verifyOtp,
     required this.loginApi,
+    required this.loginWithGoogle,
   });
 
   final String chargingStationMap;
@@ -123,6 +125,7 @@ class ApiEndpoints extends Equatable {
   final String signUpForm;
   final String verifyOtp;
   final String loginApi;
+  final String loginWithGoogle;
 
   factory ApiEndpoints.fromJson(Map<String, dynamic> json) {
     return ApiEndpoints(
@@ -131,6 +134,7 @@ class ApiEndpoints extends Equatable {
       signUpForm: json['sign_up_form'] as String? ?? '',
       verifyOtp: json['verify_otp'] as String? ?? '',
       loginApi: json['login_api'] as String? ?? '',
+      loginWithGoogle: json['login_with_google'] as String? ?? '',
     );
   }
 
@@ -141,6 +145,7 @@ class ApiEndpoints extends Equatable {
       'sign_up_form': signUpForm,
       'verify_otp': verifyOtp,
       'login_api': loginApi,
+      'login_with_google': loginWithGoogle,
     };
   }
 
@@ -150,6 +155,7 @@ class ApiEndpoints extends Equatable {
     String? signUpForm,
     String? verifyOtp,
     String? loginApi,
+    String? loginWithGoogle,
   }) {
     return ApiEndpoints(
       chargingStationMap: chargingStationMap ?? this.chargingStationMap,
@@ -157,6 +163,7 @@ class ApiEndpoints extends Equatable {
       signUpForm: signUpForm ?? this.signUpForm,
       verifyOtp: verifyOtp ?? this.verifyOtp,
       loginApi: loginApi ?? this.loginApi,
+      loginWithGoogle: loginWithGoogle ?? this.loginWithGoogle,
     );
   }
 
@@ -167,5 +174,6 @@ class ApiEndpoints extends Equatable {
     signUpForm,
     verifyOtp,
     loginApi,
+    loginWithGoogle,
   ];
 }
