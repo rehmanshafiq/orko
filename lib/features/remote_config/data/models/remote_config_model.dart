@@ -11,7 +11,8 @@ import 'package:equatable/equatable.dart';
 ///     "domain": "Hubco",
 ///     "api_endpoints": {
 ///       "charging_station_map": "api/v1/charging-station/nearest?",
-///       "charging_station_detail": "api/v1/charging-station/"
+///       "charging_station_detail": "api/v1/charging-station/",
+///       "sign_up_form": "api/v1/orko-auth/complete-signup"
 ///     }
 ///   }
 /// }
@@ -110,15 +111,21 @@ class ApiEndpoints extends Equatable {
   const ApiEndpoints({
     required this.chargingStationMap,
     required this.chargingStationDetail,
+    required this.signUpForm,
+    required this.verifyOtp,
   });
 
   final String chargingStationMap;
   final String chargingStationDetail;
+  final String signUpForm;
+  final String verifyOtp;
 
   factory ApiEndpoints.fromJson(Map<String, dynamic> json) {
     return ApiEndpoints(
       chargingStationMap: json['charging_station_map'] as String? ?? '',
       chargingStationDetail: json['charging_station_detail'] as String? ?? '',
+      signUpForm: json['sign_up_form'] as String? ?? '',
+      verifyOtp: json['verify_otp'] as String? ?? '',
     );
   }
 
@@ -126,19 +133,30 @@ class ApiEndpoints extends Equatable {
     return {
       'charging_station_map': chargingStationMap,
       'charging_station_detail': chargingStationDetail,
+      'sign_up_form': signUpForm,
+      'verify_otp': verifyOtp,
     };
   }
 
   ApiEndpoints copyWith({
     String? chargingStationMap,
     String? chargingStationDetail,
+    String? signUpForm,
+    String? verifyOtp,
   }) {
     return ApiEndpoints(
       chargingStationMap: chargingStationMap ?? this.chargingStationMap,
       chargingStationDetail: chargingStationDetail ?? this.chargingStationDetail,
+      signUpForm: signUpForm ?? this.signUpForm,
+      verifyOtp: verifyOtp ?? this.verifyOtp,
     );
   }
 
   @override
-  List<Object?> get props => [chargingStationMap, chargingStationDetail];
+  List<Object?> get props => [
+    chargingStationMap,
+    chargingStationDetail,
+    signUpForm,
+    verifyOtp,
+  ];
 }

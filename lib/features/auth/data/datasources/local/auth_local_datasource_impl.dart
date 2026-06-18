@@ -52,4 +52,7 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
     final token = storageService.accessToken;
     return token != null && token.isNotEmpty;
   }
+
+  @override
+  String? get accessToken => storageService.accessToken;
 }

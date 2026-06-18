@@ -4,6 +4,8 @@ import 'package:orko_hubco/core/network/network_info.dart';
 import 'package:orko_hubco/core/usecase/usecase.dart';
 import 'package:orko_hubco/features/auth/data/datasources/local/auth_local_datasource.dart';
 import 'package:orko_hubco/features/auth/data/datasources/remote/auth_remote_datasource.dart';
+import 'package:orko_hubco/features/auth/data/models/user_model.dart';
+import 'package:orko_hubco/features/auth/domain/entities/signup_result_entity.dart';
 import 'package:orko_hubco/features/auth/domain/entities/user_entity.dart';
 import 'package:orko_hubco/features/auth/domain/repositories/auth_repository.dart';
 
@@ -73,6 +75,70 @@ class AuthRepositoryImpl implements AuthRepository {
       return Right(user);
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, SignUpResultEntity>> signUp({
+    required String name,
+    required String phoneNumber,
+    required String countryCode,
+    required String email,
+    required String password,
+    required String confirmPassword,
+  }) async {
+    if (!await networkInfo.isConnected) {
+      return const Left(NetworkFailure());
+    }
+
+    try {
+      final result = await remoteDataSource.completeSignup(
+        name: name,
+        phoneNumber: phoneNumber,
+        countryCode: countryCode,
+        email: email,
+        password: password,
+        confirmPassword: confirmPassword,
+      );
+
+      // Persist the issued access token + user locally.
+      if (result.accessToken.isNotEmpty) {
+        await localDataSource.cacheTokens(accessToken: result.accessToken);
+      }
+      await localDataSource.cacheUser(result.user as UserModel);
+
+      return Right(result);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
+    } on UnauthorizedException catch (e) {
+      return Left(UnauthorizedFailure(message: e.message));
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> verifyOtp({required String otp}) async {
+    if (!await networkInfo.isConnected) {
+      return const Left(NetworkFailure());
+    }
+
+    final token = localDataSource.accessToken;
+    if (token == null || token.isEmpty) {
+      return const Left(
+        UnauthorizedFailure(message: 'Session expired. Please sign up again.'),
+      );
+    }
+
+    try {
+      await remoteDataSource.verifyOtp(otp: otp, accessToken: token);
+      return const Right(null);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
+    } on UnauthorizedException catch (e) {
+      return Left(UnauthorizedFailure(message: e.message));
     } catch (e) {
       return Left(ServerFailure(message: e.toString()));
     }

@@ -8,6 +8,8 @@ import 'package:orko_hubco/features/auth/domain/repositories/auth_repository.dar
 import 'package:orko_hubco/features/auth/domain/usecases/login_usecase.dart';
 import 'package:orko_hubco/features/auth/domain/usecases/logout_usecase.dart';
 import 'package:orko_hubco/features/auth/domain/usecases/register_usecase.dart';
+import 'package:orko_hubco/features/auth/domain/usecases/signup_usecase.dart';
+import 'package:orko_hubco/features/auth/domain/usecases/verify_otp_usecase.dart';
 import 'package:orko_hubco/features/auth/presentation/cubit/auth_cubit.dart';
 
 /// Registers all Auth feature dependencies.
@@ -32,6 +34,8 @@ void initAuthDependencies() {
   // ── Use Cases ─────────────────────────────────────────────────────────
   sl.registerLazySingleton(() => LoginUseCase(sl()));
   sl.registerLazySingleton(() => RegisterUseCase(sl()));
+  sl.registerLazySingleton(() => SignUpUseCase(sl()));
+  sl.registerLazySingleton(() => VerifyOtpUseCase(sl()));
   sl.registerLazySingleton(() => LogoutUseCase(sl()));
 
   // ── Cubit ─────────────────────────────────────────────────────────────
@@ -39,6 +43,8 @@ void initAuthDependencies() {
     () => AuthCubit(
       loginUseCase: sl(),
       registerUseCase: sl(),
+      signUpUseCase: sl(),
+      verifyOtpUseCase: sl(),
       logoutUseCase: sl(),
     ),
   );

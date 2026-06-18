@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
@@ -23,14 +24,15 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController(text: 'Demo User');
-  final _phoneController = TextEditingController(text: '300 1234567');
-  final _emailController = TextEditingController(text: 'demo@example.com');
-  final _passwordController = TextEditingController(text: 'password123');
-  final _confirmPasswordController = TextEditingController(text: 'password123');
+  final _nameController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
   bool _obscurePassword = true;
-  bool _obscureConfirmPassword = true;
+  final bool _obscureConfirmPassword = true;
   bool _isTermsAccepted = false;
+  AutovalidateMode _autovalidateMode = AutovalidateMode.disabled;
 
   @override
   void dispose() {
@@ -42,18 +44,97 @@ class _RegisterScreenState extends State<RegisterScreen> {
     super.dispose();
   }
 
+  static const String _countryCode = '+92';
+
   void _onRegister() {
-    if (_formKey.currentState?.validate() ?? false) {
-      if (!_isTermsAccepted) {
-        AppHelpers.showSnackBar(context, 'Please accept terms and conditions', isError: true);
-        return;
-      }
-      context.read<AuthCubit>().register(
-            name: _nameController.text.trim(),
-            email: _emailController.text.trim(),
-            password: _passwordController.text,
-          );
+    final isValid = _formKey.currentState?.validate() ?? false;
+    if (!isValid) {
+      // Surface errors live for every field after the first failed attempt.
+      setState(() => _autovalidateMode = AutovalidateMode.onUserInteraction);
+      return;
     }
+    if (!_isTermsAccepted) {
+      AppHelpers.showSnackBar(context, 'Please accept terms and conditions', isError: true);
+      return;
+    }
+    context.read<AuthCubit>().signUp(
+          name: _nameController.text.trim(),
+          phoneNumber: _phoneController.text.trim(),
+          countryCode: _countryCode,
+          email: _emailController.text.trim(),
+          password: _passwordController.text,
+          confirmPassword: _confirmPasswordController.text,
+        );
+  }
+
+  // ── Validators ────────────────────────────────────────────────────────
+
+  String? _validateName(String? value) {
+    final name = value?.trim() ?? '';
+    if (name.isEmpty) return 'Name is required';
+    if (name.length < 2) return 'Name must be at least 2 characters';
+    if (!RegExp(r"^[a-zA-Z][a-zA-Z\s.'-]*$").hasMatch(name)) {
+      return 'Enter a valid name';
+    }
+    return null;
+  }
+
+  String? _validatePhone(String? value) {
+    final digits = (value ?? '').replaceAll(RegExp(r'\D'), '');
+    if (digits.isEmpty) return 'Phone number is required';
+    if (!RegExp(r'^3\d{9}$').hasMatch(digits)) {
+      return 'Enter a valid number, e.g. 3001234567';
+    }
+    return null;
+  }
+
+  String? _validatePassword(String? value) {
+    final password = value ?? '';
+    if (password.isEmpty) return 'Password is required';
+    if (password.length < 8) return 'Password must be at least 8 characters';
+    if (!RegExp(r'[A-Za-z]').hasMatch(password)) {
+      return 'Include at least one letter';
+    }
+    if (!RegExp(r'\d').hasMatch(password)) {
+      return 'Include at least one number';
+    }
+    return null;
+  }
+
+  String? _validateConfirmPassword(String? value) {
+    if (value == null || value.isEmpty) return 'Confirm password is required';
+    if (value != _passwordController.text) return 'Passwords do not match';
+    return null;
+  }
+
+  // ── Password strength ─────────────────────────────────────────────────
+
+  /// Strength on a 0–1 scale derived from length and character variety.
+  double get _passwordStrength {
+    final p = _passwordController.text;
+    if (p.isEmpty) return 0;
+    var score = 0;
+    if (p.length >= 8) score++;
+    if (RegExp(r'[A-Z]').hasMatch(p)) score++;
+    if (RegExp(r'[a-z]').hasMatch(p)) score++;
+    if (RegExp(r'\d').hasMatch(p)) score++;
+    if (RegExp(r'[!@#\$&*~%^()\-_=+]').hasMatch(p)) score++;
+    return score / 5;
+  }
+
+  String get _passwordStrengthLabel {
+    final s = _passwordStrength;
+    if (s == 0) return '';
+    if (s < 0.4) return 'Weak';
+    if (s < 0.8) return 'Medium';
+    return 'Strong';
+  }
+
+  Color _passwordStrengthColor(AppUiColors ui) {
+    final s = _passwordStrength;
+    if (s < 0.4) return AppColors.redColor;
+    if (s < 0.8) return AppColors.ratingStarColor;
+    return ui.brandPrimary;
   }
 
   @override
@@ -63,7 +144,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
       backgroundColor: ui.scaffoldBackground,
       body: BlocConsumer<AuthCubit, AuthState>(
         listener: (context, state) {
-          if (state is AuthAuthenticated) {
+          if (state is SignUpSuccess) {
+            context.push(
+              '/verify-otp',
+              extra: {
+                'phoneNumber':
+                    _phoneController.text.replaceAll(RegExp(r'\s+'), ''),
+                'countryCode': _countryCode,
+              },
+            );
+          } else if (state is AuthAuthenticated) {
             context.go('/home');
           } else if (state is AuthError) {
             AppHelpers.showSnackBar(context, state.message, isError: true);
@@ -94,6 +184,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     padding: AppUtils.horizontal24Padding.copyWith(top: 4.h),
                     child: Form(
                       key: _formKey,
+                      autovalidateMode: _autovalidateMode,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
@@ -124,7 +215,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ui,
                       hintText: 'Full Name',
                       controller: _nameController,
-                      validator: (v) => (v == null || v.isEmpty) ? 'Name is required' : null,
+                      validator: _validateName,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(
+                          RegExp(r"[a-zA-Z\s.'-]"),
+                        ),
+                      ],
                       prefixIcon: const Icon(Icons.person_outline, color: AppColors.hintColor, size: 18),
                     ),
                     8.verticalSpace,
@@ -156,7 +252,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       hintText: 'Password',
                       controller: _passwordController,
                       obscureText: _obscurePassword,
-                      validator: AppHelpers.validatePassword,
+                      validator: _validatePassword,
+                      onChanged: (_) => setState(() {}),
                       suffixIcon: IconButton(
                         onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                         icon: Icon(
@@ -166,23 +263,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                       ),
                     ),
-                    6.verticalSpace,
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(2.r),
-                      child: LinearProgressIndicator(
-                        value: 0.8,
-                        minHeight: 3,
-                        color: ui.brandPrimary,
-                        backgroundColor: ui.progressTrack,
+                    if (_passwordController.text.isNotEmpty) ...[
+                      6.verticalSpace,
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(2.r),
+                        child: LinearProgressIndicator(
+                          value: _passwordStrength,
+                          minHeight: 3,
+                          color: _passwordStrengthColor(ui),
+                          backgroundColor: ui.progressTrack,
+                        ),
                       ),
-                    ),
-                    4.verticalSpace,
-                    AppText(
-                      'Strong',
-                      color: ui.brandPrimary,
-                      fontSize: FontSizes.font10Sp,
-                      fontWeight: FontWeights.weight500,
-                    ),
+                      4.verticalSpace,
+                      AppText(
+                        _passwordStrengthLabel,
+                        color: _passwordStrengthColor(ui),
+                        fontSize: FontSizes.font10Sp,
+                        fontWeight: FontWeights.weight500,
+                      ),
+                    ],
                     8.verticalSpace,
                     _buildField(
                       ui,
@@ -191,11 +290,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       obscureText: _obscureConfirmPassword,
                       textInputAction: TextInputAction.done,
                       onFieldSubmitted: (_) => _onRegister(),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) return 'Confirm password is required';
-                        if (value != _passwordController.text) return 'Passwords do not match';
-                        return null;
-                      },
+                      validator: _validateConfirmPassword,
                     ),
                     8.verticalSpace,
                     Row(
@@ -290,8 +385,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
       controller: _phoneController,
       keyboardType: TextInputType.phone,
       textInputAction: TextInputAction.next,
-      validator: (value) => (value == null || value.trim().isEmpty) ? 'Phone number is required' : null,
-      maxLength: 11,
+      validator: _validatePhone,
+      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+      maxLength: 10,
       style: TextStyle(
         color: ui.textPrimary,
         fontSize: FontSizes.font14Sp,
@@ -361,6 +457,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
     Widget? prefixIcon,
     Widget? suffixIcon,
     ValueChanged<String>? onFieldSubmitted,
+    ValueChanged<String>? onChanged,
+    List<TextInputFormatter>? inputFormatters,
   }) {
     return TextFormField(
       controller: controller,
@@ -369,6 +467,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
       obscureText: obscureText,
       validator: validator,
       onFieldSubmitted: onFieldSubmitted,
+      onChanged: onChanged,
+      inputFormatters: inputFormatters,
       maxLength: 40,
       style: TextStyle(
         color: ui.textPrimary,

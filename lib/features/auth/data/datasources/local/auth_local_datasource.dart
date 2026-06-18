@@ -20,4 +20,7 @@ abstract class AuthLocalDataSource {
 
   /// Checks whether tokens exist.
   bool get hasToken;
+
+  /// The currently saved access token, or `null`/empty when none.
+  String? get accessToken;
 }

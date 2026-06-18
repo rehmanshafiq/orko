@@ -7,6 +7,7 @@ import 'package:orko_hubco/features/auth/data/datasources/local/auth_local_datas
 import 'package:orko_hubco/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:orko_hubco/features/auth/presentation/screens/login_screen.dart';
 import 'package:orko_hubco/features/auth/presentation/screens/register_screen.dart';
+import 'package:orko_hubco/features/auth/presentation/screens/verify_otp_screen.dart';
 import 'package:orko_hubco/features/booking/presentation/pages/book_slot_page.dart';
 import 'package:orko_hubco/features/booking/presentation/pages/booking_confirmation_page.dart';
 import 'package:orko_hubco/features/booking/presentation/pages/my_bookings_page.dart';
@@ -82,6 +83,21 @@ class AppRouter {
           create: (_) => sl<AuthCubit>(),
           child: const RegisterScreen(),
         ),
+      ),
+      GoRoute(
+        path: '/verify-otp',
+        name: 'verify-otp',
+        builder: (context, state) {
+          final extra = state.extra;
+          final args = extra is Map ? extra : const {};
+          return BlocProvider(
+            create: (_) => sl<AuthCubit>(),
+            child: VerifyOtpScreen(
+              phoneNumber: args['phoneNumber']?.toString() ?? '',
+              countryCode: args['countryCode']?.toString() ?? '+92',
+            ),
+          );
+        },
       ),
 
       // Full-screen over shell (map marker → hub detail).

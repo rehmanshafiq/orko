@@ -4,6 +4,8 @@
     "base_url_qa": "https://staging-python.orkofleet.com/",
     "domain": "Hubco",
     "api_endpoints": {
+      "sign_up_form": "api/v1/orko-auth/complete-signup",
+      "verify_otp": "api/v1/orko-auth/verify-otp",
       "charging_station_map": "api/v1/charging-station/nearest?",
       "charging_station_detail": "api/v1/charging-station/"
     }

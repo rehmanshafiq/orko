@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:orko_hubco/features/auth/domain/entities/signup_result_entity.dart';
 import 'package:orko_hubco/features/auth/domain/entities/user_entity.dart';
 
 /// All possible states for the Auth feature.
@@ -32,6 +33,26 @@ class AuthAuthenticated extends AuthState {
 /// Unauthenticated state — no valid session.
 class AuthUnauthenticated extends AuthState {
   const AuthUnauthenticated();
+}
+
+/// Sign-up completed — access token saved locally; proceed to OTP verification.
+class SignUpSuccess extends AuthState {
+  final SignUpResultEntity result;
+
+  const SignUpSuccess(this.result);
+
+  @override
+  List<Object?> get props => [result];
+}
+
+/// OTP verification in progress.
+class OtpVerifying extends AuthState {
+  const OtpVerifying();
+}
+
+/// OTP verified successfully — proceed to the home shell.
+class OtpVerified extends AuthState {
+  const OtpVerified();
 }
 
 /// Error state — something went wrong.
