@@ -1199,6 +1199,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
+                  16.horizontalSpace,
                 ],
               ),
             ],
