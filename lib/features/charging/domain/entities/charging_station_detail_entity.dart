@@ -164,12 +164,21 @@ class StationReviewEntity extends Equatable {
     required this.name,
     required this.text,
     required this.rating,
+    this.createdAt = '',
+    this.profilePicture,
+    this.isCurrentUser = false,
   });
 
   final String name;
+
+  /// Review body (maps to the `description` key from the API).
   final String text;
   final double rating;
+  final String createdAt;
+  final String? profilePicture;
+  final bool isCurrentUser;
 
   @override
-  List<Object?> get props => [name, text, rating];
+  List<Object?> get props =>
+      [name, text, rating, createdAt, profilePicture, isCurrentUser];
 }

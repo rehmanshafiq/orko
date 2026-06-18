@@ -43,6 +43,18 @@ class ChargingStationReviewCardWidget extends StatelessWidget {
                 ),
                 if (i < 4) 2.horizontalSpace,
               ],
+              const Spacer(),
+              if (r.createdAt.isNotEmpty)
+                Flexible(
+                  child: AppText(
+                    r.createdAt,
+                    color: ui.textSecondary,
+                    fontSize: FontSizes.font10Sp,
+                    fontWeight: FontWeights.weight400,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
             ],
           ),
           4.verticalSpace,
@@ -51,14 +63,18 @@ class ChargingStationReviewCardWidget extends StatelessWidget {
               CircleAvatar(
                 radius: 16.r,
                 backgroundColor: ui.innerCardBg,
-                child: Center(
-                  child: AppText(
-                    r.name.isNotEmpty ? r.name[0].toUpperCase() : '?',
-                    color: ui.textPrimary,
-                    fontSize: FontSizes.font12Sp,
-                    fontWeight: FontWeights.weight700,
-                  ),
-                ),
+                backgroundImage:
+                    (r.profilePicture != null && r.profilePicture!.isNotEmpty)
+                        ? NetworkImage(r.profilePicture!)
+                        : null,
+                child: (r.profilePicture == null || r.profilePicture!.isEmpty)
+                    ? AppText(
+                        r.name.isNotEmpty ? r.name[0].toUpperCase() : '?',
+                        color: ui.textPrimary,
+                        fontSize: FontSizes.font12Sp,
+                        fontWeight: FontWeights.weight700,
+                      )
+                    : null,
               ),
               10.horizontalSpace,
               Expanded(
@@ -67,20 +83,23 @@ class ChargingStationReviewCardWidget extends StatelessWidget {
                   color: ui.textPrimary,
                   fontSize: FontSizes.font12Sp,
                   fontWeight: FontWeights.weight600,
-                  maxLines: 2,
+                  maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
           ),
           2.verticalSpace,
-          AppText(
-            r.text,
-            color: ui.textPrimary,
-            fontSize: FontSizes.font10Sp,
-            fontWeight: FontWeights.weight400,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
+          // Review body — the `description` from the API.
+          Expanded(
+            child: AppText(
+              r.text,
+              color: ui.textPrimary,
+              fontSize: FontSizes.font10Sp,
+              fontWeight: FontWeights.weight400,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
         ],
       ),

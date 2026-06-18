@@ -117,9 +117,15 @@ class ChargingStationDetailModel extends ChargingStationDetailEntity {
 
   static StationReviewEntity _reviewFromJson(Map<String, dynamic> json) {
     return StationReviewEntity(
-      name: (json['name'] ?? json['user_name'] ?? '').toString(),
-      text: (json['comment'] ?? json['text'] ?? json['review'] ?? '').toString(),
+      name: (json['customer_name'] ?? json['name'] ?? json['user_name'] ?? '')
+          .toString(),
+      text:
+          (json['description'] ?? json['comment'] ?? json['text'] ?? json['review'] ?? '')
+              .toString(),
       rating: _asDouble(json['rating']),
+      createdAt: (json['created_at'] ?? '').toString(),
+      profilePicture: json['customer_profile_picture']?.toString(),
+      isCurrentUser: json['is_current_user'] == true,
     );
   }
 

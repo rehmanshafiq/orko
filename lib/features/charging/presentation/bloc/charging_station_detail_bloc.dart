@@ -126,7 +126,16 @@ class ChargingStationDetailBloc
 
   List<ReviewModel> _mapReviews(ChargingStationDetailEntity detail) {
     return detail.reviews
-        .map((r) => ReviewModel(name: r.name, text: r.text, rating: r.rating))
+        .map(
+          (r) => ReviewModel(
+            name: r.name,
+            text: r.text,
+            rating: r.rating,
+            createdAt: r.createdAt,
+            profilePicture: r.profilePicture,
+            isCurrentUser: r.isCurrentUser,
+          ),
+        )
         .toList(growable: false);
   }
 
