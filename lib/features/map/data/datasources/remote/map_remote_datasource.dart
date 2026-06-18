@@ -11,6 +11,7 @@ abstract class MapRemoteDataSource {
   Future<List<HubcoLocationModel>> getNearestStations({
     required double latitude,
     required double longitude,
+    double? radius,
   });
 }
 
@@ -23,6 +24,7 @@ class MapRemoteDataSourceImpl implements MapRemoteDataSource {
   Future<List<HubcoLocationModel>> getNearestStations({
     required double latitude,
     required double longitude,
+    double? radius,
   }) async {
     try {
       final config = RemoteConfigService.config;
@@ -36,7 +38,7 @@ class MapRemoteDataSourceImpl implements MapRemoteDataSource {
       );
 
       log('[Map] Nearest stations URL: $url '
-          '(lat: $latitude, long: $longitude)');
+          '(lat: $latitude, long: $longitude, radius: $radius)');
 
       final response = await apiClient.get(
         url,
@@ -44,6 +46,7 @@ class MapRemoteDataSourceImpl implements MapRemoteDataSource {
           'latitude': latitude,
           'longitude': longitude,
           'is_nearest': true,
+          'radius': radius,
         },
       );
 

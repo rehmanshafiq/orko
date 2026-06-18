@@ -16,18 +16,42 @@ class SummaryBottomCard extends StatelessWidget {
     required this.buttonWidth,
     required this.isContinueEnabled,
     required this.onContinueToPayment,
+    this.currency = 'PKR',
+    this.pricePerKwh = 0,
+    this.hasPrice = false,
   });
 
   final AppUiColors ui;
   final int durationHours;
-  final int estimatedCost;
+  final double estimatedCost;
   final int estimatedKwh;
   final double buttonWidth;
   final bool isContinueEnabled;
   final VoidCallback onContinueToPayment;
 
+  /// Tariff currency of the selected connector, e.g. `PKR`.
+  final String currency;
+
+  /// Selected connector's per-kWh rate.
+  final double pricePerKwh;
+
+  /// Whether a priced connector is selected; when false a hint is shown.
+  final bool hasPrice;
+
+  String _money(double value) {
+    final fixed = value.toStringAsFixed(2);
+    // Drop trailing ".00" for whole numbers.
+    return fixed.endsWith('.00') ? fixed.substring(0, fixed.length - 3) : fixed;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final hours = '$durationHours hour${durationHours == 1 ? '' : 's'}';
+    final detail = hasPrice
+        ? '$currency ${_money(estimatedCost)} for $hours '
+            '($estimatedKwh kWh @ $currency ${_money(pricePerKwh)}/kWh)'
+        : 'Select an available connector to see pricing.';
+
     return Container(
       width: double.infinity,
       padding: AppUtils.all12Padding,
@@ -47,7 +71,7 @@ class SummaryBottomCard extends StatelessWidget {
           ),
           6.verticalSpace,
           AppText(
-            'Rs $estimatedCost for $durationHours hour${durationHours == 1 ? '' : 's'} ($estimatedKwh kWh estimated)',
+            detail,
             color: ui.textSecondary,
             fontSize: FontSizes.font12Sp,
             fontWeight: FontWeights.weight400,

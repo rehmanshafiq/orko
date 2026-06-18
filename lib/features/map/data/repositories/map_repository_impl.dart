@@ -21,12 +21,14 @@ class MapRepositoryImpl implements MapRepository {
   Future<Either<Failure, List<HubcoLocationEntity>>> getNearestStations({
     required double latitude,
     required double longitude,
+    double? radius,
   }) async {
     // Primary: remote nearest API.
     try {
       final stations = await remoteDataSource.getNearestStations(
         latitude: latitude,
         longitude: longitude,
+        radius: radius,
       );
       return Right(stations);
     } catch (e) {

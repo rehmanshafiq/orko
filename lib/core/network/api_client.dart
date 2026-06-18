@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:orko_hubco/core/constants/api_constants.dart';
+import 'package:orko_hubco/core/network/interceptors/app_headers_interceptor.dart';
 import 'package:orko_hubco/core/network/interceptors/auth_interceptor.dart';
 import 'package:orko_hubco/core/network/interceptors/logging_interceptor.dart';
 import 'package:orko_hubco/features/remote_config/data/services/remote_config_service.dart';
@@ -27,6 +28,7 @@ class ApiClient {
     );
 
     _dio.interceptors.addAll([
+      AppHeadersInterceptor(),
       AuthInterceptor(),
       LoggingInterceptor(),
     ]);

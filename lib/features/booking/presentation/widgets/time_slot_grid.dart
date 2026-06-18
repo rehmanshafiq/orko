@@ -1,35 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
+import 'package:orko_hubco/features/booking/domain/entities/booking_slot_entity.dart';
 import 'package:orko_hubco/features/booking/presentation/models/slot_style.dart';
 import 'package:orko_hubco/features/booking/presentation/widgets/slot_chip.dart';
 
-/// Mock slot grid: base availability only (three visual styles).
-const List<({String time, SlotStyle style})> kBookingSlotDefinitions = [
-  (time: '08:00', style: SlotStyle.available),
-  (time: '09:00', style: SlotStyle.available),
-  (time: '10:00', style: SlotStyle.available),
-  (time: '11:00', style: SlotStyle.available),
-  (time: '12:00', style: SlotStyle.available),
-  (time: '13:00', style: SlotStyle.available),
-  (time: '14:00', style: SlotStyle.available),
-  (time: '15:00', style: SlotStyle.available),
-  (time: '16:00', style: SlotStyle.available),
-  (time: '17:00', style: SlotStyle.available),
-  (time: '18:00', style: SlotStyle.available),
-];
-
+/// Renders the slots returned by the API. Unavailable slots are greyed out
+/// (non-interactive); the selected slot is highlighted.
 class TimeSlotGrid extends StatelessWidget {
   const TimeSlotGrid({
     super.key,
     required this.ui,
-    required this.selectedTime,
+    required this.slots,
+    required this.selectedStartTime,
     required this.onSlotTap,
   });
 
   final AppUiColors ui;
-  final String? selectedTime;
-  final void Function(String time, SlotStyle style) onSlotTap;
+  final List<BookingSlotEntity> slots;
+  final String? selectedStartTime;
+  final void Function(BookingSlotEntity slot) onSlotTap;
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +34,7 @@ class TimeSlotGrid extends StatelessWidget {
         return GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          itemCount: kBookingSlotDefinitions.length,
+          itemCount: slots.length,
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: crossAxisCount,
             crossAxisSpacing: spacing,
@@ -52,15 +42,16 @@ class TimeSlotGrid extends StatelessWidget {
             childAspectRatio: childAspectRatio,
           ),
           itemBuilder: (context, index) {
-            final s = kBookingSlotDefinitions[index];
-            final isSelected = selectedTime == s.time;
+            final slot = slots[index];
+            final isSelected = slot.isAvailable &&
+                selectedStartTime == slot.startTime;
             return SlotChip(
               ui: ui,
-              time: s.time,
-              style: s.style,
+              time: slot.startTime,
+              style: slot.isAvailable ? SlotStyle.available : SlotStyle.booked,
               width: itemWidth,
               isSelected: isSelected,
-              onTap: () => onSlotTap(s.time, s.style),
+              onTap: () => onSlotTap(slot),
             );
           },
         );

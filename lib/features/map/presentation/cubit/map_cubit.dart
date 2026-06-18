@@ -28,6 +28,7 @@ class MapCubit extends Cubit<MapState> {
       NearestStationsParams(
         latitude: position?.latitude ?? _defaultLatitude,
         longitude: position?.longitude ?? _defaultLongitude,
+        radius: null,
       ),
     );
 

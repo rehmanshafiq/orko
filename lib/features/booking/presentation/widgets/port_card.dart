@@ -13,34 +13,34 @@ class PortCard extends StatelessWidget {
     required this.ui,
     required this.portLabel,
     required this.specs,
+    required this.stateLabel,
     required this.selected,
     required this.onTap,
+    this.enabled = true,
   });
 
   final AppUiColors ui;
   final String portLabel;
   final String specs;
+
+  /// Connector state text, e.g. `Available`, `Preparing`, `Faulted`.
+  final String stateLabel;
   final bool selected;
+
+  /// When false the card is dimmed and non-interactive (connector not bookable).
+  final bool enabled;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final backgroundColor = ui.cardBookingBackground;
     final borderColor = selected ? ui.brandPrimary : ui.borderSubtle;
-    final glow = selected
-        ? [
-            BoxShadow(
-              color: ui.brandPrimary.withValues(alpha: 0.35),
-              blurRadius: 12,
-              spreadRadius: 0,
-            ),
-          ]
-        : <BoxShadow>[];
+    final stateColor = enabled ? ui.brandPrimary : AppColors.slotBusyYellowColor;
 
-    return Material(
+    final card = Material(
       color: AppColors.transparentColor,
       child: InkWell(
-        onTap: onTap,
+        onTap: enabled ? onTap : null,
         borderRadius: BorderRadius.circular(14.r),
         child: Ink(
           width: 148.w,
@@ -49,7 +49,6 @@ class PortCard extends StatelessWidget {
             color: backgroundColor,
             borderRadius: BorderRadius.circular(14.r),
             border: Border.all(color: borderColor, width: selected ? 2 : 1),
-            // boxShadow: glow,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -88,10 +87,10 @@ class PortCard extends StatelessWidget {
               Align(
                 alignment: Alignment.centerLeft,
                 child: AppText(
-                  'Available',
-                  color: ui.textSecondary,
+                  stateLabel,
+                  color: stateColor,
                   fontSize: FontSizes.font10Sp,
-                  fontWeight: FontWeights.weight400,
+                  fontWeight: FontWeights.weight500,
                 ),
               ),
             ],
@@ -99,5 +98,7 @@ class PortCard extends StatelessWidget {
         ),
       ),
     );
+
+    return enabled ? card : Opacity(opacity: 0.55, child: card);
   }
 }

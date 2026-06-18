@@ -119,6 +119,13 @@ class ApiEndpoints extends Equatable {
     required this.loginApi,
     required this.loginWithGoogle,
     required this.logoutApi,
+    required this.chargerDetails,
+    required this.bookingSlots,
+    required this.createBooking,
+    required this.createBookingHgl,
+    required this.myBookings,
+    required this.cancelBooking,
+    required this.rescheduleBooking,
   });
 
   final String chargingStationMap;
@@ -128,6 +135,13 @@ class ApiEndpoints extends Equatable {
   final String loginApi;
   final String loginWithGoogle;
   final String logoutApi;
+  final String chargerDetails;
+  final String bookingSlots;
+  final String createBooking;
+  final String createBookingHgl;
+  final String myBookings;
+  final String cancelBooking;
+  final String rescheduleBooking;
 
   factory ApiEndpoints.fromJson(Map<String, dynamic> json) {
     return ApiEndpoints(
@@ -138,6 +152,13 @@ class ApiEndpoints extends Equatable {
       loginApi: json['login_api'] as String? ?? '',
       loginWithGoogle: json['login_with_google'] as String? ?? '',
       logoutApi: json['logout_api'] as String? ?? '',
+      chargerDetails: json['charger_details'] as String? ?? '',
+      bookingSlots: json['booking_slots'] as String? ?? '',
+      createBooking: json['create_booking'] as String? ?? '',
+      createBookingHgl: json['create_booking_hgl'] as String? ?? '',
+      myBookings: json['my_bookings'] as String? ?? '',
+      cancelBooking: json['cancel_booking'] as String? ?? '',
+      rescheduleBooking: json['reschedule_booking'] as String? ?? '',
     );
   }
 
@@ -150,6 +171,13 @@ class ApiEndpoints extends Equatable {
       'login_api': loginApi,
       'login_with_google': loginWithGoogle,
       'logout_api': logoutApi,
+      'charger_details': chargerDetails,
+      'booking_slots': bookingSlots,
+      'create_booking': createBooking,
+      'create_booking_hgl': createBookingHgl,
+      'my_bookings': myBookings,
+      'cancel_booking': cancelBooking,
+      'reschedule_booking': rescheduleBooking,
     };
   }
 
@@ -161,6 +189,13 @@ class ApiEndpoints extends Equatable {
     String? loginApi,
     String? loginWithGoogle,
     String? logoutApi,
+    String? chargerDetails,
+    String? bookingSlots,
+    String? createBooking,
+    String? createBookingHgl,
+    String? myBookings,
+    String? cancelBooking,
+    String? rescheduleBooking,
   }) {
     return ApiEndpoints(
       chargingStationMap: chargingStationMap ?? this.chargingStationMap,
@@ -170,6 +205,13 @@ class ApiEndpoints extends Equatable {
       loginApi: loginApi ?? this.loginApi,
       loginWithGoogle: loginWithGoogle ?? this.loginWithGoogle,
       logoutApi: logoutApi ?? this.logoutApi,
+      chargerDetails: chargerDetails ?? this.chargerDetails,
+      bookingSlots: bookingSlots ?? this.bookingSlots,
+      createBooking: createBooking ?? this.createBooking,
+      createBookingHgl: createBookingHgl ?? this.createBookingHgl,
+      myBookings: myBookings ?? this.myBookings,
+      cancelBooking: cancelBooking ?? this.cancelBooking,
+      rescheduleBooking: rescheduleBooking ?? this.rescheduleBooking,
     );
   }
 
@@ -182,5 +224,12 @@ class ApiEndpoints extends Equatable {
     loginApi,
     loginWithGoogle,
     logoutApi,
+    chargerDetails,
+    bookingSlots,
+    createBooking,
+    createBookingHgl,
+    myBookings,
+    cancelBooking,
+    rescheduleBooking,
   ];
 }

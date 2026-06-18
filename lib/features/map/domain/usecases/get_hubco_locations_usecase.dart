@@ -17,6 +17,7 @@ class GetHubcoLocationsUseCase
     return repository.getNearestStations(
       latitude: params.latitude,
       longitude: params.longitude,
+      radius: params.radius,
     );
   }
 }
@@ -25,11 +26,13 @@ class NearestStationsParams extends Equatable {
   const NearestStationsParams({
     required this.latitude,
     required this.longitude,
+    this.radius,
   });
 
   final double latitude;
   final double longitude;
+  final double? radius;
 
   @override
-  List<Object?> get props => [latitude, longitude];
+  List<Object?> get props => [latitude, longitude, radius];
 }

@@ -10,7 +10,14 @@
       "login_with_google": "api/v1/orko-auth/login-with-google",
       "logout_api": "api/v1/orko-auth/logout",
       "charging_station_map": "api/v1/charging-station/nearest?",
-      "charging_station_detail": "api/v1/charging-station/"
+      "charging_station_detail": "api/v1/charging-station/",
+      "charger_details": "api/v1/bookings/charger-details/",
+      "booking_slots": "api/v1/bookings/slots/",
+      "create_booking": "api/v1/bookings/book-charge-session/",
+      "create_booking_hgl": "api/v1/bookings/book-charge-session/",
+      "my_bookings": "api/v1/bookings/my-charging-sessions/",
+      "cancel_booking": "api/v1/bookings/cancel-booking/",
+      "reschedule_booking": "api/v1/bookings/reschedule-booking/"
     }
   }
 }

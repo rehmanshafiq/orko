@@ -120,6 +120,7 @@ class AppRouter {
           final extra = state.extra;
           if (extra is HubcoLocationEntity) {
             return BookSlotPage(
+              locationId: extra.id,
               stationName: extra.name,
               stationAddress: extra.address,
             );

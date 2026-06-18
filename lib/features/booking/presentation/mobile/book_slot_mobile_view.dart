@@ -17,7 +17,7 @@ import 'package:orko_hubco/features/booking/presentation/widgets/station_info_ca
 import 'package:orko_hubco/features/booking/presentation/widgets/summary_bottom_card.dart';
 import 'package:orko_hubco/features/booking/presentation/widgets/time_slot_grid.dart';
 
-/// EV charging slot booking UI with local selection state.
+/// EV charging slot booking UI backed by the bookings API.
 class BookSlotMobileView extends StatelessWidget {
   const BookSlotMobileView({
     super.key,
@@ -64,13 +64,24 @@ class BookSlotMobileView extends StatelessWidget {
               ),
             ),
             Expanded(
-              child: BlocBuilder<BookingCubit, BookingState>(
+              child: BlocConsumer<BookingCubit, BookingState>(
+                listenWhen: (prev, curr) =>
+                    prev.submitStatus != curr.submitStatus,
+                listener: _onSubmitStatusChanged,
                 builder: (context, state) {
                   final cubit = context.read<BookingCubit>();
                   final screenW = MediaQuery.sizeOf(context).width;
                   final buttonW = screenW - 32.w - 24.w;
-                  final estimated = 450 * state.durationHours;
+                  // Estimated energy uses a flat ~10 kWh/hour assumption; cost
+                  // is driven by the selected connector's per-kWh tariff.
+                  final selectedPrice = state.selectedPort?.price;
+                  final pricePerKwh = selectedPrice?.price ?? 0;
+                  final currency = (selectedPrice?.currency.isNotEmpty ?? false)
+                      ? selectedPrice!.currency
+                      : 'PKR';
                   final kwhNote = 10 * state.durationHours;
+                  final estimated = pricePerKwh * kwhNote;
+                  final hasPrice = selectedPrice != null && pricePerKwh > 0;
 
                   return SingleChildScrollView(
                     padding: AppUtils.horizontal16Padding,
@@ -79,8 +90,12 @@ class BookSlotMobileView extends StatelessWidget {
                       children: [
                         16.verticalSpace,
                         StationInfoCard(
-                          title: stationName ?? _defaultStationTitle,
-                          address: stationAddress ?? _defaultStationAddress,
+                          title: state.stationName ??
+                              stationName ??
+                              _defaultStationTitle,
+                          address: state.stationAddress ??
+                              stationAddress ??
+                              _defaultStationAddress,
                           ui: ui,
                         ),
                         20.verticalSpace,
@@ -91,11 +106,7 @@ class BookSlotMobileView extends StatelessWidget {
                           fontWeight: FontWeights.weight700,
                         ),
                         12.verticalSpace,
-                        ChargerPortSelector(
-                          ui: ui,
-                          selectedPortIndex: state.selectedPortIndex,
-                          onPortSelected: cubit.selectPort,
-                        ),
+                        _ChargerSection(ui: ui, state: state, cubit: cubit),
                         20.verticalSpace,
                         AppText(
                           'Select Date',
@@ -106,7 +117,8 @@ class BookSlotMobileView extends StatelessWidget {
                         12.verticalSpace,
                         DateSelector(
                           ui: ui,
-                          selectedDateSegment: state.selectedDateSegment,
+                          dateOptions: state.dateOptions,
+                          selectedIndex: state.selectedDateIndex,
                           onSelectDate: cubit.selectDate,
                         ),
                         20.verticalSpace,
@@ -117,11 +129,7 @@ class BookSlotMobileView extends StatelessWidget {
                           fontWeight: FontWeights.weight700,
                         ),
                         12.verticalSpace,
-                        TimeSlotGrid(
-                          ui: ui,
-                          selectedTime: state.selectedTime,
-                          onSlotTap: cubit.selectTime,
-                        ),
+                        _SlotsSection(ui: ui, state: state, cubit: cubit),
                         20.verticalSpace,
                         DurationSelector(
                           ui: ui,
@@ -137,17 +145,12 @@ class BookSlotMobileView extends StatelessWidget {
                           durationHours: state.durationHours,
                           estimatedCost: estimated,
                           estimatedKwh: kwhNote,
+                          currency: currency,
+                          pricePerKwh: pricePerKwh,
+                          hasPrice: hasPrice,
                           buttonWidth: buttonW,
-                          isContinueEnabled: state.selectedTime != null,
-                          onContinueToPayment: () {
-                            // Guests can browse and select a slot but must
-                            // authenticate before booking/paying.
-                            if (AppStorage.isGuest) {
-                              AuthRequiredDialog.show(context);
-                              return;
-                            }
-                            context.push('/payment-method');
-                          },
+                          isContinueEnabled: state.canContinue,
+                          onContinueToPayment: () => _onContinue(context, cubit),
                         ),
                         16.verticalSpace,
                       ],
@@ -158,6 +161,223 @@ class BookSlotMobileView extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _onContinue(BuildContext context, BookingCubit cubit) {
+    // Guests can browse and select a slot but must authenticate before booking.
+    if (AppStorage.isGuest) {
+      AuthRequiredDialog.show(context);
+      return;
+    }
+    cubit.submitBooking();
+  }
+
+  void _onSubmitStatusChanged(BuildContext context, BookingState state) {
+    final messenger = ScaffoldMessenger.of(context);
+    switch (state.submitStatus) {
+      case BookingSubmitStatus.success:
+        messenger.showSnackBar(
+          const SnackBar(
+            content: Text('Booking requested — pending approval.'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        final pricePerKwh = state.selectedPort?.price?.price ?? 0;
+        final amount = (pricePerKwh * 10 * state.durationHours).round();
+        context.push('/booking-confirmation', extra: amount);
+        break;
+      case BookingSubmitStatus.failure:
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(state.submitError ?? 'Booking failed. Try again.'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        break;
+      case BookingSubmitStatus.idle:
+      case BookingSubmitStatus.submitting:
+        break;
+    }
+  }
+}
+
+/// Renders the charger/connector selector depending on the fetch lifecycle.
+class _ChargerSection extends StatelessWidget {
+  const _ChargerSection({
+    required this.ui,
+    required this.state,
+    required this.cubit,
+  });
+
+  final AppUiColors ui;
+  final BookingState state;
+  final BookingCubit cubit;
+
+  @override
+  Widget build(BuildContext context) {
+    switch (state.chargerStatus) {
+      case ChargerStatus.initial:
+      case ChargerStatus.loading:
+        return SizedBox(
+          height: 148.h,
+          child: Center(
+            child: SizedBox(
+              width: 26.w,
+              height: 26.w,
+              child: CircularProgressIndicator(
+                strokeWidth: 2.4,
+                color: ui.brandPrimary,
+              ),
+            ),
+          ),
+        );
+
+      case ChargerStatus.failure:
+        return _SlotsMessage(
+          ui: ui,
+          message: state.chargerError ?? 'Could not load chargers.',
+          onRetry: state.locationId == null ? null : cubit.loadChargerDetails,
+        );
+
+      case ChargerStatus.success:
+        if (state.ports.isEmpty) {
+          return _SlotsMessage(
+            ui: ui,
+            message: 'No connectors at this station.',
+            onRetry: cubit.loadChargerDetails,
+          );
+        }
+        return ChargerPortSelector(
+          ui: ui,
+          ports: state.ports,
+          selectedPortId: state.selectedPortId,
+          onPortSelected: cubit.selectPort,
+        );
+    }
+  }
+}
+
+/// Renders the slots area depending on the fetch lifecycle.
+class _SlotsSection extends StatelessWidget {
+  const _SlotsSection({
+    required this.ui,
+    required this.state,
+    required this.cubit,
+  });
+
+  final AppUiColors ui;
+  final BookingState state;
+  final BookingCubit cubit;
+
+  @override
+  Widget build(BuildContext context) {
+    switch (state.slotsStatus) {
+      case SlotsStatus.initial:
+      case SlotsStatus.loading:
+        return Padding(
+          padding: EdgeInsets.symmetric(vertical: 24.h),
+          child: Center(
+            child: SizedBox(
+              width: 26.w,
+              height: 26.w,
+              child: CircularProgressIndicator(
+                strokeWidth: 2.4,
+                color: ui.brandPrimary,
+              ),
+            ),
+          ),
+        );
+
+      case SlotsStatus.failure:
+        return _SlotsMessage(
+          ui: ui,
+          message: state.slotsError ?? 'Could not load time slots.',
+          onRetry: state.locationId == null ? null : cubit.loadSlots,
+        );
+
+      case SlotsStatus.success:
+        if (state.slots.isEmpty) {
+          return _SlotsMessage(
+            ui: ui,
+            message: 'No time slots for this date.',
+            onRetry: cubit.loadSlots,
+          );
+        }
+        if (!state.hasAvailableSlots) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TimeSlotGrid(
+                ui: ui,
+                slots: state.slots,
+                selectedStartTime: state.selectedSlot?.startTime,
+                onSlotTap: cubit.selectSlot,
+              ),
+              10.verticalSpace,
+              AppText(
+                'All slots are taken for this date.',
+                color: ui.textSecondary,
+                fontSize: FontSizes.font12Sp,
+                fontWeight: FontWeights.weight400,
+              ),
+            ],
+          );
+        }
+        return TimeSlotGrid(
+          ui: ui,
+          slots: state.slots,
+          selectedStartTime: state.selectedSlot?.startTime,
+          onSlotTap: cubit.selectSlot,
+        );
+    }
+  }
+}
+
+class _SlotsMessage extends StatelessWidget {
+  const _SlotsMessage({
+    required this.ui,
+    required this.message,
+    this.onRetry,
+  });
+
+  final AppUiColors ui;
+  final String message;
+  final VoidCallback? onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 18.h),
+      decoration: BoxDecoration(
+        color: ui.cardBookingBackground,
+        borderRadius: BorderRadius.circular(14.r),
+        border: Border.all(color: ui.borderSubtle),
+      ),
+      child: Column(
+        children: [
+          AppText(
+            message,
+            textAlign: TextAlign.center,
+            color: ui.textSecondary,
+            fontSize: FontSizes.font13Sp,
+            fontWeight: FontWeights.weight500,
+          ),
+          if (onRetry != null) ...[
+            10.verticalSpace,
+            TextButton(
+              onPressed: onRetry,
+              child: AppText(
+                'Retry',
+                color: ui.brandPrimary,
+                fontSize: FontSizes.font13Sp,
+                fontWeight: FontWeights.weight700,
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }

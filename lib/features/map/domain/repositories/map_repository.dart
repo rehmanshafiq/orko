@@ -8,5 +8,6 @@ abstract class MapRepository {
   Future<Either<Failure, List<HubcoLocationEntity>>> getNearestStations({
     required double latitude,
     required double longitude,
+    double? radius,
   });
 }

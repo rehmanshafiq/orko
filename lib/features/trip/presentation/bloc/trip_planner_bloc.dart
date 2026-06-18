@@ -474,6 +474,7 @@ class TripPlannerBloc extends Bloc<TripPlannerEvent, TripPlannerState> {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => BookSlotPage(
+          locationId: station.id,
           stationName: station.name,
           stationAddress: station.address,
         ),

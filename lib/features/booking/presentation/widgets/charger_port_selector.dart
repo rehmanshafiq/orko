@@ -1,51 +1,47 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
+import 'package:orko_hubco/features/booking/domain/entities/charger_details_entity.dart';
 import 'package:orko_hubco/features/booking/presentation/widgets/port_card.dart';
 
+/// Horizontal list of the location's connectors. Unavailable connectors
+/// (Preparing/Faulted/etc.) are dimmed and non-selectable.
 class ChargerPortSelector extends StatelessWidget {
   const ChargerPortSelector({
     super.key,
     required this.ui,
-    required this.selectedPortIndex,
+    required this.ports,
+    required this.selectedPortId,
     required this.onPortSelected,
   });
 
   final AppUiColors ui;
-  final int selectedPortIndex;
+  final List<ChargerPortEntity> ports;
+  final int? selectedPortId;
   final ValueChanged<int> onPortSelected;
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       height: 148.h,
-      child: ListView(
+      child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        children: [
-          PortCard(
+        itemCount: ports.length,
+        separatorBuilder: (_, __) => 10.horizontalSpace,
+        itemBuilder: (context, index) {
+          final port = ports[index];
+          return PortCard(
             ui: ui,
-            portLabel: 'Port 1',
-            specs: 'CCS,\n350kW',
-            selected: selectedPortIndex == 0,
-            onTap: () => onPortSelected(0),
-          ),
-          10.horizontalSpace,
-          PortCard(
-            ui: ui,
-            portLabel: 'Port 2',
-            specs: 'CCS\n150 kW',
-            selected: selectedPortIndex == 1,
-            onTap: () => onPortSelected(1),
-          ),
-          10.horizontalSpace,
-          PortCard(
-            ui: ui,
-            portLabel: 'Port 3',
-            specs: 'Type 2,\n22kW',
-            selected: selectedPortIndex == 2,
-            onTap: () => onPortSelected(2),
-          ),
-        ],
+            portLabel: 'Port ${index + 1}',
+            specs: port.connectorType.isEmpty ? '—' : port.connectorType,
+            stateLabel: port.connectorState.isEmpty
+                ? 'Unknown'
+                : port.connectorState,
+            enabled: port.isAvailable,
+            selected: port.id == selectedPortId,
+            onTap: () => onPortSelected(port.id),
+          );
+        },
       ),
     );
   }
