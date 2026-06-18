@@ -30,20 +30,26 @@ class AuthCubit extends Cubit<AuthState> {
         _logoutUseCase = logoutUseCase,
         super(const AuthInitial());
 
-  /// Performs login.
+  /// Performs login via the `login_api` endpoint. On success the access token +
+  /// user are persisted and [AuthAuthenticated] is emitted.
   Future<void> login({
-    required String email,
+    required String phoneNumber,
+    required String countryCode,
     required String password,
   }) async {
     emit(const AuthLoading());
 
     final result = await _loginUseCase(
-      LoginParams(email: email, password: password),
+      LoginParams(
+        phoneNumber: phoneNumber,
+        countryCode: countryCode,
+        password: password,
+      ),
     );
 
     result.fold(
       (failure) => emit(AuthError(failure.message)),
-      (user) => emit(AuthAuthenticated(user)),
+      (loginResult) => emit(AuthAuthenticated(loginResult.user)),
     );
   }
 

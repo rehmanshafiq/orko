@@ -145,6 +145,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       body: BlocConsumer<AuthCubit, AuthState>(
         listener: (context, state) {
           if (state is SignUpSuccess) {
+            final email = _emailController.text.trim();
             context.push(
               '/verify-otp',
               extra: {
@@ -152,6 +153,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     _phoneController.text.replaceAll(RegExp(r'\s+'), ''),
                 'countryCode': _countryCode,
               },
+            );
+            AppHelpers.showSnackBar(
+              context,
+              'An OTP verification email has been sent to $email',
             );
           } else if (state is AuthAuthenticated) {
             context.go('/home');

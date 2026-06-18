@@ -3,10 +3,12 @@ import 'package:orko_hubco/features/auth/data/models/user_model.dart';
 
 /// Contract for remote auth data operations.
 abstract class AuthRemoteDataSource {
-  /// Calls the login API.
+  /// Calls the login API (`login_api` endpoint from Remote Config).
+  /// Returns the access token and user on success.
   /// Throws [ServerException] on failure.
-  Future<UserModel> login({
-    required String email,
+  Future<SignUpResultModel> login({
+    required String phoneNumber,
+    required String countryCode,
     required String password,
   });
 

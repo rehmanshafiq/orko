@@ -24,8 +24,9 @@ class AuthRepositoryImpl implements AuthRepository {
   });
 
   @override
-  Future<Either<Failure, UserEntity>> login({
-    required String email,
+  Future<Either<Failure, SignUpResultEntity>> login({
+    required String phoneNumber,
+    required String countryCode,
     required String password,
   }) async {
     if (!await networkInfo.isConnected) {
@@ -33,17 +34,19 @@ class AuthRepositoryImpl implements AuthRepository {
     }
 
     try {
-      final user = await remoteDataSource.login(
-        email: email,
+      final result = await remoteDataSource.login(
+        phoneNumber: phoneNumber,
+        countryCode: countryCode,
         password: password,
       );
 
-      // Cache user data locally after successful login
-      await localDataSource.cacheUser(user);
-      // TODO: Cache tokens from server response
-      // await localDataSource.cacheTokens(accessToken: response.token);
+      // Persist the issued access token + user locally (same as sign-up).
+      if (result.accessToken.isNotEmpty) {
+        await localDataSource.cacheTokens(accessToken: result.accessToken);
+      }
+      await localDataSource.cacheUser(result.user as UserModel);
 
-      return Right(user);
+      return Right(result);
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
     } on UnauthorizedException catch (e) {

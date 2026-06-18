@@ -6,6 +6,7 @@
     "api_endpoints": {
       "sign_up_form": "api/v1/orko-auth/complete-signup",
       "verify_otp": "api/v1/orko-auth/verify-otp",
+      "login_api": "api/v1/orko-auth/login-with-password",
       "charging_station_map": "api/v1/charging-station/nearest?",
       "charging_station_detail": "api/v1/charging-station/"
     }

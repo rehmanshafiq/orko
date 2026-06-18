@@ -24,18 +24,12 @@ class SignUpResultModel extends SignUpResultEntity {
         ? Map<String, dynamic>.from(rawUser)
         : const <String, dynamic>{};
 
-    final user = UserModel(
-      id: userMap['id']?.toString() ?? '',
-      email: userMap['email']?.toString() ?? '',
-      name: userMap['name']?.toString() ?? '',
-      avatarUrl: userMap['profile_img_url']?.toString(),
-    );
+    final user = UserModel.fromJson(userMap);
 
     return SignUpResultModel(
       accessToken: body['access']?.toString() ?? '',
       user: user,
-      otpVerificationRequired:
-          userMap['otp_verification_required'] as bool? ?? false,
+      otpVerificationRequired: user.otpVerificationRequired,
     );
   }
 }

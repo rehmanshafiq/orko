@@ -12,7 +12,9 @@ import 'package:equatable/equatable.dart';
 ///     "api_endpoints": {
 ///       "charging_station_map": "api/v1/charging-station/nearest?",
 ///       "charging_station_detail": "api/v1/charging-station/",
-///       "sign_up_form": "api/v1/orko-auth/complete-signup"
+///       "sign_up_form": "api/v1/orko-auth/complete-signup",
+///       "verify_otp": "api/v1/orko-auth/verify-otp",
+///       "login_api": "api/v1/orko-auth/login-with-password"
 ///     }
 ///   }
 /// }
@@ -113,12 +115,14 @@ class ApiEndpoints extends Equatable {
     required this.chargingStationDetail,
     required this.signUpForm,
     required this.verifyOtp,
+    required this.loginApi,
   });
 
   final String chargingStationMap;
   final String chargingStationDetail;
   final String signUpForm;
   final String verifyOtp;
+  final String loginApi;
 
   factory ApiEndpoints.fromJson(Map<String, dynamic> json) {
     return ApiEndpoints(
@@ -126,6 +130,7 @@ class ApiEndpoints extends Equatable {
       chargingStationDetail: json['charging_station_detail'] as String? ?? '',
       signUpForm: json['sign_up_form'] as String? ?? '',
       verifyOtp: json['verify_otp'] as String? ?? '',
+      loginApi: json['login_api'] as String? ?? '',
     );
   }
 
@@ -135,6 +140,7 @@ class ApiEndpoints extends Equatable {
       'charging_station_detail': chargingStationDetail,
       'sign_up_form': signUpForm,
       'verify_otp': verifyOtp,
+      'login_api': loginApi,
     };
   }
 
@@ -143,12 +149,14 @@ class ApiEndpoints extends Equatable {
     String? chargingStationDetail,
     String? signUpForm,
     String? verifyOtp,
+    String? loginApi,
   }) {
     return ApiEndpoints(
       chargingStationMap: chargingStationMap ?? this.chargingStationMap,
       chargingStationDetail: chargingStationDetail ?? this.chargingStationDetail,
       signUpForm: signUpForm ?? this.signUpForm,
       verifyOtp: verifyOtp ?? this.verifyOtp,
+      loginApi: loginApi ?? this.loginApi,
     );
   }
 
@@ -158,5 +166,6 @@ class ApiEndpoints extends Equatable {
     chargingStationDetail,
     signUpForm,
     verifyOtp,
+    loginApi,
   ];
 }

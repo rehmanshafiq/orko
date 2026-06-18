@@ -16,30 +16,58 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   const AuthRemoteDataSourceImpl({required this.apiClient});
 
   @override
-  Future<UserModel> login({
-    required String email,
+  Future<SignUpResultModel> login({
+    required String phoneNumber,
+    required String countryCode,
     required String password,
   }) async {
     try {
-      final response = await apiClient.post(
-        ApiConstants.login,
-        data: {'email': email, 'password': password},
-      );
+      final config = RemoteConfigService.config;
+      if (config == null) {
+        throw const ServerException(message: 'Remote config not initialized');
+      }
 
-      if (response.statusCode == 200 && response.data != null) {
-        // Postman echo reflects our request data inside JSON mapping
-        final echoedEmail = response.data['json']?['email']?.toString() ?? email;
-        return UserModel(
-          id: '1',
-          email: echoedEmail,
-          name: 'Demo User',
-          avatarUrl: 'https://i.pravatar.cc/150?u=1',
+      final endpoint = config.apiConstants.apiEndpoints.loginApi;
+      if (endpoint.trim().isEmpty) {
+        throw const ServerException(
+          message: 'Login is not available right now',
         );
       }
 
+      final url = _buildUrl(config.apiConstants.baseUrlQa, endpoint);
+      log('[Auth] Login URL: $url');
+
+      final response = await apiClient.post(
+        url,
+        data: {
+          'phone_number': phoneNumber,
+          'country_code': countryCode,
+          'password': password,
+        },
+      );
+
+      final data = response.data;
+      if (response.statusCode == 200 && data is Map<String, dynamic>) {
+        final body = data['body'];
+        if (body is Map) {
+          return SignUpResultModel.fromJson(Map<String, dynamic>.from(body));
+        }
+      }
+
       throw ServerException(
-        message: response.data?['message'] ?? 'Login failed',
+        message: (data is Map<String, dynamic> && data['message'] != null)
+            ? data['message'].toString()
+            : 'Login failed',
         statusCode: response.statusCode,
+      );
+    } on DioException catch (e) {
+      final data = e.response?.data;
+      throw ServerException(
+        message: (data is Map && data['message'] != null)
+            ? data['message'].toString()
+            : (e.message ?? 'Login failed'),
+        statusCode: e.response?.statusCode,
+        originalError: e,
       );
     } catch (e) {
       if (e is ServerException) rethrow;

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
@@ -23,29 +24,39 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController(text: '300 1234567');
-  final _passwordController = TextEditingController(text: 'password123');
+  final _phoneController = TextEditingController();
+  final _passwordController = TextEditingController();
   bool _obscurePassword = true;
+  AutovalidateMode _autovalidateMode = AutovalidateMode.disabled;
+
+  static const String _countryCode = '+92';
 
   @override
   void dispose() {
-    _emailController.dispose();
+    _phoneController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
 
   void _onLogin() {
-    if (_formKey.currentState?.validate() ?? false) {
-      context.read<AuthCubit>().login(
-            email: _emailController.text.trim(),
-            password: _passwordController.text,
-          );
+    FocusScope.of(context).unfocus();
+    final isValid = _formKey.currentState?.validate() ?? false;
+    if (!isValid) {
+      setState(() => _autovalidateMode = AutovalidateMode.onUserInteraction);
+      return;
     }
+    context.read<AuthCubit>().login(
+          phoneNumber: _phoneController.text.trim(),
+          countryCode: _countryCode,
+          password: _passwordController.text,
+        );
   }
 
   String? _validatePhoneNumber(String? value) {
-    if (value == null || value.trim().isEmpty) {
-      return 'Phone number is required';
+    final digits = (value ?? '').replaceAll(RegExp(r'\D'), '');
+    if (digits.isEmpty) return 'Phone number is required';
+    if (!RegExp(r'^3\d{9}$').hasMatch(digits)) {
+      return 'Enter a valid number, e.g. 3001234567';
     }
     return null;
   }
@@ -69,6 +80,7 @@ class _LoginScreenState extends State<LoginScreen> {
               padding: AppUtils.horizontal24Padding,
               child: Form(
                 key: _formKey,
+                autovalidateMode: _autovalidateMode,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -193,11 +205,12 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
         8.verticalSpace,
         TextFormField(
-          controller: _emailController,
+          controller: _phoneController,
           keyboardType: TextInputType.phone,
           textInputAction: TextInputAction.next,
           validator: _validatePhoneNumber,
-          maxLength: 11,
+          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+          maxLength: 10,
           style: TextStyle(
             color: ui.textPrimary,
             fontSize: FontSizes.font14Sp,

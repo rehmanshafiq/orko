@@ -6,10 +6,12 @@ import 'package:orko_hubco/features/auth/domain/entities/user_entity.dart';
 /// Abstract repository contract — lives in the domain layer.
 /// The data layer provides the implementation.
 abstract class AuthRepository {
-  /// Logs in with email and password.
-  /// Returns [UserEntity] on success or [Failure] on error.
-  Future<Either<Failure, UserEntity>> login({
-    required String email,
+  /// Logs in with phone number, country code and password via the `login_api`
+  /// endpoint. Persists the issued access token + user, and returns the
+  /// [SignUpResultEntity] on success or a [Failure] on error.
+  Future<Either<Failure, SignUpResultEntity>> login({
+    required String phoneNumber,
+    required String countryCode,
     required String password,
   });
 
