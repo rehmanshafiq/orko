@@ -78,6 +78,10 @@ class _HomeScreenState extends State<HomeScreen> {
   /// Custom green/grey cluster bubble bitmaps, cached by `${kind}_${count}`.
   final Map<String, BitmapDescriptor> _clusterIcons = {};
 
+  /// Average fill green sampled from the tinted map pin; keeps cluster bubbles
+  /// visually aligned with individual station markers.
+  Color? _mapGreenIconColor;
+
   /// Current map zoom, kept in sync via [GoogleMap.onCameraMove]. Drives the
   /// grid clustering so markers re-cluster as the user zooms in/out.
   double _currentZoom = 13.8;
@@ -301,13 +305,20 @@ class _HomeScreenState extends State<HomeScreen> {
       final frame = await codec.getNextFrame();
       final image = frame.image;
 
-      final Uint8List? pngBytes = desaturate
-          ? await _desaturatedPngBytes(image)
-          : tintColor != null
-              ? await _tintedPngBytes(image, tintColor)
-              : (await image.toByteData(format: ui.ImageByteFormat.png))
-                  ?.buffer
-                  .asUint8List();
+      final Uint8List? pngBytes;
+      if (desaturate) {
+        pngBytes = await _desaturatedPngBytes(image);
+      } else if (tintColor != null) {
+        final tinted = await _tintedPngBytes(image, tintColor);
+        pngBytes = tinted.pngBytes;
+        if (kind == _ChargingStationMarkerKind.green && tinted.averageColor != null) {
+          _mapGreenIconColor = tinted.averageColor;
+        }
+      } else {
+        pngBytes = (await image.toByteData(format: ui.ImageByteFormat.png))
+            ?.buffer
+            .asUint8List();
+      }
       image.dispose();
 
       if (pngBytes == null) return null;
@@ -360,12 +371,22 @@ class _HomeScreenState extends State<HomeScreen> {
 
   /// Returns PNG bytes of [source] recolored to [tint], preserving alpha and
   /// using each pixel's luminance to keep light/shadow detail in the marker.
-  Future<Uint8List?> _tintedPngBytes(ui.Image source, Color tint) async {
+  Future<({Uint8List? pngBytes, Color? averageColor})> _tintedPngBytes(
+    ui.Image source,
+    Color tint,
+  ) async {
     final rawData =
         await source.toByteData(format: ui.ImageByteFormat.rawRgba);
-    if (rawData == null) return null;
+    if (rawData == null) {
+      return (pngBytes: null, averageColor: null);
+    }
 
     final pixels = rawData.buffer.asUint8List();
+    var redSum = 0;
+    var greenSum = 0;
+    var blueSum = 0;
+    var opaqueCount = 0;
+
     for (var i = 0; i < pixels.length; i += 4) {
       final alpha = pixels[i + 3];
       if (alpha == 0) continue;
@@ -375,10 +396,30 @@ class _HomeScreenState extends State<HomeScreen> {
               0.0722 * pixels[i + 2]) /
           255;
 
-      pixels[i] = (tint.red * lum).round().clamp(0, 255);
-      pixels[i + 1] = (tint.green * lum).round().clamp(0, 255);
-      pixels[i + 2] = (tint.blue * lum).round().clamp(0, 255);
+      final red = (tint.red * lum).round().clamp(0, 255);
+      final green = (tint.green * lum).round().clamp(0, 255);
+      final blue = (tint.blue * lum).round().clamp(0, 255);
+
+      pixels[i] = red;
+      pixels[i + 1] = green;
+      pixels[i + 2] = blue;
+
+      if (alpha > 128) {
+        redSum += red;
+        greenSum += green;
+        blueSum += blue;
+        opaqueCount++;
+      }
     }
+
+    final averageColor = opaqueCount == 0
+        ? null
+        : Color.fromARGB(
+            255,
+            redSum ~/ opaqueCount,
+            greenSum ~/ opaqueCount,
+            blueSum ~/ opaqueCount,
+          );
 
     final completer = Completer<ui.Image>();
     ui.decodeImageFromPixels(
@@ -391,7 +432,10 @@ class _HomeScreenState extends State<HomeScreen> {
     final tintedImage = await completer.future;
     final pngData = await tintedImage.toByteData(format: ui.ImageByteFormat.png);
     tintedImage.dispose();
-    return pngData?.buffer.asUint8List();
+    return (
+      pngBytes: pngData?.buffer.asUint8List(),
+      averageColor: averageColor,
+    );
   }
 
   /// Green marker when the station is active (`status: true`), grey otherwise.
@@ -527,7 +571,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (cached != null) return cached;
 
     final color = kind == _ChargingStationMarkerKind.green
-        ? AppColors.primaryDarkColor
+        ? (_mapGreenIconColor ?? AppColors.primaryDarkColor)
         : AppColors.greyColor;
     final icon = await _buildClusterBitmap(color: color, count: count);
     _clusterIcons[key] = icon;
