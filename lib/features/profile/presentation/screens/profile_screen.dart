@@ -630,6 +630,20 @@ class _PersonalInfoCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ui = AppUiColors.of(context);
+    final storage = sl<LocalStorageService>();
+    final cachedUser = _readCachedUser(storage);
+    final isGuest = storage.isGuest || cachedUser == null;
+
+    final displayName = isGuest
+        ? 'Guest User'
+        : (cachedUser.name.isNotEmpty ? cachedUser.name : profile.name);
+    final displayEmail = isGuest
+        ? 'Sign in to sync your account'
+        : (cachedUser.email.isNotEmpty ? cachedUser.email : profile.email);
+    final displayPhone = isGuest
+        ? null
+        : _formatCachedUserPhone(cachedUser) ?? profile.phone;
+
     return _SectionCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -659,17 +673,26 @@ class _PersonalInfoCard extends StatelessWidget {
             ],
           ),
           14.verticalSpace,
-          _KeyValueRow(label: 'Full Name', value: profile.name),
+          _KeyValueRow(label: 'Full Name', value: displayName),
           _DividerLine(),
-          _KeyValueRow(label: 'Email', value: profile.email),
-          if (profile.phone != null) ...[
+          _KeyValueRow(label: 'Email', value: displayEmail),
+          if (displayPhone != null && displayPhone.isNotEmpty) ...[
             _DividerLine(),
-            _KeyValueRow(label: 'Phone', value: profile.phone!),
+            _KeyValueRow(label: 'Phone', value: displayPhone),
           ],
         ],
       ),
     );
   }
+}
+
+/// Formats the cached user's phone with country code when available.
+String? _formatCachedUserPhone(UserModel user) {
+  final phone = user.phoneNumber;
+  if (phone == null || phone.isEmpty) return null;
+  final code = user.countryCode;
+  if (code != null && code.isNotEmpty) return '$code $phone';
+  return phone;
 }
 
 class _KeyValueRow extends StatelessWidget {

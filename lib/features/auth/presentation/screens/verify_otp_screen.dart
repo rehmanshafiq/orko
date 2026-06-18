@@ -43,7 +43,7 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
   final List<FocusNode> _focusNodes =
       List.generate(_kOtpLength, (_) => FocusNode());
 
-  static const int _resendSeconds = 30;
+  static const int _resendSeconds = 120;
   int _secondsRemaining = _resendSeconds;
   Timer? _timer;
 
@@ -68,6 +68,13 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
   String get _code => _controllers.map((c) => c.text).join();
 
   bool get _isComplete => _code.length == _kOtpLength;
+
+  /// Countdown formatted as `m:ss`, e.g. `2:00`, `1:05`, `0:09`.
+  String get _formattedRemaining {
+    final minutes = _secondsRemaining ~/ 60;
+    final seconds = _secondsRemaining % 60;
+    return '$minutes:${seconds.toString().padLeft(2, '0')}';
+  }
 
   void _startResendTimer() {
     _timer?.cancel();
@@ -257,7 +264,7 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
                           onTap: _onResend,
                           child: AppText(
                             _secondsRemaining > 0
-                                ? 'Resend in ${_secondsRemaining}s'
+                                ? 'Resend in $_formattedRemaining'
                                 : 'Resend',
                             color: _secondsRemaining > 0
                                 ? ui.textMuted
