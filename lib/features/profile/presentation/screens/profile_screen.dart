@@ -1,7 +1,10 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/constants/storage_constants.dart';
@@ -12,6 +15,7 @@ import 'package:orko_hubco/core/utils/app_ui.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
 import 'package:orko_hubco/core/utils/widgets/gradient_switch.dart';
 import 'package:orko_hubco/core/utils/widgets/primary_button_widget.dart';
+import 'package:orko_hubco/features/auth/data/models/user_model.dart';
 import 'package:orko_hubco/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:orko_hubco/features/profile/domain/entities/profile_entity.dart';
 import 'package:orko_hubco/features/profile/presentation/cubit/profile_cubit.dart';
@@ -98,6 +102,14 @@ class ProfileScreen extends StatelessWidget {
                             child: TextButton(
                               onPressed: () async {
                                 await context.read<AuthCubit>().logout();
+                                // logout() clears the auth cache (tokens, cached
+                                // user, login flags). Also drop this user's
+                                // vehicle data, but keep app-level settings
+                                // (theme, onboarding, language…) intact.
+                                final storage = sl<LocalStorageService>();
+                                await storage.remove(StorageConstants.vehicles);
+                                await storage.remove(
+                                    StorageConstants.vehiclesInitialized);
                                 if (context.mounted) context.go('/login');
                               },
                               child: AppText(
@@ -131,6 +143,20 @@ class ProfileScreen extends StatelessWidget {
   }
 }
 
+/// Reads the persisted logged-in user from local storage. Returns `null` when
+/// no user is cached (e.g. guest mode) or the cached payload is unreadable.
+UserModel? _readCachedUser(LocalStorageService storage) {
+  final jsonString = storage.read<String>(StorageConstants.cachedUser);
+  if (jsonString == null || jsonString.isEmpty) return null;
+  try {
+    final decoded = json.decode(jsonString);
+    if (decoded is! Map) return null;
+    return UserModel.fromJson(Map<String, dynamic>.from(decoded));
+  } catch (_) {
+    return null;
+  }
+}
+
 class _ProfileHeader extends StatelessWidget {
   const _ProfileHeader({required this.state});
 
@@ -142,6 +168,21 @@ class _ProfileHeader extends StatelessWidget {
     final cubit = context.read<ProfileCubit>();
     final profile = state.profile;
     final bottomRadius = 20.r;
+
+    // Prefer the persisted logged-in user; fall back to guest, then profile.
+    final storage = sl<LocalStorageService>();
+    final cachedUser = _readCachedUser(storage);
+    final isGuest = storage.isGuest || cachedUser == null;
+
+    final displayName = isGuest
+        ? 'Guest User'
+        : (cachedUser.name.isNotEmpty ? cachedUser.name : profile.name);
+    final displayEmail = isGuest
+        ? 'Sign in to sync your account'
+        : (cachedUser.email.isNotEmpty ? cachedUser.email : profile.email);
+    final memberSince = (!isGuest && cachedUser.createdAt != null)
+        ? 'Member since ${DateFormat('MMM yyyy').format(cachedUser.createdAt!)}'
+        : null;
 
     return Container(
       width: double.infinity,
@@ -212,8 +253,9 @@ class _ProfileHeader extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    10.verticalSpace,
                     AppText(
-                      profile.name,
+                      displayName,
                       color: ui.textPrimary,
                       fontSize: FontSizes.font20Sp,
                       fontWeight: FontWeights.weight700,
@@ -222,20 +264,22 @@ class _ProfileHeader extends StatelessWidget {
                     ),
                     4.verticalSpace,
                     AppText(
-                      profile.email,
+                      displayEmail,
                       color: ui.textSecondary,
                       fontSize: FontSizes.font14Sp,
                       fontWeight: FontWeights.weight400,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    4.verticalSpace,
-                    AppText(
-                      'Member since Jan 2024',
-                      color: ui.textSecondary,
-                      fontSize: FontSizes.font12Sp,
-                      fontWeight: FontWeights.weight400,
-                    ),
+                    // if (memberSince != null) ...[
+                    //   4.verticalSpace,
+                    //   AppText(
+                    //     memberSince,
+                    //     color: ui.textSecondary,
+                    //     fontSize: FontSizes.font12Sp,
+                    //     fontWeight: FontWeights.weight400,
+                    //   ),
+                    // ],
                   ],
                 ),
               ),

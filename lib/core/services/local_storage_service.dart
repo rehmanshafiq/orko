@@ -26,6 +26,12 @@ class LocalStorageService {
   Future<void> setLoggedIn(bool value) =>
       _box.write(StorageConstants.isLoggedIn, value);
 
+  /// Whether the user is browsing as a guest (no authenticated session).
+  bool get isGuest => _box.read<bool>(StorageConstants.isGuest) ?? false;
+
+  Future<void> setGuest(bool value) =>
+      _box.write(StorageConstants.isGuest, value);
+
   // ── User ────────────────────────────────────────────────────────────
 
   String? get userId => _box.read<String>(StorageConstants.userId);

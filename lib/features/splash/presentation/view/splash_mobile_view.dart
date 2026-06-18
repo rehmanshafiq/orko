@@ -75,7 +75,8 @@ class _SplashMobileViewState extends State<SplashMobileView>
       return;
     }
 
-    if (userBloc.state is UserLoaded) {
+    // A real cached session, or an explicit guest choice, both land on home.
+    if (userBloc.state is UserLoaded || AppStorage.isGuest) {
       AppNavigations.navigateToBottomNavigation(context);
       return;
     }

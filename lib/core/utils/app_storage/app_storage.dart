@@ -12,4 +12,12 @@ class AppStorage {
   static Future<void> setOnboardingCompleted(bool value) {
     return _storage.write(StorageConstants.onboardingComplete, value);
   }
+
+  /// Whether the user chose to continue as a guest (no authenticated session).
+  static bool get isGuest =>
+      _storage.read<bool>(StorageConstants.isGuest) ?? false;
+
+  static Future<void> setGuest(bool value) {
+    return _storage.write(StorageConstants.isGuest, value);
+  }
 }

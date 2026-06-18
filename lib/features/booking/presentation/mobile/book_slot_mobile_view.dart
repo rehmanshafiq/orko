@@ -4,8 +4,10 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
+import 'package:orko_hubco/core/utils/app_storage/app_storage.dart';
 import 'package:orko_hubco/core/utils/app_ui.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
+import 'package:orko_hubco/core/utils/widgets/auth_required_dialog.dart';
 import 'package:orko_hubco/features/booking/presentation/cubit/booking_cubit.dart';
 import 'package:orko_hubco/features/booking/presentation/cubit/booking_state.dart';
 import 'package:orko_hubco/features/booking/presentation/widgets/charger_port_selector.dart';
@@ -137,7 +139,15 @@ class BookSlotMobileView extends StatelessWidget {
                           estimatedKwh: kwhNote,
                           buttonWidth: buttonW,
                           isContinueEnabled: state.selectedTime != null,
-                          onContinueToPayment: () => context.push('/payment-method'),
+                          onContinueToPayment: () {
+                            // Guests can browse and select a slot but must
+                            // authenticate before booking/paying.
+                            if (AppStorage.isGuest) {
+                              AuthRequiredDialog.show(context);
+                              return;
+                            }
+                            context.push('/payment-method');
+                          },
                         ),
                         16.verticalSpace,
                       ],

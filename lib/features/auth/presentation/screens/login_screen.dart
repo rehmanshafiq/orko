@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_images.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
+import 'package:orko_hubco/core/utils/app_storage/app_storage.dart';
 import 'package:orko_hubco/core/utils/helpers.dart';
 import 'package:orko_hubco/core/utils/app_ui.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
@@ -59,6 +60,14 @@ class _LoginScreenState extends State<LoginScreen> {
       return 'Enter a valid number, e.g. 3001234567';
     }
     return null;
+  }
+
+  /// Enters the app as a guest. Guests can browse but not book; the guest flag
+  /// is cleared automatically once they log in or sign up.
+  Future<void> _onContinueAsGuest() async {
+    await AppStorage.setGuest(true);
+    if (!mounted) return;
+    context.go('/home');
   }
 
   @override
@@ -127,7 +136,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           child: _SocialButton(
                             icon: Icons.person_outline,
                             text: 'Guest',
-                            onTap: () {},
+                            onTap: _onContinueAsGuest,
                           ),
                         ),
                       ],
@@ -245,7 +254,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ],
               ),
             ),
-            hintText: '300 1234567',
+            hintText: 'Phone Number',
             hintStyle: TextStyle(
               color: AppColors.hintColor,
               fontSize: FontSizes.font14Sp,
@@ -298,7 +307,7 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
           decoration: _inputDecoration(
             ui: ui,
-            hintText: '**********',
+            hintText: 'Password',
             suffixIcon: IconButton(
               onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
               icon: Icon(

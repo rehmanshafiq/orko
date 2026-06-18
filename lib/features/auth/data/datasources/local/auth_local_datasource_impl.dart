@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:orko_hubco/core/constants/storage_constants.dart';
 import 'package:orko_hubco/core/services/local_storage_service.dart';
 import 'package:orko_hubco/features/auth/data/datasources/local/auth_local_datasource.dart';
 import 'package:orko_hubco/features/auth/data/models/user_model.dart';
@@ -8,7 +9,7 @@ import 'package:orko_hubco/features/auth/data/models/user_model.dart';
 class AuthLocalDataSourceImpl implements AuthLocalDataSource {
   final LocalStorageService storageService;
 
-  static const String _cachedUserKey = 'cached_user';
+  static const String _cachedUserKey = StorageConstants.cachedUser;
 
   const AuthLocalDataSourceImpl({required this.storageService});
 
@@ -37,6 +38,8 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
       await storageService.saveRefreshToken(refreshToken);
     }
     await storageService.setLoggedIn(true);
+    // A real session supersedes any guest mode.
+    await storageService.setGuest(false);
   }
 
   @override
@@ -45,6 +48,7 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
     await storageService.saveAccessToken('');
     await storageService.saveRefreshToken('');
     await storageService.setLoggedIn(false);
+    await storageService.setGuest(false);
   }
 
   @override
