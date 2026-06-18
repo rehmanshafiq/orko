@@ -261,7 +261,11 @@ class ChargingStationDetailMobileView extends StatelessWidget {
                     ],
                   ),
                 ),
-                ChargingStationBottomActionsWidget(station: hub),
+                ChargingStationBottomActionsWidget(
+                  station: hub,
+                  latitude: state.latitude ?? hub.latitude,
+                  longitude: state.longitude ?? hub.longitude,
+                ),
               ],
             ),
           );

@@ -58,6 +58,8 @@ class ChargingStationDetailBloc
           averageRating: detail.averageRating,
           totalReviews: detail.totalReviews,
           distance: detail.distance,
+          latitude: detail.latitude,
+          longitude: detail.longitude,
         ));
       },
     );

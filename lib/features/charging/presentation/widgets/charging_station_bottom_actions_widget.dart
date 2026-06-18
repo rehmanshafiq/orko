@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
+import 'package:orko_hubco/core/utils/app_functions.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
 import 'package:orko_hubco/core/utils/widgets/primary_button_widget.dart';
 import 'package:orko_hubco/features/map/domain/entities/hubco_location_entity.dart';
@@ -11,9 +12,13 @@ class ChargingStationBottomActionsWidget extends StatelessWidget {
   const ChargingStationBottomActionsWidget({
     super.key,
     required this.station,
+    required this.latitude,
+    required this.longitude,
   });
 
   final HubcoLocationEntity station;
+  final double latitude;
+  final double longitude;
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +33,7 @@ class ChargingStationBottomActionsWidget extends StatelessWidget {
               child: SizedBox(
                 height: 38.h,
                 child: OutlinedButton(
-                  onPressed: () {},
+                  onPressed: () => _openDirections(context),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: ui.textPrimary,
                     side: BorderSide(
@@ -80,5 +85,19 @@ class ChargingStationBottomActionsWidget extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _openDirections(BuildContext context) async {
+    try {
+      await AppFunctions.openGoogleMapsDirections(
+        latitude: latitude,
+        longitude: longitude,
+      );
+    } catch (_) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not open Google Maps')),
+      );
+    }
   }
 }
