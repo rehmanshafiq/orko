@@ -33,7 +33,7 @@ class MapRemoteDataSourceImpl implements MapRemoteDataSource {
       }
 
       final url = _buildUrl(
-        config.apiConstants.baseUrlQa,
+        config.apiConstants.baseUrlLive,
         config.apiConstants.apiEndpoints.chargingStationMap,
       );
 
