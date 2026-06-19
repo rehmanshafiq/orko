@@ -114,6 +114,7 @@ class ApiEndpoints extends Equatable {
   const ApiEndpoints({
     required this.chargingStationMap,
     required this.chargingStationDetail,
+    required this.chargingStationFavourites,
     required this.signUpForm,
     required this.verifyOtp,
     required this.loginApi,
@@ -130,6 +131,7 @@ class ApiEndpoints extends Equatable {
 
   final String chargingStationMap;
   final String chargingStationDetail;
+  final String chargingStationFavourites;
   final String signUpForm;
   final String verifyOtp;
   final String loginApi;
@@ -147,6 +149,8 @@ class ApiEndpoints extends Equatable {
     return ApiEndpoints(
       chargingStationMap: json['charging_station_map'] as String? ?? '',
       chargingStationDetail: json['charging_station_detail'] as String? ?? '',
+      chargingStationFavourites:
+          json['charging_station_favourites'] as String? ?? '',
       signUpForm: json['sign_up_form'] as String? ?? '',
       verifyOtp: json['verify_otp'] as String? ?? '',
       loginApi: json['login_api'] as String? ?? '',
@@ -166,6 +170,7 @@ class ApiEndpoints extends Equatable {
     return {
       'charging_station_map': chargingStationMap,
       'charging_station_detail': chargingStationDetail,
+      'charging_station_favourites': chargingStationFavourites,
       'sign_up_form': signUpForm,
       'verify_otp': verifyOtp,
       'login_api': loginApi,
@@ -184,6 +189,7 @@ class ApiEndpoints extends Equatable {
   ApiEndpoints copyWith({
     String? chargingStationMap,
     String? chargingStationDetail,
+    String? chargingStationFavourites,
     String? signUpForm,
     String? verifyOtp,
     String? loginApi,
@@ -200,6 +206,8 @@ class ApiEndpoints extends Equatable {
     return ApiEndpoints(
       chargingStationMap: chargingStationMap ?? this.chargingStationMap,
       chargingStationDetail: chargingStationDetail ?? this.chargingStationDetail,
+      chargingStationFavourites:
+          chargingStationFavourites ?? this.chargingStationFavourites,
       signUpForm: signUpForm ?? this.signUpForm,
       verifyOtp: verifyOtp ?? this.verifyOtp,
       loginApi: loginApi ?? this.loginApi,
@@ -219,6 +227,7 @@ class ApiEndpoints extends Equatable {
   List<Object?> get props => [
     chargingStationMap,
     chargingStationDetail,
+    chargingStationFavourites,
     signUpForm,
     verifyOtp,
     loginApi,

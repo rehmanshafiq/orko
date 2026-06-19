@@ -11,6 +11,7 @@
       "logout_api": "api/v1/orko-auth/logout",
       "charging_station_map": "api/v1/charging-station/nearest?",
       "charging_station_detail": "api/v1/charging-station/",
+      "charging_station_favourites": "api/v1/charging-station/favourites/",
       "charger_details": "api/v1/bookings/charger-details/",
       "booking_slots": "api/v1/bookings/slots/",
       "create_booking": "api/v1/bookings/book-charge-session/",

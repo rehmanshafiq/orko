@@ -1,6 +1,10 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:orko_hubco/core/usecase/usecase.dart';
 import 'package:orko_hubco/features/charging/domain/entities/charging_station_detail_entity.dart';
+import 'package:orko_hubco/features/charging/domain/usecases/add_favourite_station_usecase.dart';
 import 'package:orko_hubco/features/charging/domain/usecases/get_charging_station_detail_usecase.dart';
+import 'package:orko_hubco/features/charging/domain/usecases/get_favourite_stations_usecase.dart';
+import 'package:orko_hubco/features/charging/domain/usecases/remove_favourite_station_usecase.dart';
 import 'package:orko_hubco/features/charging/presentation/bloc/charging_station_detail_event.dart';
 import 'package:orko_hubco/features/charging/presentation/bloc/charging_station_detail_state.dart';
 import 'package:orko_hubco/features/charging/presentation/models/amenity_model.dart';
@@ -11,7 +15,13 @@ class ChargingStationDetailBloc
     extends Bloc<ChargingStationDetailEvent, ChargingStationDetailState> {
   ChargingStationDetailBloc({
     required GetChargingStationDetailUseCase getStationDetailUseCase,
+    required GetFavouriteStationsUseCase getFavouriteStationsUseCase,
+    required AddFavouriteStationUseCase addFavouriteStationUseCase,
+    required RemoveFavouriteStationUseCase removeFavouriteStationUseCase,
   })  : _getStationDetailUseCase = getStationDetailUseCase,
+        _getFavouriteStationsUseCase = getFavouriteStationsUseCase,
+        _addFavouriteStationUseCase = addFavouriteStationUseCase,
+        _removeFavouriteStationUseCase = removeFavouriteStationUseCase,
         super(const ChargingStationDetailState()) {
     on<ChargingStationDetailRequested>(_onRequested);
     on<ChargingStationDetailFavoriteToggled>(_onFavoriteToggled);
@@ -19,6 +29,9 @@ class ChargingStationDetailBloc
   }
 
   final GetChargingStationDetailUseCase _getStationDetailUseCase;
+  final GetFavouriteStationsUseCase _getFavouriteStationsUseCase;
+  final AddFavouriteStationUseCase _addFavouriteStationUseCase;
+  final RemoveFavouriteStationUseCase _removeFavouriteStationUseCase;
 
   Future<void> _onRequested(
     ChargingStationDetailRequested event,
@@ -37,39 +50,106 @@ class ChargingStationDetailBloc
       ),
     );
 
+    if (result.isLeft) {
+      result.fold(
+        (failure) => emit(state.copyWith(
+          status: ChargingDetailStatus.failure,
+          errorMessage: failure.message,
+        )),
+        (_) {},
+      );
+      return;
+    }
+
+    final detail = result.getOrElse(() => throw StateError('unreachable'));
+    final ports = _mapPorts(detail);
+    final locationId = _resolveLocationId(detail.locationId, event.stationId);
+
+    emit(state.copyWith(
+      status: ChargingDetailStatus.success,
+      ports: ports,
+      amenities: _mapAmenities(detail),
+      reviews: _mapReviews(detail),
+      selectedPortIndex: _indexOfFirstAvailablePort(ports),
+      name: detail.name,
+      address: detail.address,
+      operatingHours: _formatOperatingHours(detail),
+      pricing: _formatPricing(detail),
+      contactNumber: _formatContactNumber(detail.contactNumber),
+      averageRating: detail.averageRating,
+      totalReviews: detail.totalReviews,
+      distance: detail.distance,
+      latitude: detail.latitude,
+      longitude: detail.longitude,
+      locationId: locationId,
+    ));
+
+    // Resolve the favourite state in the background. A failure here must not
+    // surface as a screen-level error — the detail loaded successfully.
+    if (locationId != null) {
+      final favResult = await _getFavouriteStationsUseCase(const NoParams());
+      favResult.fold(
+        (_) {},
+        (favourites) {
+          final isFavourite =
+              favourites.any((f) => f.locationId == locationId);
+          emit(state.copyWith(favorite: isFavourite));
+        },
+      );
+    }
+  }
+
+  Future<void> _onFavoriteToggled(
+    ChargingStationDetailFavoriteToggled event,
+    Emitter<ChargingStationDetailState> emit,
+  ) async {
+    // Ignore taps while a previous toggle is still resolving, or before the
+    // station's location id is known.
+    if (state.favoriteLoading) return;
+
+    final locationId = state.locationId;
+    if (locationId == null) {
+      emit(state.copyWith(
+        favoriteError: 'Station not ready yet. Please try again.',
+        favoriteEventId: state.favoriteEventId + 1,
+      ));
+      return;
+    }
+
+    final willFavorite = !state.favorite;
+
+    // Optimistically reflect the new state for instant feedback.
+    emit(state.copyWith(
+      favorite: willFavorite,
+      favoriteLoading: true,
+      favoriteError: '',
+    ));
+
+    final result = willFavorite
+        ? await _addFavouriteStationUseCase(locationId)
+        : await _removeFavouriteStationUseCase(locationId);
+
     result.fold(
-      (failure) => emit(state.copyWith(
-        status: ChargingDetailStatus.failure,
-        errorMessage: failure.message,
-      )),
-      (detail) {
-        final ports = _mapPorts(detail);
+      (failure) {
+        // Revert the optimistic change and surface the error.
         emit(state.copyWith(
-          status: ChargingDetailStatus.success,
-          ports: ports,
-          amenities: _mapAmenities(detail),
-          reviews: _mapReviews(detail),
-          selectedPortIndex: _indexOfFirstAvailablePort(ports),
-          name: detail.name,
-          address: detail.address,
-          operatingHours: _formatOperatingHours(detail),
-          pricing: _formatPricing(detail),
-          contactNumber: _formatContactNumber(detail.contactNumber),
-          averageRating: detail.averageRating,
-          totalReviews: detail.totalReviews,
-          distance: detail.distance,
-          latitude: detail.latitude,
-          longitude: detail.longitude,
+          favorite: !willFavorite,
+          favoriteLoading: false,
+          favoriteError: failure.message.isNotEmpty
+              ? failure.message
+              : 'Could not update favourites. Please try again.',
+          favoriteEventId: state.favoriteEventId + 1,
         ));
       },
+      (_) => emit(state.copyWith(favoriteLoading: false)),
     );
   }
 
-  void _onFavoriteToggled(
-    ChargingStationDetailFavoriteToggled event,
-    Emitter<ChargingStationDetailState> emit,
-  ) {
-    emit(state.copyWith(favorite: !state.favorite));
+  /// Prefers the location id from the loaded detail, falling back to the id the
+  /// screen was opened with.
+  int? _resolveLocationId(String detailLocationId, String stationId) {
+    return int.tryParse(detailLocationId.trim()) ??
+        int.tryParse(stationId.trim());
   }
 
   void _onPortSelected(

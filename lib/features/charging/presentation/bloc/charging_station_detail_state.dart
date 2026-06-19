@@ -10,6 +10,10 @@ class ChargingStationDetailState extends Equatable {
     this.status = ChargingDetailStatus.initial,
     this.errorMessage = '',
     this.favorite = false,
+    this.favoriteLoading = false,
+    this.favoriteError = '',
+    this.favoriteEventId = 0,
+    this.locationId,
     this.selectedPortIndex = 0,
     this.ports = const [],
     this.amenities = const [],
@@ -30,6 +34,21 @@ class ChargingStationDetailState extends Equatable {
   final String errorMessage;
 
   final bool favorite;
+
+  /// True while a favourite add/remove request is in flight.
+  final bool favoriteLoading;
+
+  /// Transient error message for a failed favourite toggle. Pair with
+  /// [favoriteEventId] so the UI can react to repeated identical failures.
+  final String favoriteError;
+
+  /// Bumped on every favourite toggle outcome so a [BlocListener] fires even
+  /// when the message text is unchanged.
+  final int favoriteEventId;
+
+  /// The station's location id, used as `location_id` for the favourite APIs.
+  final int? locationId;
+
   final int selectedPortIndex;
   final List<ChargerPortModel> ports;
   final List<AmenityModel> amenities;
@@ -57,6 +76,10 @@ class ChargingStationDetailState extends Equatable {
     ChargingDetailStatus? status,
     String? errorMessage,
     bool? favorite,
+    bool? favoriteLoading,
+    String? favoriteError,
+    int? favoriteEventId,
+    int? locationId,
     int? selectedPortIndex,
     List<ChargerPortModel>? ports,
     List<AmenityModel>? amenities,
@@ -76,6 +99,10 @@ class ChargingStationDetailState extends Equatable {
       status: status ?? this.status,
       errorMessage: errorMessage ?? this.errorMessage,
       favorite: favorite ?? this.favorite,
+      favoriteLoading: favoriteLoading ?? this.favoriteLoading,
+      favoriteError: favoriteError ?? this.favoriteError,
+      favoriteEventId: favoriteEventId ?? this.favoriteEventId,
+      locationId: locationId ?? this.locationId,
       selectedPortIndex: selectedPortIndex ?? this.selectedPortIndex,
       ports: ports ?? this.ports,
       amenities: amenities ?? this.amenities,
@@ -98,6 +125,10 @@ class ChargingStationDetailState extends Equatable {
         status,
         errorMessage,
         favorite,
+        favoriteLoading,
+        favoriteError,
+        favoriteEventId,
+        locationId,
         selectedPortIndex,
         ports,
         amenities,

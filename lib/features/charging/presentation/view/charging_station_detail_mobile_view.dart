@@ -58,7 +58,17 @@ class ChargingStationDetailMobileView extends StatelessWidget {
             longitude: hub.longitude,
           ),
         ),
-      child: BlocBuilder<ChargingStationDetailBloc, ChargingStationDetailState>(
+      child: BlocConsumer<ChargingStationDetailBloc, ChargingStationDetailState>(
+        listenWhen: (previous, current) =>
+            previous.favoriteEventId != current.favoriteEventId &&
+            current.favoriteError.isNotEmpty,
+        listener: (context, state) {
+          ScaffoldMessenger.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(
+              SnackBar(content: Text(state.favoriteError)),
+            );
+        },
         builder: (context, state) {
           final availableCount = state.ports.where((p) => p.available).length;
           final totalPorts = state.ports.length;
