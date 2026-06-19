@@ -4,7 +4,9 @@ import 'package:go_router/go_router.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/utils/app_functions.dart';
+import 'package:orko_hubco/core/utils/app_storage/app_storage.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
+import 'package:orko_hubco/core/utils/widgets/auth_required_dialog.dart';
 import 'package:orko_hubco/core/utils/widgets/primary_button_widget.dart';
 import 'package:orko_hubco/features/map/domain/entities/hubco_location_entity.dart';
 
@@ -72,7 +74,7 @@ class ChargingStationBottomActionsWidget extends StatelessWidget {
                 text: 'Book Slot',
                 leadingIcon: Icons.calendar_today_outlined,
                 iconHeight: 18.sp,
-                onPress: () => context.push('/book-slot', extra: station),
+                onPress: () => _onBookSlot(context),
                 isEnabled: isEnabled,
                 buttonWidth: double.infinity,
                 buttonHeight: 38.h,
@@ -90,6 +92,15 @@ class ChargingStationBottomActionsWidget extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  /// Guests must authenticate before booking — prompt to log in/sign up.
+  void _onBookSlot(BuildContext context) {
+    if (AppStorage.isGuest) {
+      AuthRequiredDialog.show(context);
+      return;
+    }
+    context.push('/book-slot', extra: station);
   }
 
   Future<void> _openDirections(BuildContext context) async {

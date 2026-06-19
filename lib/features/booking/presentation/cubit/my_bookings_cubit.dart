@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:orko_hubco/core/usecase/usecase.dart';
+import 'package:orko_hubco/core/utils/app_storage/app_storage.dart';
 import 'package:orko_hubco/features/booking/domain/usecases/cancel_booking_usecase.dart';
 import 'package:orko_hubco/features/booking/domain/usecases/get_my_bookings_usecase.dart';
 import 'package:orko_hubco/features/booking/domain/usecases/reschedule_booking_usecase.dart';
@@ -30,6 +31,17 @@ class MyBookingsCubit extends Cubit<MyBookingsState> {
 
   /// Loads (or reloads) the user's bookings.
   Future<void> loadBookings({bool showSpinner = true}) async {
+    // Guests have no session, so the API would return Unauthorized. Surface the
+    // normal empty states (no active/upcoming/history) instead of a failure.
+    if (AppStorage.isGuest) {
+      emit(state.copyWith(
+        status: MyBookingsStatus.success,
+        bookings: const [],
+        clearError: true,
+      ));
+      return;
+    }
+
     if (showSpinner) {
       emit(state.copyWith(status: MyBookingsStatus.loading, clearError: true));
     }
