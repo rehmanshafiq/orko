@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/utils/app_storage/app_storage.dart';
@@ -10,6 +11,7 @@ import 'package:orko_hubco/core/utils/widgets/app_text.dart';
 import 'package:orko_hubco/core/utils/widgets/auth_required_dialog.dart';
 import 'package:orko_hubco/features/booking/presentation/cubit/booking_cubit.dart';
 import 'package:orko_hubco/features/booking/presentation/cubit/booking_state.dart';
+import 'package:orko_hubco/features/booking/presentation/pages/booking_success_page.dart';
 import 'package:orko_hubco/features/booking/presentation/widgets/charger_port_selector.dart';
 import 'package:orko_hubco/features/booking/presentation/widgets/date_selector.dart';
 import 'package:orko_hubco/features/booking/presentation/widgets/duration_selector.dart';
@@ -186,7 +188,15 @@ class BookSlotMobileView extends StatelessWidget {
         );
         final pricePerKwh = state.selectedPort?.price?.price ?? 0;
         final amount = (pricePerKwh * 10 * state.durationHours).round();
-        context.push('/booking-confirmation', extra: amount);
+        context.push(
+          '/booking-success',
+          extra: BookingSuccessArgs(
+            bookingRef: _bookingRef(state),
+            stationName: state.stationName ?? stationName ?? _defaultStationTitle,
+            slotLabel: _slotLabel(state),
+            amountPaid: amount,
+          ),
+        );
         break;
       case BookingSubmitStatus.failure:
         messenger.showSnackBar(
@@ -200,6 +210,42 @@ class BookSlotMobileView extends StatelessWidget {
       case BookingSubmitStatus.submitting:
         break;
     }
+  }
+
+  /// Builds a human-readable booking reference from the created booking id.
+  String _bookingRef(BookingState state) {
+    final id = state.createdBooking?.id;
+    return id == null ? '—' : 'BK-$id';
+  }
+
+  /// Builds the slot label, e.g. `April 18 · 14:00 – 15:00`, from the confirmed
+  /// booking date and start time plus the selected duration.
+  String _slotLabel(BookingState state) {
+    final booking = state.createdBooking;
+    final date = booking != null
+        ? DateTime.tryParse(booking.bookingDate)
+        : state.selectedDate;
+    final start = booking?.startTime ?? state.selectedSlot?.startTime ?? '';
+
+    final dateLabel = date != null ? DateFormat('MMMM d').format(date) : '';
+    final end = _addHours(start, state.durationHours);
+    final timeLabel = [start, end].where((t) => t.isNotEmpty).join(' – ');
+
+    return [dateLabel, timeLabel].where((p) => p.isNotEmpty).join(' · ');
+  }
+
+  /// Adds [hours] to an `HH:mm` time string, wrapping past midnight. Returns an
+  /// empty string when [time] can't be parsed.
+  String _addHours(String time, int hours) {
+    final parts = time.split(':');
+    if (parts.length < 2) return '';
+    final h = int.tryParse(parts[0]);
+    final m = int.tryParse(parts[1]);
+    if (h == null || m == null) return '';
+    final total = (h * 60 + m + hours * 60) % (24 * 60);
+    final endH = (total ~/ 60).toString().padLeft(2, '0');
+    final endM = (total % 60).toString().padLeft(2, '0');
+    return '$endH:$endM';
   }
 }
 

@@ -12,7 +12,7 @@ class BookingDetailsCard extends StatelessWidget {
     required this.stationName,
     required this.slotLabel,
     required this.amountPaid,
-    required this.paymentLabel,
+    this.paymentLabel,
   });
 
   final AppUiColors ui;
@@ -20,7 +20,10 @@ class BookingDetailsCard extends StatelessWidget {
   final String stationName;
   final String slotLabel;
   final int amountPaid;
-  final String paymentLabel;
+
+  /// Optional — when null the `Payment` row is omitted (e.g. the post-booking
+  /// success screen, where no card payment is captured).
+  final String? paymentLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -59,8 +62,10 @@ class BookingDetailsCard extends StatelessWidget {
             label: 'Amount paid',
             value: 'Rs $amountPaid',
           ),
-          12.verticalSpace,
-          BookingDetailRow(ui: ui, label: 'Payment', value: paymentLabel),
+          if (paymentLabel != null) ...[
+            12.verticalSpace,
+            BookingDetailRow(ui: ui, label: 'Payment', value: paymentLabel!),
+          ],
         ],
       ),
     );

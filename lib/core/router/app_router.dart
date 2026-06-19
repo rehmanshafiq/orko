@@ -10,6 +10,7 @@ import 'package:orko_hubco/features/auth/presentation/screens/register_screen.da
 import 'package:orko_hubco/features/auth/presentation/screens/verify_otp_screen.dart';
 import 'package:orko_hubco/features/booking/presentation/pages/book_slot_page.dart';
 import 'package:orko_hubco/features/booking/presentation/pages/booking_confirmation_page.dart';
+import 'package:orko_hubco/features/booking/presentation/pages/booking_success_page.dart';
 import 'package:orko_hubco/features/booking/presentation/pages/my_bookings_page.dart';
 import 'package:orko_hubco/features/booking/presentation/screens/payment_method_screen.dart';
 import 'package:orko_hubco/features/bottom_navigation/presentation/screens/bottom_nav_shell.dart';
@@ -144,6 +145,24 @@ class AppRouter {
           final extra = state.extra;
           final paid = extra is int ? extra : 472;
           return BookingConfirmationPage(amountPaid: paid);
+        },
+      ),
+
+      GoRoute(
+        path: '/booking-success',
+        name: 'booking-success',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final extra = state.extra;
+          final args = extra is BookingSuccessArgs
+              ? extra
+              : const BookingSuccessArgs(
+                  bookingRef: '—',
+                  stationName: '—',
+                  slotLabel: '—',
+                  amountPaid: 0,
+                );
+          return BookingSuccessPage(args: args);
         },
       ),
 

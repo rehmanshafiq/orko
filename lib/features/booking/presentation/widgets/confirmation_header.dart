@@ -38,13 +38,13 @@ class ConfirmationHeader extends StatelessWidget {
           ),
         ),
         22.verticalSpace,
-        AppText(
-          "Payment Received.",
-          color: ui.textPrimary,
-          fontSize: FontSizes.font16Sp,
-          fontWeight: FontWeights.weight700,
-          textAlign: TextAlign.center,
-        ),
+        // AppText(
+        //   "Payment Received.",
+        //   color: ui.textPrimary,
+        //   fontSize: FontSizes.font16Sp,
+        //   fontWeight: FontWeights.weight700,
+        //   textAlign: TextAlign.center,
+        // ),
         10.verticalSpace,
         AppText(
           title,
