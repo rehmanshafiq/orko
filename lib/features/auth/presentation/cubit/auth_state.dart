@@ -55,6 +55,32 @@ class OtpVerified extends AuthState {
   const OtpVerified();
 }
 
+/// A resend-OTP request is in flight.
+class OtpResending extends AuthState {
+  const OtpResending();
+}
+
+/// A fresh OTP was sent — carries the server's confirmation message.
+class OtpResent extends AuthState {
+  final String message;
+
+  const OtpResent(this.message);
+
+  @override
+  List<Object?> get props => [message];
+}
+
+/// Resending the OTP failed. Kept distinct from [AuthError] so the entered
+/// code is preserved (the previous OTP may still be valid).
+class OtpResendFailure extends AuthState {
+  final String message;
+
+  const OtpResendFailure(this.message);
+
+  @override
+  List<Object?> get props => [message];
+}
+
 /// Error state — something went wrong.
 class AuthError extends AuthState {
   final String message;

@@ -27,10 +27,15 @@ class VerifyOtpScreen extends StatefulWidget {
   /// Dialing code, e.g. `+92`.
   final String countryCode;
 
+  /// Pending OTP id for the sign-in flow. When null (the signup flow), resend
+  /// authorizes with the saved access token instead of an id.
+  final String? otpId;
+
   const VerifyOtpScreen({
     super.key,
     required this.phoneNumber,
     this.countryCode = '+92',
+    this.otpId,
   });
 
   @override
@@ -152,9 +157,10 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
 
   void _onResend() {
     if (_secondsRemaining > 0) return;
-    _clearCode();
-    _startResendTimer();
-    AppHelpers.showSnackBar(context, 'A new code has been sent');
+    // Guard against a second tap while a request is already in flight.
+    if (context.read<AuthCubit>().state is OtpResending) return;
+    FocusScope.of(context).unfocus();
+    context.read<AuthCubit>().resendOtp(otpId: widget.otpId);
   }
 
   @override
@@ -166,6 +172,14 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
         listener: (context, state) {
           if (state is OtpVerified) {
             context.go('/home');
+          } else if (state is OtpResent) {
+            // Fresh code sent — restart the countdown and clear the old input.
+            _clearCode();
+            _startResendTimer();
+            AppHelpers.showSnackBar(context, state.message);
+          } else if (state is OtpResendFailure) {
+            // Keep the entered code — the previous OTP may still be valid.
+            AppHelpers.showSnackBar(context, state.message, isError: true);
           } else if (state is AuthError) {
             AppHelpers.showSnackBar(context, state.message, isError: true);
             _clearCode();
@@ -173,6 +187,7 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
         },
         builder: (context, state) {
           final isVerifying = state is OtpVerifying;
+          final isResending = state is OtpResending;
           return SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -261,12 +276,16 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
                           fontWeight: FontWeights.weight400,
                         ),
                         GestureDetector(
-                          onTap: _onResend,
+                          onTap: (_secondsRemaining > 0 || isResending)
+                              ? null
+                              : _onResend,
                           child: AppText(
-                            _secondsRemaining > 0
-                                ? 'Resend in $_formattedRemaining'
-                                : 'Resend',
-                            color: _secondsRemaining > 0
+                            isResending
+                                ? 'Sending...'
+                                : _secondsRemaining > 0
+                                    ? 'Resend in $_formattedRemaining'
+                                    : 'Resend',
+                            color: (_secondsRemaining > 0 || isResending)
                                 ? ui.textMuted
                                 : ui.brandPrimary,
                             fontSize: FontSizes.font12Sp,

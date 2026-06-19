@@ -45,6 +45,13 @@ abstract class AuthRepository {
   /// access token saved at sign-up.
   Future<Either<Failure, void>> verifyOtp({required String otp});
 
+  /// Requests a fresh OTP via the `resend_otp` endpoint.
+  ///
+  /// When [otpId] is omitted, authorizes with the access token saved at
+  /// sign-up (signup verification flow). When [otpId] is provided, identifies
+  /// the pending OTP by id (sign-in flow). Returns the confirmation message.
+  Future<Either<Failure, String>> resendOtp({String? otpId});
+
   /// Logs out the current user.
   Future<Either<Failure, void>> logout();
 

@@ -96,6 +96,7 @@ class AppRouter {
             child: VerifyOtpScreen(
               phoneNumber: args['phoneNumber']?.toString() ?? '',
               countryCode: args['countryCode']?.toString() ?? '+92',
+              otpId: args['otpId']?.toString(),
             ),
           );
         },

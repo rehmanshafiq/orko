@@ -50,6 +50,20 @@ abstract class AuthRemoteDataSource {
     required String accessToken,
   });
 
+  /// Requests a fresh OTP via the `resend_otp` endpoint from Remote Config.
+  ///
+  /// Two modes are supported:
+  /// * Signup verification — pass [accessToken]; sent as a `Bearer`
+  ///   Authorization header with no request body.
+  /// * Sign-in OTP — pass [otpId]; sent as `{ "otp_id": <id> }` body.
+  ///
+  /// Returns the human-readable confirmation message from the response body.
+  /// Throws [ServerException] on failure.
+  Future<String> resendOtp({
+    String? otpId,
+    String? accessToken,
+  });
+
   /// Calls the logout API.
   Future<void> logout();
 }

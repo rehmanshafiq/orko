@@ -3,7 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
+import 'package:orko_hubco/core/utils/app_storage/app_storage.dart';
 import 'package:orko_hubco/core/utils/app_ui.dart';
+import 'package:orko_hubco/core/utils/widgets/auth_required_dialog.dart';
 import 'package:orko_hubco/core/utils/widgets/primary_button_widget.dart';
 import 'package:orko_hubco/features/trip/presentation/bloc/trip_planner_bloc.dart';
 import 'package:orko_hubco/features/trip/presentation/bloc/trip_planner_event.dart';
@@ -99,9 +101,20 @@ class TripPlannerMobileView extends StatelessWidget {
                   12.verticalSpace,
                   PrimaryButtonWidget(
                     text: 'Plan Trip',
-                    onPress: () => context
-                        .read<TripPlannerBloc>()
-                        .add(const TripPlannerPlanTripPressed()),
+                    onPress: () {
+                      // Guests can browse but must authenticate before planning a trip.
+                      if (AppStorage.isGuest) {
+                        AuthRequiredDialog.show(
+                          context,
+                          message:
+                              'You\'re browsing as a guest. Please log in or create an account to plan a trip.',
+                        );
+                        return;
+                      }
+                      context
+                          .read<TripPlannerBloc>()
+                          .add(const TripPlannerPlanTripPressed());
+                    },
                     gradientColors: const [
                       AppColors.primaryDarkColor,
                       AppColors.primaryDarkButtonColor,

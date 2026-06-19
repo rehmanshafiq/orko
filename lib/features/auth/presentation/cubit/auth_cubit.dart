@@ -4,6 +4,7 @@ import 'package:orko_hubco/core/usecase/usecase.dart';
 import 'package:orko_hubco/features/auth/domain/usecases/login_usecase.dart';
 import 'package:orko_hubco/features/auth/domain/usecases/login_with_google_usecase.dart';
 import 'package:orko_hubco/features/auth/domain/usecases/register_usecase.dart';
+import 'package:orko_hubco/features/auth/domain/usecases/resend_otp_usecase.dart';
 import 'package:orko_hubco/features/auth/domain/usecases/signup_usecase.dart';
 import 'package:orko_hubco/features/auth/domain/usecases/verify_otp_usecase.dart';
 import 'package:orko_hubco/features/auth/presentation/cubit/auth_state.dart';
@@ -18,6 +19,7 @@ class AuthCubit extends Cubit<AuthState> {
   final RegisterUseCase _registerUseCase;
   final SignUpUseCase _signUpUseCase;
   final VerifyOtpUseCase _verifyOtpUseCase;
+  final ResendOtpUseCase _resendOtpUseCase;
   final LogoutUseCase _logoutUseCase;
   final GoogleAuthService _googleAuthService;
 
@@ -27,6 +29,7 @@ class AuthCubit extends Cubit<AuthState> {
     required RegisterUseCase registerUseCase,
     required SignUpUseCase signUpUseCase,
     required VerifyOtpUseCase verifyOtpUseCase,
+    required ResendOtpUseCase resendOtpUseCase,
     required LogoutUseCase logoutUseCase,
     required GoogleAuthService googleAuthService,
   })  : _loginUseCase = loginUseCase,
@@ -34,6 +37,7 @@ class AuthCubit extends Cubit<AuthState> {
         _registerUseCase = registerUseCase,
         _signUpUseCase = signUpUseCase,
         _verifyOtpUseCase = verifyOtpUseCase,
+        _resendOtpUseCase = resendOtpUseCase,
         _logoutUseCase = logoutUseCase,
         _googleAuthService = googleAuthService,
         super(const AuthInitial());
@@ -151,6 +155,21 @@ class AuthCubit extends Cubit<AuthState> {
     result.fold(
       (failure) => emit(AuthError(failure.message)),
       (_) => emit(const OtpVerified()),
+    );
+  }
+
+  /// Requests a fresh OTP. Emits [OtpResending] while in flight, then
+  /// [OtpResent] (with the server's message) on success or [OtpResendFailure]
+  /// on error. For the signup flow leave [otpId] null; for the sign-in flow
+  /// pass the pending OTP id.
+  Future<void> resendOtp({String? otpId}) async {
+    emit(const OtpResending());
+
+    final result = await _resendOtpUseCase(ResendOtpParams(otpId: otpId));
+
+    result.fold(
+      (failure) => emit(OtpResendFailure(failure.message)),
+      (message) => emit(OtpResent(message)),
     );
   }
 

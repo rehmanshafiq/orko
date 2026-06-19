@@ -179,6 +179,40 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<Either<Failure, String>> resendOtp({String? otpId}) async {
+    if (!await networkInfo.isConnected) {
+      return const Left(NetworkFailure());
+    }
+
+    // Signup flow (no otpId) requires the JWT saved at sign-up.
+    String? token;
+    if (otpId == null || otpId.isEmpty) {
+      token = localDataSource.accessToken;
+      if (token == null || token.isEmpty) {
+        return const Left(
+          UnauthorizedFailure(
+            message: 'Session expired. Please sign up again.',
+          ),
+        );
+      }
+    }
+
+    try {
+      final message = await remoteDataSource.resendOtp(
+        otpId: otpId,
+        accessToken: token,
+      );
+      return Right(message);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
+    } on UnauthorizedException catch (e) {
+      return Left(UnauthorizedFailure(message: e.message));
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
+    }
+  }
+
+  @override
   Future<Either<Failure, void>> logout() async {
     try {
       if (await networkInfo.isConnected) {

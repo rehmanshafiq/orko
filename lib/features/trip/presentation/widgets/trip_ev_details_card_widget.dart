@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
+import 'package:orko_hubco/core/utils/app_storage/app_storage.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
 
 class TripEvDetailsCardWidget extends StatelessWidget {
@@ -15,6 +16,8 @@ class TripEvDetailsCardWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ui = AppUiColors.of(context);
+    // Guests have no registered EV, so make/model and range are unavailable.
+    final isGuest = AppStorage.isGuest;
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 14.h),
       decoration: BoxDecoration(
@@ -39,15 +42,15 @@ class TripEvDetailsCardWidget extends StatelessWidget {
                   size: 26.sp,
                   color: ui.brandSecondary,
                 ),
-                value: 'BYD',
-                label: 'Atto 3',
+                value: isGuest ? '-' : 'BYD',
+                label: isGuest ? '-' : 'Atto 3',
               ),
             ),
             _SectionDivider(color: ui.borderSubtle),
             Expanded(
               child: _TripEvMetric(
                 icon: _RangeGlyph(roadColor: ui.brandSecondary),
-                value: '280 km',
+                value: isGuest ? '-' : '280 km',
                 label: 'range',
               ),
             ),

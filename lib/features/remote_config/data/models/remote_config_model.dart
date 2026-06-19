@@ -117,6 +117,7 @@ class ApiEndpoints extends Equatable {
     required this.chargingStationFavourites,
     required this.signUpForm,
     required this.verifyOtp,
+    required this.resendOtp,
     required this.loginApi,
     required this.loginWithGoogle,
     required this.logoutApi,
@@ -134,6 +135,7 @@ class ApiEndpoints extends Equatable {
   final String chargingStationFavourites;
   final String signUpForm;
   final String verifyOtp;
+  final String resendOtp;
   final String loginApi;
   final String loginWithGoogle;
   final String logoutApi;
@@ -153,6 +155,7 @@ class ApiEndpoints extends Equatable {
           json['charging_station_favourites'] as String? ?? '',
       signUpForm: json['sign_up_form'] as String? ?? '',
       verifyOtp: json['verify_otp'] as String? ?? '',
+      resendOtp: json['resend_otp'] as String? ?? '',
       loginApi: json['login_api'] as String? ?? '',
       loginWithGoogle: json['login_with_google'] as String? ?? '',
       logoutApi: json['logout_api'] as String? ?? '',
@@ -173,6 +176,7 @@ class ApiEndpoints extends Equatable {
       'charging_station_favourites': chargingStationFavourites,
       'sign_up_form': signUpForm,
       'verify_otp': verifyOtp,
+      'resend_otp': resendOtp,
       'login_api': loginApi,
       'login_with_google': loginWithGoogle,
       'logout_api': logoutApi,
@@ -192,6 +196,7 @@ class ApiEndpoints extends Equatable {
     String? chargingStationFavourites,
     String? signUpForm,
     String? verifyOtp,
+    String? resendOtp,
     String? loginApi,
     String? loginWithGoogle,
     String? logoutApi,
@@ -210,6 +215,7 @@ class ApiEndpoints extends Equatable {
           chargingStationFavourites ?? this.chargingStationFavourites,
       signUpForm: signUpForm ?? this.signUpForm,
       verifyOtp: verifyOtp ?? this.verifyOtp,
+      resendOtp: resendOtp ?? this.resendOtp,
       loginApi: loginApi ?? this.loginApi,
       loginWithGoogle: loginWithGoogle ?? this.loginWithGoogle,
       logoutApi: logoutApi ?? this.logoutApi,
@@ -230,6 +236,7 @@ class ApiEndpoints extends Equatable {
     chargingStationFavourites,
     signUpForm,
     verifyOtp,
+    resendOtp,
     loginApi,
     loginWithGoogle,
     logoutApi,

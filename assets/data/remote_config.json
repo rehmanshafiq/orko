@@ -6,6 +6,7 @@
     "api_endpoints": {
       "sign_up_form": "api/v1/orko-auth/complete-signup",
       "verify_otp": "api/v1/orko-auth/verify-otp",
+      "resend_otp": "api/v1/orko-auth/resend-otp",
       "login_api": "api/v1/orko-auth/login-with-password",
       "login_with_google": "api/v1/orko-auth/login-with-google",
       "logout_api": "api/v1/orko-auth/logout",
