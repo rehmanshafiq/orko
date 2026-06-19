@@ -30,6 +30,9 @@ class LoggingInterceptor extends Interceptor {
     log('┌──────────────────────────────────────────────');
     log('│ ERROR [${err.response?.statusCode}]: ${err.requestOptions.uri}');
     log('│ Message: ${err.message}');
+    if (err.response?.data != null) {
+      log('│ Response: ${err.response?.data}');
+    }
     log('└──────────────────────────────────────────────');
     handler.next(err);
   }
