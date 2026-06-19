@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="ic_launcher_background">#FFFFFF</color>
+    <color name="ic_launcher_background">#000000</color>
     <!-- Native launch window background — matches the Flutter splash scaffold so
          the OS launch screen blends into SplashMobileView (light mode). -->
     <color name="launch_background">#FFFFFF</color>
