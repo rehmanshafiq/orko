@@ -81,7 +81,12 @@ class _OnboardingMobileViewState extends State<OnboardingMobileView>
           listener: (context, state) {
             if (state.errorMessage != null && state.errorMessage!.isNotEmpty) {
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: AppText(state.errorMessage!)),
+                SnackBar(
+                  content: AppText(
+                    state.errorMessage!,
+                    color: AppColors.whiteColor,
+                  ),
+                ),
               );
             }
 

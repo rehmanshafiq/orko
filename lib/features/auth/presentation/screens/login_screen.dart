@@ -111,7 +111,10 @@ class _LoginScreenState extends State<LoginScreen> {
                     Align(
                       alignment: Alignment.centerRight,
                       child: TextButton(
-                        onPressed: () {},
+                        onPressed: () => AppHelpers.showSnackBar(
+                          context,
+                          'Coming soon',
+                        ),
                         style: TextButton.styleFrom(
                           padding: AppUtils.zeroPadding,
                           minimumSize: Size.zero,

@@ -17,6 +17,9 @@ abstract final class AppMaterialTheme {
           centerTitle: true,
           elevation: 0,
         ),
+        snackBarTheme: const SnackBarThemeData(
+          contentTextStyle: TextStyle(color: Colors.white),
+        ),
         inputDecorationTheme: InputDecorationTheme(
           filled: true,
           fillColor: AppColors.shimmerGreyColor,
@@ -39,6 +42,9 @@ abstract final class AppMaterialTheme {
         appBarTheme: const AppBarTheme(
           centerTitle: true,
           elevation: 0,
+        ),
+        snackBarTheme: const SnackBarThemeData(
+          contentTextStyle: TextStyle(color: Colors.white),
         ),
         inputDecorationTheme: InputDecorationTheme(
           filled: true,
