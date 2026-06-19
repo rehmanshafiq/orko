@@ -298,6 +298,9 @@ class _SlotsSection extends StatelessWidget {
         );
 
       case SlotsStatus.success:
+        // Only show available slots — hide booked/unavailable ones entirely.
+        final availableSlots =
+            state.slots.where((s) => s.isAvailable).toList(growable: false);
         if (state.slots.isEmpty) {
           return _SlotsMessage(
             ui: ui,
@@ -305,29 +308,16 @@ class _SlotsSection extends StatelessWidget {
             onRetry: cubit.loadSlots,
           );
         }
-        if (!state.hasAvailableSlots) {
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              TimeSlotGrid(
-                ui: ui,
-                slots: state.slots,
-                selectedStartTime: state.selectedSlot?.startTime,
-                onSlotTap: cubit.selectSlot,
-              ),
-              10.verticalSpace,
-              AppText(
-                'All slots are taken for this date.',
-                color: ui.textSecondary,
-                fontSize: FontSizes.font12Sp,
-                fontWeight: FontWeights.weight400,
-              ),
-            ],
+        if (availableSlots.isEmpty) {
+          return _SlotsMessage(
+            ui: ui,
+            message: 'All slots are booked for this date.',
+            onRetry: cubit.loadSlots,
           );
         }
         return TimeSlotGrid(
           ui: ui,
-          slots: state.slots,
+          slots: availableSlots,
           selectedStartTime: state.selectedSlot?.startTime,
           onSlotTap: cubit.selectSlot,
         );

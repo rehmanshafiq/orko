@@ -15,7 +15,6 @@ class RescheduleBookingUseCase
       bookingId: params.bookingId,
       bookingDate: params.bookingDate,
       startTime: params.startTime,
-      endTime: params.endTime,
       location: params.location,
     );
   }
@@ -26,13 +25,11 @@ class RescheduleBookingParams {
     required this.bookingId,
     required this.bookingDate,
     required this.startTime,
-    required this.endTime,
     required this.location,
   });
 
   final int bookingId;
   final String bookingDate;
   final String startTime;
-  final String endTime;
   final int location;
 }

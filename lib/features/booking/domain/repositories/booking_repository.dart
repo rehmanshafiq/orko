@@ -41,11 +41,11 @@ abstract class BookingRepository {
   Future<Either<Failure, String>> cancelBooking({required int bookingId});
 
   /// `POST /bookings/reschedule-booking/` — creates a new linked booking.
+  /// `end_time` is auto-derived by the backend and must NOT be sent.
   Future<Either<Failure, BookingEntity>> rescheduleBooking({
     required int bookingId,
     required String bookingDate,
     required String startTime,
-    required String endTime,
     required int location,
   });
 }

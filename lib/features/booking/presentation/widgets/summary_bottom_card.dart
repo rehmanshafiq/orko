@@ -78,7 +78,7 @@ class SummaryBottomCard extends StatelessWidget {
           ),
           16.verticalSpace,
           PrimaryButtonWidget(
-            text: 'Continue to Payment',
+            text: 'Continue to Booking',
             onPress: onContinueToPayment,
             gradientColors: const [
               AppColors.primaryDarkColor,

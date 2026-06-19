@@ -8,16 +8,16 @@ class PortPriceEntity extends Equatable {
     required this.price,
   });
 
-  /// e.g. `per_kwh`.
+  /// Live API returns `kwh`; docs sample showed `per_kwh`. Treat both as kWh.
   final String pricingMode;
 
   /// e.g. `PKR`.
   final String currency;
 
-  /// Unit price (per kWh when [pricingMode] is `per_kwh`).
+  /// Unit price (per kWh when [isPerKwh]).
   final double price;
 
-  bool get isPerKwh => pricingMode.toLowerCase() == 'per_kwh';
+  bool get isPerKwh => pricingMode.toLowerCase().contains('kwh');
 
   @override
   List<Object?> get props => [pricingMode, currency, price];

@@ -5,7 +5,7 @@ import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/utils/app_ui.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
 import 'package:orko_hubco/core/utils/widgets/primary_button_widget.dart';
-import 'package:orko_hubco/features/booking/presentation/models/booking_session_model.dart';
+import 'package:orko_hubco/features/booking/domain/entities/my_booking_entity.dart';
 
 class UpcomingBookingCard extends StatelessWidget {
   const UpcomingBookingCard({
@@ -15,13 +15,45 @@ class UpcomingBookingCard extends StatelessWidget {
     required this.onModify,
     required this.onCancel,
     required this.onScanQr,
+    this.isProcessing = false,
   });
 
   final AppUiColors ui;
-  final UpcomingBooking booking;
+  final MyBookingEntity booking;
   final VoidCallback onModify;
   final VoidCallback onCancel;
   final VoidCallback onScanQr;
+
+  /// True while a cancel/reschedule call for this booking is in flight.
+  final bool isProcessing;
+
+  String get _powerLabel {
+    final info = booking.chargerInfo;
+    if (info == null) return 'Charging slot';
+    final parts = <String>[
+      if (info.connectorType.isNotEmpty) info.connectorType,
+      if (info.power.isNotEmpty) info.power,
+      if (info.powerType.isNotEmpty) info.powerType.toUpperCase(),
+    ];
+    return parts.isEmpty ? 'Charging slot' : parts.join(' · ');
+  }
+
+  String get _statusLabel {
+    final s = booking.bookingStatus;
+    if (s.isEmpty) return '—';
+    return s[0].toUpperCase() + s.substring(1);
+  }
+
+  String get _costLabel {
+    final cost = booking.estimatedCost;
+    if (cost == null) return 'N/A';
+    final amount = cost.amount;
+    final fixed = amount.toStringAsFixed(2);
+    final trimmed =
+        fixed.endsWith('.00') ? fixed.substring(0, fixed.length - 3) : fixed;
+    final currency = cost.currency.isEmpty ? 'PKR' : cost.currency;
+    return '$currency $trimmed';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -62,7 +94,7 @@ class UpcomingBookingCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     AppText(
-                      booking.stationName,
+                      booking.displayName,
                       color: ui.textPrimary,
                       fontSize: FontSizes.font16Sp,
                       fontWeight: FontWeights.weight700,
@@ -71,7 +103,7 @@ class UpcomingBookingCard extends StatelessWidget {
                     ),
                     4.verticalSpace,
                     AppText(
-                      booking.powerLabel,
+                      _powerLabel,
                       color: ui.textSecondary,
                       fontSize: FontSizes.font13Sp,
                       fontWeight: FontWeights.weight400,
@@ -80,7 +112,7 @@ class UpcomingBookingCard extends StatelessWidget {
                 ),
               ),
               8.horizontalSpace,
-              _StatusBadge(ui: ui, label: booking.statusLabel),
+              _StatusBadge(ui: ui, label: _statusLabel),
             ],
           ),
           16.verticalSpace,
@@ -94,7 +126,7 @@ class UpcomingBookingCard extends StatelessWidget {
               6.horizontalSpace,
               Expanded(
                 child: AppText(
-                  booking.dateTimeLabel,
+                  booking.date,
                   color: ui.textSecondary,
                   fontSize: FontSizes.font13Sp,
                   fontWeight: FontWeights.weight400,
@@ -108,7 +140,7 @@ class UpcomingBookingCard extends StatelessWidget {
               ),
               6.horizontalSpace,
               AppText(
-                booking.durationLabel,
+                '${booking.startTime} - ${booking.endTime}',
                 color: ui.textSecondary,
                 fontSize: FontSizes.font13Sp,
                 fontWeight: FontWeights.weight400,
@@ -137,7 +169,7 @@ class UpcomingBookingCard extends StatelessWidget {
                   fontWeight: FontWeights.weight500,
                 ),
                 AppText(
-                  booking.estimatedCost.toString(),
+                  _costLabel,
                   color: ui.textPrimary,
                   fontSize: FontSizes.font16Sp,
                   fontWeight: FontWeights.weight700,
@@ -150,6 +182,7 @@ class UpcomingBookingCard extends StatelessWidget {
             text: 'Scan QR Code',
             leadingIcon: Icons.qr_code_scanner_rounded,
             onPress: onScanQr,
+            isEnabled: !isProcessing,
             buttonHeight: 38.h,
             cornerRadius: 24.r,
             gradientColors: const [
@@ -160,37 +193,54 @@ class UpcomingBookingCard extends StatelessWidget {
             fontWeight: FontWeights.weight700,
           ),
           16.verticalSpace,
-          Row(
-            children: [
-              Expanded(
-                child: PrimaryButtonWidget(
-                  text: 'Modify',
-                  onPress: onModify,
-                  buttonHeight: 38.h,
-                  cornerRadius: 12.r,
-                  strokeColor: ui.iconContainerOutline,
-                  buttonColor: ui.cardBackground,
-                  textColor: ui.textPrimary,
-                  fontSize: FontSizes.font14Sp,
-                  fontWeight: FontWeights.weight700,
+          if (isProcessing)
+            Center(
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 6.h),
+                child: SizedBox(
+                  width: 22.w,
+                  height: 22.w,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.4,
+                    color: ui.brandPrimary,
+                  ),
                 ),
               ),
-              12.horizontalSpace,
-              Expanded(
-                child: PrimaryButtonWidget(
-                  text: 'Cancel',
-                  onPress: onCancel,
-                  buttonHeight: 38.h,
-                  cornerRadius: 12.r,
-                  strokeColor: AppColors.removeColor,
-                  buttonColor: ui.cardBackground,
-                  textColor: AppColors.removeColor,
-                  fontSize: FontSizes.font14Sp,
-                  fontWeight: FontWeights.weight700,
+            )
+          else
+            Row(
+              children: [
+                Expanded(
+                  child: PrimaryButtonWidget(
+                    text: 'Modify',
+                    onPress: onModify,
+                    buttonHeight: 38.h,
+                    cornerRadius: 12.r,
+                    strokeColor: ui.iconContainerOutline,
+                    buttonColor: ui.cardBackground,
+                    textColor: ui.textPrimary,
+                    fontSize: FontSizes.font14Sp,
+                    fontWeight: FontWeights.weight700,
+                  ),
                 ),
-              ),
-            ],
-          ),
+                if (booking.canCancel) ...[
+                  12.horizontalSpace,
+                  Expanded(
+                    child: PrimaryButtonWidget(
+                      text: 'Cancel',
+                      onPress: onCancel,
+                      buttonHeight: 38.h,
+                      cornerRadius: 12.r,
+                      strokeColor: AppColors.removeColor,
+                      buttonColor: ui.cardBackground,
+                      textColor: AppColors.removeColor,
+                      fontSize: FontSizes.font14Sp,
+                      fontWeight: FontWeights.weight700,
+                    ),
+                  ),
+                ],
+              ],
+            ),
         ],
       ),
     );

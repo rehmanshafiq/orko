@@ -1,7 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:orko_hubco/features/booking/domain/entities/booking_slot_entity.dart';
-import 'package:orko_hubco/features/booking/domain/usecases/create_booking_usecase.dart';
+import 'package:orko_hubco/features/booking/domain/usecases/create_booking_hgl_usecase.dart';
 import 'package:orko_hubco/features/booking/domain/usecases/get_booking_slots_usecase.dart';
 import 'package:orko_hubco/features/booking/domain/usecases/get_charger_details_usecase.dart';
 import 'package:orko_hubco/features/booking/presentation/cubit/booking_state.dart';
@@ -10,7 +10,7 @@ class BookingCubit extends Cubit<BookingState> {
   BookingCubit({
     required GetChargerDetailsUseCase getChargerDetailsUseCase,
     required GetBookingSlotsUseCase getSlotsUseCase,
-    required CreateBookingUseCase createBookingUseCase,
+    required CreateBookingHglUseCase createBookingUseCase,
   })  : _getChargerDetailsUseCase = getChargerDetailsUseCase,
         _getSlotsUseCase = getSlotsUseCase,
         _createBookingUseCase = createBookingUseCase,
@@ -18,7 +18,9 @@ class BookingCubit extends Cubit<BookingState> {
 
   final GetChargerDetailsUseCase _getChargerDetailsUseCase;
   final GetBookingSlotsUseCase _getSlotsUseCase;
-  final CreateBookingUseCase _createBookingUseCase;
+  // Booking uses the `book-charge-session` endpoint: end_time is auto-derived
+  // by the backend (start + 30 min), so it must NOT be sent.
+  final CreateBookingHglUseCase _createBookingUseCase;
 
   static const int minDuration = 1;
   static const int maxDuration = 8;
@@ -188,10 +190,9 @@ class BookingCubit extends Cubit<BookingState> {
     );
 
     final result = await _createBookingUseCase(
-      CreateBookingParams(
+      CreateBookingHglParams(
         bookingDate: _apiDate.format(date),
         startTime: slot.startTime,
-        endTime: slot.endTime,
         location: locationId,
       ),
     );

@@ -1,5 +1,43 @@
 import 'package:orko_hubco/features/booking/domain/entities/my_booking_entity.dart';
 
+class BookingChargerInfoModel extends BookingChargerInfoEntity {
+  const BookingChargerInfoModel({
+    required super.connectorType,
+    required super.powerType,
+    required super.power,
+  });
+
+  factory BookingChargerInfoModel.fromJson(Map<String, dynamic> json) {
+    return BookingChargerInfoModel(
+      connectorType: (json['connector_type'] ?? '').toString(),
+      powerType: (json['power_type'] ?? '').toString(),
+      power: (json['power'] ?? '').toString(),
+    );
+  }
+}
+
+class BookingCostModel extends BookingCostEntity {
+  const BookingCostModel({
+    required super.amount,
+    required super.currency,
+    required super.pricingMode,
+  });
+
+  factory BookingCostModel.fromJson(Map<String, dynamic> json) {
+    return BookingCostModel(
+      amount: _asDouble(json['amount']),
+      currency: (json['currency'] ?? '').toString(),
+      pricingMode: (json['pricing_mode'] ?? '').toString(),
+    );
+  }
+
+  static double _asDouble(dynamic value) {
+    if (value is num) return value.toDouble();
+    if (value is String) return double.tryParse(value) ?? 0;
+    return 0;
+  }
+}
+
 class MyBookingModel extends MyBookingEntity {
   const MyBookingModel({
     required super.id,
@@ -18,9 +56,13 @@ class MyBookingModel extends MyBookingEntity {
     required super.reschedule,
     required super.canReschedule,
     required super.canCancel,
+    super.chargerInfo,
+    super.estimatedCost,
   });
 
   factory MyBookingModel.fromJson(Map<String, dynamic> json) {
+    final rawCharger = json['charger_info'];
+    final rawCost = json['estimated_cost'];
     return MyBookingModel(
       id: _asInt(json['id']),
       stationName: (json['station_name'] ?? '').toString(),
@@ -38,6 +80,13 @@ class MyBookingModel extends MyBookingEntity {
       reschedule: _asInt(json['reschedule']),
       canReschedule: json['can_reschedule'] == true,
       canCancel: json['can_cancel'] == true,
+      chargerInfo: rawCharger is Map
+          ? BookingChargerInfoModel.fromJson(
+              Map<String, dynamic>.from(rawCharger))
+          : null,
+      estimatedCost: rawCost is Map
+          ? BookingCostModel.fromJson(Map<String, dynamic>.from(rawCost))
+          : null,
     );
   }
 

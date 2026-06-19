@@ -80,7 +80,6 @@ class BookingRepositoryImpl implements BookingRepository {
     required int bookingId,
     required String bookingDate,
     required String startTime,
-    required String endTime,
     required int location,
   }) {
     return _run(
@@ -88,7 +87,6 @@ class BookingRepositoryImpl implements BookingRepository {
         bookingId: bookingId,
         bookingDate: bookingDate,
         startTime: startTime,
-        endTime: endTime,
         location: location,
       ),
     );

@@ -169,7 +169,6 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
     required int bookingId,
     required String bookingDate,
     required String startTime,
-    required String endTime,
     required int location,
   }) async {
     return _guard('reschedule-booking', () async {
@@ -179,13 +178,14 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
       );
       log('[Booking] Reschedule URL: $url (booking_id: $bookingId)');
 
+      // end_time is auto-derived by the backend (start + 30 min). Sending it
+      // triggers a server-side failure, so it must NOT be included.
       final response = await apiClient.post(
         url,
         data: {
           'booking_id': bookingId,
           'booking_date': bookingDate,
           'start_time': startTime,
-          'end_time': endTime,
           'location': location,
         },
       );
@@ -267,6 +267,9 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
     throw ServerException(message: fallback, statusCode: response.statusCode);
   }
 
+  /// Joins base + endpoint, PRESERVING the trailing slash. The booking
+  /// endpoints are Django routes that require the trailing slash — without it
+  /// the server 301-redirects the request and the POST body is dropped (→ 500).
   String _buildUrl(String baseUrl, String endpoint) {
     final base = baseUrl.endsWith('/')
         ? baseUrl.substring(0, baseUrl.length - 1)
@@ -274,7 +277,6 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
     var path = endpoint.trim();
     if (path.endsWith('?')) path = path.substring(0, path.length - 1);
     if (path.startsWith('/')) path = path.substring(1);
-    if (path.endsWith('/')) path = path.substring(0, path.length - 1);
     return '$base/$path';
   }
 }

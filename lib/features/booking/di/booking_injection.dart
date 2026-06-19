@@ -11,6 +11,7 @@ import 'package:orko_hubco/features/booking/domain/usecases/get_charger_details_
 import 'package:orko_hubco/features/booking/domain/usecases/get_my_bookings_usecase.dart';
 import 'package:orko_hubco/features/booking/domain/usecases/reschedule_booking_usecase.dart';
 import 'package:orko_hubco/features/booking/presentation/cubit/booking_cubit.dart';
+import 'package:orko_hubco/features/booking/presentation/cubit/my_bookings_cubit.dart';
 
 void initBookingDependencies() {
   // Data source
@@ -32,12 +33,22 @@ void initBookingDependencies() {
   sl.registerLazySingleton(() => CancelBookingUseCase(sl()));
   sl.registerLazySingleton(() => RescheduleBookingUseCase(sl()));
 
-  // Cubit (new instance per booking screen)
+  // Cubit (new instance per booking screen).
+  // Booking goes through `book-charge-session` (no end_time), i.e. the HGL
+  // use case, per the backend contract.
   sl.registerFactory(
     () => BookingCubit(
       getChargerDetailsUseCase: sl(),
       getSlotsUseCase: sl(),
-      createBookingUseCase: sl(),
+      createBookingUseCase: sl<CreateBookingHglUseCase>(),
+    ),
+  );
+
+  sl.registerFactory(
+    () => MyBookingsCubit(
+      getMyBookingsUseCase: sl(),
+      cancelBookingUseCase: sl(),
+      rescheduleBookingUseCase: sl(),
     ),
   );
 }
