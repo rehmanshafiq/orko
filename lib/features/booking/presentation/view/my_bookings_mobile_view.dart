@@ -217,7 +217,10 @@ class _UpcomingTab extends StatelessWidget {
           ui: ui,
           booking: booking,
           isProcessing: state.isActionInProgress(booking.id),
-          onModify: () => _openReschedule(context, cubit, booking),
+          onModify: () => AppHelpers.showSnackBar(
+            context,
+            'Coming soon',
+          ), //_openReschedule(context, cubit, booking),
           onCancel: () => _confirmCancel(context, cubit, booking),
           onScanQr: () => _scanBookingQrCode(context, booking),
         );

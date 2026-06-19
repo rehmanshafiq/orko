@@ -180,12 +180,6 @@ class BookSlotMobileView extends StatelessWidget {
     final messenger = ScaffoldMessenger.of(context);
     switch (state.submitStatus) {
       case BookingSubmitStatus.success:
-        messenger.showSnackBar(
-          const SnackBar(
-            content: Text('Booking requested — pending approval.'),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
         final pricePerKwh = state.selectedPort?.price?.price ?? 0;
         final amount = (pricePerKwh * 10 * state.durationHours).round();
         context.push(

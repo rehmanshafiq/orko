@@ -25,8 +25,11 @@ class MyBookingsCubit extends Cubit<MyBookingsState> {
   final RescheduleBookingUseCase _rescheduleBookingUseCase;
 
   void selectTab(BookingTab tab) {
-    if (tab == state.selectedTab) return;
     emit(state.copyWith(selectedTab: tab));
+    // Refresh from the my_bookings API every time the Upcoming tab is opened.
+    if (tab == BookingTab.upcoming) {
+      loadBookings(showSpinner: false);
+    }
   }
 
   /// Loads (or reloads) the user's bookings.
