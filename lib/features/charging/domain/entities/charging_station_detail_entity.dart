@@ -46,6 +46,16 @@ class ChargingStationDetailEntity extends Equatable {
   List<ConnectorEntity> get connectors =>
       chargers.expand((charger) => charger.connectors).toList();
 
+  /// The first non-empty `charge_point_id` across the station's chargers, or
+  /// null when none of them expose one. Used for the compatibility check.
+  String? get primaryChargePointId {
+    for (final charger in chargers) {
+      final id = charger.chargePointId?.trim();
+      if (id != null && id.isNotEmpty) return id;
+    }
+    return null;
+  }
+
   @override
   List<Object?> get props => [
         locationId,
@@ -84,11 +94,16 @@ class ChargerEntity extends Equatable {
     required this.manufacturer,
     required this.status,
     required this.connectors,
+    this.chargePointId,
     this.type,
     this.connectivityStatus,
   });
 
   final int id;
+
+  /// OCPP charge point identity (`charge_point_id`), used by the
+  /// charger-compatibility check. Null/empty when the backend omits it.
+  final String? chargePointId;
   final String model;
   final String manufacturer;
   final String? type;
@@ -99,6 +114,7 @@ class ChargerEntity extends Equatable {
   @override
   List<Object?> get props => [
         id,
+        chargePointId,
         model,
         manufacturer,
         type,

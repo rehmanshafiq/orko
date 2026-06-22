@@ -12,6 +12,7 @@ import 'package:orko_hubco/features/map/di/map_injection.dart';
 import 'package:orko_hubco/features/onboarding/di/onboarding_injection.dart';
 import 'package:orko_hubco/features/profile/di/profile_injection.dart';
 import 'package:orko_hubco/features/remote_config/di/remote_config_injection.dart';
+import 'package:orko_hubco/features/vehicle/di/vehicle_injection.dart';
 
 final sl = GetIt.instance;
 
@@ -41,4 +42,5 @@ Future<void> initDependencies() async {
   initOnboardingDependencies();
   initProfileDependencies();
   initRemoteConfigDependencies();
+  initVehicleDependencies();
 }

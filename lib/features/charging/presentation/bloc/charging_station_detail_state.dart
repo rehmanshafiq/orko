@@ -28,6 +28,7 @@ class ChargingStationDetailState extends Equatable {
     this.distance = 0,
     this.latitude,
     this.longitude,
+    this.chargePointId,
   });
 
   final ChargingDetailStatus status;
@@ -68,6 +69,10 @@ class ChargingStationDetailState extends Equatable {
   final double? latitude;
   final double? longitude;
 
+  /// The station's primary `charge_point_id`, used for the vehicle
+  /// compatibility check before booking. Null when the API omits it.
+  final String? chargePointId;
+
   bool get isLoading => status == ChargingDetailStatus.loading;
   bool get isFailure => status == ChargingDetailStatus.failure;
   bool get isSuccess => status == ChargingDetailStatus.success;
@@ -94,6 +99,7 @@ class ChargingStationDetailState extends Equatable {
     double? distance,
     double? latitude,
     double? longitude,
+    String? chargePointId,
   }) {
     return ChargingStationDetailState(
       status: status ?? this.status,
@@ -117,6 +123,7 @@ class ChargingStationDetailState extends Equatable {
       distance: distance ?? this.distance,
       latitude: latitude ?? this.latitude,
       longitude: longitude ?? this.longitude,
+      chargePointId: chargePointId ?? this.chargePointId,
     );
   }
 
@@ -143,5 +150,6 @@ class ChargingStationDetailState extends Equatable {
         distance,
         latitude,
         longitude,
+        chargePointId,
       ];
 }

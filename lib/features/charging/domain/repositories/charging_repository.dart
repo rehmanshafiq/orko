@@ -1,5 +1,6 @@
 import 'package:orko_hubco/core/error/failures.dart';
 import 'package:orko_hubco/core/usecase/usecase.dart';
+import 'package:orko_hubco/features/charging/domain/entities/charger_compatibility_entity.dart';
 import 'package:orko_hubco/features/charging/domain/entities/charging_station_detail_entity.dart';
 import 'package:orko_hubco/features/charging/domain/entities/favourite_station_entity.dart';
 
@@ -20,4 +21,11 @@ abstract class ChargingRepository {
 
   /// Removes the station with [locationId] from the user's favourites.
   Future<Either<Failure, void>> removeFavourite(int locationId);
+
+  /// Checks whether [csmsVehicleId] is compatible with the charger
+  /// [chargePointId].
+  Future<Either<Failure, ChargerCompatibilityEntity>> checkChargerCompatibility({
+    required int csmsVehicleId,
+    required String chargePointId,
+  });
 }

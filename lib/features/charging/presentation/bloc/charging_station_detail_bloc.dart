@@ -82,6 +82,7 @@ class ChargingStationDetailBloc
       latitude: detail.latitude,
       longitude: detail.longitude,
       locationId: locationId,
+      chargePointId: detail.primaryChargePointId,
     ));
 
     // Resolve the favourite state in the background. A failure here must not

@@ -3,6 +3,7 @@ import 'package:orko_hubco/features/charging/data/datasources/remote/charging_re
 import 'package:orko_hubco/features/charging/data/repositories/charging_repository_impl.dart';
 import 'package:orko_hubco/features/charging/domain/repositories/charging_repository.dart';
 import 'package:orko_hubco/features/charging/domain/usecases/add_favourite_station_usecase.dart';
+import 'package:orko_hubco/features/charging/domain/usecases/check_charger_compatibility_usecase.dart';
 import 'package:orko_hubco/features/charging/domain/usecases/get_charging_station_detail_usecase.dart';
 import 'package:orko_hubco/features/charging/domain/usecases/get_favourite_stations_usecase.dart';
 import 'package:orko_hubco/features/charging/domain/usecases/remove_favourite_station_usecase.dart';
@@ -24,6 +25,7 @@ void initChargingDependencies() {
   sl.registerLazySingleton(() => GetFavouriteStationsUseCase(sl()));
   sl.registerLazySingleton(() => AddFavouriteStationUseCase(sl()));
   sl.registerLazySingleton(() => RemoveFavouriteStationUseCase(sl()));
+  sl.registerLazySingleton(() => CheckChargerCompatibilityUseCase(sl()));
 
   // Bloc
   sl.registerFactory(

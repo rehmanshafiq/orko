@@ -1,7 +1,9 @@
 import 'dart:developer';
 
+import 'package:dio/dio.dart';
 import 'package:orko_hubco/core/error/exceptions.dart';
 import 'package:orko_hubco/core/network/api_client.dart';
+import 'package:orko_hubco/features/charging/data/models/charger_compatibility_model.dart';
 import 'package:orko_hubco/features/charging/data/models/charging_station_detail_model.dart';
 import 'package:orko_hubco/features/charging/data/models/favourite_station_model.dart';
 import 'package:orko_hubco/features/remote_config/data/services/remote_config_service.dart';
@@ -26,6 +28,14 @@ abstract class ChargingRemoteDataSource {
   /// Removes [locationId] from the user's favourites
   /// (`DELETE api/v1/charging-station/favourites/?location_id=...`).
   Future<void> removeFavourite(int locationId);
+
+  /// Checks whether the vehicle [csmsVehicleId] is compatible with the charger
+  /// identified by [chargePointId]
+  /// (`POST api/v1/charging-station/charger-compatibility/`).
+  Future<ChargerCompatibilityModel> checkChargerCompatibility({
+    required int csmsVehicleId,
+    required String chargePointId,
+  });
 }
 
 class ChargingRemoteDataSourceImpl implements ChargingRemoteDataSource {
@@ -172,6 +182,76 @@ class ChargingRemoteDataSourceImpl implements ChargingRemoteDataSource {
       if (e is ServerException) rethrow;
       throw ServerException(message: e.toString(), originalError: e);
     }
+  }
+
+  @override
+  Future<ChargerCompatibilityModel> checkChargerCompatibility({
+    required int csmsVehicleId,
+    required String chargePointId,
+  }) async {
+    try {
+      final url = _compatibilityUrl();
+      log('[Charging] Compatibility URL (POST): $url '
+          '(vehicle: $csmsVehicleId, charge_point_id: $chargePointId)');
+
+      final response = await apiClient.post(
+        url,
+        data: {
+          'csms_vehicle_id': csmsVehicleId,
+          // Sent verbatim — charge_point_id can be up to 50 chars; never truncate.
+          'charge_point_id': chargePointId,
+        },
+      );
+
+      final data = response.data;
+      if (response.statusCode == 200 && data is Map<String, dynamic>) {
+        final body = data['body'];
+        if (body is Map) {
+          return ChargerCompatibilityModel.fromJson(
+            Map<String, dynamic>.from(body),
+          );
+        }
+      }
+
+      throw ServerException(
+        message: _messageOf(data, 'Could not check charger compatibility'),
+        statusCode: response.statusCode,
+      );
+    } on ServerException {
+      rethrow;
+    } on DioException catch (e) {
+      // 422 → "Vehicle not found." / "Charge station not found.";
+      // 400 → validation errors. Surface the backend message verbatim.
+      final data = e.response?.data;
+      final message = (data is Map && data['message'] != null)
+          ? data['message'].toString()
+          : (e.message ?? 'Could not check charger compatibility');
+      log('[Charging] Compatibility failed (${e.response?.statusCode}): $message');
+      throw ServerException(
+        message: message,
+        statusCode: e.response?.statusCode,
+        originalError: e,
+      );
+    } catch (e) {
+      throw ServerException(message: e.toString(), originalError: e);
+    }
+  }
+
+  /// Resolves the charger-compatibility endpoint against the QA base URL.
+  String _compatibilityUrl() {
+    final config = RemoteConfigService.config;
+    if (config == null) {
+      throw const ServerException(message: 'Remote config not initialized');
+    }
+    final base = config.apiConstants.baseUrlQa.endsWith('/')
+        ? config.apiConstants.baseUrlQa
+            .substring(0, config.apiConstants.baseUrlQa.length - 1)
+        : config.apiConstants.baseUrlQa;
+    var path = config.apiConstants.apiEndpoints.chargerCompatibility.trim();
+    // Fall back to the bundled contract path when Remote Config omits the key.
+    if (path.isEmpty) path = 'api/v1/charging-station/charger-compatibility/';
+    if (path.startsWith('/')) path = path.substring(1);
+    return '$base/$path';
   }
 
   /// Joins the base URL, endpoint path, and station id into a single clean URL.

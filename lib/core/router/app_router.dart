@@ -23,6 +23,7 @@ import 'package:orko_hubco/features/onboarding/presentation/page/onboarding_page
 import 'package:orko_hubco/features/profile/presentation/cubit/profile_cubit.dart';
 import 'package:orko_hubco/features/charging/presentation/page/charging_status_page.dart';
 import 'package:orko_hubco/features/profile/presentation/screens/profile_screen.dart';
+import 'package:orko_hubco/features/vehicle/presentation/cubit/vehicle_cubit.dart';
 import 'package:orko_hubco/features/search/presentation/page/search_page.dart';
 import 'package:orko_hubco/features/splash/presentation/page/splash_page.dart';
 import 'package:orko_hubco/features/trip/presentation/page/trip_planner_page.dart';
@@ -205,8 +206,13 @@ class AppRouter {
               GoRoute(
                 path: '/account',
                 name: 'account',
-                builder: (context, state) => BlocProvider(
-                  create: (_) => sl<ProfileCubit>()..loadProfile(),
+                builder: (context, state) => MultiBlocProvider(
+                  providers: [
+                    BlocProvider(
+                      create: (_) => sl<ProfileCubit>()..loadProfile(),
+                    ),
+                    BlocProvider(create: (_) => sl<VehicleCubit>()),
+                  ],
                   child: const ProfileScreen(),
                 ),
               ),

@@ -276,6 +276,7 @@ class ChargingStationDetailMobileView extends StatelessWidget {
                   latitude: state.latitude ?? hub.latitude,
                   longitude: state.longitude ?? hub.longitude,
                   isEnabled: state.isSuccess,
+                  chargePointId: state.chargePointId,
                 ),
               ],
             ),

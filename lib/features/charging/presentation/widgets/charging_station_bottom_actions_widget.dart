@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:go_router/go_router.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/utils/app_functions.dart';
@@ -8,6 +7,7 @@ import 'package:orko_hubco/core/utils/app_storage/app_storage.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
 import 'package:orko_hubco/core/utils/widgets/auth_required_dialog.dart';
 import 'package:orko_hubco/core/utils/widgets/primary_button_widget.dart';
+import 'package:orko_hubco/features/charging/presentation/widgets/charger_compatibility_gate.dart';
 import 'package:orko_hubco/features/map/domain/entities/hubco_location_entity.dart';
 
 class ChargingStationBottomActionsWidget extends StatelessWidget {
@@ -17,12 +17,17 @@ class ChargingStationBottomActionsWidget extends StatelessWidget {
     required this.latitude,
     required this.longitude,
     this.isEnabled = true,
+    this.chargePointId,
   });
 
   final HubcoLocationEntity station;
   final double latitude;
   final double longitude;
   final bool isEnabled;
+
+  /// The station's `charge_point_id`, used to verify vehicle compatibility
+  /// before navigating to booking.
+  final String? chargePointId;
 
   @override
   Widget build(BuildContext context) {
@@ -95,12 +100,18 @@ class ChargingStationBottomActionsWidget extends StatelessWidget {
   }
 
   /// Guests must authenticate before booking — prompt to log in/sign up.
+  /// Authenticated users go through the compatibility gate, which only proceeds
+  /// to booking when their vehicle is compatible with this charger.
   void _onBookSlot(BuildContext context) {
     if (AppStorage.isGuest) {
       AuthRequiredDialog.show(context);
       return;
     }
-    context.push('/book-slot', extra: station);
+    ChargerCompatibilityGate.run(
+      context,
+      station: station,
+      chargePointId: chargePointId,
+    );
   }
 
   Future<void> _openDirections(BuildContext context) async {

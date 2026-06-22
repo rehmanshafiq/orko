@@ -129,6 +129,11 @@ class ApiEndpoints extends Equatable {
     required this.cancelBooking,
     required this.rescheduleBooking,
     required this.chargeSessionHistory,
+    required this.vehicleMakes,
+    required this.vehicleModels,
+    required this.addVehicle,
+    required this.userVehicles,
+    required this.chargerCompatibility,
   });
 
   final String chargingStationMap;
@@ -148,6 +153,11 @@ class ApiEndpoints extends Equatable {
   final String cancelBooking;
   final String rescheduleBooking;
   final String chargeSessionHistory;
+  final String vehicleMakes;
+  final String vehicleModels;
+  final String addVehicle;
+  final String userVehicles;
+  final String chargerCompatibility;
 
   factory ApiEndpoints.fromJson(Map<String, dynamic> json) {
     return ApiEndpoints(
@@ -169,6 +179,11 @@ class ApiEndpoints extends Equatable {
       cancelBooking: json['cancel_booking'] as String? ?? '',
       rescheduleBooking: json['reschedule_booking'] as String? ?? '',
       chargeSessionHistory: json['charge_session_history'] as String? ?? '',
+      vehicleMakes: json['vehicle_makes'] as String? ?? '',
+      vehicleModels: json['vehicle_models'] as String? ?? '',
+      addVehicle: json['add_vehicle'] as String? ?? '',
+      userVehicles: json['user_vehicles'] as String? ?? '',
+      chargerCompatibility: json['charger_compatibility'] as String? ?? '',
     );
   }
 
@@ -191,6 +206,11 @@ class ApiEndpoints extends Equatable {
       'cancel_booking': cancelBooking,
       'reschedule_booking': rescheduleBooking,
       'charge_session_history': chargeSessionHistory,
+      'vehicle_makes': vehicleMakes,
+      'vehicle_models': vehicleModels,
+      'add_vehicle': addVehicle,
+      'user_vehicles': userVehicles,
+      'charger_compatibility': chargerCompatibility,
     };
   }
 
@@ -212,6 +232,11 @@ class ApiEndpoints extends Equatable {
     String? cancelBooking,
     String? rescheduleBooking,
     String? chargeSessionHistory,
+    String? vehicleMakes,
+    String? vehicleModels,
+    String? addVehicle,
+    String? userVehicles,
+    String? chargerCompatibility,
   }) {
     return ApiEndpoints(
       chargingStationMap: chargingStationMap ?? this.chargingStationMap,
@@ -232,6 +257,11 @@ class ApiEndpoints extends Equatable {
       cancelBooking: cancelBooking ?? this.cancelBooking,
       rescheduleBooking: rescheduleBooking ?? this.rescheduleBooking,
       chargeSessionHistory: chargeSessionHistory ?? this.chargeSessionHistory,
+      vehicleMakes: vehicleMakes ?? this.vehicleMakes,
+      vehicleModels: vehicleModels ?? this.vehicleModels,
+      addVehicle: addVehicle ?? this.addVehicle,
+      userVehicles: userVehicles ?? this.userVehicles,
+      chargerCompatibility: chargerCompatibility ?? this.chargerCompatibility,
     );
   }
 
@@ -254,5 +284,10 @@ class ApiEndpoints extends Equatable {
     cancelBooking,
     rescheduleBooking,
     chargeSessionHistory,
+    vehicleMakes,
+    vehicleModels,
+    addVehicle,
+    userVehicles,
+    chargerCompatibility,
   ];
 }

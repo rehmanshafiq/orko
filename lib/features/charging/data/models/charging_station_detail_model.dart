@@ -78,8 +78,13 @@ class ChargingStationDetailModel extends ChargingStationDetailEntity {
   }
 
   static ChargerEntity _chargerFromJson(Map<String, dynamic> json) {
+    final rawChargePointId =
+        (json['charge_point_id'] ?? json['charge_point'] ?? '')
+            .toString()
+            .trim();
     return ChargerEntity(
       id: _asInt(json['id']),
+      chargePointId: rawChargePointId.isEmpty ? null : rawChargePointId,
       model: (json['model'] ?? '').toString(),
       manufacturer: (json['manufacturer'] ?? '').toString(),
       type: json['type']?.toString(),
