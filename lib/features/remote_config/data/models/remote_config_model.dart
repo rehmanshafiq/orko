@@ -113,6 +113,7 @@ class ApiConstants extends Equatable {
 class ApiEndpoints extends Equatable {
   const ApiEndpoints({
     required this.chargingStationMap,
+    required this.chargingStationFilterOptions,
     required this.chargingStationDetail,
     required this.chargingStationFavourites,
     required this.signUpForm,
@@ -138,6 +139,7 @@ class ApiEndpoints extends Equatable {
   });
 
   final String chargingStationMap;
+  final String chargingStationFilterOptions;
   final String chargingStationDetail;
   final String chargingStationFavourites;
   final String signUpForm;
@@ -164,6 +166,8 @@ class ApiEndpoints extends Equatable {
   factory ApiEndpoints.fromJson(Map<String, dynamic> json) {
     return ApiEndpoints(
       chargingStationMap: json['charging_station_map'] as String? ?? '',
+      chargingStationFilterOptions:
+          json['charging_station_filter_options'] as String? ?? '',
       chargingStationDetail: json['charging_station_detail'] as String? ?? '',
       chargingStationFavourites:
           json['charging_station_favourites'] as String? ?? '',
@@ -193,6 +197,7 @@ class ApiEndpoints extends Equatable {
   Map<String, dynamic> toJson() {
     return {
       'charging_station_map': chargingStationMap,
+      'charging_station_filter_options': chargingStationFilterOptions,
       'charging_station_detail': chargingStationDetail,
       'charging_station_favourites': chargingStationFavourites,
       'sign_up_form': signUpForm,
@@ -220,6 +225,7 @@ class ApiEndpoints extends Equatable {
 
   ApiEndpoints copyWith({
     String? chargingStationMap,
+    String? chargingStationFilterOptions,
     String? chargingStationDetail,
     String? chargingStationFavourites,
     String? signUpForm,
@@ -245,6 +251,8 @@ class ApiEndpoints extends Equatable {
   }) {
     return ApiEndpoints(
       chargingStationMap: chargingStationMap ?? this.chargingStationMap,
+      chargingStationFilterOptions:
+          chargingStationFilterOptions ?? this.chargingStationFilterOptions,
       chargingStationDetail: chargingStationDetail ?? this.chargingStationDetail,
       chargingStationFavourites:
           chargingStationFavourites ?? this.chargingStationFavourites,
@@ -274,6 +282,7 @@ class ApiEndpoints extends Equatable {
   @override
   List<Object?> get props => [
     chargingStationMap,
+    chargingStationFilterOptions,
     chargingStationDetail,
     chargingStationFavourites,
     signUpForm,

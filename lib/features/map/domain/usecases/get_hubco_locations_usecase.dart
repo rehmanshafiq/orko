@@ -18,6 +18,11 @@ class GetHubcoLocationsUseCase
       latitude: params.latitude,
       longitude: params.longitude,
       radius: params.radius,
+      connectorTypes: params.connectorTypes,
+      amenityIds: params.amenityIds,
+      minPrice: params.minPrice,
+      maxPrice: params.maxPrice,
+      powerOutput: params.powerOutput,
     );
   }
 }
@@ -27,12 +32,31 @@ class NearestStationsParams extends Equatable {
     required this.latitude,
     required this.longitude,
     this.radius,
+    this.connectorTypes,
+    this.amenityIds,
+    this.minPrice,
+    this.maxPrice,
+    this.powerOutput,
   });
 
   final double latitude;
   final double longitude;
   final double? radius;
+  final List<String>? connectorTypes;
+  final List<int>? amenityIds;
+  final double? minPrice;
+  final double? maxPrice;
+  final double? powerOutput;
 
   @override
-  List<Object?> get props => [latitude, longitude, radius];
+  List<Object?> get props => [
+        latitude,
+        longitude,
+        radius,
+        connectorTypes,
+        amenityIds,
+        minPrice,
+        maxPrice,
+        powerOutput,
+      ];
 }

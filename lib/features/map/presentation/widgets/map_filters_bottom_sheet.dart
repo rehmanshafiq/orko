@@ -1,12 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
+import 'package:orko_hubco/core/di/injection_container.dart';
+import 'package:orko_hubco/core/usecase/usecase.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
 import 'package:orko_hubco/core/utils/widgets/gradient_switch.dart';
 import 'package:orko_hubco/core/utils/widgets/primary_button_widget.dart';
+import 'package:orko_hubco/features/map/domain/entities/station_filter_options_entity.dart';
+import 'package:orko_hubco/features/map/domain/entities/station_filters.dart';
+import 'package:orko_hubco/features/map/domain/usecases/get_filter_options_usecase.dart';
+import 'package:orko_hubco/features/map/presentation/cubit/map_cubit.dart';
 
-/// EV map filters — matches product UI (dark sheet, green accents).
+/// EV map filters — connector types & amenities come from the
+/// `filter-options` API; applying reloads stations via the `nearest` API.
 class MapFiltersBottomSheet extends StatefulWidget {
   const MapFiltersBottomSheet({
     super.key,
@@ -19,13 +27,19 @@ class MapFiltersBottomSheet extends StatefulWidget {
     BuildContext context, {
     required int stationCount,
   }) {
+    // Capture the MapCubit from the calling context (under the provider) and
+    // hand it to the modal route, which lives outside that subtree.
+    final cubit = context.read<MapCubit>();
     return showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       useSafeArea: false,
       backgroundColor: Colors.transparent,
       barrierColor: Colors.black.withValues(alpha: 0.55),
-      builder: (context) => MapFiltersBottomSheet(stationCount: stationCount),
+      builder: (_) => BlocProvider.value(
+        value: cubit,
+        child: MapFiltersBottomSheet(stationCount: stationCount),
+      ),
     );
   }
 
@@ -34,50 +48,94 @@ class MapFiltersBottomSheet extends StatefulWidget {
 }
 
 class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
-  static const List<String> _chargerTypes = [
-    'Type 1',
-    'Type 2',
-    'CCS',
-    'CHAdeMO',
-    'GB/T',
-  ];
-
-  static const List<String> _amenities = [
-    'WiFi',
-    'Restroom',
-    'Cafe',
-    'Parking',
-    'Restaurant',
-    '24 Hours',
-  ];
-
-  /// Initial state aligned with design reference.
-  final Set<String> _selectedChargers = {'Type 2', 'CCS'};
-  RangeValues _powerRange = const RangeValues(50, 150);
-  bool _availableNow = true;
-  final Set<String> _selectedAmenities = {'WiFi', 'Restroom'};
-  RangeValues _priceRange = const RangeValues(30, 80);
+  // Selections (initialised from the cubit's currently-applied filters).
+  final Set<String> _selectedChargers = {};
+  final Set<int> _selectedAmenityIds = {};
+  double _powerOutput = 0;
+  bool _availableNow = false;
+  late RangeValues _priceRange;
 
   static const double _powerMin = 0;
-  static const double _powerMax = 350;
-  static const double _priceMin = 10;
-  static const double _priceMax = 120;
+  static const double _powerMax = 500;
+  static const double _priceMin = 0;
+  static const double _priceMax = 200;
+
+  // Filter options (connector types + amenities) fetched from the API.
+  StationFilterOptionsEntity? _options;
+  bool _optionsLoading = true;
+  String? _optionsError;
+
+  @override
+  void initState() {
+    super.initState();
+    _initFromApplied();
+    _loadOptions();
+  }
+
+  /// Pre-select whatever filters are currently applied on the map.
+  void _initFromApplied() {
+    final f = context.read<MapCubit>().currentFilters;
+    _selectedChargers.addAll(f.connectorTypes);
+    _selectedAmenityIds.addAll(f.amenityIds);
+    _powerOutput = (f.powerOutput ?? _powerMin).clamp(_powerMin, _powerMax);
+    _availableNow = f.availableNow;
+    _priceRange = RangeValues(
+      (f.minPrice ?? _priceMin).clamp(_priceMin, _priceMax),
+      (f.maxPrice ?? _priceMax).clamp(_priceMin, _priceMax),
+    );
+  }
+
+  Future<void> _loadOptions() async {
+    setState(() {
+      _optionsLoading = true;
+      _optionsError = null;
+    });
+    final result = await sl<GetFilterOptionsUseCase>()(const NoParams());
+    if (!mounted) return;
+    result.fold(
+      (failure) => setState(() {
+        _optionsLoading = false;
+        _optionsError = failure.message;
+      }),
+      (options) => setState(() {
+        _optionsLoading = false;
+        _options = options;
+        // Drop any pre-selected ids that no longer exist in the options.
+        final validIds = options.amenities.map((a) => a.id).toSet();
+        _selectedAmenityIds.removeWhere((id) => !validIds.contains(id));
+        final validTypes = options.connectorTypes.toSet();
+        _selectedChargers.removeWhere((t) => !validTypes.contains(t));
+      }),
+    );
+  }
 
   void _reset() {
     setState(() {
       _selectedChargers.clear();
-      _powerRange = const RangeValues(_powerMin, _powerMax);
+      _powerOutput = _powerMin;
       _availableNow = false;
-      _selectedAmenities.clear();
+      _selectedAmenityIds.clear();
       _priceRange = const RangeValues(_priceMin, _priceMax);
     });
+  }
+
+  void _apply() {
+    final filters = StationFilters(
+      connectorTypes: _selectedChargers.toList(growable: false),
+      amenityIds: _selectedAmenityIds.toList(growable: false),
+      minPrice: _priceRange.start.roundToDouble(),
+      maxPrice: _priceRange.end.roundToDouble(),
+      powerOutput: _powerOutput > 0 ? _powerOutput.roundToDouble() : null,
+      availableNow: _availableNow,
+    );
+    context.read<MapCubit>().applyFilters(filters);
+    Navigator.of(context).pop();
   }
 
   @override
   Widget build(BuildContext context) {
     final ui = AppUiColors.of(context);
     final bottomInset = MediaQuery.paddingOf(context).bottom;
-    final topInset = MediaQuery.paddingOf(context).top;
 
     return Align(
       alignment: Alignment.bottomCenter,
@@ -129,11 +187,7 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
                   ),
                 ),
                 12.verticalSpace,
-                Divider(
-                  height: 1,
-                  thickness: 1,
-                  color: ui.borderSubtle,
-                ),
+                Divider(height: 1, thickness: 1, color: ui.borderSubtle),
                 18.verticalSpace,
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: 18.w),
@@ -142,37 +196,17 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
                     children: [
                       _sectionTitle('Charger Type'),
                       10.verticalSpace,
-                      SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          children: _chargerTypes.map((t) {
-                            final selected = _selectedChargers.contains(t);
-                            return Padding(
-                              padding: EdgeInsets.only(right: 8.w),
-                              child: GestureDetector(
-                                onTap: () => setState(() {
-                                  if (selected) {
-                                    _selectedChargers.remove(t);
-                                  } else {
-                                    _selectedChargers.add(t);
-                                  }
-                                }),
-                                child: _chargerChip(t, selected),
-                              ),
-                            );
-                          }).toList(),
-                        ),
-                      ),
+                      _chargerSection(ui),
                       20.verticalSpace,
                       _sectionTitle('Power Output'),
                       8.verticalSpace,
                       _powerLabelsRow(),
                       6.verticalSpace,
-                      _rangeSlider(
-                        values: _powerRange,
+                      _singleSlider(
+                        value: _powerOutput,
                         min: _powerMin,
                         max: _powerMax,
-                        onChanged: (v) => setState(() => _powerRange = v),
+                        onChanged: (v) => setState(() => _powerOutput = v),
                       ),
                       20.verticalSpace,
                       _sectionTitle('Availability'),
@@ -193,7 +227,7 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
                       16.verticalSpace,
                       _sectionTitle('Amenities'),
                       8.verticalSpace,
-                      _amenitiesGrid(),
+                      _amenitiesSection(ui),
                       16.verticalSpace,
                       _sectionTitle('Price Range'),
                       8.verticalSpace,
@@ -230,6 +264,40 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
     );
   }
 
+  // ── Charger type (dynamic) ────────────────────────────────────────────────
+
+  Widget _chargerSection(AppUiColors ui) {
+    if (_optionsLoading) return _sectionLoader(ui);
+    if (_optionsError != null && (_options?.connectorTypes.isEmpty ?? true)) {
+      return _sectionError(ui);
+    }
+    final types = _options?.connectorTypes ?? const [];
+    if (types.isEmpty) {
+      return _sectionEmpty(ui, 'No charger types available');
+    }
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: types.map((t) {
+          final selected = _selectedChargers.contains(t);
+          return Padding(
+            padding: EdgeInsets.only(right: 8.w),
+            child: GestureDetector(
+              onTap: () => setState(() {
+                if (selected) {
+                  _selectedChargers.remove(t);
+                } else {
+                  _selectedChargers.add(t);
+                }
+              }),
+              child: _chargerChip(t, selected),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
   Widget _chargerChip(String label, bool selected) {
     final ui = AppUiColors.of(context);
     return AnimatedContainer(
@@ -243,15 +311,6 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
           color: selected ? ui.brandPrimary : ui.borderSubtle,
           width: selected ? 1.5 : 1,
         ),
-        // boxShadow: selected
-        //     ? [
-        //         BoxShadow(
-        //           color: ui.brandPrimary.withValues(alpha: 0.42),
-        //           blurRadius: 12,
-        //           spreadRadius: 0,
-        //         ),
-        //       ]
-        //     : null,
       ),
       child: AppText(
         label,
@@ -262,10 +321,140 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
     );
   }
 
+  // ── Amenities (dynamic) ───────────────────────────────────────────────────
+
+  Widget _amenitiesSection(AppUiColors ui) {
+    if (_optionsLoading) return _sectionLoader(ui);
+    if (_optionsError != null && (_options?.amenities.isEmpty ?? true)) {
+      return _sectionError(ui);
+    }
+    final amenities = _options?.amenities ?? const [];
+    if (amenities.isEmpty) {
+      return _sectionEmpty(ui, 'No amenities available');
+    }
+    return GridView.count(
+      crossAxisCount: 2,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      mainAxisSpacing: 6.h,
+      crossAxisSpacing: 10.w,
+      childAspectRatio: 4.5,
+      children: amenities.map((amenity) {
+        final on = _selectedAmenityIds.contains(amenity.id);
+        return GestureDetector(
+          onTap: () => setState(() {
+            if (on) {
+              _selectedAmenityIds.remove(amenity.id);
+            } else {
+              _selectedAmenityIds.add(amenity.id);
+            }
+          }),
+          behavior: HitTestBehavior.opaque,
+          child: Row(
+            children: [
+              _amenityBox(on),
+              8.horizontalSpace,
+              Expanded(
+                child: AppText(
+                  amenity.name,
+                  color: ui.textPrimary,
+                  fontSize: FontSizes.font12Sp,
+                  fontWeight: FontWeights.weight600,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _amenityBox(bool checked) {
+    final ui = AppUiColors.of(context);
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 160),
+      width: 20.w,
+      height: 20.w,
+      decoration: BoxDecoration(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(4.r),
+        border: Border.all(
+          color: checked ? ui.brandPrimary : ui.borderSubtle,
+          width: 1.5,
+        ),
+      ),
+      alignment: Alignment.center,
+      child: checked
+          ? Icon(
+              Icons.check,
+              size: 12.r,
+              color: ui.isLight ? AppColors.greyColor : AppColors.whiteColor,
+            )
+          : null,
+    );
+  }
+
+  // ── Shared option-section states ──────────────────────────────────────────
+
+  Widget _sectionLoader(AppUiColors ui) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 12.h),
+      child: Center(
+        child: SizedBox(
+          width: 22.w,
+          height: 22.w,
+          child: CircularProgressIndicator(
+            strokeWidth: 2.4,
+            color: ui.brandPrimary,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _sectionError(AppUiColors ui) {
+    return Row(
+      children: [
+        Expanded(
+          child: AppText(
+            _optionsError ?? 'Could not load options.',
+            color: ui.textSecondary,
+            fontSize: FontSizes.font12Sp,
+            fontWeight: FontWeights.weight400,
+            maxLines: 2,
+          ),
+        ),
+        8.horizontalSpace,
+        GestureDetector(
+          onTap: _loadOptions,
+          behavior: HitTestBehavior.opaque,
+          child: AppText(
+            'Retry',
+            color: ui.brandPrimary,
+            fontSize: FontSizes.font12Sp,
+            fontWeight: FontWeights.weight700,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _sectionEmpty(AppUiColors ui, String label) {
+    return AppText(
+      label,
+      color: ui.textMuted,
+      fontSize: FontSizes.font12Sp,
+      fontWeight: FontWeights.weight400,
+    );
+  }
+
+  // ── Sliders & labels ──────────────────────────────────────────────────────
+
   Widget _powerLabelsRow() {
     final ui = AppUiColors.of(context);
-    final low = _powerRange.start.round();
-    final high = _powerRange.end.round();
+    final value = _powerOutput.round();
     return Row(
       children: [
         Expanded(
@@ -273,7 +462,7 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
           child: Align(
             alignment: Alignment.centerLeft,
             child: AppText(
-              '0 kW',
+              '${_powerMin.round()} kW',
               color: ui.textPrimary,
               fontSize: FontSizes.font12Sp,
               fontWeight: FontWeights.weight500,
@@ -284,7 +473,7 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
           flex: 3,
           child: Center(
             child: AppText(
-              '$low kW - $high kW',
+              value == 0 ? 'Any' : '$value kW',
               color: ui.textMuted,
               fontSize: FontSizes.font12Sp,
               fontWeight: FontWeights.weight600,
@@ -297,7 +486,7 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
           child: Align(
             alignment: Alignment.centerRight,
             child: AppText(
-              '350 kW',
+              '${_powerMax.round()} kW',
               color: ui.textPrimary,
               fontSize: FontSizes.font12Sp,
               fontWeight: FontWeights.weight500,
@@ -329,6 +518,35 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
           fontWeight: FontWeights.weight600,
         ),
       ],
+    );
+  }
+
+  Widget _singleSlider({
+    required double value,
+    required double min,
+    required double max,
+    required ValueChanged<double> onChanged,
+  }) {
+    final ui = AppUiColors.of(context);
+    return SliderTheme(
+      data: SliderTheme.of(context).copyWith(
+        thumbShape: RoundSliderThumbShape(
+          enabledThumbRadius: 6.r,
+          elevation: 0,
+          pressedElevation: 0,
+        ),
+        overlayShape: RoundSliderOverlayShape(overlayRadius: 12.r),
+        trackHeight: 4.h,
+        activeTrackColor: ui.brandPrimary,
+        inactiveTrackColor: ui.progressTrack,
+        thumbColor: ui.brandPrimary,
+      ),
+      child: Slider(
+        value: value.clamp(min, max),
+        min: min,
+        max: max,
+        onChanged: onChanged,
+      ),
     );
   }
 
@@ -370,83 +588,11 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
     );
   }
 
-  Widget _amenitiesGrid() {
-    final ui = AppUiColors.of(context);
-    return GridView.count(
-      crossAxisCount: 3,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      mainAxisSpacing: 6.h,
-      crossAxisSpacing: 10.w,
-      childAspectRatio: 2.7,
-      children: _amenities.map((name) {
-        final on = _selectedAmenities.contains(name);
-        return GestureDetector(
-          onTap: () => setState(() {
-            if (on) {
-              _selectedAmenities.remove(name);
-            } else {
-              _selectedAmenities.add(name);
-            }
-          }),
-          behavior: HitTestBehavior.opaque,
-          child: Row(
-            children: [
-              _amenityBox(on),
-              8.horizontalSpace,
-              Expanded(
-                child: AppText(
-                  name,
-                  color: ui.textPrimary,
-                  fontSize: FontSizes.font12Sp,
-                  fontWeight: FontWeights.weight600,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-        );
-      }).toList(),
-    );
-  }
-
-  Widget _amenityBox(bool checked) {
-    final ui = AppUiColors.of(context);
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 160),
-      width: 20.w,
-      height: 20.w,
-      decoration: BoxDecoration(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(4.r),
-        border: Border.all(
-          color: checked ? ui.brandPrimary : ui.borderSubtle,
-          width: 1.5,
-        ),
-      ),
-      alignment: Alignment.center,
-      child: checked
-          ? Icon(
-              Icons.check,
-              size: 12.r,
-              color: ui.isLight ? AppColors.greyColor : AppColors.whiteColor,
-            )
-          : null,
-    );
-  }
-
   Widget _applyButton(BuildContext context) {
-    final ui = AppUiColors.of(context);
-    final count = widget.stationCount;
-    final suffix = count == 1 ? 'station' : 'stations';
-
     return PrimaryButtonWidget(
       text: 'Apply Filters',
-      // subtitle: '$count $suffix found',
-      onPress: () => Navigator.of(context).pop(),
+      onPress: _apply,
       buttonWidth: double.infinity,
-      // buttonHeight: 62.h,
       cornerRadius: 24.r,
       gradientColors: const [
         AppColors.primaryDarkColor,

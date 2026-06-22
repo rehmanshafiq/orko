@@ -2,6 +2,7 @@ import 'dart:developer';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:orko_hubco/features/map/domain/entities/station_filters.dart';
 import 'package:orko_hubco/features/map/domain/usecases/get_hubco_locations_usecase.dart';
 import 'package:orko_hubco/features/map/presentation/cubit/map_state.dart';
 
@@ -16,25 +17,65 @@ class MapCubit extends Cubit<MapState> {
   static const double _defaultLatitude = 24.8607;
   static const double _defaultLongitude = 67.0011;
 
+  /// Currently applied filters (empty by default). Exposed so the filter sheet
+  /// can pre-select what's active when it reopens.
+  StationFilters _filters = const StationFilters();
+  StationFilters get currentFilters => _filters;
+
+  /// Cached last-resolved position so re-filtering doesn't re-prompt GPS.
+  double? _lastLatitude;
+  double? _lastLongitude;
+
   /// Resolves the device's current location (best-effort) and loads the nearest
   /// charging stations around it. Falls back to a default location if the
   /// device position can't be determined.
-  Future<void> loadHubcoLocations() async {
+  Future<void> loadHubcoLocations() {
+    return _load(resolvePosition: true);
+  }
+
+  /// Applies [filters] and reloads the stations. Reuses the cached position so
+  /// the user isn't re-prompted for location on every filter change.
+  Future<void> applyFilters(StationFilters filters) {
+    _filters = filters;
+    return _load(resolvePosition: _lastLatitude == null);
+  }
+
+  Future<void> _load({required bool resolvePosition}) async {
     emit(const MapLoading());
 
-    final position = await _resolveCurrentPosition();
+    if (resolvePosition) {
+      final position = await _resolveCurrentPosition();
+      _lastLatitude = position?.latitude ?? _defaultLatitude;
+      _lastLongitude = position?.longitude ?? _defaultLongitude;
+    }
 
+    final filters = _filters;
     final result = await _getHubcoLocationsUseCase(
       NearestStationsParams(
-        latitude: position?.latitude ?? _defaultLatitude,
-        longitude: position?.longitude ?? _defaultLongitude,
-        radius: null,
+        latitude: _lastLatitude ?? _defaultLatitude,
+        longitude: _lastLongitude ?? _defaultLongitude,
+        radius: filters.radius,
+        connectorTypes:
+            filters.connectorTypes.isEmpty ? null : filters.connectorTypes,
+        amenityIds: filters.amenityIds.isEmpty ? null : filters.amenityIds,
+        minPrice: filters.minPrice,
+        maxPrice: filters.maxPrice,
+        powerOutput: filters.powerOutput,
       ),
     );
 
+    if (isClosed) return;
     result.fold(
       (failure) => emit(MapError(failure.message)),
-      (locations) => emit(MapLoaded(locations)),
+      (locations) {
+        // "Available Now" has no API param — apply it client-side.
+        final visible = filters.availableNow
+            ? locations
+                .where((l) => l.availableConnectors > 0)
+                .toList(growable: false)
+            : locations;
+        emit(MapLoaded(visible));
+      },
     );
   }
 
