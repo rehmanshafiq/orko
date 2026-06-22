@@ -52,7 +52,7 @@ class ChargingRemoteDataSourceImpl implements ChargingRemoteDataSource {
       }
 
       final url = _buildUrl(
-        config.apiConstants.baseUrlLive,
+        config.apiConstants.baseUrlQa,
         config.apiConstants.apiEndpoints.chargingStationDetail,
         stationId,
       );
@@ -193,10 +193,10 @@ class ChargingRemoteDataSourceImpl implements ChargingRemoteDataSource {
     if (config == null) {
       throw const ServerException(message: 'Remote config not initialized');
     }
-    final base = config.apiConstants.baseUrlLive.endsWith('/')
-        ? config.apiConstants.baseUrlLive
-            .substring(0, config.apiConstants.baseUrlLive.length - 1)
-        : config.apiConstants.baseUrlLive;
+    final base = config.apiConstants.baseUrlQa.endsWith('/')
+        ? config.apiConstants.baseUrlQa
+            .substring(0, config.apiConstants.baseUrlQa.length - 1)
+        : config.apiConstants.baseUrlQa;
     var path = config.apiConstants.apiEndpoints.chargingStationFavourites.trim();
     if (path.isEmpty) path = _defaultFavouritesPath;
     if (path.startsWith('/')) path = path.substring(1);
