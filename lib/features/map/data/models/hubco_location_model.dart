@@ -12,6 +12,8 @@ class HubcoLocationModel extends HubcoLocationEntity {
     super.iconUrl,
     super.numberOfConnectors,
     super.availableConnectors,
+    super.available,
+    super.connectorTypes,
     super.prices,
   });
 
@@ -45,8 +47,20 @@ class HubcoLocationModel extends HubcoLocationEntity {
       iconUrl: (json['icon_with_background'] ?? '').toString(),
       numberOfConnectors: _asInt(json['number_of_connectors']),
       availableConnectors: _asInt(json['available_connectors']),
+      available: json['available'] == true,
+      connectorTypes: _asStringList(json['type']),
       prices: _asList(json['prices']).map(_priceFromJson).toList(growable: false),
     );
+  }
+
+  /// Parses a `type` array (e.g. `['DC']`, `['AC', 'AC/DC']`) into trimmed,
+  /// non-empty strings.
+  static List<String> _asStringList(dynamic value) {
+    if (value is! List) return const [];
+    return value
+        .map((e) => e?.toString().trim() ?? '')
+        .where((e) => e.isNotEmpty)
+        .toList(growable: false);
   }
 
   static StationPriceEntity _priceFromJson(Map<String, dynamic> json) {

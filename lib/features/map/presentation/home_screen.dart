@@ -72,6 +72,12 @@ class _HomeScreenState extends State<HomeScreen> {
   Set<Marker> _markers = const <Marker>{};
   List<HubcoLocationEntity> _locations = const [];
 
+  /// Nearby-stations chip filters (client-side), derived from the API data:
+  /// `available` → the "Available Now" chip; `type` → one chip per connector
+  /// kind (DC, AC, AC/DC).
+  bool _availableNowSelected = false;
+  final Set<String> _selectedTypes = {};
+
   final Map<_ChargingStationMarkerKind, BitmapDescriptor> _chargingStationIcons =
       {};
 
@@ -977,9 +983,39 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  /// Distinct connector kinds (`type`) across all loaded stations, sorted.
+  List<String> _distinctConnectorTypes(List<HubcoLocationEntity> stations) {
+    final set = <String>{};
+    for (final s in stations) {
+      set.addAll(s.connectorTypes);
+    }
+    final list = set.toList()..sort();
+    return list;
+  }
+
+  /// Applies the selected chips to [stations]: "Available Now" keeps only
+  /// available stations; selected types keep stations matching any of them.
+  List<HubcoLocationEntity> _applyChipFilters(
+    List<HubcoLocationEntity> stations,
+    Set<String> activeTypes,
+  ) {
+    return stations.where((s) {
+      if (_availableNowSelected && !s.available) return false;
+      if (activeTypes.isNotEmpty && !s.connectorTypes.any(activeTypes.contains)) {
+        return false;
+      }
+      return true;
+    }).toList();
+  }
+
   Widget _buildBottomSheet(BuildContext context) {
     final ui = AppUiColors.of(context);
-    final nearbyStations = _locations.toList();
+    final allStations = _locations;
+    final types = _distinctConnectorTypes(allStations);
+    // Ignore any stale selections for types not present in the current data.
+    final activeTypes = _selectedTypes.where(types.contains).toSet();
+    final nearbyStations = _applyChipFilters(allStations, activeTypes);
+    final hasActiveFilters = _availableNowSelected || activeTypes.isNotEmpty;
 
     return Container(
       padding: AppUtils.homeBottomSheetPadding,
@@ -1012,21 +1048,15 @@ class _HomeScreenState extends State<HomeScreen> {
             fontWeight: FontWeights.weight600,
           ),
           10.verticalSpace,
-          Row(
-            children: [
-              _chip(context, 'Available Now', isActive: true),
-              8.horizontalSpace,
-              _chip(context, 'DC Fast'),
-              8.horizontalSpace,
-              _chip(context, 'AC Level 2'),
-            ],
-          ),
+          _buildFilterChips(context, types),
           12.verticalSpace,
           if (nearbyStations.isEmpty)
             Padding(
               padding: EdgeInsets.symmetric(vertical: 12.h),
               child: AppText(
-                'No stations available',
+                hasActiveFilters
+                    ? 'No stations match the selected filters'
+                    : 'No stations available',
                 color: ui.textSecondary,
                 fontSize: FontSizes.font12Sp,
                 fontWeight: FontWeights.weight500,
@@ -1063,13 +1093,59 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _chip(BuildContext context, String text, {bool isActive = false}) {
+  /// Horizontally-scrollable chip row: an "Available Now" toggle plus one chip
+  /// per connector [types] value from the API. Tapping a chip filters the
+  /// Nearby Stations list.
+  Widget _buildFilterChips(BuildContext context, List<String> types) {
+    final chips = <Widget>[
+      _chip(
+        context,
+        'Available Now',
+        isActive: _availableNowSelected,
+        onTap: () =>
+            setState(() => _availableNowSelected = !_availableNowSelected),
+      ),
+      for (final type in types)
+        _chip(
+          context,
+          type,
+          isActive: _selectedTypes.contains(type),
+          onTap: () => setState(() {
+            if (_selectedTypes.contains(type)) {
+              _selectedTypes.remove(type);
+            } else {
+              _selectedTypes.add(type);
+            }
+          }),
+        ),
+    ];
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          for (var i = 0; i < chips.length; i++) ...[
+            if (i > 0) 8.horizontalSpace,
+            chips[i],
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _chip(
+    BuildContext context,
+    String text, {
+    bool isActive = false,
+    VoidCallback? onTap,
+  }) {
     final ui = AppUiColors.of(context);
-    return Container(
+    final chip = AnimatedContainer(
+      duration: const Duration(milliseconds: 160),
       padding: AppUtils.homeFilterChipPadding,
       decoration: BoxDecoration(
         color: isActive
-            ? ui.innerCardBg
+            ? ui.brandPrimary.withValues(alpha: 0.12)
             : ui.innerCardBg,
         borderRadius: BorderRadius.circular(20.r),
         border: Border.all(
@@ -1078,10 +1154,17 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       child: AppText(
         text,
-        color: isActive ? ui.textPrimary.withValues(alpha: 0.8) : ui.textPrimary.withValues(alpha: 0.8),
+        color: ui.textPrimary.withValues(alpha: 0.8),
         fontSize: FontSizes.font14Sp,
-        fontWeight: FontWeights.weight400,
+        fontWeight: isActive ? FontWeights.weight600 : FontWeights.weight400,
       ),
+    );
+
+    if (onTap == null) return chip;
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: chip,
     );
   }
 
