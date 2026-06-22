@@ -52,6 +52,11 @@ class VehicleRepositoryImpl implements VehicleRepository {
     return _run(() => remoteDataSource.getUserVehicles());
   }
 
+  @override
+  Future<Either<Failure, void>> deleteVehicle({required int id}) {
+    return _run(() => remoteDataSource.deleteVehicle(id: id));
+  }
+
   /// Shared connectivity guard + exception→failure mapping for every call.
   Future<Either<Failure, T>> _run<T>(Future<T> Function() action) async {
     if (!await networkInfo.isConnected) {

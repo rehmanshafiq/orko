@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:orko_hubco/core/usecase/usecase.dart';
 import 'package:orko_hubco/core/utils/app_storage/app_storage.dart';
 import 'package:orko_hubco/features/vehicle/domain/usecases/add_vehicle_usecase.dart';
+import 'package:orko_hubco/features/vehicle/domain/usecases/delete_vehicle_usecase.dart';
 import 'package:orko_hubco/features/vehicle/domain/usecases/get_user_vehicles_usecase.dart';
 import 'package:orko_hubco/features/vehicle/domain/usecases/get_vehicle_makes_usecase.dart';
 import 'package:orko_hubco/features/vehicle/domain/usecases/get_vehicle_models_usecase.dart';
@@ -16,16 +17,19 @@ class VehicleCubit extends Cubit<VehicleState> {
     required GetVehicleModelsUseCase getModelsUseCase,
     required AddVehicleUseCase addVehicleUseCase,
     required GetUserVehiclesUseCase getUserVehiclesUseCase,
+    required DeleteVehicleUseCase deleteVehicleUseCase,
   })  : _getMakesUseCase = getMakesUseCase,
         _getModelsUseCase = getModelsUseCase,
         _addVehicleUseCase = addVehicleUseCase,
         _getUserVehiclesUseCase = getUserVehiclesUseCase,
+        _deleteVehicleUseCase = deleteVehicleUseCase,
         super(const VehicleState());
 
   final GetVehicleMakesUseCase _getMakesUseCase;
   final GetVehicleModelsUseCase _getModelsUseCase;
   final AddVehicleUseCase _addVehicleUseCase;
   final GetUserVehiclesUseCase _getUserVehiclesUseCase;
+  final DeleteVehicleUseCase _deleteVehicleUseCase;
 
   /// Loads the user's vehicles for the Vehicles tab. Guests have no server
   /// session, so we surface an empty list rather than an Unauthorized error.
@@ -144,6 +148,33 @@ class VehicleCubit extends Cubit<VehicleState> {
         emit(state.copyWith(isSubmitting: false));
         await loadUserVehicles(showSpinner: false);
         return (success: true, message: 'Vehicle added.');
+      },
+    );
+  }
+
+  /// Soft-deletes [vehicleId], then silently refreshes the vehicle list.
+  ///
+  /// On the API's "Vehicle not found." case (already deleted / not the user's)
+  /// we still refresh so the list reflects the server's truth.
+  Future<VehicleActionResult> deleteVehicle(int vehicleId) async {
+    if (state.deletingId != null) {
+      return (success: false, message: 'Please wait for the current action.');
+    }
+    emit(state.copyWith(deletingId: vehicleId));
+
+    final result =
+        await _deleteVehicleUseCase(DeleteVehicleParams(id: vehicleId));
+
+    if (isClosed) return (success: false, message: 'Vehicle deleted.');
+    return result.fold(
+      (failure) {
+        emit(state.copyWith(clearDeletingId: true));
+        return (success: false, message: failure.message);
+      },
+      (_) async {
+        await loadUserVehicles(showSpinner: false);
+        if (!isClosed) emit(state.copyWith(clearDeletingId: true));
+        return (success: true, message: 'Vehicle deleted.');
       },
     );
   }

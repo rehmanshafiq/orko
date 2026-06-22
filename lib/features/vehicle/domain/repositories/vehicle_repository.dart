@@ -24,4 +24,7 @@ abstract class VehicleRepository {
 
   /// `GET /vehicle/user-vehicle/` — the logged-in user's vehicles.
   Future<Either<Failure, List<UserVehicleEntity>>> getUserVehicles();
+
+  /// `DELETE /vehicle/add-vehicle/` — soft-deletes the vehicle [id].
+  Future<Either<Failure, void>> deleteVehicle({required int id});
 }

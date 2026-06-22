@@ -961,6 +961,25 @@ class _VehiclesTabBodyState extends State<_VehiclesTabBody> {
     // The list refreshes itself via the cubit; no confirmation toast.
   }
 
+  Future<void> _deleteVehicle(UserVehicleEntity vehicle) async {
+    final cubit = context.read<VehicleCubit>();
+    final confirmed = await _showDeleteVehicleDialog(context, vehicle);
+    if (confirmed != true || !mounted) return;
+
+    final result = await cubit.deleteVehicle(vehicle.id);
+    if (!mounted || result.success) return;
+
+    // Surface failures (e.g. "Vehicle not found.") — success refreshes silently.
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(result.message),
+          backgroundColor: AppColors.removeColor,
+        ),
+      );
+  }
+
   @override
   Widget build(BuildContext context) {
     final ui = AppUiColors.of(context);
@@ -1055,10 +1074,17 @@ class _VehiclesTabBodyState extends State<_VehiclesTabBody> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: List.generate(
             state.vehicles.length,
-            (index) => Padding(
-              padding: EdgeInsets.only(bottom: 14.h),
-              child: _VehicleCard(vehicle: state.vehicles[index]),
-            ),
+            (index) {
+              final vehicle = state.vehicles[index];
+              return Padding(
+                padding: EdgeInsets.only(bottom: 14.h),
+                child: _VehicleCard(
+                  vehicle: vehicle,
+                  isDeleting: state.isDeleting(vehicle.id),
+                  onDelete: () => _deleteVehicle(vehicle),
+                ),
+              );
+            },
           ),
         );
     }
@@ -1106,6 +1132,101 @@ class _EmptyVehiclesPlaceholder extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Confirms a destructive vehicle delete. Returns `true` when the user confirms.
+Future<bool?> _showDeleteVehicleDialog(
+  BuildContext context,
+  UserVehicleEntity vehicle,
+) {
+  final ui = AppUiColors.of(context);
+  return showDialog<bool>(
+    context: context,
+    barrierColor: AppColors.blackColor.withValues(alpha: 0.55),
+    builder: (dialogContext) => Dialog(
+      backgroundColor: ui.cardBackground,
+      insetPadding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 24.h),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(18.r),
+      ),
+      child: Padding(
+        padding: AppUtils.all18Padding,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: EdgeInsets.all(8.r),
+                  decoration: BoxDecoration(
+                    color: AppColors.removeColor.withValues(alpha: 0.12),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.delete_outline_rounded,
+                    color: AppColors.removeColor,
+                    size: 22.r,
+                  ),
+                ),
+                12.horizontalSpace,
+                Expanded(
+                  child: AppText(
+                    'Delete Vehicle',
+                    color: ui.textPrimary,
+                    fontSize: FontSizes.font18Sp,
+                    fontWeight: FontWeights.weight700,
+                  ),
+                ),
+              ],
+            ),
+            14.verticalSpace,
+            AppText(
+              'Are you sure you want to delete "${vehicle.displayName}"? '
+              'This action cannot be undone.',
+              color: ui.textSecondary,
+              fontSize: FontSizes.font13Sp,
+              fontWeight: FontWeights.weight400,
+              height: 1.4,
+            ),
+            22.verticalSpace,
+            Row(
+              children: [
+                Expanded(
+                  child: PrimaryButtonWidget(
+                    text: 'Cancel',
+                    onPress: () => Navigator.of(dialogContext).pop(false),
+                    buttonWidth: double.infinity,
+                    buttonHeight: 42.h,
+                    cornerRadius: 12.r,
+                    buttonColor: ui.chipInactiveBg,
+                    strokeColor: ui.borderSubtle,
+                    textColor: ui.textPrimary,
+                    fontSize: FontSizes.font14Sp,
+                    fontWeight: FontWeights.weight600,
+                  ),
+                ),
+                12.horizontalSpace,
+                Expanded(
+                  child: PrimaryButtonWidget(
+                    text: 'Delete',
+                    onPress: () => Navigator.of(dialogContext).pop(true),
+                    buttonWidth: double.infinity,
+                    buttonHeight: 42.h,
+                    cornerRadius: 12.r,
+                    buttonColor: AppColors.removeColor,
+                    textColor: AppColors.whiteColor,
+                    fontSize: FontSizes.font14Sp,
+                    fontWeight: FontWeights.weight700,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
 }
 
 /// Add-vehicle dialog. Make/model dropdowns are populated from the vehicle
@@ -1654,9 +1775,15 @@ class _DropdownErrorField extends StatelessWidget {
 }
 
 class _VehicleCard extends StatelessWidget {
-  const _VehicleCard({required this.vehicle});
+  const _VehicleCard({
+    required this.vehicle,
+    this.onDelete,
+    this.isDeleting = false,
+  });
 
   final UserVehicleEntity vehicle;
+  final VoidCallback? onDelete;
+  final bool isDeleting;
 
   Widget _vehicleImagePlaceholder(AppUiColors ui) {
     return Container(
@@ -1750,6 +1877,33 @@ class _VehicleCard extends StatelessWidget {
                           color: ui.brandPrimary,
                           fontSize: FontSizes.font10Sp,
                           fontWeight: FontWeights.weight700,
+                        ),
+                      ),
+                    if (isDeleting)
+                      Padding(
+                        padding: EdgeInsets.only(left: 8.w),
+                        child: SizedBox(
+                          width: 22.r,
+                          height: 22.r,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: AppColors.removeColor,
+                          ),
+                        ),
+                      )
+                    else
+                      IconButton(
+                        onPressed: onDelete,
+                        visualDensity: VisualDensity.compact,
+                        padding: EdgeInsets.zero,
+                        constraints: BoxConstraints(
+                          minWidth: 32.r,
+                          minHeight: 32.r,
+                        ),
+                        icon: Icon(
+                          Icons.delete_outline_rounded,
+                          color: AppColors.removeColor,
+                          size: 22.r,
                         ),
                       ),
                   ],

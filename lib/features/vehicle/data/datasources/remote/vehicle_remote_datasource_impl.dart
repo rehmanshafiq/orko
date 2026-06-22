@@ -112,6 +112,33 @@ class VehicleRemoteDataSourceImpl implements VehicleRemoteDataSource {
     });
   }
 
+  @override
+  Future<void> deleteVehicle({required int id}) async {
+    return _guard('delete-vehicle', () async {
+      final url = _endpointUrl(
+        (e) => e.deleteVehicle,
+        fallbackPath: 'api/v1/vehicle/add-vehicle/',
+        unavailableMessage: 'Deleting a vehicle is not available right now',
+      );
+      log('[Vehicle] Delete URL: $url (id: $id)');
+
+      // Soft-delete shares the add-vehicle path; the id goes in the JSON body
+      // per the API contract.
+      final response = await apiClient.delete(url, data: {'id': id});
+
+      final code = response.statusCode ?? 0;
+      if (code >= 200 && code < 300) return;
+
+      final data = response.data;
+      throw ServerException(
+        message: (data is Map && data['message'] != null)
+            ? data['message'].toString()
+            : 'Failed to delete vehicle',
+        statusCode: response.statusCode,
+      );
+    });
+  }
+
   // ── Helpers ───────────────────────────────────────────────────────────
 
   /// Normalises every error into a [ServerException] carrying the backend's
@@ -123,22 +150,47 @@ class VehicleRemoteDataSourceImpl implements VehicleRemoteDataSource {
       rethrow;
     } on DioException catch (e) {
       final data = e.response?.data;
-      final message = (data is Map && data['message'] != null)
-          ? data['message'].toString()
-          : (e.type == DioExceptionType.connectionTimeout ||
-                  e.type == DioExceptionType.receiveTimeout ||
-                  e.type == DioExceptionType.sendTimeout
-              ? 'The request timed out. Please try again.'
-              : (e.message ?? 'Something went wrong'));
-      log('[Vehicle] $tag failed (${e.response?.statusCode}): $message');
-      throw ServerException(
-        message: message,
-        statusCode: e.response?.statusCode,
-        originalError: e,
-      );
+      final code = e.response?.statusCode;
+      // Prefer the backend's own message; otherwise a clean, status-appropriate
+      // string — never Dio's raw validateStatus paragraph.
+      final backendMessage = (data is Map && data['message'] != null)
+          ? data['message'].toString().trim()
+          : '';
+      final String message;
+      if (backendMessage.isNotEmpty) {
+        message = backendMessage;
+      } else if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.receiveTimeout ||
+          e.type == DioExceptionType.sendTimeout) {
+        message = 'The request timed out. Please try again.';
+      } else {
+        message = _friendlyStatusMessage(code);
+      }
+      log('[Vehicle] $tag failed ($code): ${e.message}');
+      throw ServerException(message: message, statusCode: code, originalError: e);
     } catch (e) {
       log('[Vehicle] $tag unexpected error: $e');
       throw ServerException(message: e.toString(), originalError: e);
+    }
+  }
+
+  /// A clean, user-facing message for a status code when the backend didn't
+  /// provide one (keeps Dio's verbose validateStatus text out of the UI).
+  String _friendlyStatusMessage(int? code) {
+    switch (code) {
+      case 401:
+        return 'Your session has expired. Please log in again.';
+      case 403:
+        return 'You do not have permission to do that.';
+      case 404:
+      case 405:
+        return 'This action is not available right now.';
+      case 500:
+      case 502:
+      case 503:
+        return 'The server is having trouble. Please try again shortly.';
+      default:
+        return 'Something went wrong. Please try again.';
     }
   }
 

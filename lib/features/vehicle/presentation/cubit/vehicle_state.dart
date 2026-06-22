@@ -17,6 +17,7 @@ class VehicleState extends Equatable {
     this.models = const [],
     this.modelsError,
     this.isSubmitting = false,
+    this.deletingId,
   });
 
   // ── User's vehicles (Vehicles tab) ──────────────────────────────────────
@@ -37,6 +38,11 @@ class VehicleState extends Equatable {
   /// True while an add-vehicle request is in flight.
   final bool isSubmitting;
 
+  /// Id of the vehicle currently being deleted (drives a per-card spinner).
+  final int? deletingId;
+
+  bool isDeleting(int id) => deletingId == id;
+
   VehicleState copyWith({
     VehicleStatus? vehiclesStatus,
     List<UserVehicleEntity>? vehicles,
@@ -51,6 +57,8 @@ class VehicleState extends Equatable {
     String? modelsError,
     bool clearModelsError = false,
     bool? isSubmitting,
+    int? deletingId,
+    bool clearDeletingId = false,
   }) {
     return VehicleState(
       vehiclesStatus: vehiclesStatus ?? this.vehiclesStatus,
@@ -64,6 +72,7 @@ class VehicleState extends Equatable {
       models: models ?? this.models,
       modelsError: clearModelsError ? null : (modelsError ?? this.modelsError),
       isSubmitting: isSubmitting ?? this.isSubmitting,
+      deletingId: clearDeletingId ? null : (deletingId ?? this.deletingId),
     );
   }
 
@@ -79,5 +88,6 @@ class VehicleState extends Equatable {
         models,
         modelsError,
         isSubmitting,
+        deletingId,
       ];
 }

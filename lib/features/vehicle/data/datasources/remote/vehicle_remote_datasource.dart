@@ -20,4 +20,7 @@ abstract class VehicleRemoteDataSource {
 
   /// `GET api/v1/vehicle/user-vehicle/` — the logged-in user's vehicles.
   Future<List<UserVehicleModel>> getUserVehicles();
+
+  /// `DELETE api/v1/vehicle/add-vehicle/` — soft-deletes the vehicle [id].
+  Future<void> deleteVehicle({required int id});
 }
