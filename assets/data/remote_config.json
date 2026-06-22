@@ -19,7 +19,8 @@
       "create_booking_hgl": "api/v1/bookings/book-charge-session/",
       "my_bookings": "api/v1/bookings/my-charging-sessions/",
       "cancel_booking": "api/v1/bookings/cancel-booking/",
-      "reschedule_booking": "api/v1/bookings/reschedule-booking/"
+      "reschedule_booking": "api/v1/bookings/reschedule-booking/",
+      "charge_session_history": "api/v1/bookings/charge-session-history/"
     }
   }
 }

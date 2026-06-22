@@ -5,6 +5,7 @@ import 'package:orko_hubco/core/usecase/usecase.dart';
 import 'package:orko_hubco/features/booking/data/datasources/remote/booking_remote_datasource.dart';
 import 'package:orko_hubco/features/booking/domain/entities/booking_entity.dart';
 import 'package:orko_hubco/features/booking/domain/entities/booking_slot_entity.dart';
+import 'package:orko_hubco/features/booking/domain/entities/charge_session_history_entity.dart';
 import 'package:orko_hubco/features/booking/domain/entities/charger_details_entity.dart';
 import 'package:orko_hubco/features/booking/domain/entities/my_booking_entity.dart';
 import 'package:orko_hubco/features/booking/domain/repositories/booking_repository.dart';
@@ -68,6 +69,12 @@ class BookingRepositoryImpl implements BookingRepository {
   @override
   Future<Either<Failure, List<MyBookingEntity>>> getMyBookings() {
     return _run(() => remoteDataSource.getMyBookings());
+  }
+
+  @override
+  Future<Either<Failure, List<ChargeSessionHistoryEntity>>>
+      getChargeSessionHistory() {
+    return _run(() => remoteDataSource.getChargeSessionHistory());
   }
 
   @override

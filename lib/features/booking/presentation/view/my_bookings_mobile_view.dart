@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:intl/intl.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/services/barcode_scanner_service.dart';
@@ -8,6 +9,7 @@ import 'package:orko_hubco/core/utils/helpers.dart';
 import 'package:orko_hubco/core/utils/app_ui.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
 import 'package:orko_hubco/core/utils/widgets/primary_button_widget.dart';
+import 'package:orko_hubco/features/booking/domain/entities/charge_session_history_entity.dart';
 import 'package:orko_hubco/features/booking/domain/entities/my_booking_entity.dart';
 import 'package:orko_hubco/features/booking/presentation/cubit/my_bookings_cubit.dart';
 import 'package:orko_hubco/features/booking/presentation/cubit/my_bookings_state.dart';
@@ -75,6 +77,12 @@ class _Body extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // The History tab is driven by its own endpoint/state, so it renders
+    // independently of the my-bookings (Upcoming/Active) load status.
+    if (state.selectedTab == BookingTab.history) {
+      return _HistoryTab(ui: ui, state: state, cubit: cubit);
+    }
+
     if (state.status == MyBookingsStatus.loading ||
         state.status == MyBookingsStatus.initial) {
       return Center(
@@ -153,7 +161,7 @@ class _TabContent extends StatelessWidget {
       case BookingTab.upcoming:
         return _UpcomingTab(ui: ui, state: state, cubit: cubit);
       case BookingTab.history:
-        return _HistoryTab(ui: ui, bookings: state.history);
+        return _HistoryTab(ui: ui, state: state, cubit: cubit);
     }
   }
 
@@ -306,47 +314,116 @@ Future<void> _scanBookingQrCode(
 }
 
 class _HistoryTab extends StatelessWidget {
-  const _HistoryTab({required this.ui, required this.bookings});
+  const _HistoryTab({
+    required this.ui,
+    required this.state,
+    required this.cubit,
+  });
 
   final AppUiColors ui;
-  final List<MyBookingEntity> bookings;
+  final MyBookingsState state;
+  final MyBookingsCubit cubit;
 
   @override
   Widget build(BuildContext context) {
-    if (bookings.isEmpty) {
+    // First-ever load (or a load triggered with a spinner): show the loader.
+    if (state.historyStatus == MyBookingsStatus.loading ||
+        state.historyStatus == MyBookingsStatus.initial) {
+      return Center(
+        child: SizedBox(
+          width: 28.w,
+          height: 28.w,
+          child: CircularProgressIndicator(
+            strokeWidth: 2.6,
+            color: ui.brandPrimary,
+          ),
+        ),
+      );
+    }
+
+    if (state.historyStatus == MyBookingsStatus.failure) {
       return ListView(
         padding: AppUtils.horizontal16Padding,
         children: [
-          BookingEmptyState(
-            ui: ui,
-            icon: Icons.history_rounded,
-            title: 'No History',
-            subtitle: 'You have no cancelled bookings',
-            accentColor: ui.brandPrimary,
-            iconOutlined: true,
+          60.verticalSpace,
+          Icon(Icons.error_outline_rounded,
+              color: ui.textSecondary, size: 40.sp),
+          12.verticalSpace,
+          AppText(
+            state.historyError ?? 'Could not load your charging history.',
+            textAlign: TextAlign.center,
+            color: ui.textSecondary,
+            fontSize: FontSizes.font14Sp,
+            fontWeight: FontWeights.weight500,
+          ),
+          16.verticalSpace,
+          Center(
+            child: SizedBox(
+              width: 160.w,
+              child: PrimaryButtonWidget(
+                text: 'Retry',
+                onPress: cubit.loadHistory,
+                buttonHeight: 40.h,
+                cornerRadius: 22.r,
+                fontSize: FontSizes.font14Sp,
+                fontWeight: FontWeights.weight700,
+              ),
+            ),
           ),
         ],
       );
     }
-    return ListView.separated(
-      padding: AppUtils.horizontal16Padding,
-      itemCount: bookings.length,
-      separatorBuilder: (_, __) => 14.verticalSpace,
-      itemBuilder: (context, index) => HistoryBookingCard(
-        ui: ui,
-        booking: _toHistory(bookings[index]),
-      ),
+
+    final sessions = state.historySessions;
+    return RefreshIndicator(
+      color: ui.brandPrimary,
+      onRefresh: () => cubit.loadHistory(showSpinner: false),
+      child: sessions.isEmpty
+          ? ListView(
+              padding: AppUtils.horizontal16Padding,
+              children: [
+                BookingEmptyState(
+                  ui: ui,
+                  icon: Icons.history_rounded,
+                  title: 'No History',
+                  subtitle: 'You have no charging sessions yet',
+                  accentColor: ui.brandPrimary,
+                  iconOutlined: true,
+                ),
+              ],
+            )
+          : ListView.separated(
+              padding: AppUtils.horizontal16Padding,
+              itemCount: sessions.length,
+              separatorBuilder: (_, __) => 14.verticalSpace,
+              itemBuilder: (context, index) => HistoryBookingCard(
+                ui: ui,
+                booking: _toHistory(sessions[index]),
+              ),
+            ),
     );
   }
 
-  HistoryBooking _toHistory(MyBookingEntity b) {
+  HistoryBooking _toHistory(ChargeSessionHistoryEntity s) {
     return HistoryBooking(
-      stationName: b.displayName,
-      dateTimeLabel: '${b.date}, ${b.startTime} - ${b.endTime}',
-      relativeLabel: 'Cancelled',
-      energyKwh: 0,
-      statusLabel: 'Cancelled',
-      amount: b.estimatedCost?.amount ?? 0,
+      stationName: s.displayName,
+      dateTimeLabel: _formatStartedAt(s.startedAt),
+      durationLabel: (s.duration != null && s.duration!.isNotEmpty)
+          ? s.duration!
+          : (s.isInProgress ? 'In progress' : '—'),
+      statusLabel: s.status.isNotEmpty ? s.status : 'Unknown',
+      isInProgress: s.isInProgress,
+      energyKwh: s.energyConsumed,
+      amount: s.totalCost,
     );
   }
+}
+
+/// Formats a `yyyy-MM-dd HH:mm:ss` timestamp into `MMM d, yyyy · h:mm a`,
+/// falling back to the raw string (or a placeholder) when it can't be parsed.
+String _formatStartedAt(String? raw) {
+  if (raw == null || raw.isEmpty) return 'Date unavailable';
+  final parsed = DateTime.tryParse(raw.replaceFirst(' ', 'T'));
+  if (parsed == null) return raw;
+  return DateFormat('MMM d, yyyy · h:mm a').format(parsed);
 }

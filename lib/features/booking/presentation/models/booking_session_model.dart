@@ -52,21 +52,36 @@ class UpcomingBooking {
   final num estimatedCost;
 }
 
-/// A finished session shown under the "History" tab.
+/// A charging session shown under the "History" tab, built from
+/// `charge-session-history/`. Covers both completed and in-progress sessions,
+/// so the energy/cost figures are nullable (they only populate on completion).
 class HistoryBooking {
   const HistoryBooking({
     required this.stationName,
     required this.dateTimeLabel,
-    required this.relativeLabel,
-    required this.energyKwh,
+    required this.durationLabel,
     required this.statusLabel,
-    required this.amount,
+    required this.isInProgress,
+    this.energyKwh,
+    this.amount,
   });
 
   final String stationName;
+
+  /// Formatted "started at" timestamp, or a placeholder when unavailable.
   final String dateTimeLabel;
-  final String relativeLabel;
-  final double energyKwh;
+
+  /// Human-readable session duration, e.g. `16m`.
+  final String durationLabel;
+
   final String statusLabel;
-  final double amount;
+
+  /// In-progress sessions are styled differently and hide cost/energy.
+  final bool isInProgress;
+
+  /// kWh delivered — null until the session completes.
+  final double? energyKwh;
+
+  /// Total cost — null until the session completes.
+  final double? amount;
 }

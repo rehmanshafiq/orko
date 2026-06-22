@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:orko_hubco/features/booking/domain/entities/charge_session_history_entity.dart';
 import 'package:orko_hubco/features/booking/domain/entities/my_booking_entity.dart';
 import 'package:orko_hubco/features/booking/presentation/models/booking_session_model.dart';
 
@@ -12,6 +13,9 @@ class MyBookingsState extends Equatable {
     this.bookings = const [],
     this.selectedTab = BookingTab.upcoming,
     this.actionBookingId,
+    this.historyStatus = MyBookingsStatus.initial,
+    this.historyError,
+    this.historySessions = const [],
   });
 
   final MyBookingsStatus status;
@@ -22,13 +26,15 @@ class MyBookingsState extends Equatable {
   /// Id of the booking currently being cancelled/rescheduled (per-card spinner).
   final int? actionBookingId;
 
+  /// Lifecycle of the charge-session-history fetch (independent of [status],
+  /// since the History tab is driven by a separate endpoint).
+  final MyBookingsStatus historyStatus;
+  final String? historyError;
+  final List<ChargeSessionHistoryEntity> historySessions;
+
   /// Approved bookings → "Upcoming".
   List<MyBookingEntity> get upcoming =>
       bookings.where((b) => b.isApproved).toList(growable: false);
-
-  /// Cancelled bookings → "History".
-  List<MyBookingEntity> get history =>
-      bookings.where((b) => b.isCancelled).toList(growable: false);
 
   bool isActionInProgress(int bookingId) => actionBookingId == bookingId;
 
@@ -40,14 +46,23 @@ class MyBookingsState extends Equatable {
     BookingTab? selectedTab,
     int? actionBookingId,
     bool clearActionBookingId = false,
+    MyBookingsStatus? historyStatus,
+    String? historyError,
+    bool clearHistoryError = false,
+    List<ChargeSessionHistoryEntity>? historySessions,
   }) {
     return MyBookingsState(
       status: status ?? this.status,
       error: clearError ? null : (error ?? this.error),
       bookings: bookings ?? this.bookings,
       selectedTab: selectedTab ?? this.selectedTab,
-      actionBookingId:
-          clearActionBookingId ? null : (actionBookingId ?? this.actionBookingId),
+      actionBookingId: clearActionBookingId
+          ? null
+          : (actionBookingId ?? this.actionBookingId),
+      historyStatus: historyStatus ?? this.historyStatus,
+      historyError:
+          clearHistoryError ? null : (historyError ?? this.historyError),
+      historySessions: historySessions ?? this.historySessions,
     );
   }
 
@@ -58,5 +73,8 @@ class MyBookingsState extends Equatable {
         bookings,
         selectedTab,
         actionBookingId,
+        historyStatus,
+        historyError,
+        historySessions,
       ];
 }

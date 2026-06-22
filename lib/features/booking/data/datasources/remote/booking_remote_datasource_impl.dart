@@ -6,6 +6,7 @@ import 'package:orko_hubco/core/network/api_client.dart';
 import 'package:orko_hubco/features/booking/data/datasources/remote/booking_remote_datasource.dart';
 import 'package:orko_hubco/features/booking/data/models/booking_model.dart';
 import 'package:orko_hubco/features/booking/data/models/booking_slot_model.dart';
+import 'package:orko_hubco/features/booking/data/models/charge_session_history_model.dart';
 import 'package:orko_hubco/features/booking/data/models/charger_details_model.dart';
 import 'package:orko_hubco/features/booking/data/models/my_booking_model.dart';
 import 'package:orko_hubco/features/remote_config/data/models/remote_config_model.dart';
@@ -138,6 +139,31 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
       return body
           .whereType<Map>()
           .map((e) => MyBookingModel.fromJson(Map<String, dynamic>.from(e)))
+          .toList(growable: false);
+    });
+  }
+
+  @override
+  Future<List<ChargeSessionHistoryModel>> getChargeSessionHistory() async {
+    return _guard('charge-session-history', () async {
+      final url = _endpointUrl(
+        (e) => e.chargeSessionHistory,
+        unavailableMessage: 'Charging history is not available right now',
+      );
+      log('[Booking] Charge session history URL: $url');
+
+      final response = await apiClient.get(url);
+
+      final body = _bodyOf(response, fallback: 'Failed to load charging history');
+      if (body is! List) {
+        throw const ServerException(
+          message: 'Failed to load charging history',
+        );
+      }
+      return body
+          .whereType<Map>()
+          .map((e) =>
+              ChargeSessionHistoryModel.fromJson(Map<String, dynamic>.from(e)))
           .toList(growable: false);
     });
   }

@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:orko_hubco/core/usecase/usecase.dart';
 import 'package:orko_hubco/core/utils/app_storage/app_storage.dart';
 import 'package:orko_hubco/features/booking/domain/usecases/cancel_booking_usecase.dart';
+import 'package:orko_hubco/features/booking/domain/usecases/get_charge_session_history_usecase.dart';
 import 'package:orko_hubco/features/booking/domain/usecases/get_my_bookings_usecase.dart';
 import 'package:orko_hubco/features/booking/domain/usecases/reschedule_booking_usecase.dart';
 import 'package:orko_hubco/features/booking/presentation/cubit/my_bookings_state.dart';
@@ -13,14 +14,17 @@ typedef BookingActionResult = ({bool success, String message});
 class MyBookingsCubit extends Cubit<MyBookingsState> {
   MyBookingsCubit({
     required GetMyBookingsUseCase getMyBookingsUseCase,
+    required GetChargeSessionHistoryUseCase getChargeSessionHistoryUseCase,
     required CancelBookingUseCase cancelBookingUseCase,
     required RescheduleBookingUseCase rescheduleBookingUseCase,
   })  : _getMyBookingsUseCase = getMyBookingsUseCase,
+        _getChargeSessionHistoryUseCase = getChargeSessionHistoryUseCase,
         _cancelBookingUseCase = cancelBookingUseCase,
         _rescheduleBookingUseCase = rescheduleBookingUseCase,
         super(const MyBookingsState());
 
   final GetMyBookingsUseCase _getMyBookingsUseCase;
+  final GetChargeSessionHistoryUseCase _getChargeSessionHistoryUseCase;
   final CancelBookingUseCase _cancelBookingUseCase;
   final RescheduleBookingUseCase _rescheduleBookingUseCase;
 
@@ -30,6 +34,54 @@ class MyBookingsCubit extends Cubit<MyBookingsState> {
     if (tab == BookingTab.upcoming) {
       loadBookings(showSpinner: false);
     }
+    // Load charging history the first time History is opened, and refresh it
+    // silently on subsequent visits.
+    if (tab == BookingTab.history) {
+      loadHistory(
+        showSpinner: state.historyStatus != MyBookingsStatus.success,
+      );
+    }
+  }
+
+  /// Loads (or reloads) the user's charging-session history.
+  ///
+  /// Mirrors [loadBookings]: guests have no server session so we surface the
+  /// empty state instead of an Unauthorized failure.
+  Future<void> loadHistory({bool showSpinner = true}) async {
+    if (AppStorage.isGuest) {
+      emit(state.copyWith(
+        historyStatus: MyBookingsStatus.success,
+        historySessions: const [],
+        clearHistoryError: true,
+      ));
+      return;
+    }
+
+    if (showSpinner) {
+      emit(state.copyWith(
+        historyStatus: MyBookingsStatus.loading,
+        clearHistoryError: true,
+      ));
+    }
+
+    final result = await _getChargeSessionHistoryUseCase(const NoParams());
+
+    if (isClosed) return;
+    result.fold(
+      (failure) => emit(
+        state.copyWith(
+          historyStatus: MyBookingsStatus.failure,
+          historyError: failure.message,
+        ),
+      ),
+      (sessions) => emit(
+        state.copyWith(
+          historyStatus: MyBookingsStatus.success,
+          historySessions: sessions,
+          clearHistoryError: true,
+        ),
+      ),
+    );
   }
 
   /// Loads (or reloads) the user's bookings.

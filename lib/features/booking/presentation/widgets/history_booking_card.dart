@@ -18,6 +18,12 @@ class HistoryBookingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final energyLabel =
+        booking.energyKwh != null ? '${_trim(booking.energyKwh!)} kWh' : '—';
+    final amountLabel = booking.amount != null
+        ? 'PKR ${booking.amount!.toStringAsFixed(2)}'
+        : '—';
+
     return Container(
       width: double.infinity,
       padding: AppUtils.all18Padding,
@@ -29,103 +35,121 @@ class HistoryBookingCard extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-              Container(
-                height: 44.r,
-                width: 44.r,
-                decoration: BoxDecoration(
-                  color: Colors.transparent,
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: ui.isLight ? ui.iconContainerOutline : ui.brandPrimary,
-                    width: 1.5,
-                  ),
-                ),
-                child: Icon(
-                  Icons.bolt,
-                  color: ui.brandPrimary,
-                  size: 22.sp,
-                ),
+          Container(
+            height: 44.r,
+            width: 44.r,
+            decoration: BoxDecoration(
+              color: Colors.transparent,
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: ui.isLight ? ui.iconContainerOutline : ui.brandPrimary,
+                width: 1.5,
               ),
-              12.horizontalSpace,
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+            ),
+            child: Icon(
+              Icons.bolt,
+              color: ui.brandPrimary,
+              size: 22.sp,
+            ),
+          ),
+          12.horizontalSpace,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                AppText(
+                  booking.stationName,
+                  color: ui.textPrimary,
+                  fontSize: FontSizes.font16Sp,
+                  fontWeight: FontWeights.weight700,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                4.verticalSpace,
+                AppText(
+                  booking.dateTimeLabel,
+                  color: ui.textSecondary,
+                  fontSize: FontSizes.font12Sp,
+                  fontWeight: FontWeights.weight400,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                4.verticalSpace,
+                Row(
                   children: [
-                    AppText(
-                      booking.stationName,
-                      color: ui.textPrimary,
-                      fontSize: FontSizes.font16Sp,
-                      fontWeight: FontWeights.weight700,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                    Flexible(
+                      child: AppText(
+                        booking.durationLabel,
+                        color: ui.textSecondary,
+                        fontSize: FontSizes.font12Sp,
+                        fontWeight: FontWeights.weight400,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
-                    4.verticalSpace,
                     AppText(
-                      booking.dateTimeLabel,
+                      '  ·  ',
                       color: ui.textSecondary,
                       fontSize: FontSizes.font12Sp,
                       fontWeight: FontWeights.weight400,
                     ),
-                    4.verticalSpace,
-                    Row(
-                      children: [
-                        AppText(
-                          booking.relativeLabel,
-                          color: ui.textSecondary,
-                          fontSize: FontSizes.font12Sp,
-                          fontWeight: FontWeights.weight400,
-                        ),
-                        AppText(
-                          '  ·  ',
-                          color: ui.textSecondary,
-                          fontSize: FontSizes.font12Sp,
-                          fontWeight: FontWeights.weight400,
-                        ),
-                        AppText(
-                          '${booking.energyKwh} kWh',
-                          color: ui.brandPrimary,
-                          fontSize: FontSizes.font12Sp,
-                          fontWeight: FontWeights.weight600,
-                        ),
-                      ],
+                    AppText(
+                      energyLabel,
+                      color: ui.brandPrimary,
+                      fontSize: FontSizes.font12Sp,
+                      fontWeight: FontWeights.weight600,
                     ),
                   ],
                 ),
+              ],
+            ),
+          ),
+          8.horizontalSpace,
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              _StatusBadge(
+                label: booking.statusLabel,
+                isInProgress: booking.isInProgress,
               ),
-              8.horizontalSpace,
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  _CompletedBadge(label: booking.statusLabel),
-                  10.verticalSpace,
-                  AppText(
-                    'PKR ${booking.amount.toStringAsFixed(2)}',
-                    color: ui.textPrimary,
-                    fontSize: FontSizes.font16Sp,
-                    fontWeight: FontWeights.weight700,
-                  ),
-                ],
+              10.verticalSpace,
+              AppText(
+                amountLabel,
+                color: ui.textPrimary,
+                fontSize: FontSizes.font16Sp,
+                fontWeight: FontWeights.weight700,
               ),
             ],
+          ),
+        ],
       ),
     );
   }
+
+  /// Drops a trailing `.0` so `0.45` stays but `12.0` shows as `12`.
+  String _trim(double value) {
+    if (value == value.roundToDouble()) return value.toInt().toString();
+    return value.toString();
+  }
 }
 
-class _CompletedBadge extends StatelessWidget {
-  const _CompletedBadge({required this.label});
+class _StatusBadge extends StatelessWidget {
+  const _StatusBadge({required this.label, required this.isInProgress});
 
   final String label;
+  final bool isInProgress;
 
   @override
   Widget build(BuildContext context) {
     final ui = AppUiColors.of(context);
+    // In-progress sessions get the brand-primary accent; completed/other use
+    // the secondary accent, matching the rest of the booking UI.
+    final accent = isInProgress ? ui.brandPrimary : ui.brandSecondary;
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 5.h),
       decoration: BoxDecoration(
-        // color: ui.brandSecondary,
         borderRadius: BorderRadius.circular(20.r),
-        border: Border.all(width: 1.w, color: ui.brandSecondary)
+        border: Border.all(width: 1.w, color: accent),
       ),
       child: AppText(
         label,
