@@ -238,4 +238,28 @@ class AuthRepositoryImpl implements AuthRepository {
       return const Right(false);
     }
   }
+
+  @override
+  Future<Either<Failure, UserEntity>> getUser() async {
+    if (!await networkInfo.isConnected) {
+      return const Left(NetworkFailure());
+    }
+
+    try {
+      final user = await remoteDataSource.getUser();
+      // Refresh the cached user in the existing storage key so the rest of the
+      // app (profile header, etc.) reads the latest data.
+      await localDataSource.cacheUser(user);
+      return Right(user);
+    } on ServerException catch (e) {
+      if (e.statusCode == 401) {
+        return const Left(UnauthorizedFailure());
+      }
+      return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
+    } on UnauthorizedException catch (e) {
+      return Left(UnauthorizedFailure(message: e.message));
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
+    }
+  }
 }

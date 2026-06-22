@@ -66,4 +66,9 @@ abstract class AuthRemoteDataSource {
 
   /// Calls the logout API.
   Future<void> logout();
+
+  /// Fetches the current logged-in user (`get_user` endpoint from Remote
+  /// Config). Returns the parsed [UserModel] (`body.user`).
+  /// Throws [ServerException] on failure.
+  Future<UserModel> getUser();
 }

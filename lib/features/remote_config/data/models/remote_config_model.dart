@@ -122,6 +122,7 @@ class ApiEndpoints extends Equatable {
     required this.loginApi,
     required this.loginWithGoogle,
     required this.logoutApi,
+    required this.getUser,
     required this.chargerDetails,
     required this.bookingSlots,
     required this.createBooking,
@@ -148,6 +149,7 @@ class ApiEndpoints extends Equatable {
   final String loginApi;
   final String loginWithGoogle;
   final String logoutApi;
+  final String getUser;
   final String chargerDetails;
   final String bookingSlots;
   final String createBooking;
@@ -177,6 +179,7 @@ class ApiEndpoints extends Equatable {
       loginApi: json['login_api'] as String? ?? '',
       loginWithGoogle: json['login_with_google'] as String? ?? '',
       logoutApi: json['logout_api'] as String? ?? '',
+      getUser: json['get_user'] as String? ?? '',
       chargerDetails: json['charger_details'] as String? ?? '',
       bookingSlots: json['booking_slots'] as String? ?? '',
       createBooking: json['create_booking'] as String? ?? '',
@@ -206,6 +209,7 @@ class ApiEndpoints extends Equatable {
       'login_api': loginApi,
       'login_with_google': loginWithGoogle,
       'logout_api': logoutApi,
+      'get_user': getUser,
       'charger_details': chargerDetails,
       'booking_slots': bookingSlots,
       'create_booking': createBooking,
@@ -234,6 +238,7 @@ class ApiEndpoints extends Equatable {
     String? loginApi,
     String? loginWithGoogle,
     String? logoutApi,
+    String? getUser,
     String? chargerDetails,
     String? bookingSlots,
     String? createBooking,
@@ -262,6 +267,7 @@ class ApiEndpoints extends Equatable {
       loginApi: loginApi ?? this.loginApi,
       loginWithGoogle: loginWithGoogle ?? this.loginWithGoogle,
       logoutApi: logoutApi ?? this.logoutApi,
+      getUser: getUser ?? this.getUser,
       chargerDetails: chargerDetails ?? this.chargerDetails,
       bookingSlots: bookingSlots ?? this.bookingSlots,
       createBooking: createBooking ?? this.createBooking,
@@ -291,6 +297,7 @@ class ApiEndpoints extends Equatable {
     loginApi,
     loginWithGoogle,
     logoutApi,
+    getUser,
     chargerDetails,
     bookingSlots,
     createBooking,

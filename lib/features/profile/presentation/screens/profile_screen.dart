@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -9,10 +10,15 @@ import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/constants/storage_constants.dart';
 import 'package:orko_hubco/core/di/injection_container.dart';
+import 'package:orko_hubco/core/global_bloc/bloc/user_bloc.dart';
 import 'package:orko_hubco/core/services/local_storage_service.dart';
 import 'package:orko_hubco/core/theme/theme_cubit.dart';
+import 'package:orko_hubco/core/usecase/usecase.dart';
+import 'package:orko_hubco/core/utils/app_storage/app_storage.dart';
+import 'package:orko_hubco/features/auth/domain/usecases/get_user_usecase.dart';
 import 'package:orko_hubco/core/utils/app_ui.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
+import 'package:orko_hubco/core/utils/widgets/auth_required_dialog.dart';
 import 'package:orko_hubco/core/utils/widgets/gradient_switch.dart';
 import 'package:orko_hubco/core/utils/widgets/primary_button_widget.dart';
 import 'package:orko_hubco/features/auth/data/models/user_model.dart';
@@ -99,36 +105,37 @@ class ProfileScreen extends StatelessWidget {
                             _ProfileTabBody(profile: state.profile),
                           if (state.mainTab == ProfileMainTab.vehicles)
                             const _VehiclesTabBody(),
-                          if (state.mainTab == ProfileMainTab.settings)
+                          if (state.mainTab == ProfileMainTab.settings) ...[
                             _SettingsTabBody(state: state),
-                          24.verticalSpace,
-                          Center(
-                            child: BlocBuilder<AuthCubit, AuthState>(
-                              builder: (context, authState) {
-                                final isLoggingOut = authState is AuthLoading;
-                                return TextButton(
-                                  onPressed: isLoggingOut
-                                      ? null
-                                      : () => _onSignOut(context),
-                                  child: isLoggingOut
-                                      ? SizedBox(
-                                          height: 18.r,
-                                          width: 18.r,
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 2,
+                            24.verticalSpace,
+                            Center(
+                              child: BlocBuilder<AuthCubit, AuthState>(
+                                builder: (context, authState) {
+                                  final isLoggingOut = authState is AuthLoading;
+                                  return TextButton(
+                                    onPressed: isLoggingOut
+                                        ? null
+                                        : () => _onSignOut(context),
+                                    child: isLoggingOut
+                                        ? SizedBox(
+                                            height: 18.r,
+                                            width: 18.r,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              color: AppColors.removeColor,
+                                            ),
+                                          )
+                                        : AppText(
+                                            'Sign out',
                                             color: AppColors.removeColor,
+                                            fontSize: FontSizes.font14Sp,
+                                            fontWeight: FontWeights.weight600,
                                           ),
-                                        )
-                                      : AppText(
-                                          'Sign out',
-                                          color: AppColors.removeColor,
-                                          fontSize: FontSizes.font14Sp,
-                                          fontWeight: FontWeights.weight600,
-                                        ),
-                                );
-                              },
+                                  );
+                                },
+                              ),
                             ),
-                          ),
+                          ],
                           16.verticalSpace,
                         ],
                       ),
@@ -949,8 +956,18 @@ class _VehiclesTabBodyState extends State<_VehiclesTabBody> {
   }
 
   Future<void> _addVehicle() async {
+    // Guests can't own vehicles — prompt them to log in / sign up.
+    if (AppStorage.isGuest) {
+      AuthRequiredDialog.show(
+        context,
+        message: 'You\'re browsing as a guest. Please log in or create an '
+            'account to add a vehicle.',
+      );
+      return;
+    }
+
     final cubit = context.read<VehicleCubit>();
-    await showDialog<bool>(
+    final added = await showDialog<bool>(
       context: context,
       barrierColor: AppColors.blackColor.withValues(alpha: 0.55),
       builder: (_) => BlocProvider.value(
@@ -959,6 +976,25 @@ class _VehiclesTabBodyState extends State<_VehiclesTabBody> {
       ),
     );
     // The list refreshes itself via the cubit; no confirmation toast.
+    // A new vehicle changes the user object, so refresh the cached user.
+    if (added == true && mounted) {
+      unawaited(_refreshCachedUser());
+    }
+  }
+
+  /// Re-fetches the user (`getUser`) so the cached user reflects the new
+  /// vehicle, then updates the global [UserBloc]. Best-effort and silent.
+  Future<void> _refreshCachedUser() async {
+    if (AppStorage.isGuest) return;
+    final result = await sl<GetUserUseCase>()(const NoParams());
+    if (!mounted) return;
+    result.fold((_) {}, (_) {
+      try {
+        context.read<UserBloc>().add(const OnLoadCustomerFromCache());
+      } catch (_) {
+        // UserBloc not in scope here — the cache was still refreshed.
+      }
+    });
   }
 
   Future<void> _deleteVehicle(UserVehicleEntity vehicle) async {
@@ -967,9 +1003,15 @@ class _VehiclesTabBodyState extends State<_VehiclesTabBody> {
     if (confirmed != true || !mounted) return;
 
     final result = await cubit.deleteVehicle(vehicle.id);
-    if (!mounted || result.success) return;
+    if (!mounted) return;
 
-    // Surface failures (e.g. "Vehicle not found.") — success refreshes silently.
+    if (result.success) {
+      // Removing a vehicle changes the user object — refresh the cached user.
+      unawaited(_refreshCachedUser());
+      return;
+    }
+
+    // Surface failures (e.g. "Vehicle not found.").
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(

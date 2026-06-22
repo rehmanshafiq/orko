@@ -345,6 +345,57 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     }
   }
 
+  @override
+  Future<UserModel> getUser() async {
+    try {
+      final config = RemoteConfigService.config;
+      if (config == null) {
+        throw const ServerException(message: 'Remote config not initialized');
+      }
+
+      final endpoint = config.apiConstants.apiEndpoints.getUser;
+      if (endpoint.trim().isEmpty) {
+        throw const ServerException(
+          message: 'User profile is not available right now',
+        );
+      }
+
+      final url = _buildUrl(config.apiConstants.baseUrlQa, endpoint);
+      log('[Auth] Get user URL: $url');
+
+      final response = await apiClient.get(url);
+
+      final data = response.data;
+      if (response.statusCode == 200 && data is Map<String, dynamic>) {
+        final body = data['body'];
+        // The user lives under `body.user`.
+        final user = body is Map ? body['user'] : null;
+        if (user is Map) {
+          return UserModel.fromJson(Map<String, dynamic>.from(user));
+        }
+      }
+
+      throw ServerException(
+        message: (data is Map<String, dynamic> && data['message'] != null)
+            ? data['message'].toString()
+            : 'Failed to load user',
+        statusCode: response.statusCode,
+      );
+    } on DioException catch (e) {
+      final data = e.response?.data;
+      throw ServerException(
+        message: (data is Map && data['message'] != null)
+            ? data['message'].toString()
+            : (e.message ?? 'Failed to load user'),
+        statusCode: e.response?.statusCode,
+        originalError: e,
+      );
+    } catch (e) {
+      if (e is ServerException) rethrow;
+      throw ServerException(message: e.toString(), originalError: e);
+    }
+  }
+
   /// Joins the base URL and endpoint path into a single clean URL.
   /// e.g. base + `api/v1/orko-auth/complete-signup`.
   String _buildUrl(String baseUrl, String endpoint) {

@@ -6,6 +6,7 @@ import 'package:orko_hubco/features/auth/data/datasources/remote/auth_remote_dat
 import 'package:orko_hubco/features/auth/data/datasources/remote/auth_remote_datasource_impl.dart';
 import 'package:orko_hubco/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:orko_hubco/features/auth/domain/repositories/auth_repository.dart';
+import 'package:orko_hubco/features/auth/domain/usecases/get_user_usecase.dart';
 import 'package:orko_hubco/features/auth/domain/usecases/login_usecase.dart';
 import 'package:orko_hubco/features/auth/domain/usecases/login_with_google_usecase.dart';
 import 'package:orko_hubco/features/auth/domain/usecases/logout_usecase.dart';
@@ -45,6 +46,7 @@ void initAuthDependencies() {
   sl.registerLazySingleton(() => VerifyOtpUseCase(sl()));
   sl.registerLazySingleton(() => ResendOtpUseCase(sl()));
   sl.registerLazySingleton(() => LogoutUseCase(sl()));
+  sl.registerLazySingleton(() => GetUserUseCase(sl()));
 
   // ── Cubit ─────────────────────────────────────────────────────────────
   sl.registerFactory(

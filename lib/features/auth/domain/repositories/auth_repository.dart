@@ -57,4 +57,8 @@ abstract class AuthRepository {
 
   /// Checks if a user is currently authenticated.
   Future<Either<Failure, bool>> isAuthenticated();
+
+  /// Fetches the current user from the `get_user` endpoint and refreshes the
+  /// locally cached user. Returns the up-to-date [UserEntity].
+  Future<Either<Failure, UserEntity>> getUser();
 }

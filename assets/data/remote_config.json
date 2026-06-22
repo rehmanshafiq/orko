@@ -10,6 +10,7 @@
       "login_api": "api/v1/orko-auth/login-with-password",
       "login_with_google": "api/v1/orko-auth/login-with-google",
       "logout_api": "api/v1/orko-auth/logout",
+      "get_user": "api/v1/orko-auth/getUser",
       "charging_station_map": "api/v1/charging-station/nearest?",
       "charging_station_filter_options": "api/v1/charging-station/filter-options/",
       "charging_station_detail": "api/v1/charging-station/",

@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_images.dart';
+import 'package:orko_hubco/core/di/injection_container.dart';
 import 'package:orko_hubco/core/global_bloc/bloc/user_bloc.dart'
     show
         UserBloc,
@@ -9,6 +12,8 @@ import 'package:orko_hubco/core/global_bloc/bloc/user_bloc.dart'
         UserInitial,
         UserLoading,
         UserLoaded;
+import 'package:orko_hubco/core/usecase/usecase.dart';
+import 'package:orko_hubco/features/auth/domain/usecases/get_user_usecase.dart';
 
 import '../../../../core/utils/app_routing/app_navigations.dart';
 import '../../../../core/utils/app_storage/app_storage.dart';
@@ -77,11 +82,30 @@ class _SplashMobileViewState extends State<SplashMobileView>
 
     // A real cached session, or an explicit guest choice, both land on home.
     if (userBloc.state is UserLoaded || AppStorage.isGuest) {
+      // For a real logged-in session, refresh the cached user from the server
+      // in the background (best-effort — failures keep the cached copy).
+      if (userBloc.state is UserLoaded && !AppStorage.isGuest) {
+        unawaited(_refreshUserFromServer(userBloc));
+      }
       AppNavigations.navigateToBottomNavigation(context);
       return;
     }
 
     AppNavigations.navigateToLogin(context);
+  }
+
+  /// Calls `getUser`, which refreshes the cached user, then reflects it in the
+  /// [UserBloc]. Best-effort: a failure leaves the existing cached user intact.
+  Future<void> _refreshUserFromServer(UserBloc userBloc) async {
+    final result = await sl<GetUserUseCase>()(const NoParams());
+    result.fold(
+      (_) {},
+      (_) {
+        if (!userBloc.isClosed) {
+          userBloc.add(const OnLoadCustomerFromCache());
+        }
+      },
+    );
   }
 
   @override
