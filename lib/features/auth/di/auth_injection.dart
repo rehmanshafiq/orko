@@ -59,6 +59,7 @@ void initAuthDependencies() {
       resendOtpUseCase: sl(),
       logoutUseCase: sl(),
       googleAuthService: sl(),
+      pushNotificationService: sl(),
     ),
   );
 }

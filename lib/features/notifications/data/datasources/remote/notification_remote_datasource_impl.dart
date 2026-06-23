@@ -22,6 +22,8 @@ class NotificationRemoteDataSourceImpl implements NotificationRemoteDataSource {
       'api/v1/notifications/mark-all-read/';
   static const String _preferencesFallback =
       'api/v1/notifications/preferences/';
+  static const String _deviceTokenFallback =
+      'api/v1/notifications/device-token/';
 
   @override
   Future<NotificationPageModel> getNotifications({
@@ -114,6 +116,34 @@ class NotificationRemoteDataSourceImpl implements NotificationRemoteDataSource {
       final response = await apiClient.patch(url, data: changes);
       _ensureOk(response, fallback: 'Failed to update notification preferences');
       return _parsePreferences(response.data);
+    });
+  }
+
+  @override
+  Future<bool> registerDeviceToken(String token) async {
+    return _guard('device-token-register', () async {
+      final url = _resolveUrl(
+        _endpoint((e) => e.notificationsDeviceToken, _deviceTokenFallback),
+      );
+      log('[Notifications] Device-token POST URL: $url');
+
+      final response = await apiClient.post(url, data: {'token': token});
+      _ensureOk(response, fallback: 'Failed to register device token');
+      return true;
+    });
+  }
+
+  @override
+  Future<bool> deleteDeviceToken() async {
+    return _guard('device-token-delete', () async {
+      final url = _resolveUrl(
+        _endpoint((e) => e.notificationsDeviceToken, _deviceTokenFallback),
+      );
+      log('[Notifications] Device-token DELETE URL: $url');
+
+      final response = await apiClient.delete(url);
+      _ensureOk(response, fallback: 'Failed to clear device token');
+      return true;
     });
   }
 

@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:orko_hubco/core/services/google_auth_service.dart';
+import 'package:orko_hubco/core/services/push_notification_service.dart';
 import 'package:orko_hubco/core/usecase/usecase.dart';
 import 'package:orko_hubco/features/auth/domain/usecases/login_usecase.dart';
 import 'package:orko_hubco/features/auth/domain/usecases/login_with_google_usecase.dart';
@@ -22,6 +23,7 @@ class AuthCubit extends Cubit<AuthState> {
   final ResendOtpUseCase _resendOtpUseCase;
   final LogoutUseCase _logoutUseCase;
   final GoogleAuthService _googleAuthService;
+  final PushNotificationService _pushNotificationService;
 
   AuthCubit({
     required LoginUseCase loginUseCase,
@@ -32,6 +34,7 @@ class AuthCubit extends Cubit<AuthState> {
     required ResendOtpUseCase resendOtpUseCase,
     required LogoutUseCase logoutUseCase,
     required GoogleAuthService googleAuthService,
+    required PushNotificationService pushNotificationService,
   })  : _loginUseCase = loginUseCase,
         _loginWithGoogleUseCase = loginWithGoogleUseCase,
         _registerUseCase = registerUseCase,
@@ -40,6 +43,7 @@ class AuthCubit extends Cubit<AuthState> {
         _resendOtpUseCase = resendOtpUseCase,
         _logoutUseCase = logoutUseCase,
         _googleAuthService = googleAuthService,
+        _pushNotificationService = pushNotificationService,
         super(const AuthInitial());
 
   /// Performs login via the `login_api` endpoint. On success the access token +
@@ -176,6 +180,10 @@ class AuthCubit extends Cubit<AuthState> {
   /// Performs logout.
   Future<void> logout() async {
     emit(const AuthLoading());
+
+    // Clear the device token server-side first, while the session is still
+    // valid (the endpoint is auth'd). Best-effort — never blocks logout.
+    await _pushNotificationService.unregisterTokenFromBackend();
 
     final result = await _logoutUseCase(const NoParams());
 

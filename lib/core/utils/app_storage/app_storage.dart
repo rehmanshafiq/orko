@@ -29,4 +29,12 @@ class AppStorage {
   static Future<void> setFcmToken(String token) {
     return _storage.write(StorageConstants.fcmToken, token);
   }
+
+  /// FCM token last successfully registered with the backend (empty if none).
+  static String get fcmTokenRegistered =>
+      _storage.read<String>(StorageConstants.fcmTokenRegistered) ?? '';
+
+  static Future<void> setFcmTokenRegistered(String token) {
+    return _storage.write(StorageConstants.fcmTokenRegistered, token);
+  }
 }

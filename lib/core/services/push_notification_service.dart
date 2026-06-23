@@ -4,8 +4,14 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:get_storage/get_storage.dart';
+import 'package:orko_hubco/core/constants/storage_constants.dart';
+import 'package:orko_hubco/core/di/injection_container.dart';
 import 'package:orko_hubco/core/router/app_router.dart';
+import 'package:orko_hubco/core/usecase/usecase.dart';
 import 'package:orko_hubco/core/utils/app_storage/app_storage.dart';
+import 'package:orko_hubco/features/notifications/domain/usecases/delete_device_token_usecase.dart';
+import 'package:orko_hubco/features/notifications/domain/usecases/register_device_token_usecase.dart';
 
 import '../../firebase_options.dart';
 
@@ -135,14 +141,60 @@ class PushNotificationService {
   Future<void> _syncToken() async {
     final token = await refreshToken();
     log('[Push] FCM token: ${token == null ? 'unavailable' : '${token.substring(0, token.length.clamp(0, 12))}…'}');
+    await _maybeRegisterToken(token);
   }
 
   Future<void> _onTokenRefresh(String token) async {
     await AppStorage.setFcmToken(token);
     log('[Push] token refreshed');
-    // NOTE: there is no dedicated "update device token" endpoint yet. The fresh
-    // token is persisted and will be sent on the next login. See the backend
-    // notes for the recommended token-refresh endpoint.
+    await _maybeRegisterToken(token);
+  }
+
+  /// Upserts the token to the backend (`POST device-token/`) when the user is
+  /// authenticated and the token actually changed since the last successful
+  /// upsert. Best-effort: failures are logged, never thrown. When the user
+  /// isn't logged in the token is simply persisted — the next login sends it.
+  Future<void> _maybeRegisterToken(String? token) async {
+    if (token == null || token.isEmpty) return;
+    if (!_isAuthenticated) return;
+    if (token == AppStorage.fcmTokenRegistered) return;
+
+    try {
+      final result = await sl<RegisterDeviceTokenUseCase>()(token);
+      result.fold(
+        (failure) => log('[Push] device-token register failed: ${failure.message}'),
+        (_) async {
+          await AppStorage.setFcmTokenRegistered(token);
+          log('[Push] device-token registered');
+        },
+      );
+    } catch (e) {
+      log('[Push] device-token register error: $e');
+    }
+  }
+
+  /// Clears the device token on the backend (`DELETE device-token/`). Call on
+  /// logout *before* the session token is cleared. Best-effort.
+  Future<void> unregisterTokenFromBackend() async {
+    // Clear the local dedup marker regardless, so a re-login re-registers.
+    await AppStorage.setFcmTokenRegistered('');
+    if (!_isAuthenticated) return;
+    try {
+      final result = await sl<DeleteDeviceTokenUseCase>()(const NoParams());
+      result.fold(
+        (failure) => log('[Push] device-token delete failed: ${failure.message}'),
+        (_) => log('[Push] device-token cleared'),
+      );
+    } catch (e) {
+      log('[Push] device-token delete error: $e');
+    }
+  }
+
+  /// True when a session access token is present (the device-token endpoints
+  /// require auth). Reads storage directly to avoid a core→feature dependency.
+  bool get _isAuthenticated {
+    final token = GetStorage().read<String>(StorageConstants.accessToken);
+    return token != null && token.isNotEmpty;
   }
 
   // ── Message handling ──────────────────────────────────────────────────────

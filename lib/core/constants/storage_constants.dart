@@ -19,4 +19,8 @@ class StorageConstants {
 
   /// Latest FCM device token, persisted so the login request can attach it.
   static const String fcmToken = 'fcm_token';
+
+  /// The FCM token most recently registered with the backend (dedupes the
+  /// `device-token` upsert so we don't re-POST an unchanged token).
+  static const String fcmTokenRegistered = 'fcm_token_registered';
 }

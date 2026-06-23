@@ -27,4 +27,10 @@ abstract class NotificationRepository {
   Future<Either<Failure, NotificationPreferencesEntity>> updatePreferences(
     Map<String, bool> changes,
   );
+
+  /// Upserts the FCM device token (call on token refresh).
+  Future<Either<Failure, bool>> registerDeviceToken(String token);
+
+  /// Clears the FCM device token (call on logout).
+  Future<Either<Failure, bool>> deleteDeviceToken();
 }

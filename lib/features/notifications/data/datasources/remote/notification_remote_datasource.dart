@@ -18,4 +18,10 @@ abstract class NotificationRemoteDataSource {
   Future<NotificationPreferencesModel> updatePreferences(
     Map<String, bool> changes,
   );
+
+  /// Upserts the FCM device [token] for the authenticated user.
+  Future<bool> registerDeviceToken(String token);
+
+  /// Clears the authenticated user's FCM device token (called on logout).
+  Future<bool> deleteDeviceToken();
 }

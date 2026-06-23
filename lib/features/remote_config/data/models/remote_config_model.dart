@@ -149,6 +149,7 @@ class ApiEndpoints extends Equatable {
     required this.notificationsUnreadCount,
     required this.notificationsMarkAllRead,
     required this.notificationsPreferences,
+    required this.notificationsDeviceToken,
   });
 
   final String chargingStationMap;
@@ -188,6 +189,7 @@ class ApiEndpoints extends Equatable {
   final String notificationsUnreadCount;
   final String notificationsMarkAllRead;
   final String notificationsPreferences;
+  final String notificationsDeviceToken;
 
   factory ApiEndpoints.fromJson(Map<String, dynamic> json) {
     return ApiEndpoints(
@@ -233,6 +235,8 @@ class ApiEndpoints extends Equatable {
           json['notifications_mark_all_read'] as String? ?? '',
       notificationsPreferences:
           json['notifications_preferences'] as String? ?? '',
+      notificationsDeviceToken:
+          json['notifications_device_token'] as String? ?? '',
     );
   }
 
@@ -275,6 +279,7 @@ class ApiEndpoints extends Equatable {
       'notifications_unread_count': notificationsUnreadCount,
       'notifications_mark_all_read': notificationsMarkAllRead,
       'notifications_preferences': notificationsPreferences,
+      'notifications_device_token': notificationsDeviceToken,
     };
   }
 
@@ -316,6 +321,7 @@ class ApiEndpoints extends Equatable {
     String? notificationsUnreadCount,
     String? notificationsMarkAllRead,
     String? notificationsPreferences,
+    String? notificationsDeviceToken,
   }) {
     return ApiEndpoints(
       chargingStationMap: chargingStationMap ?? this.chargingStationMap,
@@ -362,6 +368,8 @@ class ApiEndpoints extends Equatable {
           notificationsMarkAllRead ?? this.notificationsMarkAllRead,
       notificationsPreferences:
           notificationsPreferences ?? this.notificationsPreferences,
+      notificationsDeviceToken:
+          notificationsDeviceToken ?? this.notificationsDeviceToken,
     );
   }
 
@@ -404,5 +412,6 @@ class ApiEndpoints extends Equatable {
     notificationsUnreadCount,
     notificationsMarkAllRead,
     notificationsPreferences,
+    notificationsDeviceToken,
   ];
 }

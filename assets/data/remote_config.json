@@ -40,7 +40,8 @@
       "notifications": "api/v1/notifications/",
       "notifications_unread_count": "api/v1/notifications/unread-count/",
       "notifications_mark_all_read": "api/v1/notifications/mark-all-read/",
-      "notifications_preferences": "api/v1/notifications/preferences/"
+      "notifications_preferences": "api/v1/notifications/preferences/",
+      "notifications_device_token": "api/v1/notifications/device-token/"
     }
   }
 }

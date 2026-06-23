@@ -53,6 +53,16 @@ class NotificationRepositoryImpl implements NotificationRepository {
     return _run(() => remoteDataSource.updatePreferences(changes));
   }
 
+  @override
+  Future<Either<Failure, bool>> registerDeviceToken(String token) {
+    return _run(() => remoteDataSource.registerDeviceToken(token));
+  }
+
+  @override
+  Future<Either<Failure, bool>> deleteDeviceToken() {
+    return _run(() => remoteDataSource.deleteDeviceToken());
+  }
+
   /// Shared connectivity guard + exception→failure mapping for every call.
   Future<Either<Failure, T>> _run<T>(Future<T> Function() action) async {
     if (!await networkInfo.isConnected) {
