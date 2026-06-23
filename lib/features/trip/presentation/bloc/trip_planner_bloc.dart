@@ -52,11 +52,6 @@ class TripPlannerBloc extends Bloc<TripPlannerEvent, TripPlannerState> {
   final PlanTripUseCase _planTrip;
   final SaveTripUseCase _saveTrip;
 
-  /// Default battery targets for the API request (the UI exposes current SoC
-  /// via the slider; target/reserve use sensible defaults from the contract).
-  static const double _defaultTargetSoc = 80;
-  static const double _defaultReserveSoc = 10;
-
   /// 100% state of charge = 380 km usable range.
   static const double kmPerPercentCharge = 3.8;
 
@@ -193,17 +188,6 @@ class TripPlannerBloc extends Bloc<TripPlannerEvent, TripPlannerState> {
       return;
     }
 
-    // 3. Client-side validation mirrored from the API contract.
-    const targetSoc = _defaultTargetSoc;
-    const reserveSoc = _defaultReserveSoc;
-    if (reserveSoc >= targetSoc) {
-      emit(state.copyWith(
-        planLoading: false,
-        planError: 'Reserve charge must be below the target charge.',
-      ));
-      return;
-    }
-
     final params = TripPlanParams(
       originLatitude: origin.lat,
       originLongitude: origin.lng,
@@ -212,12 +196,13 @@ class TripPlannerBloc extends Bloc<TripPlannerEvent, TripPlannerState> {
       originAddress: origin.name,
       destinationAddress: destination.name,
       customerVehicleId: vehicle?.id,
-      startSoc: state.currentBatteryPercent,
-      targetSoc: targetSoc,
-      reserveSoc: reserveSoc,
+      startSoc: state.currentBatteryPercent.toInt(),
+      targetSoc: 90,
+      reserveSoc: 10,
+      corridorKm: 20,
     );
 
-    // 4. Call the API.
+    // 3. Call the API.
     final result = await _planTrip(params);
     result.fold(
       (failure) => emit(state.copyWith(
@@ -225,12 +210,16 @@ class TripPlannerBloc extends Bloc<TripPlannerEvent, TripPlannerState> {
         planError: failure.message,
       )),
       (plan) {
-        final startPoint =
-            GeoPoint(name: origin.name, latitude: origin.lat, longitude: origin.lng);
+        final startPoint = GeoPoint(
+          name: origin.name,
+          latitude: origin.lat,
+          longitude: origin.lng,
+        );
         final endPoint = GeoPoint(
-            name: destination.name,
-            latitude: destination.lat,
-            longitude: destination.lng);
+          name: destination.name,
+          latitude: destination.lat,
+          longitude: destination.lng,
+        );
         final mapped = _mapApiPlanToModel(plan, startPoint, endPoint);
         emit(state.copyWith(
           planLoading: false,

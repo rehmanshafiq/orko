@@ -27,10 +27,10 @@ class TripPlanParams extends Equatable {
   final String? originAddress;
   final String? destinationAddress;
   final int? customerVehicleId;
-  final double startSoc;
-  final double targetSoc;
-  final double reserveSoc;
-  final double corridorKm;
+  final int startSoc;
+  final int targetSoc;
+  final int reserveSoc;
+  final int corridorKm;
 
   /// Builds the JSON request body, omitting nulls.
   Map<String, dynamic> toJson() {
