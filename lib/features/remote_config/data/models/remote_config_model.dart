@@ -145,6 +145,9 @@ class ApiEndpoints extends Equatable {
     required this.saveTrip,
     required this.savedTrips,
     required this.savedTripDetail,
+    required this.notifications,
+    required this.notificationsUnreadCount,
+    required this.notificationsMarkAllRead,
   });
 
   final String chargingStationMap;
@@ -180,6 +183,9 @@ class ApiEndpoints extends Equatable {
   final String saveTrip;
   final String savedTrips;
   final String savedTripDetail;
+  final String notifications;
+  final String notificationsUnreadCount;
+  final String notificationsMarkAllRead;
 
   factory ApiEndpoints.fromJson(Map<String, dynamic> json) {
     return ApiEndpoints(
@@ -218,6 +224,11 @@ class ApiEndpoints extends Equatable {
       saveTrip: json['save_trip'] as String? ?? '',
       savedTrips: json['saved_trips'] as String? ?? '',
       savedTripDetail: json['saved_trip_detail'] as String? ?? '',
+      notifications: json['notifications'] as String? ?? '',
+      notificationsUnreadCount:
+          json['notifications_unread_count'] as String? ?? '',
+      notificationsMarkAllRead:
+          json['notifications_mark_all_read'] as String? ?? '',
     );
   }
 
@@ -256,6 +267,9 @@ class ApiEndpoints extends Equatable {
       'save_trip': saveTrip,
       'saved_trips': savedTrips,
       'saved_trip_detail': savedTripDetail,
+      'notifications': notifications,
+      'notifications_unread_count': notificationsUnreadCount,
+      'notifications_mark_all_read': notificationsMarkAllRead,
     };
   }
 
@@ -293,6 +307,9 @@ class ApiEndpoints extends Equatable {
     String? saveTrip,
     String? savedTrips,
     String? savedTripDetail,
+    String? notifications,
+    String? notificationsUnreadCount,
+    String? notificationsMarkAllRead,
   }) {
     return ApiEndpoints(
       chargingStationMap: chargingStationMap ?? this.chargingStationMap,
@@ -332,6 +349,11 @@ class ApiEndpoints extends Equatable {
       saveTrip: saveTrip ?? this.saveTrip,
       savedTrips: savedTrips ?? this.savedTrips,
       savedTripDetail: savedTripDetail ?? this.savedTripDetail,
+      notifications: notifications ?? this.notifications,
+      notificationsUnreadCount:
+          notificationsUnreadCount ?? this.notificationsUnreadCount,
+      notificationsMarkAllRead:
+          notificationsMarkAllRead ?? this.notificationsMarkAllRead,
     );
   }
 
@@ -370,5 +392,8 @@ class ApiEndpoints extends Equatable {
     saveTrip,
     savedTrips,
     savedTripDetail,
+    notifications,
+    notificationsUnreadCount,
+    notificationsMarkAllRead,
   ];
 }

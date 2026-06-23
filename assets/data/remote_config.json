@@ -36,7 +36,10 @@
       "plan_trip": "api/v1/trip-planning/plan-trip/",
       "save_trip": "api/v1/trip-planning/save-trip/",
       "saved_trips": "api/v1/trip-planning/trips/",
-      "saved_trip_detail": "api/v1/trip-planning/trips/"
+      "saved_trip_detail": "api/v1/trip-planning/trips/",
+      "notifications": "api/v1/notifications/",
+      "notifications_unread_count": "api/v1/notifications/unread-count/",
+      "notifications_mark_all_read": "api/v1/notifications/mark-all-read/"
     }
   }
 }

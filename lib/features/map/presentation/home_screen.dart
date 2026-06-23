@@ -12,10 +12,15 @@ import 'package:go_router/go_router.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_images.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
+import 'package:orko_hubco/core/di/injection_container.dart';
+import 'package:orko_hubco/core/usecase/usecase.dart';
+import 'package:orko_hubco/core/utils/app_storage/app_storage.dart';
 import 'package:orko_hubco/core/utils/widgets/image_view/app_image_view.dart';
 import 'package:orko_hubco/core/utils/app_ui.dart';
 import 'package:orko_hubco/core/utils/helpers.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
+import 'package:orko_hubco/core/utils/widgets/auth_required_dialog.dart';
+import 'package:orko_hubco/features/notifications/domain/usecases/get_unread_count_usecase.dart';
 import 'package:orko_hubco/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:orko_hubco/features/auth/presentation/cubit/auth_state.dart';
 import 'package:orko_hubco/features/map/domain/entities/hubco_location_entity.dart';
@@ -109,12 +114,63 @@ class _HomeScreenState extends State<HomeScreen> {
   /// the grouping.
   String _lastClusterSignature = '';
 
+  /// Unread notification count for the bell badge. 0 hides the badge.
+  int _unreadCount = 0;
+
+  /// Periodic poll for the unread count (no live push from the backend).
+  Timer? _unreadPollTimer;
+  static const Duration _unreadPollInterval = Duration(seconds: 45);
+
   // ── Lifecycle ─────────────────────────────────────────────────────────────
 
   @override
+  void initState() {
+    super.initState();
+    _refreshUnreadCount();
+    // Poll periodically; guests are skipped inside the refresh method.
+    _unreadPollTimer = Timer.periodic(
+      _unreadPollInterval,
+      (_) => _refreshUnreadCount(),
+    );
+  }
+
+  @override
   void dispose() {
+    _unreadPollTimer?.cancel();
     _mapController?.dispose();
     super.dispose();
+  }
+
+  /// Fetches the unread badge count. No-op for guests (the endpoint is
+  /// auth-only) and silently ignores failures so the map UI is never blocked.
+  Future<void> _refreshUnreadCount() async {
+    if (AppStorage.isGuest) {
+      if (mounted && _unreadCount != 0) setState(() => _unreadCount = 0);
+      return;
+    }
+    final result = await sl<GetUnreadCountUseCase>()(const NoParams());
+    if (!mounted) return;
+    result.fold(
+      (_) {},
+      (count) {
+        if (count != _unreadCount) setState(() => _unreadCount = count);
+      },
+    );
+  }
+
+  /// Opens the notifications list (guests are prompted to authenticate), then
+  /// refreshes the badge on return.
+  Future<void> _openNotifications() async {
+    if (AppStorage.isGuest) {
+      AuthRequiredDialog.show(
+        context,
+        message:
+            'Please log in or create an account to view your notifications.',
+      );
+      return;
+    }
+    await context.push('/notifications');
+    await _refreshUnreadCount();
   }
 
   @override
@@ -939,7 +995,47 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         10.horizontalSpace,
-        _topActionIcon(context, Icons.notifications_none_rounded),
+        _buildNotificationBell(context),
+      ],
+    );
+  }
+
+  /// Notification bell with an unread-count badge overlay.
+  Widget _buildNotificationBell(BuildContext context) {
+    final ui = AppUiColors.of(context);
+    final bell = _topActionIcon(
+      context,
+      Icons.notifications_none_rounded,
+      onTap: _openNotifications,
+    );
+
+    if (_unreadCount <= 0) return bell;
+
+    final label = _unreadCount > 99 ? '99+' : '$_unreadCount';
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        bell,
+        Positioned(
+          right: -2,
+          top: -2,
+          child: Container(
+            padding: EdgeInsets.symmetric(horizontal: 5.w, vertical: 2.h),
+            constraints: BoxConstraints(minWidth: 18.r),
+            decoration: BoxDecoration(
+              color: AppColors.removeColor,
+              borderRadius: BorderRadius.circular(20.r),
+              border: Border.all(color: ui.scaffoldBackground, width: 1.5),
+            ),
+            alignment: Alignment.center,
+            child: AppText(
+              label,
+              color: AppColors.whiteColor,
+              fontSize: FontSizes.font10Sp,
+              fontWeight: FontWeights.weight700,
+            ),
+          ),
+        ),
       ],
     );
   }

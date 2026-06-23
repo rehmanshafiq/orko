@@ -18,6 +18,7 @@ import 'package:orko_hubco/features/map/domain/entities/hubco_location_entity.da
 import 'package:orko_hubco/features/charging/presentation/page/charging_station_detail_page.dart';
 import 'package:orko_hubco/features/map/presentation/home_screen.dart';
 import 'package:orko_hubco/features/map/presentation/cubit/map_cubit.dart';
+import 'package:orko_hubco/features/notifications/presentation/page/notifications_page.dart';
 import 'package:orko_hubco/features/onboarding/presentation/bloc/onboarding_cubit.dart';
 import 'package:orko_hubco/features/onboarding/presentation/page/onboarding_page.dart';
 import 'package:orko_hubco/features/profile/presentation/cubit/profile_cubit.dart';
@@ -173,6 +174,13 @@ class AppRouter {
         name: 'search',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const SearchPage(),
+      ),
+
+      GoRoute(
+        path: '/notifications',
+        name: 'notifications',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const NotificationsPage(),
       ),
 
       // ── Main Shell (Bottom Nav) ─────────────────────────────────────

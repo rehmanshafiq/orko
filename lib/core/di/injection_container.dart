@@ -9,6 +9,7 @@ import 'package:orko_hubco/features/auth/di/auth_injection.dart';
 import 'package:orko_hubco/features/booking/di/booking_injection.dart';
 import 'package:orko_hubco/features/charging/di/charging_injection.dart';
 import 'package:orko_hubco/features/map/di/map_injection.dart';
+import 'package:orko_hubco/features/notifications/di/notification_injection.dart';
 import 'package:orko_hubco/features/onboarding/di/onboarding_injection.dart';
 import 'package:orko_hubco/features/profile/di/profile_injection.dart';
 import 'package:orko_hubco/features/remote_config/di/remote_config_injection.dart';
@@ -41,6 +42,7 @@ Future<void> initDependencies() async {
   initBookingDependencies();
   initChargingDependencies();
   initMapDependencies();
+  initNotificationDependencies();
   initOnboardingDependencies();
   initProfileDependencies();
   initRemoteConfigDependencies();
