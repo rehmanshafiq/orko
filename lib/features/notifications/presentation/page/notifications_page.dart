@@ -134,46 +134,51 @@ class _NotificationsViewState extends State<_NotificationsView> {
 
       case NotificationsStatus.success:
         if (state.notifications.isEmpty) {
-          // Empty but still refreshable (pull down to re-check).
+          // Empty but still refreshable (pull down to re-check). The content is
+          // vertically centered while remaining scrollable for the gesture.
           return RefreshIndicator(
             color: ui.brandPrimary,
             onRefresh: cubit.refresh,
-            child: ListView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              children: [
-                SizedBox(height: 0.6.sh),
-                Center(
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 32.w),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.notifications_none_rounded,
-                          size: 48.sp,
-                          color: ui.textMuted,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                    child: Center(
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 32.w),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.notifications_none_rounded,
+                              size: 48.sp,
+                              color: ui.textMuted,
+                            ),
+                            12.verticalSpace,
+                            AppText(
+                              'You\'re all caught up',
+                              color: ui.textPrimary,
+                              fontSize: FontSizes.font15Sp,
+                              fontWeight: FontWeights.weight700,
+                              textAlign: TextAlign.center,
+                            ),
+                            6.verticalSpace,
+                            AppText(
+                              'No notifications yet. We\'ll let you know when something happens.',
+                              color: ui.textMuted,
+                              fontSize: FontSizes.font12Sp,
+                              fontWeight: FontWeights.weight400,
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
                         ),
-                        12.verticalSpace,
-                        AppText(
-                          'You\'re all caught up',
-                          color: ui.textPrimary,
-                          fontSize: FontSizes.font15Sp,
-                          fontWeight: FontWeights.weight700,
-                          textAlign: TextAlign.center,
-                        ),
-                        6.verticalSpace,
-                        AppText(
-                          'No notifications yet. We\'ll let you know when something happens.',
-                          color: ui.textMuted,
-                          fontSize: FontSizes.font12Sp,
-                          fontWeight: FontWeights.weight400,
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
+                      ),
                     ),
                   ),
-                ),
-              ],
+                );
+              },
             ),
           );
         }

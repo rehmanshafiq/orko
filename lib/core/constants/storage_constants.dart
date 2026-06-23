@@ -16,4 +16,7 @@ class StorageConstants {
   static const String vehiclesInitialized = 'vehicles_initialized';
   static const String remoteConfigCache = 'remote_config_cache';
   static const String recentStationSearches = 'recent_station_searches';
+
+  /// Latest FCM device token, persisted so the login request can attach it.
+  static const String fcmToken = 'fcm_token';
 }

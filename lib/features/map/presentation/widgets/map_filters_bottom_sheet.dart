@@ -55,10 +55,17 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
   bool _availableNow = false;
   late RangeValues _priceRange;
 
-  static const double _powerMin = 0;
-  static const double _powerMax = 500;
-  static const double _priceMin = 0;
-  static const double _priceMax = 200;
+  // Slider bounds. Default until the `filter-options` API supplies real
+  // `power_output` / `price_range` values, then overwritten in [_loadOptions].
+  static const double _powerMinDefault = 0;
+  static const double _powerMaxDefault = 500;
+  static const double _priceMinDefault = 0;
+  static const double _priceMaxDefault = 200;
+
+  double _powerMin = _powerMinDefault;
+  double _powerMax = _powerMaxDefault;
+  double _priceMin = _priceMinDefault;
+  double _priceMax = _priceMaxDefault;
 
   // Filter options (connector types + amenities) fetched from the API.
   StationFilterOptionsEntity? _options;
@@ -105,7 +112,35 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
         _selectedAmenityIds.removeWhere((id) => !validIds.contains(id));
         final validTypes = options.connectorTypes.toSet();
         _selectedChargers.removeWhere((t) => !validTypes.contains(t));
+        // Adopt the API's power/price bounds and re-fit the slider values.
+        _applyOptionRanges(options);
       }),
+    );
+  }
+
+  /// Overwrites the slider bounds with the API ranges (when valid) and re-clamps
+  /// the current values: an applied filter is kept (clamped); otherwise the
+  /// power sits at the minimum and price spans the full range.
+  void _applyOptionRanges(StationFilterOptionsEntity options) {
+    final f = context.read<MapCubit>().currentFilters;
+
+    final pMin = options.powerOutputMin;
+    final pMax = options.powerOutputMax;
+    if (pMin != null && pMax != null && pMax > pMin) {
+      _powerMin = pMin;
+      _powerMax = pMax;
+    }
+    _powerOutput = (f.powerOutput ?? _powerMin).clamp(_powerMin, _powerMax);
+
+    final prMin = options.priceMin;
+    final prMax = options.priceMax;
+    if (prMin != null && prMax != null && prMax > prMin) {
+      _priceMin = prMin;
+      _priceMax = prMax;
+    }
+    _priceRange = RangeValues(
+      (f.minPrice ?? _priceMin).clamp(_priceMin, _priceMax),
+      (f.maxPrice ?? _priceMax).clamp(_priceMin, _priceMax),
     );
   }
 
@@ -115,7 +150,7 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
       _powerOutput = _powerMin;
       _availableNow = false;
       _selectedAmenityIds.clear();
-      _priceRange = const RangeValues(_priceMin, _priceMax);
+      _priceRange = RangeValues(_priceMin, _priceMax);
     });
   }
 
@@ -125,7 +160,8 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
       amenityIds: _selectedAmenityIds.toList(growable: false),
       minPrice: _priceRange.start.roundToDouble(),
       maxPrice: _priceRange.end.roundToDouble(),
-      powerOutput: _powerOutput > 0 ? _powerOutput.roundToDouble() : null,
+      // At (or below) the minimum bound means "no power constraint".
+      powerOutput: _powerOutput > _powerMin ? _powerOutput.roundToDouble() : null,
       availableNow: _availableNow,
     );
     context.read<MapCubit>().applyFilters(filters);
@@ -473,7 +509,7 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
           flex: 3,
           child: Center(
             child: AppText(
-              value == 0 ? 'Any' : '$value kW',
+              _powerOutput <= _powerMin ? 'Any' : '$value kW',
               color: ui.textMuted,
               fontSize: FontSizes.font12Sp,
               fontWeight: FontWeights.weight600,

@@ -6,11 +6,17 @@ class StationFilterOptionsModel extends StationFilterOptionsEntity {
   const StationFilterOptionsModel({
     super.connectorTypes,
     super.amenities,
+    super.powerOutputMin,
+    super.powerOutputMax,
+    super.priceMin,
+    super.priceMax,
   });
 
   factory StationFilterOptionsModel.fromJson(Map<String, dynamic> json) {
     final rawConnectors = json['connector_types'];
     final rawAmenities = json['amenities'];
+    final powerRange = _asRange(json['power_output']);
+    final priceRange = _asRange(json['price_range']);
 
     final connectorTypes = rawConnectors is List
         ? rawConnectors
@@ -30,7 +36,30 @@ class StationFilterOptionsModel extends StationFilterOptionsEntity {
     return StationFilterOptionsModel(
       connectorTypes: connectorTypes,
       amenities: amenities,
+      powerOutputMin: powerRange?.$1,
+      powerOutputMax: powerRange?.$2,
+      priceMin: priceRange?.$1,
+      priceMax: priceRange?.$2,
     );
+  }
+
+  /// Parses a `[min, max]` numeric pair, returning it low→high. Null when the
+  /// value isn't a usable 2-element numeric list.
+  static (double, double)? _asRange(dynamic value) {
+    if (value is List && value.length >= 2) {
+      final a = _asDouble(value[0]);
+      final b = _asDouble(value[1]);
+      if (a != null && b != null) {
+        return a <= b ? (a, b) : (b, a);
+      }
+    }
+    return null;
+  }
+
+  static double? _asDouble(dynamic value) {
+    if (value is num) return value.toDouble();
+    if (value is String) return double.tryParse(value.trim());
+    return null;
   }
 
   static AmenityOptionEntity _amenityFromJson(Map<String, dynamic> json) {

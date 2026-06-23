@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:orko_hubco/core/constants/api_constants.dart';
 import 'package:orko_hubco/core/error/exceptions.dart';
 import 'package:orko_hubco/core/network/api_client.dart';
+import 'package:orko_hubco/core/utils/app_storage/app_storage.dart';
 import 'package:orko_hubco/features/auth/data/datasources/remote/auth_remote_datasource.dart';
 import 'package:orko_hubco/features/auth/data/models/signup_result_model.dart';
 import 'package:orko_hubco/features/auth/data/models/user_model.dart';
@@ -43,6 +44,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
           'phone_number': phoneNumber,
           'country_code': countryCode,
           'password': password,
+          // FCM device token so the backend can target push notifications.
+          // Omitted when unavailable (e.g. permission denied / no Play Services).
+          if (AppStorage.fcmToken.isNotEmpty) 'token': AppStorage.fcmToken,
         },
       );
 
@@ -98,7 +102,11 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
       final response = await apiClient.post(
         url,
-        data: {'name': name, 'email': email},
+        data: {
+          'name': name,
+          'email': email,
+          if (AppStorage.fcmToken.isNotEmpty) 'token': AppStorage.fcmToken,
+        },
       );
 
       final data = response.data;

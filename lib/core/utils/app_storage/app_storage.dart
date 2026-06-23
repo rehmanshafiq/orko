@@ -20,4 +20,13 @@ class AppStorage {
   static Future<void> setGuest(bool value) {
     return _storage.write(StorageConstants.isGuest, value);
   }
+
+  /// Latest FCM device token (empty when not yet resolved). Read by the auth
+  /// data source to attach `token` to the login request.
+  static String get fcmToken =>
+      _storage.read<String>(StorageConstants.fcmToken) ?? '';
+
+  static Future<void> setFcmToken(String token) {
+    return _storage.write(StorageConstants.fcmToken, token);
+  }
 }
