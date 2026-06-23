@@ -14,6 +14,7 @@ class TripMapCardWidget extends StatelessWidget {
     required this.stopIcon,
     required this.darkMapStyle,
     required this.onMapCreated,
+    this.onStopTap,
     super.key,
   });
 
@@ -23,6 +24,9 @@ class TripMapCardWidget extends StatelessWidget {
   final BitmapDescriptor? stopIcon;
   final String darkMapStyle;
   final ValueChanged<GoogleMapController> onMapCreated;
+
+  /// Called with the stop index when a charger marker is tapped.
+  final ValueChanged<int>? onStopTap;
 
   @override
   Widget build(BuildContext context) {
@@ -64,7 +68,9 @@ class TripMapCardWidget extends StatelessWidget {
             infoWindow: InfoWindow(
               title: plan!.stops[i].name,
               snippet: plan!.stops[i].address,
+              onTap: onStopTap == null ? null : () => onStopTap!(i),
             ),
+            onTap: onStopTap == null ? null : () => onStopTap!(i),
           ),
     };
 

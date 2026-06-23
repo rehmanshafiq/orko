@@ -286,7 +286,9 @@ class _TripPlannerMobileViewState extends State<TripPlannerMobileView> {
                       ),
                       16.verticalSpace,
                     ],
-                    if (_isMapView)
+                    // Map view shows the route map above the stops list; list
+                    // view shows only the list.
+                    if (_isMapView) ...[
                       TripMapCardWidget(
                         plan: state.currentPlan,
                         startIcon: state.startIcon,
@@ -296,27 +298,32 @@ class _TripPlannerMobileViewState extends State<TripPlannerMobileView> {
                         onMapCreated: (controller) => context
                             .read<TripPlannerBloc>()
                             .add(TripPlannerMapCreated(controller)),
-                      )
-                    else
-                      TripChargingStopsSectionWidget(
-                        plan: state.currentPlan,
-                        currentBatteryPercent: state.currentBatteryPercent,
-                        targetArrivalBatteryPercent:
-                            state.targetArrivalBatteryPercent,
-                        expandedChargingStopIndex: state.expandedChargingStopIndex,
-                        onToggleChargingStop: (index) => context
-                            .read<TripPlannerBloc>()
-                            .add(TripPlannerChargingStopExpanded(index)),
-                        onViewDetails: (index) => bloc.openChargingStationDetails(
+                        onStopTap: (index) => bloc.openChargingStationDetails(
                           context,
                           station: state.currentPlan!.stops[index],
                         ),
-                        onPreBook: (index) => bloc.openPreBook(
-                          context,
-                          station: state.currentPlan!.stops[index],
-                        ),
-                        formatPkr: bloc.formatPkr,
                       ),
+                      16.verticalSpace,
+                    ],
+                    TripChargingStopsSectionWidget(
+                      plan: state.currentPlan,
+                      currentBatteryPercent: state.currentBatteryPercent,
+                      targetArrivalBatteryPercent:
+                          state.targetArrivalBatteryPercent,
+                      expandedChargingStopIndex: state.expandedChargingStopIndex,
+                      onToggleChargingStop: (index) => context
+                          .read<TripPlannerBloc>()
+                          .add(TripPlannerChargingStopExpanded(index)),
+                      onViewDetails: (index) => bloc.openChargingStationDetails(
+                        context,
+                        station: state.currentPlan!.stops[index],
+                      ),
+                      onPreBook: (index) => bloc.openPreBook(
+                        context,
+                        station: state.currentPlan!.stops[index],
+                      ),
+                      formatPkr: bloc.formatPkr,
+                    ),
                     16.verticalSpace,
                     // TripRouteSuggestionCardWidget(
                     //   fastestPlan: state.routePlans[0],
