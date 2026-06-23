@@ -8,6 +8,7 @@ import 'package:orko_hubco/features/booking/data/models/booking_model.dart';
 import 'package:orko_hubco/features/booking/data/models/booking_slot_model.dart';
 import 'package:orko_hubco/features/booking/data/models/charge_session_history_model.dart';
 import 'package:orko_hubco/features/booking/data/models/charger_details_model.dart';
+import 'package:orko_hubco/features/booking/data/models/live_session_model.dart';
 import 'package:orko_hubco/features/booking/data/models/my_booking_model.dart';
 import 'package:orko_hubco/features/remote_config/data/models/remote_config_model.dart';
 import 'package:orko_hubco/features/remote_config/data/services/remote_config_service.dart';
@@ -165,6 +166,27 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
           .map((e) =>
               ChargeSessionHistoryModel.fromJson(Map<String, dynamic>.from(e)))
           .toList(growable: false);
+    });
+  }
+
+  @override
+  Future<LiveSessionModel> getLiveSession() async {
+    return _guard('live-session', () async {
+      final url = _endpointUrl(
+        (e) => e.liveSession,
+        unavailableMessage: 'Live session is not available right now',
+      );
+      log('[Booking] Live session URL: $url');
+
+      final response = await apiClient.get(url);
+
+      final body = _bodyOf(response, fallback: 'Failed to load live session');
+      if (body is Map) {
+        return LiveSessionModel.fromJson(Map<String, dynamic>.from(body));
+      }
+      // A well-formed success must carry the `{active: ...}` object; anything
+      // else means no session is running.
+      return const LiveSessionModel(active: false);
     });
   }
 

@@ -1,121 +1,212 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:intl/intl.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/utils/app_ui.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
-import 'package:orko_hubco/features/booking/presentation/models/booking_session_model.dart';
+import 'package:orko_hubco/features/booking/domain/entities/live_session_entity.dart';
 
+/// Card shown under the "Active" tab when a charging session is running, built
+/// from `GET api/v1/bookings/live-session/`.
+///
+/// Every figure is rendered defensively — the SOC/energy/cost fields stay null
+/// until the backend computes them mid-session.
 class ActiveSessionCard extends StatelessWidget {
   const ActiveSessionCard({
     super.key,
     required this.ui,
     required this.session,
-    required this.onTap,
   });
 
   final AppUiColors ui;
-  final ActiveSession session;
-  final VoidCallback onTap;
+  final LiveSessionEntity session;
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: Container(
-        width: double.infinity,
-        padding: AppUtils.all18Padding,
-        decoration: BoxDecoration(
-          color: ui.cardBackground,
-          borderRadius: BorderRadius.circular(16.r),
-          border: Border.all(color: ui.brandPrimary.withValues(alpha: 0.22)),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  height: 44.r,
-                  width: 44.r,
-                  decoration: BoxDecoration(
-                    color: Colors.transparent,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: ui.iconContainerOutline, width: 1.5),
-                  ),
-                  child: Icon(Icons.bolt, color: ui.brandPrimary, size: 22.sp),
+    return Container(
+      width: double.infinity,
+      padding: AppUtils.all18Padding,
+      decoration: BoxDecoration(
+        color: ui.cardBackground,
+        borderRadius: BorderRadius.circular(16.r),
+        border: Border.all(color: ui.brandPrimary, width: 1.4),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                height: 44.r,
+                width: 44.r,
+                decoration: BoxDecoration(
+                  color: Colors.transparent,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: ui.brandPrimary, width: 1.5),
                 ),
-                12.horizontalSpace,
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+                child: Icon(Icons.bolt, color: ui.brandPrimary, size: 22.sp),
+              ),
+              12.horizontalSpace,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    AppText(
+                      session.displayName,
+                      color: ui.textPrimary,
+                      fontSize: FontSizes.font16Sp,
+                      fontWeight: FontWeights.weight700,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (_startedAtLabel != null) ...[
+                      4.verticalSpace,
                       AppText(
-                        session.stationName,
-                        color: ui.textPrimary,
-                        fontSize: FontSizes.font16Sp,
-                        fontWeight: FontWeights.weight700,
+                        'Started $_startedAtLabel',
+                        color: ui.textSecondary,
+                        fontSize: FontSizes.font12Sp,
+                        fontWeight: FontWeights.weight400,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      4.verticalSpace,
-                      AppText(
-                        session.powerLabel,
-                        color: ui.textSecondary,
-                        fontSize: FontSizes.font13Sp,
-                        fontWeight: FontWeights.weight400,
-                      ),
                     ],
-                  ),
+                  ],
                 ),
-                Container(
-                  padding:
-                      EdgeInsets.symmetric(horizontal: 12.w, vertical: 5.h),
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryDarkColor,
-                    borderRadius: BorderRadius.circular(20.r),
-                  ),
-                  child: AppText(
-                    'Charging',
-                    color: AppColors.whiteColor,
-                    fontSize: FontSizes.font11Sp,
-                    fontWeight: FontWeights.weight600,
-                  ),
-                ),
-              ],
-            ),
-            16.verticalSpace,
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8.r),
-              child: LinearProgressIndicator(
-                value: session.progressPercent.clamp(0.0, 1.0),
-                minHeight: 8.h,
-                backgroundColor: ui.progressTrack,
-                valueColor: AlwaysStoppedAnimation(ui.brandPrimary),
               ),
-            ),
-            10.verticalSpace,
+              8.horizontalSpace,
+              const _LiveBadge(),
+            ],
+          ),
+          if (session.elapsed != null && session.elapsed!.trim().isNotEmpty) ...[
+            16.verticalSpace,
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                AppText(
-                  '${session.energyDeliveredKwh} kWh delivered',
-                  color: ui.textSecondary,
-                  fontSize: FontSizes.font12Sp,
-                  fontWeight: FontWeights.weight400,
-                ),
-                AppText(
-                  session.startedAtLabel,
-                  color: ui.textSecondary,
-                  fontSize: FontSizes.font12Sp,
-                  fontWeight: FontWeights.weight400,
+                Icon(Icons.timer_outlined, color: ui.brandPrimary, size: 16.sp),
+                6.horizontalSpace,
+                Expanded(
+                  child: AppText(
+                    'Charging for ${session.elapsed!.trim()}',
+                    color: ui.textPrimary,
+                    fontSize: FontSizes.font14Sp,
+                    fontWeight: FontWeights.weight600,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
               ],
             ),
           ],
-        ),
+          ..._buildMetrics(),
+        ],
+      ),
+    );
+  }
+
+  List<Widget> _buildMetrics() {
+    final metrics = <_Metric>[
+      if (session.kwhDelivered != null)
+        _Metric('Energy', '${_trim(session.kwhDelivered!)} kWh'),
+      if (session.startSoc != null)
+        _Metric('Start SOC', '${_trim(session.startSoc!)}%'),
+      if (session.endSoc != null)
+        _Metric('Current SOC', '${_trim(session.endSoc!)}%'),
+      if (session.energyCost != null)
+        _Metric('Energy cost', 'PKR ${session.energyCost!.toStringAsFixed(2)}'),
+      if (session.totalCost != null)
+        _Metric('Total', 'PKR ${session.totalCost!.toStringAsFixed(2)}'),
+    ];
+
+    if (metrics.isEmpty) return const [];
+
+    return [
+      14.verticalSpace,
+      Divider(color: ui.borderSubtle, height: 1),
+      14.verticalSpace,
+      Wrap(
+        spacing: 28.w,
+        runSpacing: 14.h,
+        children: [
+          for (final m in metrics)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                AppText(
+                  m.label,
+                  color: ui.textSecondary,
+                  fontSize: FontSizes.font11Sp,
+                  fontWeight: FontWeights.weight400,
+                ),
+                4.verticalSpace,
+                AppText(
+                  m.value,
+                  color: ui.textPrimary,
+                  fontSize: FontSizes.font14Sp,
+                  fontWeight: FontWeights.weight700,
+                ),
+              ],
+            ),
+        ],
+      ),
+    ];
+  }
+
+  /// `2026-05-05 19:33:32` → `MMM d, yyyy · h:mm a`, falling back to the raw
+  /// string (or null) when it can't be parsed.
+  String? get _startedAtLabel {
+    final raw = session.startedAt;
+    if (raw == null || raw.isEmpty) return null;
+    final parsed = DateTime.tryParse(raw.replaceFirst(' ', 'T'));
+    if (parsed == null) return raw;
+    return DateFormat('MMM d, yyyy · h:mm a').format(parsed);
+  }
+
+  /// Drops a trailing `.0` so `0.45` stays but `12.0` shows as `12`.
+  String _trim(double value) {
+    if (value == value.roundToDouble()) return value.toInt().toString();
+    return value.toString();
+  }
+}
+
+class _Metric {
+  const _Metric(this.label, this.value);
+  final String label;
+  final String value;
+}
+
+class _LiveBadge extends StatelessWidget {
+  const _LiveBadge();
+
+  @override
+  Widget build(BuildContext context) {
+    final ui = AppUiColors.of(context);
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20.r),
+        border: Border.all(width: 1.w, color: ui.brandPrimary),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            height: 7.r,
+            width: 7.r,
+            decoration: BoxDecoration(
+              color: ui.brandPrimary,
+              shape: BoxShape.circle,
+            ),
+          ),
+          6.horizontalSpace,
+          AppText(
+            'LIVE',
+            color: ui.brandPrimary,
+            fontSize: FontSizes.font11Sp,
+            fontWeight: FontWeights.weight700,
+          ),
+        ],
       ),
     );
   }

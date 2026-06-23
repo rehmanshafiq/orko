@@ -9,6 +9,7 @@ import 'package:orko_hubco/features/booking/domain/usecases/create_booking_useca
 import 'package:orko_hubco/features/booking/domain/usecases/get_booking_slots_usecase.dart';
 import 'package:orko_hubco/features/booking/domain/usecases/get_charge_session_history_usecase.dart';
 import 'package:orko_hubco/features/booking/domain/usecases/get_charger_details_usecase.dart';
+import 'package:orko_hubco/features/booking/domain/usecases/get_live_session_usecase.dart';
 import 'package:orko_hubco/features/booking/domain/usecases/get_my_bookings_usecase.dart';
 import 'package:orko_hubco/features/booking/domain/usecases/reschedule_booking_usecase.dart';
 import 'package:orko_hubco/features/booking/presentation/cubit/booking_cubit.dart';
@@ -32,6 +33,7 @@ void initBookingDependencies() {
   sl.registerLazySingleton(() => CreateBookingHglUseCase(sl()));
   sl.registerLazySingleton(() => GetMyBookingsUseCase(sl()));
   sl.registerLazySingleton(() => GetChargeSessionHistoryUseCase(sl()));
+  sl.registerLazySingleton(() => GetLiveSessionUseCase(sl()));
   sl.registerLazySingleton(() => CancelBookingUseCase(sl()));
   sl.registerLazySingleton(() => RescheduleBookingUseCase(sl()));
 
@@ -50,6 +52,7 @@ void initBookingDependencies() {
     () => MyBookingsCubit(
       getMyBookingsUseCase: sl(),
       getChargeSessionHistoryUseCase: sl(),
+      getLiveSessionUseCase: sl(),
       cancelBookingUseCase: sl(),
       rescheduleBookingUseCase: sl(),
     ),

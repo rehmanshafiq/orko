@@ -3,8 +3,10 @@ import 'package:orko_hubco/core/usecase/usecase.dart';
 import 'package:orko_hubco/core/utils/app_storage/app_storage.dart';
 import 'package:orko_hubco/features/booking/domain/usecases/cancel_booking_usecase.dart';
 import 'package:orko_hubco/features/booking/domain/usecases/get_charge_session_history_usecase.dart';
+import 'package:orko_hubco/features/booking/domain/usecases/get_live_session_usecase.dart';
 import 'package:orko_hubco/features/booking/domain/usecases/get_my_bookings_usecase.dart';
 import 'package:orko_hubco/features/booking/domain/usecases/reschedule_booking_usecase.dart';
+import 'package:orko_hubco/features/booking/domain/entities/live_session_entity.dart';
 import 'package:orko_hubco/features/booking/presentation/cubit/my_bookings_state.dart';
 import 'package:orko_hubco/features/booking/presentation/models/booking_session_model.dart';
 
@@ -15,16 +17,19 @@ class MyBookingsCubit extends Cubit<MyBookingsState> {
   MyBookingsCubit({
     required GetMyBookingsUseCase getMyBookingsUseCase,
     required GetChargeSessionHistoryUseCase getChargeSessionHistoryUseCase,
+    required GetLiveSessionUseCase getLiveSessionUseCase,
     required CancelBookingUseCase cancelBookingUseCase,
     required RescheduleBookingUseCase rescheduleBookingUseCase,
   })  : _getMyBookingsUseCase = getMyBookingsUseCase,
         _getChargeSessionHistoryUseCase = getChargeSessionHistoryUseCase,
+        _getLiveSessionUseCase = getLiveSessionUseCase,
         _cancelBookingUseCase = cancelBookingUseCase,
         _rescheduleBookingUseCase = rescheduleBookingUseCase,
         super(const MyBookingsState());
 
   final GetMyBookingsUseCase _getMyBookingsUseCase;
   final GetChargeSessionHistoryUseCase _getChargeSessionHistoryUseCase;
+  final GetLiveSessionUseCase _getLiveSessionUseCase;
   final CancelBookingUseCase _cancelBookingUseCase;
   final RescheduleBookingUseCase _rescheduleBookingUseCase;
 
@@ -34,6 +39,13 @@ class MyBookingsCubit extends Cubit<MyBookingsState> {
     if (tab == BookingTab.upcoming) {
       loadBookings(showSpinner: false);
     }
+    // Fetch the live session whenever Active is opened — with a spinner on the
+    // first visit, silently on refreshes.
+    if (tab == BookingTab.active) {
+      loadLiveSession(
+        showSpinner: state.liveStatus != MyBookingsStatus.success,
+      );
+    }
     // Load charging history the first time History is opened, and refresh it
     // silently on subsequent visits.
     if (tab == BookingTab.history) {
@@ -41,6 +53,47 @@ class MyBookingsCubit extends Cubit<MyBookingsState> {
         showSpinner: state.historyStatus != MyBookingsStatus.success,
       );
     }
+  }
+
+  /// Loads (or reloads) the user's currently-running charging session.
+  ///
+  /// Mirrors [loadHistory]: guests have no server session, so we surface the
+  /// "no active session" empty state instead of an Unauthorized failure.
+  Future<void> loadLiveSession({bool showSpinner = true}) async {
+    if (AppStorage.isGuest) {
+      emit(state.copyWith(
+        liveStatus: MyBookingsStatus.success,
+        liveSession: const LiveSessionEntity.inactive(),
+        clearLiveError: true,
+      ));
+      return;
+    }
+
+    if (showSpinner) {
+      emit(state.copyWith(
+        liveStatus: MyBookingsStatus.loading,
+        clearLiveError: true,
+      ));
+    }
+
+    final result = await _getLiveSessionUseCase(const NoParams());
+
+    if (isClosed) return;
+    result.fold(
+      (failure) => emit(
+        state.copyWith(
+          liveStatus: MyBookingsStatus.failure,
+          liveError: failure.message,
+        ),
+      ),
+      (session) => emit(
+        state.copyWith(
+          liveStatus: MyBookingsStatus.success,
+          liveSession: session,
+          clearLiveError: true,
+        ),
+      ),
+    );
   }
 
   /// Loads (or reloads) the user's charging-session history.

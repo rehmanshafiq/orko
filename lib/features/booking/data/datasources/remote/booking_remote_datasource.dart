@@ -2,6 +2,7 @@ import 'package:orko_hubco/features/booking/data/models/booking_model.dart';
 import 'package:orko_hubco/features/booking/data/models/booking_slot_model.dart';
 import 'package:orko_hubco/features/booking/data/models/charge_session_history_model.dart';
 import 'package:orko_hubco/features/booking/data/models/charger_details_model.dart';
+import 'package:orko_hubco/features/booking/data/models/live_session_model.dart';
 import 'package:orko_hubco/features/booking/data/models/my_booking_model.dart';
 
 abstract class BookingRemoteDataSource {
@@ -28,6 +29,8 @@ abstract class BookingRemoteDataSource {
   Future<List<MyBookingModel>> getMyBookings();
 
   Future<List<ChargeSessionHistoryModel>> getChargeSessionHistory();
+
+  Future<LiveSessionModel> getLiveSession();
 
   Future<String> cancelBooking({required int bookingId});
 

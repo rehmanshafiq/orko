@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:orko_hubco/features/booking/domain/entities/charge_session_history_entity.dart';
+import 'package:orko_hubco/features/booking/domain/entities/live_session_entity.dart';
 import 'package:orko_hubco/features/booking/domain/entities/my_booking_entity.dart';
 import 'package:orko_hubco/features/booking/presentation/models/booking_session_model.dart';
 
@@ -16,6 +17,9 @@ class MyBookingsState extends Equatable {
     this.historyStatus = MyBookingsStatus.initial,
     this.historyError,
     this.historySessions = const [],
+    this.liveStatus = MyBookingsStatus.initial,
+    this.liveError,
+    this.liveSession,
   });
 
   final MyBookingsStatus status;
@@ -31,6 +35,11 @@ class MyBookingsState extends Equatable {
   final MyBookingsStatus historyStatus;
   final String? historyError;
   final List<ChargeSessionHistoryEntity> historySessions;
+
+  /// Lifecycle of the live-session fetch (Active tab), independent of [status].
+  final MyBookingsStatus liveStatus;
+  final String? liveError;
+  final LiveSessionEntity? liveSession;
 
   /// Approved bookings → "Upcoming".
   List<MyBookingEntity> get upcoming =>
@@ -50,6 +59,10 @@ class MyBookingsState extends Equatable {
     String? historyError,
     bool clearHistoryError = false,
     List<ChargeSessionHistoryEntity>? historySessions,
+    MyBookingsStatus? liveStatus,
+    String? liveError,
+    bool clearLiveError = false,
+    LiveSessionEntity? liveSession,
   }) {
     return MyBookingsState(
       status: status ?? this.status,
@@ -63,6 +76,9 @@ class MyBookingsState extends Equatable {
       historyError:
           clearHistoryError ? null : (historyError ?? this.historyError),
       historySessions: historySessions ?? this.historySessions,
+      liveStatus: liveStatus ?? this.liveStatus,
+      liveError: clearLiveError ? null : (liveError ?? this.liveError),
+      liveSession: liveSession ?? this.liveSession,
     );
   }
 
@@ -76,5 +92,8 @@ class MyBookingsState extends Equatable {
         historyStatus,
         historyError,
         historySessions,
+        liveStatus,
+        liveError,
+        liveSession,
       ];
 }

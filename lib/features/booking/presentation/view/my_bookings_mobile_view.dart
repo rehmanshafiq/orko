@@ -14,6 +14,7 @@ import 'package:orko_hubco/features/booking/domain/entities/my_booking_entity.da
 import 'package:orko_hubco/features/booking/presentation/cubit/my_bookings_cubit.dart';
 import 'package:orko_hubco/features/booking/presentation/cubit/my_bookings_state.dart';
 import 'package:orko_hubco/features/booking/presentation/models/booking_session_model.dart';
+import 'package:orko_hubco/features/booking/presentation/widgets/active_session_card.dart';
 import 'package:orko_hubco/features/booking/presentation/widgets/booking_empty_state.dart';
 import 'package:orko_hubco/features/booking/presentation/widgets/bookings_tab_selector.dart';
 import 'package:orko_hubco/features/booking/presentation/widgets/history_booking_card.dart';
@@ -77,8 +78,11 @@ class _Body extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // The History tab is driven by its own endpoint/state, so it renders
-    // independently of the my-bookings (Upcoming/Active) load status.
+    // The Active and History tabs are driven by their own endpoints/state, so
+    // they render independently of the my-bookings (Upcoming) load status.
+    if (state.selectedTab == BookingTab.active) {
+      return _ActiveTab(ui: ui, state: state, cubit: cubit);
+    }
     if (state.selectedTab == BookingTab.history) {
       return _HistoryTab(ui: ui, state: state, cubit: cubit);
     }
@@ -310,6 +314,97 @@ Future<void> _scanBookingQrCode(
       AppHelpers.showSnackBar(context, message, isError: true);
     case BookingQrScanCancelled():
       break;
+  }
+}
+
+class _ActiveTab extends StatelessWidget {
+  const _ActiveTab({
+    required this.ui,
+    required this.state,
+    required this.cubit,
+  });
+
+  final AppUiColors ui;
+  final MyBookingsState state;
+  final MyBookingsCubit cubit;
+
+  @override
+  Widget build(BuildContext context) {
+    // First-ever load (or a load triggered with a spinner): show the loader.
+    if (state.liveStatus == MyBookingsStatus.loading ||
+        state.liveStatus == MyBookingsStatus.initial) {
+      return Center(
+        child: SizedBox(
+          width: 28.w,
+          height: 28.w,
+          child: CircularProgressIndicator(
+            strokeWidth: 2.6,
+            color: ui.brandPrimary,
+          ),
+        ),
+      );
+    }
+
+    if (state.liveStatus == MyBookingsStatus.failure) {
+      return ListView(
+        padding: AppUtils.horizontal16Padding,
+        children: [
+          60.verticalSpace,
+          Icon(Icons.error_outline_rounded,
+              color: ui.textSecondary, size: 40.sp),
+          12.verticalSpace,
+          AppText(
+            state.liveError ?? 'Could not load your active session.',
+            textAlign: TextAlign.center,
+            color: ui.textSecondary,
+            fontSize: FontSizes.font14Sp,
+            fontWeight: FontWeights.weight500,
+          ),
+          16.verticalSpace,
+          Center(
+            child: SizedBox(
+              width: 160.w,
+              child: PrimaryButtonWidget(
+                text: 'Retry',
+                onPress: cubit.loadLiveSession,
+                buttonHeight: 40.h,
+                cornerRadius: 22.r,
+                fontSize: FontSizes.font14Sp,
+                fontWeight: FontWeights.weight700,
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    final session = state.liveSession;
+    final hasActiveSession = session != null && session.active;
+
+    return RefreshIndicator(
+      color: ui.brandPrimary,
+      onRefresh: () => cubit.loadLiveSession(showSpinner: false),
+      child: hasActiveSession
+          ? ListView(
+              padding: AppUtils.horizontal16Padding,
+              children: [
+                ActiveSessionCard(ui: ui, session: session),
+              ],
+            )
+          : ListView(
+              padding: AppUtils.horizontal16Padding,
+              children: [
+                BookingEmptyState(
+                  ui: ui,
+                  icon: Icons.bolt,
+                  title: 'No Active Sessions',
+                  subtitle: "You don't have any active charging sessions",
+                  accentColor: ui.brandPrimary,
+                  iconOutlined: true,
+                ),
+              ],
+            ),
+    );
   }
 }
 
