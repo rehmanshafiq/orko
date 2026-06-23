@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:orko_hubco/features/vehicle/domain/entities/user_vehicle_entity.dart';
 
 abstract class TripPlannerEvent extends Equatable {
   const TripPlannerEvent();
@@ -16,6 +17,16 @@ class TripPlannerPlanTripPressed extends TripPlannerEvent {
   const TripPlannerPlanTripPressed();
 }
 
+/// Resolves origin/destination coordinates and calls the real `plan-trip` API.
+class TripPlannerPlanTripRequested extends TripPlannerEvent {
+  const TripPlannerPlanTripRequested();
+}
+
+/// Persists the most recently planned trip via the `save-trip` API.
+class TripPlannerSaveTripRequested extends TripPlannerEvent {
+  const TripPlannerSaveTripRequested();
+}
+
 class TripPlannerRouteSelected extends TripPlannerEvent {
   const TripPlannerRouteSelected(this.index);
 
@@ -23,6 +34,15 @@ class TripPlannerRouteSelected extends TripPlannerEvent {
 
   @override
   List<Object?> get props => [index];
+}
+
+class TripPlannerVehicleSelected extends TripPlannerEvent {
+  const TripPlannerVehicleSelected(this.vehicle);
+
+  final UserVehicleEntity? vehicle;
+
+  @override
+  List<Object?> get props => [vehicle];
 }
 
 class TripPlannerBatteryChanged extends TripPlannerEvent {

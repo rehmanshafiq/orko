@@ -116,6 +116,8 @@ class ApiEndpoints extends Equatable {
     required this.chargingStationFilterOptions,
     required this.chargingStationDetail,
     required this.chargingStationFavourites,
+    required this.chargingStationSearch,
+    required this.chargingStationPopular,
     required this.signUpForm,
     required this.verifyOtp,
     required this.resendOtp,
@@ -137,12 +139,19 @@ class ApiEndpoints extends Equatable {
     required this.deleteVehicle,
     required this.userVehicles,
     required this.chargerCompatibility,
+    required this.tripPlanningVehicles,
+    required this.planTrip,
+    required this.saveTrip,
+    required this.savedTrips,
+    required this.savedTripDetail,
   });
 
   final String chargingStationMap;
   final String chargingStationFilterOptions;
   final String chargingStationDetail;
   final String chargingStationFavourites;
+  final String chargingStationSearch;
+  final String chargingStationPopular;
   final String signUpForm;
   final String verifyOtp;
   final String resendOtp;
@@ -164,6 +173,11 @@ class ApiEndpoints extends Equatable {
   final String deleteVehicle;
   final String userVehicles;
   final String chargerCompatibility;
+  final String tripPlanningVehicles;
+  final String planTrip;
+  final String saveTrip;
+  final String savedTrips;
+  final String savedTripDetail;
 
   factory ApiEndpoints.fromJson(Map<String, dynamic> json) {
     return ApiEndpoints(
@@ -173,6 +187,8 @@ class ApiEndpoints extends Equatable {
       chargingStationDetail: json['charging_station_detail'] as String? ?? '',
       chargingStationFavourites:
           json['charging_station_favourites'] as String? ?? '',
+      chargingStationSearch: json['charging_station_search'] as String? ?? '',
+      chargingStationPopular: json['charging_station_popular'] as String? ?? '',
       signUpForm: json['sign_up_form'] as String? ?? '',
       verifyOtp: json['verify_otp'] as String? ?? '',
       resendOtp: json['resend_otp'] as String? ?? '',
@@ -194,6 +210,11 @@ class ApiEndpoints extends Equatable {
       deleteVehicle: json['delete_vehicle'] as String? ?? '',
       userVehicles: json['user_vehicles'] as String? ?? '',
       chargerCompatibility: json['charger_compatibility'] as String? ?? '',
+      tripPlanningVehicles: json['trip_planning_vehicles'] as String? ?? '',
+      planTrip: json['plan_trip'] as String? ?? '',
+      saveTrip: json['save_trip'] as String? ?? '',
+      savedTrips: json['saved_trips'] as String? ?? '',
+      savedTripDetail: json['saved_trip_detail'] as String? ?? '',
     );
   }
 
@@ -203,6 +224,8 @@ class ApiEndpoints extends Equatable {
       'charging_station_filter_options': chargingStationFilterOptions,
       'charging_station_detail': chargingStationDetail,
       'charging_station_favourites': chargingStationFavourites,
+      'charging_station_search': chargingStationSearch,
+      'charging_station_popular': chargingStationPopular,
       'sign_up_form': signUpForm,
       'verify_otp': verifyOtp,
       'resend_otp': resendOtp,
@@ -224,6 +247,11 @@ class ApiEndpoints extends Equatable {
       'delete_vehicle': deleteVehicle,
       'user_vehicles': userVehicles,
       'charger_compatibility': chargerCompatibility,
+      'trip_planning_vehicles': tripPlanningVehicles,
+      'plan_trip': planTrip,
+      'save_trip': saveTrip,
+      'saved_trips': savedTrips,
+      'saved_trip_detail': savedTripDetail,
     };
   }
 
@@ -232,6 +260,8 @@ class ApiEndpoints extends Equatable {
     String? chargingStationFilterOptions,
     String? chargingStationDetail,
     String? chargingStationFavourites,
+    String? chargingStationSearch,
+    String? chargingStationPopular,
     String? signUpForm,
     String? verifyOtp,
     String? resendOtp,
@@ -253,6 +283,11 @@ class ApiEndpoints extends Equatable {
     String? deleteVehicle,
     String? userVehicles,
     String? chargerCompatibility,
+    String? tripPlanningVehicles,
+    String? planTrip,
+    String? saveTrip,
+    String? savedTrips,
+    String? savedTripDetail,
   }) {
     return ApiEndpoints(
       chargingStationMap: chargingStationMap ?? this.chargingStationMap,
@@ -261,6 +296,10 @@ class ApiEndpoints extends Equatable {
       chargingStationDetail: chargingStationDetail ?? this.chargingStationDetail,
       chargingStationFavourites:
           chargingStationFavourites ?? this.chargingStationFavourites,
+      chargingStationSearch:
+          chargingStationSearch ?? this.chargingStationSearch,
+      chargingStationPopular:
+          chargingStationPopular ?? this.chargingStationPopular,
       signUpForm: signUpForm ?? this.signUpForm,
       verifyOtp: verifyOtp ?? this.verifyOtp,
       resendOtp: resendOtp ?? this.resendOtp,
@@ -282,6 +321,11 @@ class ApiEndpoints extends Equatable {
       deleteVehicle: deleteVehicle ?? this.deleteVehicle,
       userVehicles: userVehicles ?? this.userVehicles,
       chargerCompatibility: chargerCompatibility ?? this.chargerCompatibility,
+      tripPlanningVehicles: tripPlanningVehicles ?? this.tripPlanningVehicles,
+      planTrip: planTrip ?? this.planTrip,
+      saveTrip: saveTrip ?? this.saveTrip,
+      savedTrips: savedTrips ?? this.savedTrips,
+      savedTripDetail: savedTripDetail ?? this.savedTripDetail,
     );
   }
 
@@ -291,6 +335,8 @@ class ApiEndpoints extends Equatable {
     chargingStationFilterOptions,
     chargingStationDetail,
     chargingStationFavourites,
+    chargingStationSearch,
+    chargingStationPopular,
     signUpForm,
     verifyOtp,
     resendOtp,
@@ -312,5 +358,10 @@ class ApiEndpoints extends Equatable {
     deleteVehicle,
     userVehicles,
     chargerCompatibility,
+    tripPlanningVehicles,
+    planTrip,
+    saveTrip,
+    savedTrips,
+    savedTripDetail,
   ];
 }

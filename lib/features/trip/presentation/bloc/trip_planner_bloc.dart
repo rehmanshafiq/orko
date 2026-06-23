@@ -5,13 +5,19 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_images.dart';
 import 'package:orko_hubco/core/constants/charging_stations.dart';
+import 'package:orko_hubco/core/di/injection_container.dart';
 import 'package:orko_hubco/features/booking/presentation/pages/book_slot_page.dart';
 import 'package:orko_hubco/features/map/domain/entities/hubco_location_entity.dart';
 import 'package:orko_hubco/features/charging/presentation/page/charging_station_detail_page.dart';
+import 'package:orko_hubco/features/trip/domain/entities/trip_plan_entity.dart';
+import 'package:orko_hubco/features/trip/domain/usecases/plan_trip_usecase.dart';
+import 'package:orko_hubco/features/trip/domain/usecases/save_trip_usecase.dart';
+import 'package:orko_hubco/features/trip/domain/usecases/trip_plan_params.dart';
 import 'package:orko_hubco/features/trip/presentation/bloc/trip_planner_event.dart';
 import 'package:orko_hubco/features/trip/presentation/bloc/trip_planner_state.dart';
 import 'package:orko_hubco/features/trip/presentation/models/latlng_named_model.dart';
@@ -20,13 +26,21 @@ import 'package:orko_hubco/features/trip/presentation/models/stop_charge_info_mo
 import 'package:orko_hubco/features/trip/presentation/models/trip_plan_model.dart';
 
 class TripPlannerBloc extends Bloc<TripPlannerEvent, TripPlannerState> {
-  TripPlannerBloc() : super(TripPlannerState.initial()) {
+  TripPlannerBloc({
+    PlanTripUseCase? planTrip,
+    SaveTripUseCase? saveTrip,
+  })  : _planTrip = planTrip ?? sl<PlanTripUseCase>(),
+        _saveTrip = saveTrip ?? sl<SaveTripUseCase>(),
+        super(TripPlannerState.initial()) {
     _startLocationController.addListener(_onLocationChanged);
     _endLocationController.addListener(_onLocationChanged);
 
     on<TripPlannerLocationChanged>(_handleLocationChanged);
     on<TripPlannerPlanTripPressed>(_handlePlanTripPressed);
+    on<TripPlannerPlanTripRequested>(_handlePlanTripRequested);
+    on<TripPlannerSaveTripRequested>(_handleSaveTripRequested);
     on<TripPlannerRouteSelected>(_handleRouteSelected);
+    on<TripPlannerVehicleSelected>(_handleVehicleSelected);
     on<TripPlannerBatteryChanged>(_handleBatteryChanged);
     on<TripPlannerArrivalBatteryChanged>(_handleArrivalBatteryChanged);
     on<TripPlannerChargingStopExpanded>(_handleChargingStopExpanded);
@@ -34,6 +48,14 @@ class TripPlannerBloc extends Bloc<TripPlannerEvent, TripPlannerState> {
     on<TripPlannerMapCreated>(_handleMapCreated);
     on<TripPlannerFitMapRoute>(_handleFitMapRoute);
   }
+
+  final PlanTripUseCase _planTrip;
+  final SaveTripUseCase _saveTrip;
+
+  /// Default battery targets for the API request (the UI exposes current SoC
+  /// via the slider; target/reserve use sensible defaults from the contract).
+  static const double _defaultTargetSoc = 80;
+  static const double _defaultReserveSoc = 10;
 
   /// 100% state of charge = 380 km usable range.
   static const double kmPerPercentCharge = 3.8;
@@ -100,6 +122,9 @@ class TripPlannerBloc extends Bloc<TripPlannerEvent, TripPlannerState> {
     Emitter<TripPlannerState> emit,
   ) {
     if (!state.tripPlanned) return;
+    // Live API results stand until the user re-taps Plan Trip; never let the
+    // mock recompute clobber them on keystroke.
+    if (state.apiPlan != null) return;
     emit(state.copyWith(routePlans: _recomputeAllPlans(state)));
     add(const TripPlannerFitMapRoute());
   }
@@ -118,6 +143,240 @@ class TripPlannerBloc extends Bloc<TripPlannerEvent, TripPlannerState> {
     add(const TripPlannerFitMapRoute());
   }
 
+  Future<void> _handlePlanTripRequested(
+    TripPlannerPlanTripRequested event,
+    Emitter<TripPlannerState> emit,
+  ) async {
+    emit(state.copyWith(
+      planLoading: true,
+      clearPlanError: true,
+      clearSaveError: true,
+      saveSuccess: false,
+    ));
+
+    // 1. Resolve origin/destination coordinates.
+    final origin = await _resolvePoint(
+      text: _startLocationController.text,
+      isOrigin: true,
+    );
+    if (origin == null) {
+      emit(state.copyWith(
+        planLoading: false,
+        planError:
+            'Couldn\'t find your start location. Try a known city, or enable location for "current location".',
+      ));
+      return;
+    }
+    final destination = await _resolvePoint(
+      text: _endLocationController.text,
+      isOrigin: false,
+    );
+    if (destination == null) {
+      emit(state.copyWith(
+        planLoading: false,
+        planError:
+            'Couldn\'t find your destination. Try entering a known city name.',
+      ));
+      return;
+    }
+
+    // 2. Block a selected-but-incomplete vehicle (mirrors the picker rule).
+    final vehicle = state.selectedVehicle;
+    if (vehicle != null &&
+        (vehicle.range == null ||
+            vehicle.range == 0 ||
+            vehicle.batteryCapacity == null)) {
+      emit(state.copyWith(
+        planLoading: false,
+        planError: 'Vehicle battery/range data is incomplete.',
+      ));
+      return;
+    }
+
+    // 3. Client-side validation mirrored from the API contract.
+    const targetSoc = _defaultTargetSoc;
+    const reserveSoc = _defaultReserveSoc;
+    if (reserveSoc >= targetSoc) {
+      emit(state.copyWith(
+        planLoading: false,
+        planError: 'Reserve charge must be below the target charge.',
+      ));
+      return;
+    }
+
+    final params = TripPlanParams(
+      originLatitude: origin.lat,
+      originLongitude: origin.lng,
+      destinationLatitude: destination.lat,
+      destinationLongitude: destination.lng,
+      originAddress: origin.name,
+      destinationAddress: destination.name,
+      customerVehicleId: vehicle?.id,
+      startSoc: state.currentBatteryPercent,
+      targetSoc: targetSoc,
+      reserveSoc: reserveSoc,
+    );
+
+    // 4. Call the API.
+    final result = await _planTrip(params);
+    result.fold(
+      (failure) => emit(state.copyWith(
+        planLoading: false,
+        planError: failure.message,
+      )),
+      (plan) {
+        final startPoint =
+            GeoPoint(name: origin.name, latitude: origin.lat, longitude: origin.lng);
+        final endPoint = GeoPoint(
+            name: destination.name,
+            latitude: destination.lat,
+            longitude: destination.lng);
+        final mapped = _mapApiPlanToModel(plan, startPoint, endPoint);
+        emit(state.copyWith(
+          planLoading: false,
+          tripPlanned: true,
+          apiPlan: plan,
+          feasible: plan.feasible,
+          lastPlanParams: params,
+          clearPlanError: true,
+          routePlans: <TripPlanModel?>[mapped],
+          selectedRouteIndex: 0,
+          resetExpandedChargingStopIndex: true,
+        ));
+        add(const TripPlannerFitMapRoute());
+      },
+    );
+  }
+
+  Future<void> _handleSaveTripRequested(
+    TripPlannerSaveTripRequested event,
+    Emitter<TripPlannerState> emit,
+  ) async {
+    final params = state.lastPlanParams;
+    if (params == null) {
+      emit(state.copyWith(saveError: 'Plan a trip before saving.'));
+      return;
+    }
+    emit(state.copyWith(saving: true, clearSaveError: true, saveSuccess: false));
+    final result = await _saveTrip(params);
+    result.fold(
+      (failure) => emit(state.copyWith(saving: false, saveError: failure.message)),
+      (_) => emit(state.copyWith(saving: false, saveSuccess: true)),
+    );
+  }
+
+  /// Resolves a typed location (or device GPS for an empty/"current" origin)
+  /// into coordinates. Returns null when nothing resolves.
+  Future<({double lat, double lng, String name})?> _resolvePoint({
+    required String text,
+    required bool isOrigin,
+  }) async {
+    final trimmed = text.trim();
+    final wantsGps = isOrigin &&
+        (trimmed.isEmpty || trimmed.toLowerCase() == 'current location');
+
+    if (wantsGps) {
+      final position = await _resolveCurrentPosition();
+      if (position != null) {
+        return (
+          lat: position.latitude,
+          lng: position.longitude,
+          name: 'Current location',
+        );
+      }
+      // Fall through to text resolution if GPS is unavailable.
+    }
+
+    final geo = HubcoChargingStations.resolveCity(trimmed);
+    if (geo != null) {
+      return (lat: geo.latitude, lng: geo.longitude, name: geo.name);
+    }
+    return null;
+  }
+
+  /// Device GPS with permission handling and a 10s cap (mirrors MapCubit).
+  Future<Position?> _resolveCurrentPosition() async {
+    try {
+      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) return null;
+
+      var permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
+        return null;
+      }
+
+      return await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+          timeLimit: Duration(seconds: 10),
+        ),
+      );
+    } catch (e) {
+      debugPrint('[Trip] Failed to resolve current position: $e');
+      return null;
+    }
+  }
+
+  /// Adapts the API [TripPlanEntity] to the presentation [TripPlanModel] the
+  /// map/stops/summary widgets already consume. `stops[i]` and `chargeInfo[i]`
+  /// are built from the same source stop so their indices stay aligned.
+  TripPlanModel _mapApiPlanToModel(
+    TripPlanEntity plan,
+    GeoPoint start,
+    GeoPoint end,
+  ) {
+    final stations = <HubcoLocationEntity>[];
+    final chargeInfo = <StopChargeInfoModel>[];
+    for (final s in plan.stops) {
+      stations.add(
+        HubcoLocationEntity(
+          id: s.locationId,
+          name: s.locationName,
+          address: s.locationAddress ?? '',
+          latitude: s.latitude,
+          longitude: s.longitude,
+          status: true,
+          connectorTypes: s.connectorType.isEmpty ? const [] : [s.connectorType],
+        ),
+      );
+      chargeInfo.add(
+        StopChargeInfoModel(
+          arrivePct: s.arrivalSoc.round(),
+          departPct: s.departureSoc.round(),
+          minutes: s.chargingMinutes.round(),
+          costPkr: s.cost.round(),
+        ),
+      );
+    }
+
+    final waypoints = <LatLngNamedModel>[
+      LatLngNamedModel(start.name, start.latitude, start.longitude),
+      ...plan.stops
+          .map((s) => LatLngNamedModel(s.locationName, s.latitude, s.longitude)),
+      LatLngNamedModel(end.name, end.latitude, end.longitude),
+    ];
+
+    final totalMinutes =
+        (plan.totalDriveMinutes + plan.totalChargingMinutes).round();
+
+    return TripPlanModel(
+      strategy: strategies.first,
+      start: start,
+      end: end,
+      stops: stations,
+      waypoints: waypoints,
+      chargeInfo: chargeInfo,
+      distanceKm: plan.totalDistanceKm,
+      duration: Duration(minutes: totalMinutes),
+      costPkr: plan.totalCost.round(),
+      co2SavedKg: (plan.totalDistanceKm * 0.12).round(),
+    );
+  }
+
   void _handleRouteSelected(
     TripPlannerRouteSelected event,
     Emitter<TripPlannerState> emit,
@@ -132,14 +391,29 @@ class TripPlannerBloc extends Bloc<TripPlannerEvent, TripPlannerState> {
     add(const TripPlannerFitMapRoute());
   }
 
+  void _handleVehicleSelected(
+    TripPlannerVehicleSelected event,
+    Emitter<TripPlannerState> emit,
+  ) {
+    emit(
+      state.copyWith(
+        selectedVehicle: event.vehicle,
+        clearSelectedVehicle: event.vehicle == null,
+      ),
+    );
+  }
+
   void _handleBatteryChanged(
     TripPlannerBatteryChanged event,
     Emitter<TripPlannerState> emit,
   ) {
     final nextState = state.copyWith(currentBatteryPercent: event.value);
+    // With a live API plan, the slider only updates the EV card; recompute the
+    // route by re-tapping Plan Trip. Without one, keep the mock recompute.
+    final recompute = nextState.tripPlanned && nextState.apiPlan == null;
     emit(
       nextState.copyWith(
-        routePlans: nextState.tripPlanned ? _recomputeAllPlans(nextState) : null,
+        routePlans: recompute ? _recomputeAllPlans(nextState) : null,
       ),
     );
   }
@@ -149,9 +423,10 @@ class TripPlannerBloc extends Bloc<TripPlannerEvent, TripPlannerState> {
     Emitter<TripPlannerState> emit,
   ) {
     final nextState = state.copyWith(targetArrivalBatteryPercent: event.value);
+    final recompute = nextState.tripPlanned && nextState.apiPlan == null;
     emit(
       nextState.copyWith(
-        routePlans: nextState.tripPlanned ? _recomputeAllPlans(nextState) : null,
+        routePlans: recompute ? _recomputeAllPlans(nextState) : null,
       ),
     );
   }

@@ -40,7 +40,7 @@ class SearchBarWidget extends StatelessWidget {
               child: Icon(
                 Icons.arrow_back_rounded,
                 color: ui.textPrimary.withValues(alpha: 0.8),
-                size: 18.r,
+                size: 19.r,
               ),
             ),
           ),
@@ -48,6 +48,10 @@ class SearchBarWidget extends StatelessWidget {
           Expanded(
             child: TextField(
               controller: searchCubit.searchController,
+              onChanged: searchCubit.onQueryChanged,
+              onSubmitted: (_) => searchCubit.submitSearch(),
+              textInputAction: TextInputAction.search,
+              autofocus: true,
               cursorColor: AppColors.primaryDarkColor,
               style: TextStyle(
                 color: ui.textPrimary,
@@ -89,7 +93,6 @@ class SearchBarWidget extends StatelessWidget {
             child: InkWell(
               onTap: () {
                 searchCubit.clearSearch();
-                context.pop();
               },
               customBorder: const CircleBorder(),
               child: Icon(

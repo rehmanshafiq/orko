@@ -2,7 +2,10 @@ import 'dart:async';
 
 import 'package:equatable/equatable.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:orko_hubco/features/trip/domain/entities/trip_plan_entity.dart';
+import 'package:orko_hubco/features/trip/domain/usecases/trip_plan_params.dart';
 import 'package:orko_hubco/features/trip/presentation/models/trip_plan_model.dart';
+import 'package:orko_hubco/features/vehicle/domain/entities/user_vehicle_entity.dart';
 
 class TripPlannerState extends Equatable {
   const TripPlannerState({
@@ -18,6 +21,15 @@ class TripPlannerState extends Equatable {
     required this.stopIcon,
     required this.startIcon,
     required this.endIcon,
+    this.selectedVehicle,
+    this.planLoading = false,
+    this.planError,
+    this.feasible,
+    this.apiPlan,
+    this.lastPlanParams,
+    this.saving = false,
+    this.saveError,
+    this.saveSuccess = false,
   });
 
   factory TripPlannerState.initial() {
@@ -34,6 +46,15 @@ class TripPlannerState extends Equatable {
       stopIcon: null,
       startIcon: null,
       endIcon: null,
+      selectedVehicle: null,
+      planLoading: false,
+      planError: null,
+      feasible: null,
+      apiPlan: null,
+      lastPlanParams: null,
+      saving: false,
+      saveError: null,
+      saveSuccess: false,
     );
   }
 
@@ -49,6 +70,34 @@ class TripPlannerState extends Equatable {
   final BitmapDescriptor? stopIcon;
   final BitmapDescriptor? startIcon;
   final BitmapDescriptor? endIcon;
+
+  /// The vehicle picked in the dropdown; drives the EV Details card.
+  final UserVehicleEntity? selectedVehicle;
+
+  /// True while a `plan-trip` request is in flight.
+  final bool planLoading;
+
+  /// User-facing error for the last plan attempt (null when none).
+  final String? planError;
+
+  /// `false` when the API reports the trip can't be completed with available
+  /// chargers (a warning state, not an error). Null until a plan runs.
+  final bool? feasible;
+
+  /// The raw API plan; non-null after a successful plan-trip call.
+  final TripPlanEntity? apiPlan;
+
+  /// The params behind the current [apiPlan], reused by save-trip.
+  final TripPlanParams? lastPlanParams;
+
+  /// True while a `save-trip` request is in flight.
+  final bool saving;
+
+  /// User-facing error for the last save attempt (null when none).
+  final String? saveError;
+
+  /// True for one emission after a successful save.
+  final bool saveSuccess;
 
   TripPlanModel? get currentPlan => routePlans[selectedRouteIndex];
 
@@ -66,6 +115,21 @@ class TripPlannerState extends Equatable {
     BitmapDescriptor? stopIcon,
     BitmapDescriptor? startIcon,
     BitmapDescriptor? endIcon,
+    UserVehicleEntity? selectedVehicle,
+    bool clearSelectedVehicle = false,
+    bool? planLoading,
+    String? planError,
+    bool clearPlanError = false,
+    bool? feasible,
+    bool clearFeasible = false,
+    TripPlanEntity? apiPlan,
+    bool clearApiPlan = false,
+    TripPlanParams? lastPlanParams,
+    bool clearLastPlanParams = false,
+    bool? saving,
+    String? saveError,
+    bool clearSaveError = false,
+    bool? saveSuccess,
   }) {
     return TripPlannerState(
       currentBatteryPercent: currentBatteryPercent ?? this.currentBatteryPercent,
@@ -83,6 +147,17 @@ class TripPlannerState extends Equatable {
       stopIcon: stopIcon ?? this.stopIcon,
       startIcon: startIcon ?? this.startIcon,
       endIcon: endIcon ?? this.endIcon,
+      selectedVehicle:
+          clearSelectedVehicle ? null : (selectedVehicle ?? this.selectedVehicle),
+      planLoading: planLoading ?? this.planLoading,
+      planError: clearPlanError ? null : (planError ?? this.planError),
+      feasible: clearFeasible ? null : (feasible ?? this.feasible),
+      apiPlan: clearApiPlan ? null : (apiPlan ?? this.apiPlan),
+      lastPlanParams:
+          clearLastPlanParams ? null : (lastPlanParams ?? this.lastPlanParams),
+      saving: saving ?? this.saving,
+      saveError: clearSaveError ? null : (saveError ?? this.saveError),
+      saveSuccess: saveSuccess ?? this.saveSuccess,
     );
   }
 
@@ -100,6 +175,15 @@ class TripPlannerState extends Equatable {
         stopIcon,
         startIcon,
         endIcon,
+        selectedVehicle,
+        planLoading,
+        planError,
+        feasible,
+        apiPlan,
+        lastPlanParams,
+        saving,
+        saveError,
+        saveSuccess,
       ];
 }
 

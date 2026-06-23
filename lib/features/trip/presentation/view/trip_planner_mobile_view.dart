@@ -5,6 +5,7 @@ import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/utils/app_storage/app_storage.dart';
 import 'package:orko_hubco/core/utils/app_ui.dart';
+import 'package:orko_hubco/core/utils/widgets/app_text.dart';
 import 'package:orko_hubco/core/utils/widgets/auth_required_dialog.dart';
 import 'package:orko_hubco/core/utils/widgets/primary_button_widget.dart';
 import 'package:orko_hubco/features/trip/presentation/bloc/trip_planner_bloc.dart';
@@ -21,7 +22,9 @@ import 'package:orko_hubco/features/trip/presentation/widgets/trip_route_options
 import 'package:orko_hubco/features/trip/presentation/widgets/trip_route_suggestion_card_widget.dart';
 import 'package:orko_hubco/features/trip/presentation/widgets/trip_section_title_widget.dart';
 import 'package:orko_hubco/features/trip/presentation/widgets/trip_summary_card_widget.dart';
+import 'package:orko_hubco/features/trip/presentation/widgets/trip_vehicle_dropdown_widget.dart';
 import 'package:orko_hubco/features/trip/presentation/widgets/silver_metallic_button_widget.dart';
+import 'package:orko_hubco/features/trip/presentation/view/saved_trips_view.dart';
 
 class TripPlannerMobileView extends StatelessWidget {
   const TripPlannerMobileView({super.key});
@@ -30,7 +33,21 @@ class TripPlannerMobileView extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => TripPlannerBloc(),
-      child: BlocBuilder<TripPlannerBloc, TripPlannerState>(
+      child: BlocConsumer<TripPlannerBloc, TripPlannerState>(
+        listenWhen: (p, c) =>
+            p.saveSuccess != c.saveSuccess || p.saveError != c.saveError,
+        listener: (context, state) {
+          final messenger = ScaffoldMessenger.of(context);
+          if (state.saveSuccess) {
+            messenger.showSnackBar(
+              const SnackBar(content: Text('Trip plan saved successfully.')),
+            );
+          } else if (state.saveError != null) {
+            messenger.showSnackBar(
+              SnackBar(content: Text(state.saveError!)),
+            );
+          }
+        },
         builder: (context, state) {
           final bloc = context.read<TripPlannerBloc>();
           final ui = AppUiColors.of(context);
@@ -50,7 +67,46 @@ class TripPlannerMobileView extends StatelessWidget {
                 padding: AppUtils.horizontal16Padding,
                 children: [
                   10.verticalSpace,
-                  const TripHeaderWidget(),
+                  Row(
+                    children: [
+                      const Expanded(child: TripHeaderWidget()),
+                      GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () {
+                          if (AppStorage.isGuest) {
+                            AuthRequiredDialog.show(
+                              context,
+                              message:
+                                  'Please log in or create an account to view your saved trips.',
+                            );
+                            return;
+                          }
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => const SavedTripsView(),
+                            ),
+                          );
+                        },
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.bookmark_border_rounded,
+                              size: 18.sp,
+                              color: ui.brandPrimary,
+                            ),
+                            4.horizontalSpace,
+                            AppText(
+                              'Saved',
+                              color: ui.brandPrimary,
+                              fontSize: FontSizes.font12Sp,
+                              fontWeight: FontWeights.weight700,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                   16.verticalSpace,
                   TripLocationFieldWidget(
                     controller: bloc.startLocationController,
@@ -61,11 +117,18 @@ class TripPlannerMobileView extends StatelessWidget {
                     controller: bloc.endLocationController,
                     isStart: false,
                   ),
+                  12.verticalSpace,
+                  TripVehicleDropdownWidget(
+                    onVehicleSelected: (vehicle) => context
+                        .read<TripPlannerBloc>()
+                        .add(TripPlannerVehicleSelected(vehicle)),
+                  ),
                   14.verticalSpace,
                   const TripSectionTitleWidget(text: 'EV Details'),
                   10.verticalSpace,
                   TripEvDetailsCardWidget(
                     currentBatteryPercent: state.currentBatteryPercent,
+                    vehicle: state.selectedVehicle,
                   ),
                   14.verticalSpace,
                   // TripBatterySlidersWidget(
@@ -100,7 +163,8 @@ class TripPlannerMobileView extends StatelessWidget {
 
                   12.verticalSpace,
                   PrimaryButtonWidget(
-                    text: 'Plan Trip',
+                    text: state.planLoading ? 'Planning…' : 'Plan Trip',
+                    isEnabled: !state.planLoading,
                     onPress: () {
                       // Guests can browse but must authenticate before planning a trip.
                       if (AppStorage.isGuest) {
@@ -113,7 +177,7 @@ class TripPlannerMobileView extends StatelessWidget {
                       }
                       context
                           .read<TripPlannerBloc>()
-                          .add(const TripPlannerPlanTripPressed());
+                          .add(const TripPlannerPlanTripRequested());
                     },
                     gradientColors: const [
                       AppColors.primaryDarkColor,
@@ -124,6 +188,14 @@ class TripPlannerMobileView extends StatelessWidget {
                     fontSize: FontSizes.font14Sp,
                     cornerRadius: 24.r,
                   ),
+                  if (state.planError != null && !state.planLoading) ...[
+                    12.verticalSpace,
+                    _TripBanner(
+                      color: AppColors.redColor,
+                      icon: Icons.error_outline_rounded,
+                      text: state.planError!,
+                    ),
+                  ],
                   // 12.verticalSpace,
                   // PrimaryButtonWidget(
                   //   text: 'Plan Trip',
@@ -194,6 +266,15 @@ class TripPlannerMobileView extends StatelessWidget {
                   // ),
                   if (state.tripPlanned) ...[
                     16.verticalSpace,
+                    if (state.feasible == false) ...[
+                      _TripBanner(
+                        color: AppColors.ratingStarColor,
+                        icon: Icons.warning_amber_rounded,
+                        text: state.apiPlan?.message ??
+                            'This trip cannot be completed with the available enroute chargers. Showing the partial route reached.',
+                      ),
+                      16.verticalSpace,
+                    ],
                     // TripRouteOptionsSectionWidget(
                     //   routePlans: state.routePlans,
                     //   selectedRouteIndex: state.selectedRouteIndex,
@@ -246,6 +327,20 @@ class TripPlannerMobileView extends StatelessWidget {
                       formatDuration: bloc.formatDuration,
                       formatPkr: bloc.formatPkr,
                     ),
+                    16.verticalSpace,
+                    PrimaryButtonWidget(
+                      text: state.saving ? 'Saving…' : 'Save Trip',
+                      isEnabled: !state.saving,
+                      onPress: () => context
+                          .read<TripPlannerBloc>()
+                          .add(const TripPlannerSaveTripRequested()),
+                      buttonColor: ui.cardBackground,
+                      strokeColor: ui.inputBorder,
+                      textColor: ui.textPrimary,
+                      fontWeight: FontWeights.weight700,
+                      fontSize: FontSizes.font14Sp,
+                      cornerRadius: 24.r,
+                    ),
                     22.verticalSpace,
                   ],
                   24.verticalSpace,
@@ -254,6 +349,46 @@ class TripPlannerMobileView extends StatelessWidget {
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+/// Inline status banner for plan errors (red) and the feasible:false warning.
+class _TripBanner extends StatelessWidget {
+  const _TripBanner({
+    required this.color,
+    required this.icon,
+    required this.text,
+  });
+
+  final Color color;
+  final IconData icon;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: AppUtils.vertical10Horizontal12Padding,
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(10.r),
+        border: Border.all(color: color),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: color, size: 18.sp),
+          8.horizontalSpace,
+          Expanded(
+            child: AppText(
+              text,
+              color: color,
+              fontSize: FontSizes.font12Sp,
+              fontWeight: FontWeights.weight500,
+            ),
+          ),
+        ],
       ),
     );
   }

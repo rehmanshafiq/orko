@@ -4,20 +4,43 @@ import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/utils/app_storage/app_storage.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
+import 'package:orko_hubco/features/vehicle/domain/entities/user_vehicle_entity.dart';
 
 class TripEvDetailsCardWidget extends StatelessWidget {
   const TripEvDetailsCardWidget({
     required this.currentBatteryPercent,
+    this.vehicle,
     super.key,
   });
 
   final double currentBatteryPercent;
 
+  /// The vehicle selected in the dropdown. When null, make/model/range show
+  /// placeholders.
+  final UserVehicleEntity? vehicle;
+
+  String _trimNum(double value) {
+    if (value == value.roundToDouble()) return value.toInt().toString();
+    return value.toStringAsFixed(1);
+  }
+
   @override
   Widget build(BuildContext context) {
     final ui = AppUiColors.of(context);
-    // Guests have no registered EV, so make/model and range are unavailable.
+    // Guests have no registered EV; without a selected vehicle, show '-'.
     final isGuest = AppStorage.isGuest;
+    final v = vehicle;
+    final hasVehicle = !isGuest && v != null;
+
+    final makeValue = hasVehicle
+        ? (v.makeName.trim().isNotEmpty ? v.makeName.trim() : v.displayName)
+        : '-';
+    final modelValue =
+        hasVehicle && v.modelName.trim().isNotEmpty ? v.modelName.trim() : '-';
+    final rangeValue = (hasVehicle && v.range != null && v.range! > 0)
+        ? '${_trimNum(v.range!)} km'
+        : '-';
+
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 14.h),
       decoration: BoxDecoration(
@@ -42,15 +65,15 @@ class TripEvDetailsCardWidget extends StatelessWidget {
                   size: 26.sp,
                   color: ui.brandSecondary,
                 ),
-                value: isGuest ? '-' : 'BYD',
-                label: isGuest ? '-' : 'Atto 3',
+                value: makeValue,
+                label: modelValue,
               ),
             ),
             _SectionDivider(color: ui.borderSubtle),
             Expanded(
               child: _TripEvMetric(
                 icon: _RangeGlyph(roadColor: ui.brandSecondary),
-                value: isGuest ? '-' : '280 km',
+                value: rangeValue,
                 label: 'range',
               ),
             ),
