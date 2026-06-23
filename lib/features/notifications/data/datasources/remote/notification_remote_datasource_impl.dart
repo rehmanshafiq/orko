@@ -5,6 +5,7 @@ import 'package:orko_hubco/core/error/exceptions.dart';
 import 'package:orko_hubco/core/network/api_client.dart';
 import 'package:orko_hubco/features/notifications/data/datasources/remote/notification_remote_datasource.dart';
 import 'package:orko_hubco/features/notifications/data/models/notification_page_model.dart';
+import 'package:orko_hubco/features/notifications/data/models/notification_preferences_model.dart';
 import 'package:orko_hubco/features/remote_config/data/models/remote_config_model.dart';
 import 'package:orko_hubco/features/remote_config/data/services/remote_config_service.dart';
 
@@ -19,6 +20,8 @@ class NotificationRemoteDataSourceImpl implements NotificationRemoteDataSource {
       'api/v1/notifications/unread-count/';
   static const String _markAllReadFallback =
       'api/v1/notifications/mark-all-read/';
+  static const String _preferencesFallback =
+      'api/v1/notifications/preferences/';
 
   @override
   Future<NotificationPageModel> getNotifications({
@@ -82,6 +85,47 @@ class NotificationRemoteDataSourceImpl implements NotificationRemoteDataSource {
       _ensureOk(response, fallback: 'Failed to mark all notifications read');
       return true;
     });
+  }
+
+  @override
+  Future<NotificationPreferencesModel> getPreferences() async {
+    return _guard('preferences-get', () async {
+      final url = _resolveUrl(
+        _endpoint((e) => e.notificationsPreferences, _preferencesFallback),
+      );
+      log('[Notifications] Preferences GET URL: $url');
+
+      final response = await apiClient.get(url);
+      _ensureOk(response, fallback: 'Failed to load notification preferences');
+      return _parsePreferences(response.data);
+    });
+  }
+
+  @override
+  Future<NotificationPreferencesModel> updatePreferences(
+    Map<String, bool> changes,
+  ) async {
+    return _guard('preferences-patch', () async {
+      final url = _resolveUrl(
+        _endpoint((e) => e.notificationsPreferences, _preferencesFallback),
+      );
+      log('[Notifications] Preferences PATCH URL: $url body: $changes');
+
+      final response = await apiClient.patch(url, data: changes);
+      _ensureOk(response, fallback: 'Failed to update notification preferences');
+      return _parsePreferences(response.data);
+    });
+  }
+
+  NotificationPreferencesModel _parsePreferences(dynamic data) {
+    if (data is! Map) {
+      throw const ServerException(
+        message: 'Failed to read notification preferences',
+      );
+    }
+    return NotificationPreferencesModel.fromJson(
+      Map<String, dynamic>.from(data),
+    );
   }
 
   /// The notifications list base path (also the root for `mark-read`).

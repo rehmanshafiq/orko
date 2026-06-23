@@ -24,6 +24,9 @@ import 'package:orko_hubco/core/utils/widgets/primary_button_widget.dart';
 import 'package:orko_hubco/features/auth/data/models/user_model.dart';
 import 'package:orko_hubco/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:orko_hubco/features/auth/presentation/cubit/auth_state.dart';
+import 'package:orko_hubco/features/notifications/domain/entities/notification_preferences_entity.dart';
+import 'package:orko_hubco/features/notifications/presentation/cubit/notification_preferences_cubit.dart';
+import 'package:orko_hubco/features/notifications/presentation/cubit/notification_preferences_state.dart';
 import 'package:orko_hubco/features/profile/domain/entities/profile_entity.dart';
 import 'package:orko_hubco/features/profile/presentation/cubit/profile_cubit.dart';
 import 'package:orko_hubco/features/profile/presentation/cubit/profile_state.dart';
@@ -106,7 +109,7 @@ class ProfileScreen extends StatelessWidget {
                           if (state.mainTab == ProfileMainTab.vehicles)
                             const _VehiclesTabBody(),
                           if (state.mainTab == ProfileMainTab.settings) ...[
-                            _SettingsTabBody(state: state),
+                            const _SettingsTabBody(),
                             24.verticalSpace,
                             Center(
                               child: BlocBuilder<AuthCubit, AuthState>(
@@ -2054,68 +2057,15 @@ class _VehicleStatBox extends StatelessWidget {
 }
 
 class _SettingsTabBody extends StatelessWidget {
-  const _SettingsTabBody({required this.state});
-
-  final ProfileLoaded state;
+  const _SettingsTabBody();
 
   @override
   Widget build(BuildContext context) {
-    final cubit = context.read<ProfileCubit>();
     final ui = AppUiColors.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _SectionCard(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(
-                    Icons.notifications_outlined,
-                    color: ui.textMuted,
-                    size: 20.r,
-                  ),
-                  8.horizontalSpace,
-                  AppText(
-                    'Notifications',
-                    color: ui.textPrimary,
-                    fontSize: FontSizes.font16Sp,
-                    fontWeight: FontWeights.weight700,
-                  ),
-                ],
-              ),
-              8.verticalSpace,
-              _NotificationRow(
-                title: 'Charging Updates',
-                subtitle: 'Get notified about charging status',
-                value: state.notifyChargingUpdates,
-                onChanged: cubit.setNotifyChargingUpdates,
-              ),
-              _DividerLine(),
-              _NotificationRow(
-                title: 'Booking Reminders',
-                subtitle: 'Reminders for upcoming bookings',
-                value: state.notifyBookingReminders,
-                onChanged: cubit.setNotifyBookingReminders,
-              ),
-              _DividerLine(),
-              _NotificationRow(
-                title: 'Promotional Offers',
-                subtitle: 'Special deals and discounts',
-                value: state.notifyPromotionalOffers,
-                onChanged: cubit.setNotifyPromotionalOffers,
-              ),
-              _DividerLine(),
-              _NotificationRow(
-                title: 'App Updates',
-                subtitle: 'New features and improvements',
-                value: state.notifyAppUpdates,
-                onChanged: cubit.setNotifyAppUpdates,
-              ),
-            ],
-          ),
-        ),
+        const _NotificationPreferencesSection(),
         14.verticalSpace,
         const _AppearanceSection(),
         14.verticalSpace,
@@ -2270,6 +2220,191 @@ class _LanguageChip extends StatelessWidget {
   }
 }
 
+/// Notifications card backed by the preferences API
+/// (`GET/PATCH /api/v1/notifications/preferences/`). Each toggle is optimistic
+/// and reverts on failure; rows lock individually while their PATCH is in
+/// flight. Guests are prompted to sign in.
+class _NotificationPreferencesSection extends StatelessWidget {
+  const _NotificationPreferencesSection();
+
+  @override
+  Widget build(BuildContext context) {
+    if (AppStorage.isGuest) {
+      return _SectionCard(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const _NotificationsHeader(),
+            12.verticalSpace,
+            AppText(
+              'Sign in to manage your notification preferences.',
+              color: AppUiColors.of(context).textSecondary,
+              fontSize: FontSizes.font13Sp,
+              fontWeight: FontWeights.weight400,
+            ),
+          ],
+        ),
+      );
+    }
+    return BlocProvider(
+      create: (_) => sl<NotificationPreferencesCubit>()..load(),
+      child: const _NotificationPreferencesView(),
+    );
+  }
+}
+
+class _NotificationsHeader extends StatelessWidget {
+  const _NotificationsHeader();
+
+  @override
+  Widget build(BuildContext context) {
+    final ui = AppUiColors.of(context);
+    return Row(
+      children: [
+        Icon(Icons.notifications_outlined, color: ui.textMuted, size: 20.r),
+        8.horizontalSpace,
+        AppText(
+          'Notifications',
+          color: ui.textPrimary,
+          fontSize: FontSizes.font16Sp,
+          fontWeight: FontWeights.weight700,
+        ),
+      ],
+    );
+  }
+}
+
+class _NotificationPreferencesView extends StatelessWidget {
+  const _NotificationPreferencesView();
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocConsumer<NotificationPreferencesCubit,
+        NotificationPreferencesState>(
+      listenWhen: (p, c) =>
+          p.actionError != c.actionError && c.actionError != null,
+      listener: (context, state) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(
+              content: Text(state.actionError!),
+              backgroundColor: AppColors.removeColor,
+            ),
+          );
+      },
+      builder: (context, state) {
+        return _SectionCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const _NotificationsHeader(),
+              8.verticalSpace,
+              _buildBody(context, AppUiColors.of(context), state),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildBody(
+    BuildContext context,
+    AppUiColors ui,
+    NotificationPreferencesState state,
+  ) {
+    final cubit = context.read<NotificationPreferencesCubit>();
+
+    switch (state.status) {
+      case NotificationPreferencesStatus.initial:
+      case NotificationPreferencesStatus.loading:
+        return Padding(
+          padding: EdgeInsets.symmetric(vertical: 28.h),
+          child: Center(
+            child: SizedBox(
+              width: 26.w,
+              height: 26.w,
+              child: CircularProgressIndicator(
+                strokeWidth: 2.4,
+                color: ui.brandPrimary,
+              ),
+            ),
+          ),
+        );
+
+      case NotificationPreferencesStatus.failure:
+        return Padding(
+          padding: EdgeInsets.symmetric(vertical: 16.h),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              AppText(
+                state.errorMessage ?? 'Could not load notification settings.',
+                color: ui.textSecondary,
+                fontSize: FontSizes.font13Sp,
+                fontWeight: FontWeights.weight400,
+              ),
+              8.verticalSpace,
+              GestureDetector(
+                onTap: cubit.load,
+                behavior: HitTestBehavior.opaque,
+                child: AppText(
+                  'Retry',
+                  color: ui.brandPrimary,
+                  fontSize: FontSizes.font13Sp,
+                  fontWeight: FontWeights.weight700,
+                ),
+              ),
+            ],
+          ),
+        );
+
+      case NotificationPreferencesStatus.success:
+        final prefs = state.preferences;
+        ValueChanged<bool>? handlerFor(NotificationPreferenceKey key) =>
+            state.isUpdating(key)
+                ? null
+                : (value) => cubit.toggle(key, value);
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _NotificationRow(
+              title: 'Charging Updates',
+              subtitle: 'Get notified about charging status',
+              value: prefs.chargingUpdates,
+              onChanged:
+                  handlerFor(NotificationPreferenceKey.chargingUpdates),
+            ),
+            _DividerLine(),
+            _NotificationRow(
+              title: 'Booking Reminders',
+              subtitle: 'Reminders for upcoming bookings',
+              value: prefs.bookingReminders,
+              onChanged:
+                  handlerFor(NotificationPreferenceKey.bookingReminders),
+            ),
+            _DividerLine(),
+            _NotificationRow(
+              title: 'Promotional Offers',
+              subtitle: 'Special deals and discounts',
+              value: prefs.promotionalOffers,
+              onChanged:
+                  handlerFor(NotificationPreferenceKey.promotionalOffers),
+            ),
+            _DividerLine(),
+            _NotificationRow(
+              title: 'App Updates',
+              subtitle: 'New features and improvements',
+              value: prefs.appUpdates,
+              onChanged: handlerFor(NotificationPreferenceKey.appUpdates),
+            ),
+          ],
+        );
+    }
+  }
+}
+
 class _NotificationRow extends StatelessWidget {
   const _NotificationRow({
     required this.title,
@@ -2281,7 +2416,9 @@ class _NotificationRow extends StatelessWidget {
   final String title;
   final String subtitle;
   final bool value;
-  final ValueChanged<bool> onChanged;
+
+  /// Null disables the row (e.g. while its PATCH is in flight).
+  final ValueChanged<bool>? onChanged;
 
   @override
   Widget build(BuildContext context) {

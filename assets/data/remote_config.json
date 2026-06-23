@@ -39,7 +39,8 @@
       "saved_trip_detail": "api/v1/trip-planning/trips/",
       "notifications": "api/v1/notifications/",
       "notifications_unread_count": "api/v1/notifications/unread-count/",
-      "notifications_mark_all_read": "api/v1/notifications/mark-all-read/"
+      "notifications_mark_all_read": "api/v1/notifications/mark-all-read/",
+      "notifications_preferences": "api/v1/notifications/preferences/"
     }
   }
 }

@@ -30,24 +30,4 @@ class ProfileCubit extends Cubit<ProfileState> {
     final s = state;
     if (s is ProfileLoaded) emit(s.copyWith(language: language));
   }
-
-  void setNotifyChargingUpdates(bool value) {
-    final s = state;
-    if (s is ProfileLoaded) emit(s.copyWith(notifyChargingUpdates: value));
-  }
-
-  void setNotifyBookingReminders(bool value) {
-    final s = state;
-    if (s is ProfileLoaded) emit(s.copyWith(notifyBookingReminders: value));
-  }
-
-  void setNotifyPromotionalOffers(bool value) {
-    final s = state;
-    if (s is ProfileLoaded) emit(s.copyWith(notifyPromotionalOffers: value));
-  }
-
-  void setNotifyAppUpdates(bool value) {
-    final s = state;
-    if (s is ProfileLoaded) emit(s.copyWith(notifyAppUpdates: value));
-  }
 }

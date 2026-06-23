@@ -1,4 +1,5 @@
 import 'package:orko_hubco/features/notifications/data/models/notification_page_model.dart';
+import 'package:orko_hubco/features/notifications/data/models/notification_preferences_model.dart';
 
 abstract class NotificationRemoteDataSource {
   Future<NotificationPageModel> getNotifications({
@@ -11,4 +12,10 @@ abstract class NotificationRemoteDataSource {
   Future<bool> markRead(int id);
 
   Future<bool> markAllRead();
+
+  Future<NotificationPreferencesModel> getPreferences();
+
+  Future<NotificationPreferencesModel> updatePreferences(
+    Map<String, bool> changes,
+  );
 }

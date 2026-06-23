@@ -148,6 +148,7 @@ class ApiEndpoints extends Equatable {
     required this.notifications,
     required this.notificationsUnreadCount,
     required this.notificationsMarkAllRead,
+    required this.notificationsPreferences,
   });
 
   final String chargingStationMap;
@@ -186,6 +187,7 @@ class ApiEndpoints extends Equatable {
   final String notifications;
   final String notificationsUnreadCount;
   final String notificationsMarkAllRead;
+  final String notificationsPreferences;
 
   factory ApiEndpoints.fromJson(Map<String, dynamic> json) {
     return ApiEndpoints(
@@ -229,6 +231,8 @@ class ApiEndpoints extends Equatable {
           json['notifications_unread_count'] as String? ?? '',
       notificationsMarkAllRead:
           json['notifications_mark_all_read'] as String? ?? '',
+      notificationsPreferences:
+          json['notifications_preferences'] as String? ?? '',
     );
   }
 
@@ -270,6 +274,7 @@ class ApiEndpoints extends Equatable {
       'notifications': notifications,
       'notifications_unread_count': notificationsUnreadCount,
       'notifications_mark_all_read': notificationsMarkAllRead,
+      'notifications_preferences': notificationsPreferences,
     };
   }
 
@@ -310,6 +315,7 @@ class ApiEndpoints extends Equatable {
     String? notifications,
     String? notificationsUnreadCount,
     String? notificationsMarkAllRead,
+    String? notificationsPreferences,
   }) {
     return ApiEndpoints(
       chargingStationMap: chargingStationMap ?? this.chargingStationMap,
@@ -354,6 +360,8 @@ class ApiEndpoints extends Equatable {
           notificationsUnreadCount ?? this.notificationsUnreadCount,
       notificationsMarkAllRead:
           notificationsMarkAllRead ?? this.notificationsMarkAllRead,
+      notificationsPreferences:
+          notificationsPreferences ?? this.notificationsPreferences,
     );
   }
 
@@ -395,5 +403,6 @@ class ApiEndpoints extends Equatable {
     notifications,
     notificationsUnreadCount,
     notificationsMarkAllRead,
+    notificationsPreferences,
   ];
 }

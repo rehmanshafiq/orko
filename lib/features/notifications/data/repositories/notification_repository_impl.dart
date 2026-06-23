@@ -4,6 +4,7 @@ import 'package:orko_hubco/core/network/network_info.dart';
 import 'package:orko_hubco/core/usecase/usecase.dart';
 import 'package:orko_hubco/features/notifications/data/datasources/remote/notification_remote_datasource.dart';
 import 'package:orko_hubco/features/notifications/domain/entities/notification_page_entity.dart';
+import 'package:orko_hubco/features/notifications/domain/entities/notification_preferences_entity.dart';
 import 'package:orko_hubco/features/notifications/domain/repositories/notification_repository.dart';
 
 class NotificationRepositoryImpl implements NotificationRepository {
@@ -38,6 +39,18 @@ class NotificationRepositoryImpl implements NotificationRepository {
   @override
   Future<Either<Failure, bool>> markAllRead() {
     return _run(() => remoteDataSource.markAllRead());
+  }
+
+  @override
+  Future<Either<Failure, NotificationPreferencesEntity>> getPreferences() {
+    return _run(() => remoteDataSource.getPreferences());
+  }
+
+  @override
+  Future<Either<Failure, NotificationPreferencesEntity>> updatePreferences(
+    Map<String, bool> changes,
+  ) {
+    return _run(() => remoteDataSource.updatePreferences(changes));
   }
 
   /// Shared connectivity guard + exception→failure mapping for every call.
