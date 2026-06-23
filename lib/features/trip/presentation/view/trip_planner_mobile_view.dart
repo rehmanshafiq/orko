@@ -11,23 +11,28 @@ import 'package:orko_hubco/core/utils/widgets/primary_button_widget.dart';
 import 'package:orko_hubco/features/trip/presentation/bloc/trip_planner_bloc.dart';
 import 'package:orko_hubco/features/trip/presentation/bloc/trip_planner_event.dart';
 import 'package:orko_hubco/features/trip/presentation/bloc/trip_planner_state.dart';
-import 'package:orko_hubco/features/trip/presentation/widgets/trip_battery_sliders_widget.dart';
 import 'package:orko_hubco/features/trip/presentation/widgets/trip_charging_stops_section_widget.dart';
 import 'package:orko_hubco/features/trip/presentation/widgets/trip_current_battery_slider_widget.dart';
 import 'package:orko_hubco/features/trip/presentation/widgets/trip_ev_details_card_widget.dart';
 import 'package:orko_hubco/features/trip/presentation/widgets/trip_header_widget.dart';
 import 'package:orko_hubco/features/trip/presentation/widgets/trip_location_field_widget.dart';
 import 'package:orko_hubco/features/trip/presentation/widgets/trip_map_card_widget.dart';
-import 'package:orko_hubco/features/trip/presentation/widgets/trip_route_options_section_widget.dart';
-import 'package:orko_hubco/features/trip/presentation/widgets/trip_route_suggestion_card_widget.dart';
 import 'package:orko_hubco/features/trip/presentation/widgets/trip_section_title_widget.dart';
 import 'package:orko_hubco/features/trip/presentation/widgets/trip_summary_card_widget.dart';
 import 'package:orko_hubco/features/trip/presentation/widgets/trip_vehicle_dropdown_widget.dart';
-import 'package:orko_hubco/features/trip/presentation/widgets/silver_metallic_button_widget.dart';
 import 'package:orko_hubco/features/trip/presentation/view/saved_trips_view.dart';
 
-class TripPlannerMobileView extends StatelessWidget {
+class TripPlannerMobileView extends StatefulWidget {
   const TripPlannerMobileView({super.key});
+
+  @override
+  State<TripPlannerMobileView> createState() => _TripPlannerMobileViewState();
+}
+
+class _TripPlannerMobileViewState extends State<TripPlannerMobileView> {
+  /// Drives the planned-trip body: the route map (true) or the stops list.
+  /// Toggled via the Map/List switch inside [TripSummaryCardWidget].
+  bool _isMapView = true;
 
   @override
   Widget build(BuildContext context) {
@@ -40,11 +45,17 @@ class TripPlannerMobileView extends StatelessWidget {
           final messenger = ScaffoldMessenger.of(context);
           if (state.saveSuccess) {
             messenger.showSnackBar(
-              const SnackBar(content: Text('Trip plan saved successfully.')),
+              const SnackBar(
+                content: Text('Trip plan saved successfully.'),
+                backgroundColor: AppColors.primaryDarkColor,
+              ),
             );
           } else if (state.saveError != null) {
             messenger.showSnackBar(
-              SnackBar(content: Text(state.saveError!)),
+              SnackBar(
+                content: Text(state.saveError!),
+                backgroundColor: AppColors.removeColor,
+              ),
             );
           }
         },
@@ -275,45 +286,37 @@ class TripPlannerMobileView extends StatelessWidget {
                       ),
                       16.verticalSpace,
                     ],
-                    // TripRouteOptionsSectionWidget(
-                    //   routePlans: state.routePlans,
-                    //   selectedRouteIndex: state.selectedRouteIndex,
-                    //   onRouteSelected: (index) => context
-                    //       .read<TripPlannerBloc>()
-                    //       .add(TripPlannerRouteSelected(index)),
-                    //   formatDuration: bloc.formatDuration,
-                    //   formatPkr: bloc.formatPkr,
-                    // ),
-                    // 12.verticalSpace,
-                    TripMapCardWidget(
-                      plan: state.currentPlan,
-                      startIcon: state.startIcon,
-                      endIcon: state.endIcon,
-                      stopIcon: state.stopIcon,
-                      darkMapStyle: TripPlannerBloc.darkMapStyle,
-                      onMapCreated: (controller) => context
-                          .read<TripPlannerBloc>()
-                          .add(TripPlannerMapCreated(controller)),
-                    ),
-                    16.verticalSpace,
-                    TripChargingStopsSectionWidget(
-                      plan: state.currentPlan,
-                      currentBatteryPercent: state.currentBatteryPercent,
-                      targetArrivalBatteryPercent: state.targetArrivalBatteryPercent,
-                      expandedChargingStopIndex: state.expandedChargingStopIndex,
-                      onToggleChargingStop: (index) => context
-                          .read<TripPlannerBloc>()
-                          .add(TripPlannerChargingStopExpanded(index)),
-                      onViewDetails: (index) => bloc.openChargingStationDetails(
-                        context,
-                        station: state.currentPlan!.stops[index],
+                    if (_isMapView)
+                      TripMapCardWidget(
+                        plan: state.currentPlan,
+                        startIcon: state.startIcon,
+                        endIcon: state.endIcon,
+                        stopIcon: state.stopIcon,
+                        darkMapStyle: TripPlannerBloc.darkMapStyle,
+                        onMapCreated: (controller) => context
+                            .read<TripPlannerBloc>()
+                            .add(TripPlannerMapCreated(controller)),
+                      )
+                    else
+                      TripChargingStopsSectionWidget(
+                        plan: state.currentPlan,
+                        currentBatteryPercent: state.currentBatteryPercent,
+                        targetArrivalBatteryPercent:
+                            state.targetArrivalBatteryPercent,
+                        expandedChargingStopIndex: state.expandedChargingStopIndex,
+                        onToggleChargingStop: (index) => context
+                            .read<TripPlannerBloc>()
+                            .add(TripPlannerChargingStopExpanded(index)),
+                        onViewDetails: (index) => bloc.openChargingStationDetails(
+                          context,
+                          station: state.currentPlan!.stops[index],
+                        ),
+                        onPreBook: (index) => bloc.openPreBook(
+                          context,
+                          station: state.currentPlan!.stops[index],
+                        ),
+                        formatPkr: bloc.formatPkr,
                       ),
-                      onPreBook: (index) => bloc.openPreBook(
-                        context,
-                        station: state.currentPlan!.stops[index],
-                      ),
-                      formatPkr: bloc.formatPkr,
-                    ),
                     16.verticalSpace,
                     // TripRouteSuggestionCardWidget(
                     //   fastestPlan: state.routePlans[0],
@@ -326,6 +329,17 @@ class TripPlannerMobileView extends StatelessWidget {
                       plan: state.currentPlan,
                       formatDuration: bloc.formatDuration,
                       formatPkr: bloc.formatPkr,
+                      isMapView: _isMapView,
+                      onViewModeChanged: (isMapView) {
+                        if (isMapView == _isMapView) return;
+                        setState(() => _isMapView = isMapView);
+                        // Returning to the map rebuilds it — re-frame the route.
+                        if (isMapView) {
+                          context
+                              .read<TripPlannerBloc>()
+                              .add(const TripPlannerFitMapRoute());
+                        }
+                      },
                     ),
                     16.verticalSpace,
                     PrimaryButtonWidget(
@@ -334,9 +348,11 @@ class TripPlannerMobileView extends StatelessWidget {
                       onPress: () => context
                           .read<TripPlannerBloc>()
                           .add(const TripPlannerSaveTripRequested()),
-                      buttonColor: ui.cardBackground,
-                      strokeColor: ui.inputBorder,
-                      textColor: ui.textPrimary,
+                      gradientColors: const [
+                        AppColors.primaryDarkColor,
+                        AppColors.primaryDarkButtonColor,
+                      ],
+                      textColor: AppColors.whiteColor,
                       fontWeight: FontWeights.weight700,
                       fontSize: FontSizes.font14Sp,
                       cornerRadius: 24.r,
