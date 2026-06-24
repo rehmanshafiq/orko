@@ -173,6 +173,9 @@ class BookSlotMobileView extends StatelessWidget {
       AuthRequiredDialog.show(context);
       return;
     }
+    // The vehicle is chosen earlier by the compatibility gate (station detail
+    // screen) and arrives here as `state.vehicleId`, which submitBooking sends
+    // as `vehicle_id`. No vehicle picker is shown on this screen.
     cubit.submitBooking();
   }
 

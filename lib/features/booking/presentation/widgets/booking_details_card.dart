@@ -59,7 +59,7 @@ class BookingDetailsCard extends StatelessWidget {
           12.verticalSpace,
           BookingDetailRow(
             ui: ui,
-            label: 'Amount paid',
+            label: 'Amount',
             value: 'Rs $amountPaid',
           ),
           if (paymentLabel != null) ...[
