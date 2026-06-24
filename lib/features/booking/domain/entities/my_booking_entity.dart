@@ -85,6 +85,8 @@ class MyBookingEntity extends Equatable {
   bool get isRescheduledCopy => reschedule == 1;
   bool get isApproved => bookingStatus.toLowerCase() == 'approved';
   bool get isCancelled => bookingStatus.toLowerCase() == 'cancelled';
+  bool get isPendingApproval =>
+      bookingStatus.toLowerCase() == 'pending_approval';
 
   /// Hubco locations have a null `station_name`; fall back to `location_name`.
   String get displayName =>

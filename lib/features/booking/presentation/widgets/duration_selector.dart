@@ -36,30 +36,30 @@ class DurationSelector extends StatelessWidget {
           fontSize: FontSizes.font14Sp,
           fontWeight: FontWeights.weight700,
         ),
-        Row(
-          children: [
-            _RoundIconButton(
-              ui: ui,
-              icon: Icons.remove,
-              enabled: canDecrease,
-              onTap: onDecrease,
-            ),
-            10.horizontalSpace,
-            AppText(
-              durationHours == 1 ? '1 hour' : '$durationHours hours',
-              color: ui.textPrimary,
-              fontSize: FontSizes.font12Sp,
-              fontWeight: FontWeights.weight500,
-            ),
-            10.horizontalSpace,
-            _RoundIconButton(
-              ui: ui,
-              icon: Icons.add,
-              enabled: canIncrease,
-              onTap: onIncrease,
-            ),
-          ],
-        ),
+        // Row(
+        //   children: [
+        //     _RoundIconButton(
+        //       ui: ui,
+        //       icon: Icons.remove,
+        //       enabled: canDecrease,
+        //       onTap: onDecrease,
+        //     ),
+        //     10.horizontalSpace,
+        //     AppText(
+        //       durationHours == 1 ? '1 hour' : '$durationHours hours',
+        //       color: ui.textPrimary,
+        //       fontSize: FontSizes.font12Sp,
+        //       fontWeight: FontWeights.weight500,
+        //     ),
+        //     10.horizontalSpace,
+        //     _RoundIconButton(
+        //       ui: ui,
+        //       icon: Icons.add,
+        //       enabled: canIncrease,
+        //       onTap: onIncrease,
+        //     ),
+        //   ],
+        // ),
       ],
     );
   }

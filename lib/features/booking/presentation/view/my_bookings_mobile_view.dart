@@ -205,7 +205,6 @@ class _UpcomingTab extends StatelessWidget {
   Widget build(BuildContext context) {
     final filter = state.upcomingFilter;
     final bookings = state.upcomingForFilter;
-    final isCancelledTab = filter == UpcomingFilter.cancelled;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -228,15 +227,9 @@ class _UpcomingTab extends StatelessWidget {
                   children: [
                     BookingEmptyState(
                       ui: ui,
-                      icon: isCancelledTab
-                          ? Icons.event_busy_outlined
-                          : Icons.calendar_today_outlined,
-                      title: isCancelledTab
-                          ? 'No Cancelled Bookings'
-                          : 'No Upcoming Bookings',
-                      subtitle: isCancelledTab
-                          ? "You don't have any cancelled bookings"
-                          : "You don't have any upcoming reservations",
+                      icon: _emptyIcon(filter),
+                      title: _emptyTitle(filter),
+                      subtitle: _emptySubtitle(filter),
                       accentColor: ui.brandPrimary,
                       iconOutlined: true,
                     ),
@@ -249,13 +242,16 @@ class _UpcomingTab extends StatelessWidget {
                   separatorBuilder: (_, __) => 14.verticalSpace,
                   itemBuilder: (context, index) {
                     final booking = bookings[index];
-                    // Cancelled bookings are read-only — no modify/cancel/scan.
-                    final showActions = !booking.isCancelled;
+                    // Scan/Modify only apply to approved bookings. Pending ones
+                    // can still be cancelled (gated by canCancel); cancelled
+                    // ones are read-only.
+                    final isApproved = booking.isApproved;
                     return UpcomingBookingCard(
                       ui: ui,
                       booking: booking,
                       isProcessing: state.isActionInProgress(booking.id),
-                      showActions: showActions,
+                      showScanQr: isApproved,
+                      showModify: isApproved,
                       onModify: () => _openReschedule(context, cubit, booking),
                       onCancel: () => _confirmCancel(context, cubit, booking),
                       onScanQr: () => _scanBookingQrCode(context, booking),
@@ -265,6 +261,39 @@ class _UpcomingTab extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  IconData _emptyIcon(UpcomingFilter filter) {
+    switch (filter) {
+      case UpcomingFilter.approved:
+        return Icons.calendar_today_outlined;
+      case UpcomingFilter.pendingApproval:
+        return Icons.hourglass_empty_rounded;
+      case UpcomingFilter.cancelled:
+        return Icons.event_busy_outlined;
+    }
+  }
+
+  String _emptyTitle(UpcomingFilter filter) {
+    switch (filter) {
+      case UpcomingFilter.approved:
+        return 'No Upcoming Bookings';
+      case UpcomingFilter.pendingApproval:
+        return 'No Pending Bookings';
+      case UpcomingFilter.cancelled:
+        return 'No Cancelled Bookings';
+    }
+  }
+
+  String _emptySubtitle(UpcomingFilter filter) {
+    switch (filter) {
+      case UpcomingFilter.approved:
+        return "You don't have any upcoming reservations";
+      case UpcomingFilter.pendingApproval:
+        return "You don't have any bookings awaiting approval";
+      case UpcomingFilter.cancelled:
+        return "You don't have any cancelled bookings";
+    }
   }
 }
 

@@ -15,14 +15,16 @@ extension BookingTabX on BookingTab {
 }
 
 /// Sub-tabs within the Upcoming tab, filtering the my-bookings list by
-/// `booking_status` (`approved` vs `cancelled`).
-enum UpcomingFilter { approved, cancelled }
+/// `booking_status` (`approved`, `pending_approval`, `cancelled`).
+enum UpcomingFilter { approved, pendingApproval, cancelled }
 
 extension UpcomingFilterX on UpcomingFilter {
   String get label {
     switch (this) {
       case UpcomingFilter.approved:
         return 'Approved';
+      case UpcomingFilter.pendingApproval:
+        return 'Pending';
       case UpcomingFilter.cancelled:
         return 'Cancelled';
     }

@@ -16,7 +16,8 @@ class UpcomingBookingCard extends StatelessWidget {
     required this.onCancel,
     required this.onScanQr,
     this.isProcessing = false,
-    this.showActions = true,
+    this.showScanQr = true,
+    this.showModify = true,
   });
 
   final AppUiColors ui;
@@ -28,9 +29,13 @@ class UpcomingBookingCard extends StatelessWidget {
   /// True while a cancel/reschedule call for this booking is in flight.
   final bool isProcessing;
 
-  /// When false (e.g. cancelled bookings), the Scan QR / Modify / Cancel
-  /// controls are hidden and the card renders as a read-only summary.
-  final bool showActions;
+  /// Whether to show the "Scan QR Code" button (only for approved bookings).
+  final bool showScanQr;
+
+  /// Whether to show the "Modify" button (only for approved bookings).
+  /// The "Cancel" button is shown independently when [MyBookingEntity.canCancel]
+  /// is true, so pending bookings can still be cancelled.
+  final bool showModify;
 
   String get _powerLabel {
     final info = booking.chargerInfo;
@@ -44,9 +49,14 @@ class UpcomingBookingCard extends StatelessWidget {
   }
 
   String get _statusLabel {
-    final s = booking.bookingStatus;
+    final s = booking.bookingStatus.trim();
     if (s.isEmpty) return '—';
-    return s[0].toUpperCase() + s.substring(1);
+    // Turn `pending_approval` → `Pending Approval`, `approved` → `Approved`.
+    return s
+        .split('_')
+        .where((w) => w.isNotEmpty)
+        .map((w) => w[0].toUpperCase() + w.substring(1))
+        .join(' ');
   }
 
   String get _costLabel {
@@ -182,7 +192,8 @@ class UpcomingBookingCard extends StatelessWidget {
               ],
             ),
           ),
-          if (showActions) ...[
+          // Scan QR (approved only).
+          if (showScanQr) ...[
             16.verticalSpace,
             PrimaryButtonWidget(
               text: 'Scan QR Code',
@@ -198,6 +209,9 @@ class UpcomingBookingCard extends StatelessWidget {
               fontSize: FontSizes.font14Sp,
               fontWeight: FontWeights.weight700,
             ),
+          ],
+          // Modify / Cancel row — rendered only if at least one is available.
+          if (showModify || booking.canCancel) ...[
             16.verticalSpace,
             if (isProcessing)
               Center(
@@ -216,21 +230,22 @@ class UpcomingBookingCard extends StatelessWidget {
             else
               Row(
                 children: [
-                  Expanded(
-                    child: PrimaryButtonWidget(
-                      text: 'Modify',
-                      onPress: onModify,
-                      buttonHeight: 38.h,
-                      cornerRadius: 12.r,
-                      strokeColor: ui.iconContainerOutline,
-                      buttonColor: ui.cardBackground,
-                      textColor: ui.textPrimary,
-                      fontSize: FontSizes.font14Sp,
-                      fontWeight: FontWeights.weight700,
+                  if (showModify)
+                    Expanded(
+                      child: PrimaryButtonWidget(
+                        text: 'Modify',
+                        onPress: onModify,
+                        buttonHeight: 38.h,
+                        cornerRadius: 12.r,
+                        strokeColor: ui.iconContainerOutline,
+                        buttonColor: ui.cardBackground,
+                        textColor: ui.textPrimary,
+                        fontSize: FontSizes.font14Sp,
+                        fontWeight: FontWeights.weight700,
+                      ),
                     ),
-                  ),
-                  if (booking.canCancel) ...[
-                    12.horizontalSpace,
+                  if (showModify && booking.canCancel) 12.horizontalSpace,
+                  if (booking.canCancel)
                     Expanded(
                       child: PrimaryButtonWidget(
                         text: 'Cancel',
@@ -244,7 +259,6 @@ class UpcomingBookingCard extends StatelessWidget {
                         fontWeight: FontWeights.weight700,
                       ),
                     ),
-                  ],
                 ],
               ),
           ],
