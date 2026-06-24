@@ -16,6 +16,7 @@ class UpcomingBookingCard extends StatelessWidget {
     required this.onCancel,
     required this.onScanQr,
     this.isProcessing = false,
+    this.showActions = true,
   });
 
   final AppUiColors ui;
@@ -26,6 +27,10 @@ class UpcomingBookingCard extends StatelessWidget {
 
   /// True while a cancel/reschedule call for this booking is in flight.
   final bool isProcessing;
+
+  /// When false (e.g. cancelled bookings), the Scan QR / Modify / Cancel
+  /// controls are hidden and the card renders as a read-only summary.
+  final bool showActions;
 
   String get _powerLabel {
     final info = booking.chargerInfo;
@@ -177,70 +182,72 @@ class UpcomingBookingCard extends StatelessWidget {
               ],
             ),
           ),
-          16.verticalSpace,
-          PrimaryButtonWidget(
-            text: 'Scan QR Code',
-            leadingIcon: Icons.qr_code_scanner_rounded,
-            onPress: onScanQr,
-            isEnabled: !isProcessing,
-            buttonHeight: 38.h,
-            cornerRadius: 24.r,
-            gradientColors: const [
-              AppColors.primaryDarkColor,
-              AppColors.primaryDarkButtonColor,
-            ],
-            fontSize: FontSizes.font14Sp,
-            fontWeight: FontWeights.weight700,
-          ),
-          16.verticalSpace,
-          if (isProcessing)
-            Center(
-              child: Padding(
-                padding: EdgeInsets.symmetric(vertical: 6.h),
-                child: SizedBox(
-                  width: 22.w,
-                  height: 22.w,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2.4,
-                    color: ui.brandPrimary,
+          if (showActions) ...[
+            16.verticalSpace,
+            PrimaryButtonWidget(
+              text: 'Scan QR Code',
+              leadingIcon: Icons.qr_code_scanner_rounded,
+              onPress: onScanQr,
+              isEnabled: !isProcessing,
+              buttonHeight: 38.h,
+              cornerRadius: 24.r,
+              gradientColors: const [
+                AppColors.primaryDarkColor,
+                AppColors.primaryDarkButtonColor,
+              ],
+              fontSize: FontSizes.font14Sp,
+              fontWeight: FontWeights.weight700,
+            ),
+            16.verticalSpace,
+            if (isProcessing)
+              Center(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(vertical: 6.h),
+                  child: SizedBox(
+                    width: 22.w,
+                    height: 22.w,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.4,
+                      color: ui.brandPrimary,
+                    ),
                   ),
                 ),
-              ),
-            )
-          else
-            Row(
-              children: [
-                Expanded(
-                  child: PrimaryButtonWidget(
-                    text: 'Modify',
-                    onPress: onModify,
-                    buttonHeight: 38.h,
-                    cornerRadius: 12.r,
-                    strokeColor: ui.iconContainerOutline,
-                    buttonColor: ui.cardBackground,
-                    textColor: ui.textPrimary,
-                    fontSize: FontSizes.font14Sp,
-                    fontWeight: FontWeights.weight700,
-                  ),
-                ),
-                if (booking.canCancel) ...[
-                  12.horizontalSpace,
+              )
+            else
+              Row(
+                children: [
                   Expanded(
                     child: PrimaryButtonWidget(
-                      text: 'Cancel',
-                      onPress: onCancel,
+                      text: 'Modify',
+                      onPress: onModify,
                       buttonHeight: 38.h,
                       cornerRadius: 12.r,
-                      strokeColor: AppColors.removeColor,
+                      strokeColor: ui.iconContainerOutline,
                       buttonColor: ui.cardBackground,
-                      textColor: AppColors.removeColor,
+                      textColor: ui.textPrimary,
                       fontSize: FontSizes.font14Sp,
                       fontWeight: FontWeights.weight700,
                     ),
                   ),
+                  if (booking.canCancel) ...[
+                    12.horizontalSpace,
+                    Expanded(
+                      child: PrimaryButtonWidget(
+                        text: 'Cancel',
+                        onPress: onCancel,
+                        buttonHeight: 38.h,
+                        cornerRadius: 12.r,
+                        strokeColor: AppColors.removeColor,
+                        buttonColor: ui.cardBackground,
+                        textColor: AppColors.removeColor,
+                        fontSize: FontSizes.font14Sp,
+                        fontWeight: FontWeights.weight700,
+                      ),
+                    ),
+                  ],
                 ],
-              ],
-            ),
+              ),
+          ],
         ],
       ),
     );

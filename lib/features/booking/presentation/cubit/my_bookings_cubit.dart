@@ -33,6 +33,13 @@ class MyBookingsCubit extends Cubit<MyBookingsState> {
   final CancelBookingUseCase _cancelBookingUseCase;
   final RescheduleBookingUseCase _rescheduleBookingUseCase;
 
+  /// Switches the Approved/Cancelled sub-tab within the Upcoming tab. Both lists
+  /// are derived from the already-loaded my-bookings data, so no refetch needed.
+  void selectUpcomingFilter(UpcomingFilter filter) {
+    if (filter == state.upcomingFilter) return;
+    emit(state.copyWith(upcomingFilter: filter));
+  }
+
   void selectTab(BookingTab tab) {
     emit(state.copyWith(selectedTab: tab));
     // Refresh from the my_bookings API every time the Upcoming tab is opened.

@@ -57,12 +57,14 @@ class BookingRepositoryImpl implements BookingRepository {
     required String bookingDate,
     required String startTime,
     required int location,
+    int? vehicleId,
   }) {
     return _run(
       () => remoteDataSource.createBookingHgl(
         bookingDate: bookingDate,
         startTime: startTime,
         location: location,
+        vehicleId: vehicleId,
       ),
     );
   }

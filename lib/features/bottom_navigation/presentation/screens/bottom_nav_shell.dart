@@ -14,6 +14,22 @@ class BottomNavShell extends StatelessWidget {
 
   const BottomNavShell({super.key, required this.navigationShell});
 
+  /// Branch index of the Bookings tab.
+  static const int bookingsBranchIndex = 2;
+
+  /// Branch index of the Trip tab.
+  static const int tripBranchIndex = 3;
+
+  /// Bumped every time the Trip tab is tapped. The Trip branch keys its page off
+  /// this so the screen is rebuilt from scratch (fresh bloc + reload) on each
+  /// tap, instead of showing the state preserved by the indexed-stack shell.
+  static final ValueNotifier<int> tripRefreshTick = ValueNotifier<int>(0);
+
+  /// Bumped every time the Bookings tab is tapped, so the screen is rebuilt and
+  /// always lands on the Active tab (see MyBookingsPage) instead of the sub-tab
+  /// the user last left selected.
+  static final ValueNotifier<int> bookingsRefreshTick = ValueNotifier<int>(0);
+
   @override
   Widget build(BuildContext context) {
     final ui = AppUiColors.of(context);
@@ -90,6 +106,14 @@ class BottomNavShell extends StatelessWidget {
   }
 
   void _onTapBranch(int index) {
+    // Always rebuild the Trip screen when its tab is tapped.
+    if (index == tripBranchIndex) {
+      tripRefreshTick.value++;
+    }
+    // Always rebuild Bookings so it reopens on the Active tab.
+    if (index == bookingsBranchIndex) {
+      bookingsRefreshTick.value++;
+    }
     navigationShell.goBranch(
       index,
       initialLocation: index == navigationShell.currentIndex,

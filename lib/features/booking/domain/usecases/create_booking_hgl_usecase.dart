@@ -16,6 +16,7 @@ class CreateBookingHglUseCase
       bookingDate: params.bookingDate,
       startTime: params.startTime,
       location: params.location,
+      vehicleId: params.vehicleId,
     );
   }
 }
@@ -25,9 +26,13 @@ class CreateBookingHglParams {
     required this.bookingDate,
     required this.startTime,
     required this.location,
+    this.vehicleId,
   });
 
   final String bookingDate;
   final String startTime;
   final int location;
+
+  /// User vehicle resolved by the compatibility gate; sent as `vehicle_id`.
+  final int? vehicleId;
 }

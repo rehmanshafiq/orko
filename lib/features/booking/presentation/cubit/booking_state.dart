@@ -15,6 +15,7 @@ enum BookingSubmitStatus { idle, submitting, success, failure }
 class BookingState extends Equatable {
   const BookingState({
     this.locationId,
+    this.vehicleId,
     this.stationName,
     this.stationAddress,
     this.chargerStatus = ChargerStatus.initial,
@@ -36,6 +37,11 @@ class BookingState extends Equatable {
   /// Charging location id required by every booking call. Null when the screen
   /// was opened without a station (legacy navigation) → booking is disabled.
   final int? locationId;
+
+  /// User vehicle resolved by the compatibility gate; sent as `vehicle_id` in
+  /// the create-booking request. Null when the screen is opened without a
+  /// resolved vehicle (e.g. trip planner) → `vehicle_id` is omitted.
+  final int? vehicleId;
   final String? stationName;
   final String? stationAddress;
 
@@ -92,6 +98,7 @@ class BookingState extends Equatable {
 
   BookingState copyWith({
     int? locationId,
+    int? vehicleId,
     String? stationName,
     String? stationAddress,
     ChargerStatus? chargerStatus,
@@ -116,6 +123,7 @@ class BookingState extends Equatable {
   }) {
     return BookingState(
       locationId: locationId ?? this.locationId,
+      vehicleId: vehicleId ?? this.vehicleId,
       stationName: stationName ?? this.stationName,
       stationAddress: stationAddress ?? this.stationAddress,
       chargerStatus: chargerStatus ?? this.chargerStatus,
@@ -141,6 +149,7 @@ class BookingState extends Equatable {
   @override
   List<Object?> get props => [
         locationId,
+        vehicleId,
         stationName,
         stationAddress,
         chargerStatus,

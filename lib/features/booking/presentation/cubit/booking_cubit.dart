@@ -33,6 +33,7 @@ class BookingCubit extends Cubit<BookingState> {
   /// Seeds the screen with the station context and loads today's slots.
   void start({
     required int? locationId,
+    int? vehicleId,
     String? stationName,
     String? stationAddress,
   }) {
@@ -45,6 +46,7 @@ class BookingCubit extends Cubit<BookingState> {
     emit(
       state.copyWith(
         locationId: locationId,
+        vehicleId: vehicleId,
         stationName: stationName,
         stationAddress: stationAddress,
         dateOptions: options,
@@ -194,6 +196,7 @@ class BookingCubit extends Cubit<BookingState> {
         bookingDate: _apiDate.format(date),
         startTime: slot.startTime,
         location: locationId,
+        vehicleId: state.vehicleId,
       ),
     );
 

@@ -14,6 +14,21 @@ extension BookingTabX on BookingTab {
   }
 }
 
+/// Sub-tabs within the Upcoming tab, filtering the my-bookings list by
+/// `booking_status` (`approved` vs `cancelled`).
+enum UpcomingFilter { approved, cancelled }
+
+extension UpcomingFilterX on UpcomingFilter {
+  String get label {
+    switch (this) {
+      case UpcomingFilter.approved:
+        return 'Approved';
+      case UpcomingFilter.cancelled:
+        return 'Cancelled';
+    }
+  }
+}
+
 /// An in-progress charging session shown under the "Active" tab.
 class ActiveSession {
   const ActiveSession({

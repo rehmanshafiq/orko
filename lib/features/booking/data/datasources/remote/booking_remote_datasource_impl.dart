@@ -102,6 +102,7 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
     required String bookingDate,
     required String startTime,
     required int location,
+    int? vehicleId,
   }) async {
     return _guard('create-booking-hgl', () async {
       final url = _endpointUrl(
@@ -116,6 +117,7 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
           'booking_date': bookingDate,
           'start_time': startTime,
           'location': location,
+          if (vehicleId != null) 'vehicle_id': vehicleId,
         },
       );
       return _bookingFromResponse(response, fallback: 'Booking failed');

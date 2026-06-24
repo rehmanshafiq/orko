@@ -13,6 +13,7 @@ class MyBookingsState extends Equatable {
     this.error,
     this.bookings = const [],
     this.selectedTab = BookingTab.upcoming,
+    this.upcomingFilter = UpcomingFilter.approved,
     this.actionBookingId,
     this.historyStatus = MyBookingsStatus.initial,
     this.historyError,
@@ -26,6 +27,9 @@ class MyBookingsState extends Equatable {
   final String? error;
   final List<MyBookingEntity> bookings;
   final BookingTab selectedTab;
+
+  /// Active sub-tab within the Upcoming tab (Approved / Cancelled).
+  final UpcomingFilter upcomingFilter;
 
   /// Id of the booking currently being cancelled/rescheduled (per-card spinner).
   final int? actionBookingId;
@@ -41,9 +45,19 @@ class MyBookingsState extends Equatable {
   final String? liveError;
   final LiveSessionEntity? liveSession;
 
-  /// Approved bookings → "Upcoming".
-  List<MyBookingEntity> get upcoming =>
+  /// Upcoming → Approved sub-tab (`booking_status: approved`).
+  List<MyBookingEntity> get upcomingApproved =>
       bookings.where((b) => b.isApproved).toList(growable: false);
+
+  /// Upcoming → Cancelled sub-tab (`booking_status: cancelled`).
+  List<MyBookingEntity> get upcomingCancelled =>
+      bookings.where((b) => b.isCancelled).toList(growable: false);
+
+  /// The list backing the currently selected Upcoming sub-tab.
+  List<MyBookingEntity> get upcomingForFilter =>
+      upcomingFilter == UpcomingFilter.cancelled
+          ? upcomingCancelled
+          : upcomingApproved;
 
   bool isActionInProgress(int bookingId) => actionBookingId == bookingId;
 
@@ -53,6 +67,7 @@ class MyBookingsState extends Equatable {
     bool clearError = false,
     List<MyBookingEntity>? bookings,
     BookingTab? selectedTab,
+    UpcomingFilter? upcomingFilter,
     int? actionBookingId,
     bool clearActionBookingId = false,
     MyBookingsStatus? historyStatus,
@@ -69,6 +84,7 @@ class MyBookingsState extends Equatable {
       error: clearError ? null : (error ?? this.error),
       bookings: bookings ?? this.bookings,
       selectedTab: selectedTab ?? this.selectedTab,
+      upcomingFilter: upcomingFilter ?? this.upcomingFilter,
       actionBookingId: clearActionBookingId
           ? null
           : (actionBookingId ?? this.actionBookingId),
@@ -88,6 +104,7 @@ class MyBookingsState extends Equatable {
         error,
         bookings,
         selectedTab,
+        upcomingFilter,
         actionBookingId,
         historyStatus,
         historyError,

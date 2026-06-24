@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:orko_hubco/core/di/injection_container.dart';
 import 'package:orko_hubco/core/utils/responsive_view_widget.dart';
 import 'package:orko_hubco/features/booking/presentation/cubit/my_bookings_cubit.dart';
+import 'package:orko_hubco/features/booking/presentation/models/booking_session_model.dart';
 import 'package:orko_hubco/features/booking/presentation/view/my_bookings_mobile_view.dart';
 
 class MyBookingsPage extends StatelessWidget {
@@ -11,7 +12,10 @@ class MyBookingsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => sl<MyBookingsCubit>()..loadBookings(),
+      // Land on the Active tab; loadBookings() still primes the Upcoming list.
+      create: (_) => sl<MyBookingsCubit>()
+        ..loadBookings()
+        ..selectTab(BookingTab.active),
       child: const ResponsiveView(
         mobile: MyBookingsMobileView(),
       ),

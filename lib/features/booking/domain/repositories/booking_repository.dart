@@ -34,6 +34,7 @@ abstract class BookingRepository {
     required String bookingDate,
     required String startTime,
     required int location,
+    int? vehicleId,
   });
 
   /// `GET /bookings/my-charging-sessions/` — approved + cancelled bookings.

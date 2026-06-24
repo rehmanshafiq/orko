@@ -203,40 +203,133 @@ class _UpcomingTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bookings = state.upcoming;
-    if (bookings.isEmpty) {
-      return ListView(
-        padding: AppUtils.horizontal16Padding,
-        children: [
-          BookingEmptyState(
+    final filter = state.upcomingFilter;
+    final bookings = state.upcomingForFilter;
+    final isCancelledTab = filter == UpcomingFilter.cancelled;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: AppUtils.horizontal16Padding,
+          child: _UpcomingFilterSelector(
             ui: ui,
-            icon: Icons.calendar_today_outlined,
-            title: 'No Upcoming Bookings',
-            subtitle: "You don't have any upcoming reservations",
-            accentColor: ui.brandPrimary,
-            iconOutlined: true,
+            selected: filter,
+            onSelected: cubit.selectUpcomingFilter,
           ),
-        ],
-      );
-    }
-    return ListView.separated(
-      padding: AppUtils.horizontal16Padding,
-      itemCount: bookings.length,
-      separatorBuilder: (_, __) => 14.verticalSpace,
-      itemBuilder: (context, index) {
-        final booking = bookings[index];
-        return UpcomingBookingCard(
-          ui: ui,
-          booking: booking,
-          isProcessing: state.isActionInProgress(booking.id),
-          onModify: () => AppHelpers.showSnackBar(
-            context,
-            'Coming soon',
-          ), //_openReschedule(context, cubit, booking),
-          onCancel: () => _confirmCancel(context, cubit, booking),
-          onScanQr: () => _scanBookingQrCode(context, booking),
-        );
-      },
+        ),
+        14.verticalSpace,
+        Expanded(
+          child: bookings.isEmpty
+              ? ListView(
+                  // Keep it scrollable so pull-to-refresh works when empty.
+                  padding: AppUtils.horizontal16Padding,
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  children: [
+                    BookingEmptyState(
+                      ui: ui,
+                      icon: isCancelledTab
+                          ? Icons.event_busy_outlined
+                          : Icons.calendar_today_outlined,
+                      title: isCancelledTab
+                          ? 'No Cancelled Bookings'
+                          : 'No Upcoming Bookings',
+                      subtitle: isCancelledTab
+                          ? "You don't have any cancelled bookings"
+                          : "You don't have any upcoming reservations",
+                      accentColor: ui.brandPrimary,
+                      iconOutlined: true,
+                    ),
+                  ],
+                )
+              : ListView.separated(
+                  padding: AppUtils.horizontal16Padding,
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  itemCount: bookings.length,
+                  separatorBuilder: (_, __) => 14.verticalSpace,
+                  itemBuilder: (context, index) {
+                    final booking = bookings[index];
+                    // Cancelled bookings are read-only — no modify/cancel/scan.
+                    final showActions = !booking.isCancelled;
+                    return UpcomingBookingCard(
+                      ui: ui,
+                      booking: booking,
+                      isProcessing: state.isActionInProgress(booking.id),
+                      showActions: showActions,
+                      onModify: () => _openReschedule(context, cubit, booking),
+                      onCancel: () => _confirmCancel(context, cubit, booking),
+                      onScanQr: () => _scanBookingQrCode(context, booking),
+                    );
+                  },
+                ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Pill segmented control switching the Approved/Cancelled sub-tabs.
+class _UpcomingFilterSelector extends StatelessWidget {
+  const _UpcomingFilterSelector({
+    required this.ui,
+    required this.selected,
+    required this.onSelected,
+  });
+
+  final AppUiColors ui;
+  final UpcomingFilter selected;
+  final ValueChanged<UpcomingFilter> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.all(4.r),
+      decoration: BoxDecoration(
+        color: ui.isLight
+            ? AppColors.shimmerGreyColor
+            : AppColors.whiteColor.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(14.r),
+      ),
+      child: Row(
+        children: UpcomingFilter.values.map((f) {
+          final isSelected = f == selected;
+          return Expanded(
+            child: GestureDetector(
+              onTap: () => onSelected(f),
+              behavior: HitTestBehavior.opaque,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeOut,
+                padding: EdgeInsets.symmetric(vertical: 9.h),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? ui.cardBackground
+                      : AppColors.transparentColor,
+                  borderRadius: BorderRadius.circular(10.r),
+                  boxShadow: isSelected
+                      ? [
+                          BoxShadow(
+                            color: AppColors.blackColor.withValues(alpha: 0.06),
+                            blurRadius: 6,
+                            offset: const Offset(0, 2),
+                          ),
+                        ]
+                      : null,
+                ),
+                child: AppText(
+                  f.label,
+                  textAlign: TextAlign.center,
+                  color: isSelected ? ui.textPrimary : ui.textSecondary,
+                  fontSize: FontSizes.font13Sp,
+                  fontWeight: isSelected
+                      ? FontWeights.weight700
+                      : FontWeights.weight500,
+                ),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
     );
   }
 }

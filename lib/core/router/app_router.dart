@@ -122,6 +122,16 @@ class AppRouter {
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) {
           final extra = state.extra;
+          // Compatibility gate passes the station + resolved vehicle.
+          if (extra is BookSlotArgs) {
+            return BookSlotPage(
+              locationId: extra.station.id,
+              vehicleId: extra.vehicleId,
+              stationName: extra.station.name,
+              stationAddress: extra.station.address,
+            );
+          }
+          // Legacy callers pass only the station (no vehicle context).
           if (extra is HubcoLocationEntity) {
             return BookSlotPage(
               locationId: extra.id,
@@ -233,7 +243,14 @@ class AppRouter {
               GoRoute(
                 path: '/bookings',
                 name: 'bookings',
-                builder: (context, state) => const MyBookingsPage(),
+                // Rebuild on each Bookings-tab tap so it always reopens on the
+                // Active tab — see BottomNavShell.bookingsRefreshTick.
+                builder: (context, state) => ValueListenableBuilder<int>(
+                  valueListenable: BottomNavShell.bookingsRefreshTick,
+                  builder: (context, tick, _) => MyBookingsPage(
+                    key: ValueKey<int>(tick),
+                  ),
+                ),
               ),
             ],
           ),
@@ -243,7 +260,14 @@ class AppRouter {
               GoRoute(
                 path: '/trip',
                 name: 'trip',
-                builder: (context, state) => const TripPlannerPage(),
+                // Rebuild the whole Trip subtree (fresh bloc + reload) every time
+                // the Trip tab is tapped — see BottomNavShell.tripRefreshTick.
+                builder: (context, state) => ValueListenableBuilder<int>(
+                  valueListenable: BottomNavShell.tripRefreshTick,
+                  builder: (context, tick, _) => TripPlannerPage(
+                    key: ValueKey<int>(tick),
+                  ),
+                ),
               ),
             ],
           ),

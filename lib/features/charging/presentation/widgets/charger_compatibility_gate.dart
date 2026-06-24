@@ -10,6 +10,7 @@ import 'package:orko_hubco/core/usecase/usecase.dart';
 import 'package:orko_hubco/core/utils/app_ui.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
 import 'package:orko_hubco/core/utils/widgets/primary_button_widget.dart';
+import 'package:orko_hubco/features/booking/presentation/pages/book_slot_page.dart';
 import 'package:orko_hubco/features/charging/domain/entities/charger_compatibility_entity.dart';
 import 'package:orko_hubco/features/charging/domain/usecases/check_charger_compatibility_usecase.dart';
 import 'package:orko_hubco/features/map/domain/entities/hubco_location_entity.dart';
@@ -67,7 +68,7 @@ class ChargerCompatibilityGate {
     // 3. No charge point id → can't verify; don't block a valid booking.
     final cpId = chargePointId?.trim();
     if (cpId == null || cpId.isEmpty) {
-      _proceedToBooking(context, station);
+      _proceedToBooking(context, station, vehicle.id);
       return;
     }
 
@@ -91,7 +92,7 @@ class ChargerCompatibilityGate {
       ),
       (compat) {
         if (compat.isCompatible) {
-          _proceedToBooking(context, station);
+          _proceedToBooking(context, station, vehicle.id);
         } else {
           _showIncompatibleDialog(context, vehicle, compat);
         }
@@ -102,8 +103,12 @@ class ChargerCompatibilityGate {
   static void _proceedToBooking(
     BuildContext context,
     HubcoLocationEntity station,
+    int vehicleId,
   ) {
-    context.push('/book-slot', extra: station);
+    context.push(
+      '/book-slot',
+      extra: BookSlotArgs(station: station, vehicleId: vehicleId),
+    );
   }
 
   // ── Loader ──────────────────────────────────────────────────────────────
