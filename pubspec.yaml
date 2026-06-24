@@ -100,7 +100,7 @@ flutter_launcher_icons:
   remove_alpha_ios: true
   adaptive_icon_background: "#000000"
   adaptive_icon_foreground: "assets/images/hubco_launcher.png"
-  adaptive_icon_foreground_inset: 0 # padding baked into hubco_launcher.png (~18% transparent margin) for a slight zoom-out
+  adaptive_icon_foreground_inset: 12 # slight zoom-out so the logo clears the round/square mask safe zone (was touching the edges at 0)
   min_sdk_android: 21 # android min sdk min:16, default 21
 
 # Native launch screen — renders the same HUBCO logo on the OS launch window so it
