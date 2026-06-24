@@ -42,6 +42,17 @@ class TripJson {
 
   static String asString(dynamic value) => (value ?? '').toString();
 
+  /// Coerces a JSON array (or null/missing) into a list of non-empty strings.
+  static List<String> asStringList(dynamic value) {
+    if (value is List) {
+      return value
+          .map((e) => (e ?? '').toString().trim())
+          .where((e) => e.isNotEmpty)
+          .toList();
+    }
+    return const [];
+  }
+
   static String? asStringOrNull(dynamic value) {
     if (value == null) return null;
     final s = value.toString();

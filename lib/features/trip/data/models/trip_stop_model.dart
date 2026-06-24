@@ -22,6 +22,7 @@ class TripStopModel extends TripStopEntity {
     super.connectorId,
     super.connectorTypeMatchesVehicle,
     super.distanceFromRouteKm,
+    super.amenities,
   });
 
   /// `plan-trip` stop shape: `location_id`, `latitude`, `longitude`,
@@ -46,6 +47,7 @@ class TripStopModel extends TripStopEntity {
       energyAddedKwh: TripJson.asDouble(json['energy_added_kwh']),
       chargingMinutes: TripJson.asDouble(json['charging_minutes']),
       cost: TripJson.asDouble(json['cost']),
+      amenities: TripJson.asStringList(json['amenities']),
     );
   }
 
@@ -68,6 +70,7 @@ class TripStopModel extends TripStopEntity {
       energyAddedKwh: TripJson.asDouble(json['energy_added_kwh']),
       chargingMinutes: TripJson.asDouble(json['charging_minutes']),
       cost: TripJson.asDouble(json['cost']),
+      amenities: TripJson.asStringList(json['amenities']),
     );
   }
 }

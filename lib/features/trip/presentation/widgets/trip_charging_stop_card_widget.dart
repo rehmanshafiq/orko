@@ -32,6 +32,33 @@ class TripChargingStopCardWidget extends StatelessWidget {
   final VoidCallback onPreBook;
   final String Function(int) formatPkr;
 
+  /// Maps an amenity label to a representative icon, falling back to a generic
+  /// check mark for anything not explicitly recognised.
+  IconData _amenityIcon(String amenity) {
+    final key = amenity.toLowerCase().trim();
+    if (key.contains('wifi') || key.contains('wi-fi')) return Icons.wifi_rounded;
+    if (key.contains('air') || key.contains('ac') || key.contains('a/c')) {
+      return Icons.ac_unit_rounded;
+    }
+    if (key.contains('restroom') ||
+        key.contains('toilet') ||
+        key.contains('washroom')) {
+      return Icons.wc_rounded;
+    }
+    if (key.contains('food') ||
+        key.contains('cafe') ||
+        key.contains('coffee') ||
+        key.contains('restaurant')) {
+      return Icons.local_cafe_rounded;
+    }
+    if (key.contains('shop') || key.contains('store') || key.contains('market')) {
+      return Icons.shopping_bag_outlined;
+    }
+    if (key.contains('park')) return Icons.local_parking_rounded;
+    if (key.contains('charg')) return Icons.ev_station_rounded;
+    return Icons.check_circle_outline_rounded;
+  }
+
   @override
   Widget build(BuildContext context) {
     final ui = AppUiColors.of(context);
@@ -120,40 +147,30 @@ class TripChargingStopCardWidget extends StatelessWidget {
             ],
           ),
           if (expanded) ...[
-            14.verticalSpace,
-            AppText(
-              'Amenities',
-              color: ui.textPrimary,
-              fontSize: FontSizes.font10Sp,
-              fontWeight: FontWeights.weight600,
-            ),
-            8.verticalSpace,
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: [
-                  const TripChargingAmenityChipWidget(
-                    icon: Icons.wifi_rounded,
-                    label: 'WiFi',
-                  ),
-                  8.horizontalSpace,
-                  const TripChargingAmenityChipWidget(
-                    icon: Icons.wc_rounded,
-                    label: 'Restroom',
-                  ),
-                  8.horizontalSpace,
-                  const TripChargingAmenityChipWidget(
-                    icon: Icons.local_cafe_rounded,
-                    label: 'Food',
-                  ),
-                  8.horizontalSpace,
-                  const TripChargingAmenityChipWidget(
-                    icon: Icons.shopping_bag_outlined,
-                    label: 'Shopping',
-                  ),
-                ],
+            if (info.amenities.isNotEmpty) ...[
+              14.verticalSpace,
+              AppText(
+                'Amenities',
+                color: ui.textPrimary,
+                fontSize: FontSizes.font10Sp,
+                fontWeight: FontWeights.weight600,
               ),
-            ),
+              8.verticalSpace,
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    for (var i = 0; i < info.amenities.length; i++) ...[
+                      if (i > 0) 8.horizontalSpace,
+                      TripChargingAmenityChipWidget(
+                        icon: _amenityIcon(info.amenities[i]),
+                        label: info.amenities[i],
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
             14.verticalSpace,
             Row(
               children: [

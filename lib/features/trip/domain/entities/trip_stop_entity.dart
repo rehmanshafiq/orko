@@ -26,6 +26,7 @@ class TripStopEntity extends Equatable {
     this.connectorId,
     this.connectorTypeMatchesVehicle = true,
     this.distanceFromRouteKm,
+    this.amenities = const [],
   });
 
   final int sequence;
@@ -50,6 +51,9 @@ class TripStopEntity extends Equatable {
   final double chargingMinutes;
   final double cost;
 
+  /// Amenities available at the stop, e.g. `['Wifi', 'Air Conditioner']`.
+  final List<String> amenities;
+
   @override
   List<Object?> get props => [
         sequence,
@@ -69,5 +73,6 @@ class TripStopEntity extends Equatable {
         energyAddedKwh,
         chargingMinutes,
         cost,
+        amenities,
       ];
 }
