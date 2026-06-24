@@ -7,8 +7,8 @@ import 'package:orko_hubco/features/notifications/domain/entities/notification_e
 ///   "title": "Booking Approved",
 ///   "body": "Your booking has been approved.",
 ///   "is_read": false,
-///   "sent_at": 1718000000,
-///   "created_at": 1718000000
+///   "sent_at": "2026-06-23T11:53:13.154668Z",
+///   "created_at": "2026-06-23T11:53:13.154668Z"
 /// }
 /// ```
 class NotificationModel extends NotificationEntity {
@@ -32,10 +32,20 @@ class NotificationModel extends NotificationEntity {
     );
   }
 
+  /// Coerces a timestamp into epoch *seconds*. The API may send either an
+  /// integer epoch (`1718000000`) or an ISO-8601 string
+  /// (`"2026-06-23T11:53:13.154668Z"`); the latter is parsed and converted.
   static int? _asInt(dynamic value) {
     if (value is int) return value;
     if (value is num) return value.toInt();
-    if (value is String) return int.tryParse(value);
+    if (value is String) {
+      final asEpoch = int.tryParse(value);
+      if (asEpoch != null) return asEpoch;
+      final parsed = DateTime.tryParse(value);
+      if (parsed != null) {
+        return parsed.millisecondsSinceEpoch ~/ 1000;
+      }
+    }
     return null;
   }
 

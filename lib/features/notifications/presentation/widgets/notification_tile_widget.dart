@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:intl/intl.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/utils/app_ui.dart';
@@ -82,7 +83,7 @@ class NotificationTileWidget extends StatelessWidget {
                         ),
                         8.horizontalSpace,
                         AppText(
-                          _relativeTime(notification.displayTimestamp),
+                          _formatDateTime(notification.displayTimestamp),
                           color: ui.textMuted,
                           fontSize: FontSizes.font10Sp,
                           fontWeight: FontWeights.weight400,
@@ -110,23 +111,11 @@ class NotificationTileWidget extends StatelessWidget {
     );
   }
 
-  /// Compact relative time from epoch seconds (e.g. "Just now", "3h", "2d").
-  /// Falls back to an absolute date for anything older than a week.
-  String _relativeTime(int epochSeconds) {
+  /// Absolute date and 12-hour time from epoch seconds, in the device's local
+  /// time zone (e.g. "23 Jun 2026, 4:53 PM").
+  String _formatDateTime(int epochSeconds) {
     if (epochSeconds <= 0) return '';
-    final then = DateTime.fromMillisecondsSinceEpoch(epochSeconds * 1000);
-    final diff = DateTime.now().difference(then);
-
-    if (diff.isNegative) return 'Just now';
-    if (diff.inMinutes < 1) return 'Just now';
-    if (diff.inMinutes < 60) return '${diff.inMinutes}m';
-    if (diff.inHours < 24) return '${diff.inHours}h';
-    if (diff.inDays < 7) return '${diff.inDays}d';
-
-    const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
-    ];
-    return '${then.day} ${months[then.month - 1]}';
+    final dateTime = DateTime.fromMillisecondsSinceEpoch(epochSeconds * 1000);
+    return DateFormat('d MMM yyyy, h:mm a').format(dateTime);
   }
 }
