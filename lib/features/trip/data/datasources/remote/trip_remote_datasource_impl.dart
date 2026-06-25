@@ -163,7 +163,7 @@ class TripRemoteDataSourceImpl implements TripRemoteDataSource {
     if (endpoint.isEmpty) {
       throw ServerException(message: unavailableMessage);
     }
-    return _buildUrl(config.apiConstants.baseUrlQa, endpoint);
+    return _buildUrl(config.apiConstants.baseUrlLive, endpoint);
   }
 
   /// Validates the `{status, message, body}` envelope and returns `body`.
