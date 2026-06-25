@@ -267,8 +267,6 @@ class _UpcomingTab extends StatelessWidget {
     switch (filter) {
       case UpcomingFilter.approved:
         return Icons.calendar_today_outlined;
-      case UpcomingFilter.pendingApproval:
-        return Icons.hourglass_empty_rounded;
       case UpcomingFilter.cancelled:
         return Icons.event_busy_outlined;
     }
@@ -278,8 +276,6 @@ class _UpcomingTab extends StatelessWidget {
     switch (filter) {
       case UpcomingFilter.approved:
         return 'No Upcoming Bookings';
-      case UpcomingFilter.pendingApproval:
-        return 'No Pending Bookings';
       case UpcomingFilter.cancelled:
         return 'No Cancelled Bookings';
     }
@@ -289,8 +285,6 @@ class _UpcomingTab extends StatelessWidget {
     switch (filter) {
       case UpcomingFilter.approved:
         return "You don't have any upcoming reservations";
-      case UpcomingFilter.pendingApproval:
-        return "You don't have any bookings awaiting approval";
       case UpcomingFilter.cancelled:
         return "You don't have any cancelled bookings";
     }

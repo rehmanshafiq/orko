@@ -49,10 +49,6 @@ class MyBookingsState extends Equatable {
   List<MyBookingEntity> get upcomingApproved =>
       bookings.where((b) => b.isApproved).toList(growable: false);
 
-  /// Upcoming → Pending sub-tab (`booking_status: pending_approval`).
-  List<MyBookingEntity> get upcomingPending =>
-      bookings.where((b) => b.isPendingApproval).toList(growable: false);
-
   /// Upcoming → Cancelled sub-tab (`booking_status: cancelled`).
   List<MyBookingEntity> get upcomingCancelled =>
       bookings.where((b) => b.isCancelled).toList(growable: false);
@@ -62,8 +58,6 @@ class MyBookingsState extends Equatable {
     switch (upcomingFilter) {
       case UpcomingFilter.approved:
         return upcomingApproved;
-      case UpcomingFilter.pendingApproval:
-        return upcomingPending;
       case UpcomingFilter.cancelled:
         return upcomingCancelled;
     }
