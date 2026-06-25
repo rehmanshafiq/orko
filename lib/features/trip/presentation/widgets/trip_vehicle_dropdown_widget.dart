@@ -24,46 +24,79 @@ class TripVehicleDropdownWidget extends StatefulWidget {
       _TripVehicleDropdownWidgetState();
 }
 
-enum _Status { loading, failure, success }
+enum _Status { idle, loading, failure, success }
 
 class _TripVehicleDropdownWidgetState extends State<TripVehicleDropdownWidget> {
-  _Status _status = _Status.loading;
+  // The Trip tab is rebuilt from scratch on every tab tap (fresh bloc + state),
+  // so the last selected make is held here, session-scoped, to survive that
+  // rebuild. It is restored on init and refreshed when the field is tapped.
+  static UserVehicleEntity? _lastSelection;
+
+  // Vehicles are fetched lazily — the API call fires when the user taps the
+  // Make field, not when the Trip tab first builds.
+  _Status _status = _Status.idle;
   String? _error;
   List<UserVehicleEntity> _vehicles = const [];
   int? _selectedId;
+
+  // Drives the custom dropdown so we can open the menu first and then refresh
+  // its contents live (the native DropdownButton can't update while open).
+  final MenuController _menuController = MenuController();
 
   bool get _isGuest => AppStorage.isGuest;
 
   @override
   void initState() {
     super.initState();
-    if (!_isGuest) _load();
+    // Restore the previously selected make (without an API call) so switching
+    // tabs and returning keeps the selection. Tapping the field reloads it.
+    if (!_isGuest && _lastSelection != null) {
+      _selectedId = _lastSelection!.id;
+      _vehicles = [_lastSelection!];
+      // Re-notify the (fresh) bloc so EV details reflect the restored vehicle.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) widget.onVehicleSelected?.call(_selected);
+      });
+    }
   }
 
-  Future<void> _load() async {
-    setState(() {
-      _status = _Status.loading;
-      _error = null;
-    });
+  /// Fetches the user's vehicles. When [silent] is true the existing options
+  /// stay visible while refreshing (used when reopening the dropdown), so the
+  /// open menu isn't torn down by flipping to the loading state.
+  Future<void> _load({bool silent = false}) async {
+    if (_isGuest) return;
+    if (!silent) {
+      setState(() {
+        _status = _Status.loading;
+        _error = null;
+      });
+    }
     final result = await sl<GetUserVehiclesUseCase>()(const NoParams());
     if (!mounted) return;
     result.fold(
-      (failure) => setState(() {
-        _status = _Status.failure;
-        _error = failure.message;
-      }),
-      (vehicles) => setState(() {
-        _status = _Status.success;
-        _vehicles = vehicles;
-        // Keep a valid selection; default to the first vehicle that can be
-        // planned (complete battery/range data).
-        final stillValid = _selectedId != null &&
-            vehicles.any((v) => v.id == _selectedId && _isComplete(v));
-        if (!stillValid) {
-          _selectedId = _firstComplete(vehicles)?.id;
-        }
+      (failure) {
+        // On a background refresh, keep showing what we already have.
+        if (silent && _vehicles.isNotEmpty) return;
+        setState(() {
+          _status = _Status.failure;
+          _error = failure.message;
+        });
+      },
+      (vehicles) {
+        setState(() {
+          _status = _Status.success;
+          _vehicles = vehicles;
+          // Keep a valid selection; default to the first vehicle that can be
+          // planned (complete battery/range data).
+          final stillValid = _selectedId != null &&
+              vehicles.any((v) => v.id == _selectedId && _isComplete(v));
+          if (!stillValid) {
+            _selectedId = _firstComplete(vehicles)?.id;
+          }
+        });
+        _lastSelection = _selected;
         widget.onVehicleSelected?.call(_selected);
-      }),
+      },
     );
   }
 
@@ -117,106 +150,139 @@ class _TripVehicleDropdownWidgetState extends State<TripVehicleDropdownWidget> {
       );
     }
 
-    switch (_status) {
-      case _Status.loading:
-        return _shell(
-          ui,
-          trailing: SizedBox(
-            width: 16.r,
-            height: 16.r,
-            child: CircularProgressIndicator(
-              strokeWidth: 2,
-              color: ui.textSecondary,
-            ),
-          ),
-          child: AppText(
-            'Loading vehicles...',
-            color: AppColors.hintColor,
-            fontSize: FontSizes.font12Sp,
-            fontWeight: FontWeights.weight400,
-          ),
-        );
-      case _Status.failure:
-        return _shell(
-          ui,
-          borderColor: AppColors.redColor,
-          trailing: GestureDetector(
-            onTap: _load,
-            behavior: HitTestBehavior.opaque,
-            child: AppText(
-              'Retry',
-              color: ui.brandPrimary,
-              fontSize: FontSizes.font12Sp,
-              fontWeight: FontWeights.weight700,
-            ),
-          ),
-          child: AppText(
-            _error ?? 'Could not load your vehicles.',
-            color: ui.textSecondary,
-            fontSize: FontSizes.font12Sp,
-            fontWeight: FontWeights.weight400,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        );
-      case _Status.success:
-        if (_vehicles.isEmpty) {
-          return _shell(
-            ui,
-            child: AppText(
-              'No vehicles — add one in your profile',
-              color: AppColors.hintColor,
-              fontSize: FontSizes.font12Sp,
-              fontWeight: FontWeights.weight400,
-            ),
-          );
-        }
-        return _shell(
-          ui,
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<int>(
-              value: _selectedId,
-              isExpanded: true,
-              isDense: true,
-              dropdownColor: ui.cardBackground,
-              borderRadius: BorderRadius.circular(8.r),
-              icon: Icon(
-                Icons.keyboard_arrow_down_rounded,
-                color: ui.textSecondary,
-                size: 20.r,
+    final selected = _selected;
+    final isLoading = _status == _Status.loading;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final menuWidth = constraints.maxWidth;
+        return MenuAnchor(
+          controller: _menuController,
+          style: MenuStyle(
+            backgroundColor: WidgetStatePropertyAll(ui.cardBackground),
+            padding: WidgetStatePropertyAll(EdgeInsets.symmetric(vertical: 4.h)),
+            shape: WidgetStatePropertyAll(
+              RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8.r),
               ),
-              style: TextStyle(
-                color: ui.textPrimary.withValues(alpha: 0.9),
-                fontSize: FontSizes.font12Sp,
-                fontWeight: FontWeights.weight500,
-              ),
-              items: [
-                for (final v in _vehicles)
-                  DropdownMenuItem<int>(
-                    value: v.id,
-                    enabled: _isComplete(v),
-                    child: AppText(
-                      _isComplete(v)
-                          ? _label(v)
-                          : '${_label(v)} · incomplete data',
-                      color: _isComplete(v)
-                          ? ui.textPrimary
-                          : AppColors.hintColor,
-                      fontSize: FontSizes.font12Sp,
-                      fontWeight: FontWeights.weight500,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-              ],
-              onChanged: (id) {
-                setState(() => _selectedId = id);
-                widget.onVehicleSelected?.call(_selected);
+            ),
+          ),
+          menuChildren: _menuItems(ui, menuWidth),
+          builder: (context, controller, _) {
+            return GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () {
+                if (controller.isOpen) {
+                  controller.close();
+                  return;
+                }
+                // Open the menu first, then fetch — the open menu updates live
+                // as the result arrives. Keep existing options visible while
+                // refreshing so they don't flash away.
+                controller.open();
+                _load(silent: _vehicles.isNotEmpty);
               },
+              child: _shell(
+                ui,
+                trailing: isLoading
+                    ? SizedBox(
+                        width: 16.r,
+                        height: 16.r,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: ui.textSecondary,
+                        ),
+                      )
+                    : Icon(
+                        Icons.keyboard_arrow_down_rounded,
+                        color: ui.textSecondary,
+                        size: 20.r,
+                      ),
+                child: AppText(
+                  selected != null ? _label(selected) : 'Select make',
+                  color:
+                      selected != null ? ui.textPrimary : AppColors.hintColor,
+                  fontSize: FontSizes.font12Sp,
+                  fontWeight: selected != null
+                      ? FontWeights.weight500
+                      : FontWeights.weight400,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  /// Builds the open menu's contents from the current status — a loading row,
+  /// a retry row, an empty hint, or the vehicle options.
+  List<Widget> _menuItems(AppUiColors ui, double width) {
+    if (_status == _Status.loading && _vehicles.isEmpty) {
+      return [_menuMessage(ui, width, 'Loading vehicles...')];
+    }
+    if (_status == _Status.failure && _vehicles.isEmpty) {
+      return [
+        MenuItemButton(
+          onPressed: () {
+            _menuController.close();
+            _load();
+          },
+          child: SizedBox(
+            width: width,
+            child: AppText(
+              '${_error ?? 'Could not load your vehicles.'} · Retry',
+              color: AppColors.redColor,
+              fontSize: FontSizes.font12Sp,
+              fontWeight: FontWeights.weight600,
+              maxLines: 2,
             ),
           ),
-        );
+        ),
+      ];
     }
+    if (_vehicles.isEmpty) {
+      return [_menuMessage(ui, width, 'No vehicles — add one in your profile')];
+    }
+    return [
+      for (final v in _vehicles)
+        MenuItemButton(
+          onPressed: _isComplete(v)
+              ? () {
+                  setState(() => _selectedId = v.id);
+                  _lastSelection = _selected;
+                  widget.onVehicleSelected?.call(_selected);
+                }
+              : null,
+          child: SizedBox(
+            width: width,
+            child: AppText(
+              _isComplete(v) ? _label(v) : '${_label(v)} · incomplete data',
+              color: _isComplete(v) ? ui.textPrimary : AppColors.hintColor,
+              fontSize: FontSizes.font12Sp,
+              fontWeight: FontWeights.weight500,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ),
+    ];
+  }
+
+  Widget _menuMessage(AppUiColors ui, double width, String message) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
+      child: SizedBox(
+        width: width - 24.w,
+        child: AppText(
+          message,
+          color: AppColors.hintColor,
+          fontSize: FontSizes.font12Sp,
+          fontWeight: FontWeights.weight400,
+        ),
+      ),
+    );
   }
 
   /// Item label — make first (per the "Make" dropdown), with model/connector
