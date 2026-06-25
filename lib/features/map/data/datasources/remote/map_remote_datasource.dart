@@ -50,7 +50,7 @@ class MapRemoteDataSourceImpl implements MapRemoteDataSource {
       }
 
       final url = _buildUrl(
-        config.apiConstants.baseUrlLive,
+        config.apiConstants.baseUrlQa,
         config.apiConstants.apiEndpoints.chargingStationMap,
       );
 
@@ -123,7 +123,7 @@ class MapRemoteDataSourceImpl implements MapRemoteDataSource {
       if (endpoint.isEmpty) {
         endpoint = 'api/v1/charging-station/filter-options/';
       }
-      final url = _buildUrl(config.apiConstants.baseUrlLive, endpoint);
+      final url = _buildUrl(config.apiConstants.baseUrlQa, endpoint);
 
       log('[Map] Filter options URL: $url');
 

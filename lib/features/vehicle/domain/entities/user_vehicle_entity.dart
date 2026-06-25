@@ -10,6 +10,7 @@ class UserVehicleEntity extends Equatable {
     required this.modelName,
     required this.year,
     required this.connectorType,
+    this.modelImage,
     this.batteryCapacity,
     this.efficiency,
     this.range,
@@ -23,6 +24,9 @@ class UserVehicleEntity extends Equatable {
   final String modelName;
   final String year;
   final String connectorType;
+
+  /// `model_image` — URL of the vehicle model's image, when available.
+  final String? modelImage;
   final double? batteryCapacity;
   final double? efficiency;
   final double? range;
@@ -43,6 +47,7 @@ class UserVehicleEntity extends Equatable {
         modelName,
         year,
         connectorType,
+        modelImage,
         batteryCapacity,
         efficiency,
         range,

@@ -1830,6 +1830,38 @@ class _VehicleCard extends StatelessWidget {
   final VoidCallback? onDelete;
   final bool isDeleting;
 
+  Widget _vehicleImage(AppUiColors ui) {
+    final imageUrl = vehicle.modelImage;
+    if (imageUrl == null || imageUrl.isEmpty) {
+      return _vehicleImagePlaceholder(ui);
+    }
+    return Image.network(
+      imageUrl,
+      height: 140.h,
+      width: double.infinity,
+      fit: BoxFit.cover,
+      loadingBuilder: (context, child, progress) {
+        if (progress == null) return child;
+        return Container(
+          height: 140.h,
+          width: double.infinity,
+          color: ui.vehicleImagePlaceholder,
+          alignment: Alignment.center,
+          child: SizedBox(
+            width: 24.r,
+            height: 24.r,
+            child: CircularProgressIndicator(
+              strokeWidth: 2.4,
+              color: ui.brandPrimary,
+            ),
+          ),
+        );
+      },
+      errorBuilder: (context, error, stackTrace) =>
+          _vehicleImagePlaceholder(ui),
+    );
+  }
+
   Widget _vehicleImagePlaceholder(AppUiColors ui) {
     return Container(
       height: 140.h,
@@ -1876,7 +1908,7 @@ class _VehicleCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _vehicleImagePlaceholder(ui),
+          _vehicleImage(ui),
           Padding(
             padding: AppUtils.all12Padding,
             child: Column(

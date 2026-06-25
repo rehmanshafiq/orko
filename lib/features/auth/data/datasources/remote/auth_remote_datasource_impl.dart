@@ -35,7 +35,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         );
       }
 
-      final url = _buildUrl(config.apiConstants.baseUrlLive, endpoint);
+      final url = _buildUrl(config.apiConstants.baseUrlQa, endpoint);
       log('[Auth] Login URL: $url');
 
       final response = await apiClient.post(
@@ -97,7 +97,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         );
       }
 
-      final url = _buildUrl(config.apiConstants.baseUrlLive, endpoint);
+      final url = _buildUrl(config.apiConstants.baseUrlQa, endpoint);
       log('[Auth] Login-with-google URL: $url');
 
       final response = await apiClient.post(
@@ -188,7 +188,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       }
 
       final url = _buildUrl(
-        config.apiConstants.baseUrlLive,
+        config.apiConstants.baseUrlQa,
         config.apiConstants.apiEndpoints.signUpForm,
       );
 
@@ -244,7 +244,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         );
       }
 
-      final url = _buildUrl(config.apiConstants.baseUrlLive, endpoint);
+      final url = _buildUrl(config.apiConstants.baseUrlQa, endpoint);
       log('[Auth] Verify-OTP URL: $url');
 
       final response = await apiClient.post(
@@ -299,7 +299,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         );
       }
 
-      final url = _buildUrl(config.apiConstants.baseUrlLive, endpoint);
+      final url = _buildUrl(config.apiConstants.baseUrlQa, endpoint);
       log('[Auth] Resend-OTP URL: $url');
 
       final Response response;
@@ -368,7 +368,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         );
       }
 
-      final url = _buildUrl(config.apiConstants.baseUrlLive, endpoint);
+      final url = _buildUrl(config.apiConstants.baseUrlQa, endpoint);
       log('[Auth] Get user URL: $url');
 
       final response = await apiClient.get(url);
@@ -432,7 +432,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         );
       }
 
-      final url = _buildUrl(config.apiConstants.baseUrlLive, endpoint);
+      final url = _buildUrl(config.apiConstants.baseUrlQa, endpoint);
       log('[Auth] Logout URL: $url');
 
       final response = await apiClient.get(url);
