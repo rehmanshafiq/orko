@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/utils/app_ui.dart';
+import 'package:orko_hubco/core/utils/helpers.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
 import 'package:orko_hubco/core/utils/widgets/primary_button_widget.dart';
 import 'package:orko_hubco/features/booking/domain/entities/my_booking_entity.dart';
@@ -62,12 +63,8 @@ class UpcomingBookingCard extends StatelessWidget {
   String get _costLabel {
     final cost = booking.estimatedCost;
     if (cost == null) return 'N/A';
-    final amount = cost.amount;
-    final fixed = amount.toStringAsFixed(2);
-    final trimmed =
-        fixed.endsWith('.00') ? fixed.substring(0, fixed.length - 3) : fixed;
     final currency = cost.currency.isEmpty ? 'PKR' : cost.currency;
-    return '$currency $trimmed';
+    return AppHelpers.formatCurrency(cost.amount, currency: currency);
   }
 
   @override

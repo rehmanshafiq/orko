@@ -216,10 +216,21 @@ class BookSlotMobileView extends StatelessWidget {
     }
   }
 
-  /// Builds a human-readable booking reference from the created booking id.
+  /// Builds a human-readable booking reference from the created booking id,
+  /// e.g. id `2` → `BK-AAA002`. The numeric id is split into a 3-letter block
+  /// (base-26, every 1000 bookings) and a zero-padded 3-digit suffix.
   String _bookingRef(BookingState state) {
     final id = state.createdBooking?.id;
-    return id == null ? '—' : 'BK-$id';
+    if (id == null) return '—';
+
+    var block = id ~/ 1000;
+    var letters = '';
+    for (var i = 0; i < 3; i++) {
+      letters = String.fromCharCode(65 + block % 26) + letters;
+      block ~/= 26;
+    }
+    final suffix = (id % 1000).toString().padLeft(3, '0');
+    return 'BK-$letters$suffix';
   }
 
   /// Builds the slot label, e.g. `April 18 · 14:00 – 15:00`, from the confirmed

@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/utils/app_ui.dart';
+import 'package:orko_hubco/core/utils/helpers.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
 import 'package:orko_hubco/features/booking/domain/entities/live_session_entity.dart';
 
@@ -113,9 +114,9 @@ class ActiveSessionCard extends StatelessWidget {
       if (session.endSoc != null)
         _Metric('Current SOC', '${_trim(session.endSoc!)}%'),
       if (session.energyCost != null)
-        _Metric('Energy cost', 'PKR ${session.energyCost!.toStringAsFixed(2)}'),
+        _Metric('Energy cost', AppHelpers.formatCurrency(session.energyCost!)),
       if (session.totalCost != null)
-        _Metric('Total', 'PKR ${session.totalCost!.toStringAsFixed(2)}'),
+        _Metric('Total', AppHelpers.formatCurrency(session.totalCost!)),
     ];
 
     if (metrics.isEmpty) return const [];

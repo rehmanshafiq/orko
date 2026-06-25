@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/utils/app_ui.dart';
+import 'package:orko_hubco/core/utils/helpers.dart';
 import 'package:orko_hubco/features/booking/presentation/widgets/booking_detail_row.dart';
 
 class BookingDetailsCard extends StatelessWidget {
@@ -60,7 +61,7 @@ class BookingDetailsCard extends StatelessWidget {
           BookingDetailRow(
             ui: ui,
             label: 'Amount',
-            value: 'Rs $amountPaid',
+            value: AppHelpers.formatCurrency(amountPaid),
           ),
           if (paymentLabel != null) ...[
             12.verticalSpace,

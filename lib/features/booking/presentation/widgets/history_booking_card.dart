@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/utils/app_ui.dart';
+import 'package:orko_hubco/core/utils/helpers.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
 import 'package:orko_hubco/features/booking/presentation/models/booking_session_model.dart';
 
@@ -21,7 +22,7 @@ class HistoryBookingCard extends StatelessWidget {
     final energyLabel =
         booking.energyKwh != null ? '${_trim(booking.energyKwh!)} kWh' : '—';
     final amountLabel = booking.amount != null
-        ? 'PKR ${booking.amount!.toStringAsFixed(2)}'
+        ? AppHelpers.formatCurrency(booking.amount!)
         : '—';
 
     return Container(
