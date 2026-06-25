@@ -197,7 +197,7 @@ class TripPlannerBloc extends Bloc<TripPlannerEvent, TripPlannerState> {
       destinationAddress: destination.name,
       customerVehicleId: vehicle?.id,
       startSoc: state.currentBatteryPercent.toInt(),
-      targetSoc: 90,
+      targetSoc: 100,
       reserveSoc: 10,
       corridorKm: 20,
     );
