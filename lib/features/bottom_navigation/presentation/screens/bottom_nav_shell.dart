@@ -81,14 +81,14 @@ class BottomNavShell extends StatelessWidget {
                   onTap: () => _onTapBranch(3),
                   activeBackground: true,
                 ),
-                _buildNavItem(
-                  context: context,
-                  icon: Icons.bolt_outlined,
-                  label: 'Charging',
-                  isActive: navigationShell.currentIndex == 4,
-                  onTap: () => _onTapBranch(4),
-                  activeBackground: true,
-                ),
+                // _buildNavItem(
+                //   context: context,
+                //   icon: Icons.bolt_outlined,
+                //   label: 'Charging',
+                //   isActive: navigationShell.currentIndex == 4,
+                //   onTap: () => _onTapBranch(4),
+                //   activeBackground: true,
+                // ),
                 _buildNavItem(
                   context: context,
                   icon: Icons.person_outline_rounded,
