@@ -35,6 +35,83 @@ class _TripPlannerMobileViewState extends State<TripPlannerMobileView> {
   /// Toggled via the Map/List switch inside [TripSummaryCardWidget].
   bool _isMapView = true;
 
+  /// Runs guest + form validation, then dispatches the plan-trip request.
+  void _onPlanTrip(
+    BuildContext context,
+    TripPlannerBloc bloc,
+    TripPlannerState state,
+  ) {
+    // Already in flight — ignore repeat taps.
+    if (state.planLoading) return;
+
+    // Guests can browse but must authenticate before planning a trip.
+    if (AppStorage.isGuest) {
+      AuthRequiredDialog.show(
+        context,
+        message:
+            'You\'re browsing as a guest. Please log in or create an account to plan a trip.',
+      );
+      return;
+    }
+
+    final error = _validateTrip(bloc, state);
+    if (error != null) {
+      _showValidationError(context, error);
+      return;
+    }
+
+    FocusScope.of(context).unfocus();
+    context.read<TripPlannerBloc>().add(const TripPlannerPlanTripRequested());
+  }
+
+  /// Returns the first validation error message, or null when the form is
+  /// ready to plan. Covers empty/duplicate locations, missing or incomplete
+  /// vehicle data, and an invalid battery level.
+  String? _validateTrip(TripPlannerBloc bloc, TripPlannerState state) {
+    final start = bloc.startLocationController.text.trim();
+    final end = bloc.endLocationController.text.trim();
+
+    if (start.isEmpty) {
+      return 'Please choose your start location.';
+    }
+    if (end.isEmpty) {
+      return 'Please choose your destination.';
+    }
+    if (start.toLowerCase() == end.toLowerCase()) {
+      return 'Start and destination can\'t be the same place.';
+    }
+
+    final vehicle = state.selectedVehicle;
+    if (vehicle == null) {
+      return 'Please select a vehicle for this trip.';
+    }
+    if (vehicle.range == null ||
+        vehicle.range == 0 ||
+        vehicle.batteryCapacity == null) {
+      return 'Selected vehicle is missing battery/range details. Pick another vehicle.';
+    }
+
+    final battery = state.currentBatteryPercent;
+    if (battery <= 0) {
+      return 'Set your current battery level above 0% to plan a trip.';
+    }
+
+    return null;
+  }
+
+  /// Surfaces a validation message as a floating snackbar.
+  void _showValidationError(BuildContext context, String message) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: AppColors.removeColor,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+  }
+
   /// Opens the Google Places search sheet and stores the picked place on the
   /// bloc so trip planning uses its exact coordinates.
   Future<void> _pickLocation(
@@ -206,20 +283,7 @@ class _TripPlannerMobileViewState extends State<TripPlannerMobileView> {
                   PrimaryButtonWidget(
                     text: state.planLoading ? 'Planning…' : 'Plan Trip',
                     isEnabled: !state.planLoading,
-                    onPress: () {
-                      // Guests can browse but must authenticate before planning a trip.
-                      if (AppStorage.isGuest) {
-                        AuthRequiredDialog.show(
-                          context,
-                          message:
-                              'You\'re browsing as a guest. Please log in or create an account to plan a trip.',
-                        );
-                        return;
-                      }
-                      context
-                          .read<TripPlannerBloc>()
-                          .add(const TripPlannerPlanTripRequested());
-                    },
+                    onPress: () => _onPlanTrip(context, bloc, state),
                     gradientColors: const [
                       AppColors.primaryDarkColor,
                       AppColors.primaryDarkButtonColor,
