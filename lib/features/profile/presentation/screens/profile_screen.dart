@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:go_router/go_router.dart';
@@ -2642,6 +2643,15 @@ class _VehicleStatBox extends StatelessWidget {
 class _SettingsTabBody extends StatelessWidget {
   const _SettingsTabBody();
 
+  /// Placeholder for not-yet-built settings entries.
+  void _showComingSoon() {
+    Fluttertoast.showToast(
+      msg: 'Coming soon',
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.BOTTOM,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final ui = AppUiColors.of(context);
@@ -2666,13 +2676,13 @@ class _SettingsTabBody extends StatelessWidget {
               _AccountTile(
                 icon: Icons.shield_outlined,
                 label: 'Privacy & Security',
-                onTap: () {},
+                onTap: _showComingSoon,
               ),
               _DividerLine(),
               _AccountTile(
                 icon: Icons.help_outline_rounded,
                 label: 'Help & Support',
-                onTap: () {},
+                onTap: _showComingSoon,
               ),
             ],
           ),
