@@ -24,6 +24,6 @@ void initProfileDependencies() {
   sl.registerLazySingleton(() => GetChargingStatsUseCase(sl()));
 
   // Cubit
-  sl.registerFactory(() => ProfileCubit(getProfileUseCase: sl()));
+  sl.registerFactory(() => ProfileCubit());
   sl.registerFactory(() => ChargingStatsCubit(getChargingStats: sl()));
 }

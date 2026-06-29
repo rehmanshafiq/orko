@@ -1,24 +1,18 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:orko_hubco/core/usecase/usecase.dart';
-import 'package:orko_hubco/features/profile/domain/usecases/get_profile_usecase.dart';
+import 'package:orko_hubco/features/profile/domain/entities/profile_entity.dart';
 import 'package:orko_hubco/features/profile/presentation/cubit/profile_state.dart';
 
 class ProfileCubit extends Cubit<ProfileState> {
-  final GetProfileUseCase _getProfileUseCase;
+  ProfileCubit() : super(const ProfileInitial());
 
-  ProfileCubit({required GetProfileUseCase getProfileUseCase})
-      : _getProfileUseCase = getProfileUseCase,
-        super(const ProfileInitial());
-
-  Future<void> loadProfile() async {
-    emit(const ProfileLoading());
-
-    final result = await _getProfileUseCase(const NoParams());
-
-    result.fold(
-      (failure) => emit(ProfileError(failure.message)),
-      (profile) => emit(ProfileLoaded(profile)),
-    );
+  /// The profile screen renders from the persisted user (`getUser`) and the
+  /// `charging_stats` API — it no longer fetches a separate profile object, so
+  /// this just drops into the loaded state with an empty placeholder. (The old
+  /// implementation hit the postman-echo mock endpoint on every tab open.)
+  void loadProfile() {
+    emit(const ProfileLoaded(
+      ProfileEntity(id: '', name: '', email: ''),
+    ));
   }
 
   void setMainTab(ProfileMainTab tab) {
