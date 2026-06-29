@@ -481,22 +481,19 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
               : 'jpeg';
       final safeName = fileName.contains('.') ? fileName : '$fileName.jpg';
 
+      // The backend reads the file from the `profile_img` field.
       final formData = FormData.fromMap({
-        'image': await MultipartFile.fromFile(
+        'profile_img': await MultipartFile.fromFile(
           imagePath,
           filename: safeName,
           contentType: DioMediaType('image', subtype),
         ),
       });
 
-      // Send as real multipart/form-data (with boundary). The shared ApiClient
-      // defaults Content-Type to application/json, which would break the upload,
-      // so override it per-request.
-      final response = await apiClient.post(
-        url,
-        data: formData,
-        options: Options(contentType: 'multipart/form-data'),
-      );
+      // Pass the FormData straight through — do NOT set Content-Type manually.
+      // Dio generates `multipart/form-data; boundary=…` itself; setting it by
+      // hand drops the boundary and the server rejects the upload.
+      final response = await apiClient.post(url, data: formData);
 
       final responseData = response.data;
       final isOk = (response.statusCode == 200 || response.statusCode == 201) &&

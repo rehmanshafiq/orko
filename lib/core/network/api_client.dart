@@ -19,8 +19,12 @@ class ApiClient {
         connectTimeout: const Duration(seconds: 30),
         receiveTimeout: const Duration(seconds: 30),
         sendTimeout: const Duration(seconds: 30),
+        // NOTE: `Content-Type` is intentionally NOT set globally. Setting it
+        // here forces `application/json` on every request and clobbers the
+        // `multipart/form-data; boundary=…` header Dio generates for FormData
+        // uploads (the boundary goes missing and the server can't parse the
+        // file). Content type is applied per-request below instead.
         headers: {
-          'Content-Type': 'application/json',
           'Accept': 'application/json',
           'Domain': _resolveDomain(),
         },
@@ -57,7 +61,12 @@ class ApiClient {
     Map<String, dynamic>? queryParameters,
     Options? options,
   }) async {
-    return _dio.post(path, data: data, queryParameters: queryParameters, options: options);
+    return _dio.post(
+      path,
+      data: data,
+      queryParameters: queryParameters,
+      options: _withContentType(options, data),
+    );
   }
 
   /// PUT request
@@ -67,7 +76,12 @@ class ApiClient {
     Map<String, dynamic>? queryParameters,
     Options? options,
   }) async {
-    return _dio.put(path, data: data, queryParameters: queryParameters, options: options);
+    return _dio.put(
+      path,
+      data: data,
+      queryParameters: queryParameters,
+      options: _withContentType(options, data),
+    );
   }
 
   /// DELETE request
@@ -77,7 +91,12 @@ class ApiClient {
     Map<String, dynamic>? queryParameters,
     Options? options,
   }) async {
-    return _dio.delete(path, data: data, queryParameters: queryParameters, options: options);
+    return _dio.delete(
+      path,
+      data: data,
+      queryParameters: queryParameters,
+      options: _withContentType(options, data),
+    );
   }
 
   /// PATCH request
@@ -87,6 +106,23 @@ class ApiClient {
     Map<String, dynamic>? queryParameters,
     Options? options,
   }) async {
-    return _dio.patch(path, data: data, queryParameters: queryParameters, options: options);
+    return _dio.patch(
+      path,
+      data: data,
+      queryParameters: queryParameters,
+      options: _withContentType(options, data),
+    );
+  }
+
+  /// Applies the right `Content-Type` per request:
+  /// * `FormData` → left untouched so Dio sets `multipart/form-data` WITH the
+  ///   required `boundary` automatically.
+  /// * everything else → defaults to `application/json` (unless the caller
+  ///   already specified a content type).
+  Options _withContentType(Options? options, dynamic data) {
+    if (data is FormData) return options ?? Options();
+    final opts = options ?? Options();
+    if (opts.contentType != null) return opts;
+    return opts.copyWith(contentType: Headers.jsonContentType);
   }
 }
