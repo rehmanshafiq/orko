@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:orko_hubco/core/utils/widgets/qr_scanner_screen.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:simple_barcode_scanner/simple_barcode_scanner.dart';
 
 /// Result of launching the booking QR scanner.
 sealed class BookingQrScanResult {
@@ -27,8 +27,8 @@ final class BookingQrScanFailure extends BookingQrScanResult {
   final String message;
 }
 
-/// Opens a camera-based QR scanner for upcoming bookings using `mobile_scanner`
-/// (no license key required).
+/// Opens a camera-based QR scanner for upcoming bookings using
+/// `simple_barcode_scanner` (no license key required).
 class BarcodeScannerService {
   BarcodeScannerService._();
 
@@ -41,11 +41,24 @@ class BarcodeScannerService {
     }
     if (!context.mounted) return const BookingQrScanCancelled();
 
-    final String? code = await Navigator.of(context).push<String>(
-      MaterialPageRoute(builder: (_) => const QrScannerScreen()),
+    // SimpleBarcodeScannerPage pops with the scanned string, or the sentinel
+    // '-1' when the user cancels / backs out.
+    final scanned = await Navigator.of(context).push<String>(
+      MaterialPageRoute(
+        builder: (_) => const SimpleBarcodeScannerPage(
+          scanType: ScanType.qr,
+          appBarTitle: 'Scan QR Code',
+          centerTitle: true,
+          isShowFlashIcon: true,
+          cancelButtonText: 'Cancel',
+        ),
+      ),
     );
 
-    if (code == null) return const BookingQrScanCancelled();
+    if (scanned == null || scanned == '-1') {
+      return const BookingQrScanCancelled();
+    }
+    final code = scanned.trim();
     if (code.isEmpty) return const BookingQrScanFailure('No QR code detected');
     return BookingQrScanSuccess(code);
   }
