@@ -173,6 +173,7 @@ class _PlaceSearchSheetState extends State<_PlaceSearchSheet> {
                             cursorColor: ui.brandPrimary,
                             decoration: InputDecoration(
                               isDense: true,
+                              filled: false,
                               border: InputBorder.none,
                               enabledBorder: InputBorder.none,
                               focusedBorder: InputBorder.none,

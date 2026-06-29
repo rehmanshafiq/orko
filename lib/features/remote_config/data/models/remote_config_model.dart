@@ -9,6 +9,9 @@ import 'package:equatable/equatable.dart';
 ///     "base_url_live": "https://apis-py.orkofleet.com/",
 ///     "base_url_qa": "https://staging-python.orkofleet.com/",
 ///     "domain": "Hubco",
+///     "google_places_api_key": "AIza...",
+///     "autocomplete_url": "https://maps.googleapis.com/maps/api/place/autocomplete/json",
+///     "details_url": "https://maps.googleapis.com/maps/api/place/details/json",
 ///     "api_endpoints": {
 ///       "charging_station_map": "api/v1/charging-station/nearest?",
 ///       "charging_station_detail": "api/v1/charging-station/",
@@ -58,12 +61,18 @@ class ApiConstants extends Equatable {
     required this.baseUrlLive,
     required this.baseUrlQa,
     required this.domain,
+    required this.googlePlacesApiKey,
+    required this.autocompleteUrl,
+    required this.detailsUrl,
     required this.apiEndpoints,
   });
 
   final String baseUrlLive;
   final String baseUrlQa;
   final String domain;
+  final String googlePlacesApiKey;
+  final String autocompleteUrl;
+  final String detailsUrl;
   final ApiEndpoints apiEndpoints;
 
   /// Parses the inner `api_constants` object. This matches the value stored in
@@ -74,6 +83,9 @@ class ApiConstants extends Equatable {
       baseUrlLive: json['base_url_live'] as String? ?? '',
       baseUrlQa: json['base_url_qa'] as String? ?? '',
       domain: json['domain'] as String? ?? '',
+      googlePlacesApiKey: json['google_places_api_key'] as String? ?? '',
+      autocompleteUrl: json['autocomplete_url'] as String? ?? '',
+      detailsUrl: json['details_url'] as String? ?? '',
       apiEndpoints: ApiEndpoints.fromJson(
         rawEndpoints is Map
             ? Map<String, dynamic>.from(rawEndpoints)
@@ -87,6 +99,9 @@ class ApiConstants extends Equatable {
       'base_url_live': baseUrlLive,
       'base_url_qa': baseUrlQa,
       'domain': domain,
+      'google_places_api_key': googlePlacesApiKey,
+      'autocomplete_url': autocompleteUrl,
+      'details_url': detailsUrl,
       'api_endpoints': apiEndpoints.toJson(),
     };
   }
@@ -95,18 +110,32 @@ class ApiConstants extends Equatable {
     String? baseUrlLive,
     String? baseUrlQa,
     String? domain,
+    String? googlePlacesApiKey,
+    String? autocompleteUrl,
+    String? detailsUrl,
     ApiEndpoints? apiEndpoints,
   }) {
     return ApiConstants(
       baseUrlLive: baseUrlLive ?? this.baseUrlLive,
       baseUrlQa: baseUrlQa ?? this.baseUrlQa,
       domain: domain ?? this.domain,
+      googlePlacesApiKey: googlePlacesApiKey ?? this.googlePlacesApiKey,
+      autocompleteUrl: autocompleteUrl ?? this.autocompleteUrl,
+      detailsUrl: detailsUrl ?? this.detailsUrl,
       apiEndpoints: apiEndpoints ?? this.apiEndpoints,
     );
   }
 
   @override
-  List<Object?> get props => [baseUrlLive, baseUrlQa, domain, apiEndpoints];
+  List<Object?> get props => [
+        baseUrlLive,
+        baseUrlQa,
+        domain,
+        googlePlacesApiKey,
+        autocompleteUrl,
+        detailsUrl,
+        apiEndpoints,
+      ];
 }
 
 /// API endpoint paths section of the remote config.

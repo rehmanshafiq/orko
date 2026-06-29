@@ -100,10 +100,8 @@ class TripPlannerBloc extends Bloc<TripPlannerEvent, TripPlannerState> {
 ]
 ''';
 
-  final TextEditingController _startLocationController =
-      TextEditingController(text: 'Karachi');
-  final TextEditingController _endLocationController =
-      TextEditingController(text: 'Lahore');
+  final TextEditingController _startLocationController = TextEditingController();
+  final TextEditingController _endLocationController = TextEditingController();
 
   TextEditingController get startLocationController => _startLocationController;
   TextEditingController get endLocationController => _endLocationController;

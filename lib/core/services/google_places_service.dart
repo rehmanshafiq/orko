@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:orko_hubco/core/constants/api_constants.dart';
+import 'package:orko_hubco/features/remote_config/data/services/remote_config_service.dart';
 
 /// A single autocomplete suggestion returned by the Places API.
 @immutable
@@ -55,10 +56,30 @@ class GooglePlacesService {
 
   final Dio _dio;
 
-  static const String _autocompleteUrl =
-      'https://maps.googleapis.com/maps/api/place/autocomplete/json';
-  static const String _detailsUrl =
-      'https://maps.googleapis.com/maps/api/place/details/json';
+  /// Remote-config values take precedence; fall back to the bundled constants
+  /// when the config hasn't resolved or omits a value.
+  String get _apiKey {
+    final fromConfig =
+        RemoteConfigService.config?.apiConstants.googlePlacesApiKey;
+    return (fromConfig == null || fromConfig.trim().isEmpty)
+        ? ApiConstants.googlePlacesApiKey
+        : fromConfig;
+  }
+
+  String get _autocompleteUrl {
+    final fromConfig =
+        RemoteConfigService.config?.apiConstants.autocompleteUrl;
+    return (fromConfig == null || fromConfig.trim().isEmpty)
+        ? 'https://maps.googleapis.com/maps/api/place/autocomplete/json'
+        : fromConfig;
+  }
+
+  String get _detailsUrl {
+    final fromConfig = RemoteConfigService.config?.apiConstants.detailsUrl;
+    return (fromConfig == null || fromConfig.trim().isEmpty)
+        ? 'https://maps.googleapis.com/maps/api/place/details/json'
+        : fromConfig;
+  }
 
   /// Returns autocomplete predictions for [input], biased to Pakistan.
   ///
@@ -76,7 +97,7 @@ class GooglePlacesService {
         _autocompleteUrl,
         queryParameters: {
           'input': query,
-          'key': ApiConstants.googlePlacesApiKey,
+          'key': _apiKey,
           'components': 'country:pk',
           if (sessionToken != null) 'sessiontoken': sessionToken,
         },
@@ -120,7 +141,7 @@ class GooglePlacesService {
         _detailsUrl,
         queryParameters: {
           'place_id': placeId,
-          'key': ApiConstants.googlePlacesApiKey,
+          'key': _apiKey,
           'fields': 'name,formatted_address,geometry/location',
           if (sessionToken != null) 'sessiontoken': sessionToken,
         },
