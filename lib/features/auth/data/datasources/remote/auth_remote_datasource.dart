@@ -20,14 +20,6 @@ abstract class AuthRemoteDataSource {
     required String email,
   });
 
-  /// Calls the register API.
-  /// Throws [ServerException] on failure.
-  Future<UserModel> register({
-    required String name,
-    required String email,
-    required String password,
-  });
-
   /// Calls the complete-signup API (`sign_up_form` endpoint from Remote Config).
   /// Returns the access token and created user.
   /// Throws [ServerException] on failure.

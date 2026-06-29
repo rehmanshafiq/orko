@@ -1,18 +1,13 @@
 import 'dart:developer';
 
 import 'package:dio/dio.dart';
-import 'package:orko_hubco/core/constants/api_constants.dart';
 import 'package:orko_hubco/core/error/exceptions.dart';
 import 'package:orko_hubco/core/network/api_client.dart';
 import 'package:orko_hubco/features/profile/data/models/charging_stats_model.dart';
-import 'package:orko_hubco/features/profile/data/models/profile_model.dart';
 import 'package:orko_hubco/features/remote_config/data/services/remote_config_service.dart';
 
 /// Remote data source for profile operations.
 abstract class ProfileRemoteDataSource {
-  Future<ProfileModel> getProfile();
-  Future<ProfileModel> updateProfile(Map<String, dynamic> data);
-
   /// Fetches aggregated charging stats (`charging_stats` endpoint from Remote
   /// Config). Returns the parsed [ChargingStatsModel] (`body`).
   /// Throws [ServerException] on failure.
@@ -23,48 +18,6 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
   final ApiClient apiClient;
 
   const ProfileRemoteDataSourceImpl({required this.apiClient});
-
-  @override
-  Future<ProfileModel> getProfile() async {
-    try {
-      final response = await apiClient.get(ApiConstants.profile);
-      if (response.statusCode == 200 && response.data != null) {
-        final raw = response.data;
-        if (raw is! Map) {
-          throw ServerException(
-            message: 'Invalid profile response',
-            statusCode: response.statusCode,
-          );
-        }
-        return ProfileModel.fromJson(Map<String, dynamic>.from(raw));
-      }
-      throw ServerException(message: 'Failed to load profile', statusCode: response.statusCode);
-    } catch (e) {
-      if (e is ServerException) rethrow;
-      throw ServerException(message: e.toString(), originalError: e);
-    }
-  }
-
-  @override
-  Future<ProfileModel> updateProfile(Map<String, dynamic> data) async {
-    try {
-      final response = await apiClient.put(ApiConstants.updateProfile, data: data);
-      if (response.statusCode == 200 && response.data != null) {
-        final raw = response.data;
-        if (raw is! Map) {
-          throw ServerException(
-            message: 'Invalid profile response',
-            statusCode: response.statusCode,
-          );
-        }
-        return ProfileModel.fromJson(Map<String, dynamic>.from(raw));
-      }
-      throw ServerException(message: 'Failed to update profile', statusCode: response.statusCode);
-    } catch (e) {
-      if (e is ServerException) rethrow;
-      throw ServerException(message: e.toString(), originalError: e);
-    }
-  }
 
   @override
   Future<ChargingStatsModel> getChargingStats() async {

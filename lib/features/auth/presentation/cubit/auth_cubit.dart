@@ -4,7 +4,6 @@ import 'package:orko_hubco/core/services/push_notification_service.dart';
 import 'package:orko_hubco/core/usecase/usecase.dart';
 import 'package:orko_hubco/features/auth/domain/usecases/login_usecase.dart';
 import 'package:orko_hubco/features/auth/domain/usecases/login_with_google_usecase.dart';
-import 'package:orko_hubco/features/auth/domain/usecases/register_usecase.dart';
 import 'package:orko_hubco/features/auth/domain/usecases/resend_otp_usecase.dart';
 import 'package:orko_hubco/features/auth/domain/usecases/signup_usecase.dart';
 import 'package:orko_hubco/features/auth/domain/usecases/verify_otp_usecase.dart';
@@ -17,7 +16,6 @@ import '../../domain/usecases/logout_usecase.dart';
 class AuthCubit extends Cubit<AuthState> {
   final LoginUseCase _loginUseCase;
   final LoginWithGoogleUseCase _loginWithGoogleUseCase;
-  final RegisterUseCase _registerUseCase;
   final SignUpUseCase _signUpUseCase;
   final VerifyOtpUseCase _verifyOtpUseCase;
   final ResendOtpUseCase _resendOtpUseCase;
@@ -28,7 +26,6 @@ class AuthCubit extends Cubit<AuthState> {
   AuthCubit({
     required LoginUseCase loginUseCase,
     required LoginWithGoogleUseCase loginWithGoogleUseCase,
-    required RegisterUseCase registerUseCase,
     required SignUpUseCase signUpUseCase,
     required VerifyOtpUseCase verifyOtpUseCase,
     required ResendOtpUseCase resendOtpUseCase,
@@ -37,7 +34,6 @@ class AuthCubit extends Cubit<AuthState> {
     required PushNotificationService pushNotificationService,
   })  : _loginUseCase = loginUseCase,
         _loginWithGoogleUseCase = loginWithGoogleUseCase,
-        _registerUseCase = registerUseCase,
         _signUpUseCase = signUpUseCase,
         _verifyOtpUseCase = verifyOtpUseCase,
         _resendOtpUseCase = resendOtpUseCase,
@@ -98,24 +94,6 @@ class AuthCubit extends Cubit<AuthState> {
     result.fold(
       (failure) => emit(AuthError(failure.message)),
       (loginResult) => emit(AuthAuthenticated(loginResult.user)),
-    );
-  }
-
-  /// Performs registration.
-  Future<void> register({
-    required String name,
-    required String email,
-    required String password,
-  }) async {
-    emit(const AuthLoading());
-
-    final result = await _registerUseCase(
-      RegisterParams(name: name, email: email, password: password),
-    );
-
-    result.fold(
-      (failure) => emit(AuthError(failure.message)),
-      (user) => emit(AuthAuthenticated(user)),
     );
   }
 

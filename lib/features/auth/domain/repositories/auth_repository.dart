@@ -23,13 +23,6 @@ abstract class AuthRepository {
     required String email,
   });
 
-  /// Registers a new user.
-  Future<Either<Failure, UserEntity>> register({
-    required String name,
-    required String email,
-    required String password,
-  });
-
   /// Completes sign-up via the `sign_up_form` endpoint, persisting the issued
   /// access token locally. Returns the [SignUpResultEntity] on success.
   Future<Either<Failure, SignUpResultEntity>> signUp({

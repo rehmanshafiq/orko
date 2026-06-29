@@ -30,7 +30,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   bool _obscurePassword = true;
-  final bool _obscureConfirmPassword = true;
+  bool _obscureConfirmPassword = true;
   bool _isTermsAccepted = false;
   AutovalidateMode _autovalidateMode = AutovalidateMode.disabled;
 
@@ -297,6 +297,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       textInputAction: TextInputAction.done,
                       onFieldSubmitted: (_) => _onRegister(),
                       validator: _validateConfirmPassword,
+                      suffixIcon: IconButton(
+                        onPressed: () => setState(
+                          () => _obscureConfirmPassword = !_obscureConfirmPassword,
+                        ),
+                        icon: Icon(
+                          _obscureConfirmPassword
+                              ? Icons.visibility_off_outlined
+                              : Icons.visibility_outlined,
+                          color: AppColors.hintColor,
+                          size: 18,
+                        ),
+                      ),
                     ),
                     8.verticalSpace,
                     Row(

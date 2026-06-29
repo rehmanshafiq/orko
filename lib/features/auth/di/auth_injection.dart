@@ -12,7 +12,6 @@ import 'package:orko_hubco/features/auth/domain/usecases/upload_user_picture_use
 import 'package:orko_hubco/features/auth/domain/usecases/login_usecase.dart';
 import 'package:orko_hubco/features/auth/domain/usecases/login_with_google_usecase.dart';
 import 'package:orko_hubco/features/auth/domain/usecases/logout_usecase.dart';
-import 'package:orko_hubco/features/auth/domain/usecases/register_usecase.dart';
 import 'package:orko_hubco/features/auth/domain/usecases/resend_otp_usecase.dart';
 import 'package:orko_hubco/features/auth/domain/usecases/signup_usecase.dart';
 import 'package:orko_hubco/features/auth/domain/usecases/verify_otp_usecase.dart';
@@ -43,7 +42,6 @@ void initAuthDependencies() {
   // ── Use Cases ─────────────────────────────────────────────────────────
   sl.registerLazySingleton(() => LoginUseCase(sl()));
   sl.registerLazySingleton(() => LoginWithGoogleUseCase(sl()));
-  sl.registerLazySingleton(() => RegisterUseCase(sl()));
   sl.registerLazySingleton(() => SignUpUseCase(sl()));
   sl.registerLazySingleton(() => VerifyOtpUseCase(sl()));
   sl.registerLazySingleton(() => ResendOtpUseCase(sl()));
@@ -57,7 +55,6 @@ void initAuthDependencies() {
     () => AuthCubit(
       loginUseCase: sl(),
       loginWithGoogleUseCase: sl(),
-      registerUseCase: sl(),
       signUpUseCase: sl(),
       verifyOtpUseCase: sl(),
       resendOtpUseCase: sl(),
