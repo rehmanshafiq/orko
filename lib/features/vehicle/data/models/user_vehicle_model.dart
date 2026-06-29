@@ -9,6 +9,7 @@ class UserVehicleModel extends UserVehicleEntity {
     required super.modelName,
     required super.year,
     required super.connectorType,
+    super.registrationNo,
     super.modelImage,
     super.batteryCapacity,
     super.efficiency,
@@ -19,12 +20,17 @@ class UserVehicleModel extends UserVehicleEntity {
 
   factory UserVehicleModel.fromJson(Map<String, dynamic> json) {
     final rawModelImage = json['model_image']?.toString();
+    final rawRegistration = json['registration_no']?.toString();
     return UserVehicleModel(
       id: _asInt(json['id']),
       makeName: (json['make_name'] ?? '').toString(),
       modelName: (json['model_name'] ?? '').toString(),
       year: (json['year'] ?? '').toString(),
       connectorType: (json['connector_type'] ?? '').toString(),
+      registrationNo:
+          (rawRegistration == null || rawRegistration.trim().isEmpty)
+              ? null
+              : rawRegistration.trim(),
       modelImage: (rawModelImage == null || rawModelImage.isEmpty)
           ? null
           : rawModelImage,

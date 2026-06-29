@@ -2368,6 +2368,31 @@ class _VehicleCard extends StatelessWidget {
                               fontWeight: FontWeights.weight400,
                             ),
                           ],
+                          if (vehicle.registrationNo != null &&
+                              vehicle.registrationNo!.trim().isNotEmpty) ...[
+                            6.verticalSpace,
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.confirmation_number_outlined,
+                                  size: 14.r,
+                                  color: ui.textSecondary,
+                                ),
+                                4.horizontalSpace,
+                                Flexible(
+                                  child: AppText(
+                                    vehicle.registrationNo!.trim(),
+                                    color: ui.textPrimary,
+                                    fontSize: FontSizes.font12Sp,
+                                    fontWeight: FontWeights.weight600,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ],
                       ),
                     ),

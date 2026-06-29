@@ -10,6 +10,7 @@ class UserVehicleEntity extends Equatable {
     required this.modelName,
     required this.year,
     required this.connectorType,
+    this.registrationNo,
     this.modelImage,
     this.batteryCapacity,
     this.efficiency,
@@ -24,6 +25,9 @@ class UserVehicleEntity extends Equatable {
   final String modelName;
   final String year;
   final String connectorType;
+
+  /// `registration_no` — vehicle registration/plate number, when available.
+  final String? registrationNo;
 
   /// `model_image` — URL of the vehicle model's image, when available.
   final String? modelImage;
@@ -47,6 +51,7 @@ class UserVehicleEntity extends Equatable {
         modelName,
         year,
         connectorType,
+        registrationNo,
         modelImage,
         batteryCapacity,
         efficiency,
