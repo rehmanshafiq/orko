@@ -210,7 +210,7 @@ class VehicleRemoteDataSourceImpl implements VehicleRemoteDataSource {
     if (endpoint.isEmpty) {
       throw ServerException(message: unavailableMessage);
     }
-    return _buildUrl(config.apiConstants.baseUrlQa, endpoint);
+    return _buildUrl(ApiClient.baseUrl, endpoint);
   }
 
   /// Validates the `{status, body}` envelope and returns `body`.

@@ -35,7 +35,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         );
       }
 
-      final url = _buildUrl(config.apiConstants.baseUrlQa, endpoint);
+      final url = _buildUrl(ApiClient.baseUrl, endpoint);
       log('[Auth] Login URL: $url');
 
       final response = await apiClient.post(
@@ -97,7 +97,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         );
       }
 
-      final url = _buildUrl(config.apiConstants.baseUrlQa, endpoint);
+      final url = _buildUrl(ApiClient.baseUrl, endpoint);
       log('[Auth] Login-with-google URL: $url');
 
       final response = await apiClient.post(
@@ -188,7 +188,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       }
 
       final url = _buildUrl(
-        config.apiConstants.baseUrlQa,
+        ApiClient.baseUrl,
         config.apiConstants.apiEndpoints.signUpForm,
       );
 
@@ -244,7 +244,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         );
       }
 
-      final url = _buildUrl(config.apiConstants.baseUrlQa, endpoint);
+      final url = _buildUrl(ApiClient.baseUrl, endpoint);
       log('[Auth] Verify-OTP URL: $url');
 
       final response = await apiClient.post(
@@ -299,7 +299,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         );
       }
 
-      final url = _buildUrl(config.apiConstants.baseUrlQa, endpoint);
+      final url = _buildUrl(ApiClient.baseUrl, endpoint);
       log('[Auth] Resend-OTP URL: $url');
 
       final Response response;
@@ -368,7 +368,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         );
       }
 
-      final url = _buildUrl(config.apiConstants.baseUrlQa, endpoint);
+      final url = _buildUrl(ApiClient.baseUrl, endpoint);
       log('[Auth] Get user URL: $url');
 
       final response = await apiClient.get(url);
@@ -419,7 +419,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         );
       }
 
-      final url = _buildUrl(config.apiConstants.baseUrlQa, endpoint);
+      final url = _buildUrl(ApiClient.baseUrl, endpoint);
       log('[Auth] Edit-user-profile URL: $url');
 
       final response = await apiClient.patch(url, data: data);
@@ -465,7 +465,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         );
       }
 
-      final url = _buildUrl(config.apiConstants.baseUrlQa, endpoint);
+      final url = _buildUrl(ApiClient.baseUrl, endpoint);
       log('[Auth] Upload-user-picture URL: $url');
 
       final fileName = imagePath.split('/').last;
@@ -558,7 +558,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         );
       }
 
-      final url = _buildUrl(config.apiConstants.baseUrlQa, endpoint);
+      final url = _buildUrl(ApiClient.baseUrl, endpoint);
       log('[Auth] Logout URL: $url');
 
       final response = await apiClient.get(url);

@@ -81,7 +81,7 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
         );
       }
 
-      final url = _buildUrl(config.apiConstants.baseUrlQa, endpoint);
+      final url = _buildUrl(ApiClient.baseUrl, endpoint);
       log('[Profile] Charging stats URL: $url');
 
       final response = await apiClient.get(url);

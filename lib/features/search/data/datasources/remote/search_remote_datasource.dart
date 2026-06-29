@@ -154,7 +154,7 @@ class SearchRemoteDataSourceImpl implements SearchRemoteDataSource {
     }
     var endpoint = select(config.apiConstants.apiEndpoints).toString().trim();
     if (endpoint.isEmpty) endpoint = fallbackPath;
-    return _buildUrl(config.apiConstants.baseUrlQa, endpoint);
+    return _buildUrl(ApiClient.baseUrl, endpoint);
   }
 
   /// Validates the `{status, body}` envelope and returns `body`.

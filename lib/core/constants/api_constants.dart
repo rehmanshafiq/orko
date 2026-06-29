@@ -2,7 +2,7 @@
 class ApiConstants {
   ApiConstants._();
 
-  static const String baseUrl = 'https://postman-echo.com';
+  static const String baseUrl = 'https://staging-python.orkofleet.com/';
 
   // Auth endpoints (Postman echo reflects your POST payload)
   static const String login = '/post';

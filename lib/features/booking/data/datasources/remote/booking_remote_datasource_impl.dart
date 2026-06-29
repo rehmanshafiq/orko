@@ -288,7 +288,7 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
     if (endpoint.trim().isEmpty) {
       throw ServerException(message: unavailableMessage);
     }
-    return _buildUrl(config.apiConstants.baseUrlQa, endpoint);
+    return _buildUrl(ApiClient.baseUrl, endpoint);
   }
 
   /// Validates the `{status, body}` envelope and returns `body`, throwing the

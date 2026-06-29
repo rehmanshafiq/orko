@@ -62,7 +62,7 @@ class ChargingRemoteDataSourceImpl implements ChargingRemoteDataSource {
       }
 
       final url = _buildUrl(
-        config.apiConstants.baseUrlQa,
+        ApiClient.baseUrl,
         config.apiConstants.apiEndpoints.chargingStationDetail,
         stationId,
       );
@@ -243,10 +243,10 @@ class ChargingRemoteDataSourceImpl implements ChargingRemoteDataSource {
     if (config == null) {
       throw const ServerException(message: 'Remote config not initialized');
     }
-    final base = config.apiConstants.baseUrlQa.endsWith('/')
-        ? config.apiConstants.baseUrlQa
-            .substring(0, config.apiConstants.baseUrlQa.length - 1)
-        : config.apiConstants.baseUrlQa;
+    final base = ApiClient.baseUrl.endsWith('/')
+        ? ApiClient.baseUrl
+            .substring(0, ApiClient.baseUrl.length - 1)
+        : ApiClient.baseUrl;
     var path = config.apiConstants.apiEndpoints.chargerCompatibility.trim();
     // Fall back to the bundled contract path when Remote Config omits the key.
     if (path.isEmpty) path = 'api/v1/charging-station/charger-compatibility/';
@@ -273,10 +273,10 @@ class ChargingRemoteDataSourceImpl implements ChargingRemoteDataSource {
     if (config == null) {
       throw const ServerException(message: 'Remote config not initialized');
     }
-    final base = config.apiConstants.baseUrlQa.endsWith('/')
-        ? config.apiConstants.baseUrlQa
-            .substring(0, config.apiConstants.baseUrlQa.length - 1)
-        : config.apiConstants.baseUrlQa;
+    final base = ApiClient.baseUrl.endsWith('/')
+        ? ApiClient.baseUrl
+            .substring(0, ApiClient.baseUrl.length - 1)
+        : ApiClient.baseUrl;
     var path = config.apiConstants.apiEndpoints.chargingStationFavourites.trim();
     if (path.isEmpty) path = _defaultFavouritesPath;
     if (path.startsWith('/')) path = path.substring(1);

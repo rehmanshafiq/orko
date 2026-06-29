@@ -252,14 +252,12 @@ class NotificationRemoteDataSourceImpl implements NotificationRemoteDataSource {
     return value.isEmpty ? fallback : value;
   }
 
-  /// Joins the remote-config QA base with [path], preserving the trailing slash
-  /// Django routes require.
+  /// Joins the central [ApiClient.baseUrl] with [path], preserving the trailing
+  /// slash Django routes require.
   String _resolveUrl(String path) {
-    final config = RemoteConfigService.config;
-    final base = (config?.apiConstants.baseUrlQa.trim().isNotEmpty ?? false)
-        ? config!.apiConstants.baseUrlQa.trim()
-        : 'https://staging-python.orkofleet.com/';
-    final cleanBase = base.endsWith('/') ? base.substring(0, base.length - 1) : base;
+    final base = ApiClient.baseUrl.trim();
+    final cleanBase =
+        base.endsWith('/') ? base.substring(0, base.length - 1) : base;
     final cleanPath = path.startsWith('/') ? path.substring(1) : path;
     return '$cleanBase/$cleanPath';
   }

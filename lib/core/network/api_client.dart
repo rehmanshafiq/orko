@@ -15,7 +15,9 @@ class ApiClient {
   ApiClient() {
     _dio = Dio(
       BaseOptions(
-        baseUrl: ApiConstants.baseUrl,
+        // Resolved from Remote Config (falls back to ApiConstants.baseUrl until
+        // config loads). See the [baseUrl] getter below.
+        baseUrl: baseUrl,
         connectTimeout: const Duration(seconds: 30),
         receiveTimeout: const Duration(seconds: 30),
         sendTimeout: const Duration(seconds: 30),
@@ -36,6 +38,23 @@ class ApiClient {
       AuthInterceptor(),
       LoggingInterceptor(),
     ]);
+  }
+
+  /// Single source of truth for the API host used by every feature datasource.
+  ///
+  /// Datasources should build their URLs against this instead of reading
+  /// `config.apiConstants.baseUrlQa` directly — switching the whole app between
+  /// environments is then a one-line change here:
+  ///   * QA   → `config.apiConstants.baseUrlQa`
+  ///   * Live → `config.apiConstants.baseUrlLive`
+  ///
+  /// Falls back to [ApiConstants.baseUrl] before Remote Config has resolved.
+  static String get baseUrl {
+    final config = RemoteConfigService.config;
+    final resolved = config?.apiConstants.baseUrlQa;
+    return (resolved == null || resolved.trim().isEmpty)
+        ? ApiConstants.baseUrl
+        : resolved;
   }
 
   /// Domain header value from Remote Config, defaulting to `Hubco` when the
