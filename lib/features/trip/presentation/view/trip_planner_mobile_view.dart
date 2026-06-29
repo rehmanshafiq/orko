@@ -15,6 +15,7 @@ import 'package:orko_hubco/features/trip/presentation/widgets/trip_charging_stop
 import 'package:orko_hubco/features/trip/presentation/widgets/trip_current_battery_slider_widget.dart';
 import 'package:orko_hubco/features/trip/presentation/widgets/trip_ev_details_card_widget.dart';
 import 'package:orko_hubco/features/trip/presentation/widgets/trip_header_widget.dart';
+import 'package:orko_hubco/features/trip/presentation/widgets/place_search_sheet.dart';
 import 'package:orko_hubco/features/trip/presentation/widgets/trip_location_field_widget.dart';
 import 'package:orko_hubco/features/trip/presentation/widgets/trip_map_card_widget.dart';
 import 'package:orko_hubco/features/trip/presentation/widgets/trip_section_title_widget.dart';
@@ -33,6 +34,33 @@ class _TripPlannerMobileViewState extends State<TripPlannerMobileView> {
   /// Drives the planned-trip body: the route map (true) or the stops list.
   /// Toggled via the Map/List switch inside [TripSummaryCardWidget].
   bool _isMapView = true;
+
+  /// Opens the Google Places search sheet and stores the picked place on the
+  /// bloc so trip planning uses its exact coordinates.
+  Future<void> _pickLocation(
+    BuildContext context,
+    TripPlannerBloc bloc, {
+    required bool isStart,
+  }) async {
+    final place = await showPlaceSearchSheet(
+      context,
+      title: isStart ? 'Start location' : 'Destination',
+    );
+    if (place == null) return;
+    if (isStart) {
+      bloc.selectStartPlace(
+        name: place.name,
+        lat: place.latitude,
+        lng: place.longitude,
+      );
+    } else {
+      bloc.selectEndPlace(
+        name: place.name,
+        lat: place.latitude,
+        lng: place.longitude,
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -122,11 +150,13 @@ class _TripPlannerMobileViewState extends State<TripPlannerMobileView> {
                   TripLocationFieldWidget(
                     controller: bloc.startLocationController,
                     isStart: true,
+                    onTap: () => _pickLocation(context, bloc, isStart: true),
                   ),
                   8.verticalSpace,
                   TripLocationFieldWidget(
                     controller: bloc.endLocationController,
                     isStart: false,
+                    onTap: () => _pickLocation(context, bloc, isStart: false),
                   ),
                   12.verticalSpace,
                   TripVehicleDropdownWidget(

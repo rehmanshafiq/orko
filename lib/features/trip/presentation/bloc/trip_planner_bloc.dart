@@ -108,6 +108,33 @@ class TripPlannerBloc extends Bloc<TripPlannerEvent, TripPlannerState> {
   TextEditingController get startLocationController => _startLocationController;
   TextEditingController get endLocationController => _endLocationController;
 
+  /// Exact coordinates chosen via Google Places, kept so trip planning uses the
+  /// picked place instead of the limited [HubcoChargingStations.resolveCity]
+  /// lookup. Cleared implicitly when the field text no longer matches.
+  ({double lat, double lng, String name})? _startPlace;
+  ({double lat, double lng, String name})? _endPlace;
+
+  /// Records a Places selection for the start field and reflects it in the
+  /// text controller.
+  void selectStartPlace({
+    required String name,
+    required double lat,
+    required double lng,
+  }) {
+    _startPlace = (lat: lat, lng: lng, name: name);
+    _startLocationController.text = name;
+  }
+
+  /// Records a Places selection for the destination field.
+  void selectEndPlace({
+    required String name,
+    required double lat,
+    required double lng,
+  }) {
+    _endPlace = (lat: lat, lng: lng, name: name);
+    _endLocationController.text = name;
+  }
+
   void _onLocationChanged() {
     add(const TripPlannerLocationChanged());
   }
@@ -153,6 +180,7 @@ class TripPlannerBloc extends Bloc<TripPlannerEvent, TripPlannerState> {
     final origin = await _resolvePoint(
       text: _startLocationController.text,
       isOrigin: true,
+      selected: _startPlace,
     );
     if (origin == null) {
       emit(state.copyWith(
@@ -165,6 +193,7 @@ class TripPlannerBloc extends Bloc<TripPlannerEvent, TripPlannerState> {
     final destination = await _resolvePoint(
       text: _endLocationController.text,
       isOrigin: false,
+      selected: _endPlace,
     );
     if (destination == null) {
       emit(state.copyWith(
@@ -259,8 +288,15 @@ class TripPlannerBloc extends Bloc<TripPlannerEvent, TripPlannerState> {
   Future<({double lat, double lng, String name})?> _resolvePoint({
     required String text,
     required bool isOrigin,
+    ({double lat, double lng, String name})? selected,
   }) async {
     final trimmed = text.trim();
+
+    // Prefer the exact Google Places selection while it matches the field text.
+    if (selected != null && selected.name == trimmed) {
+      return selected;
+    }
+
     final wantsGps = isOrigin &&
         (trimmed.isEmpty || trimmed.toLowerCase() == 'current location');
 

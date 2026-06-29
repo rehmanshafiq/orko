@@ -17,4 +17,9 @@ class ApiConstants {
   // Map endpoints
   static const String hubcoLocations =
       'https://staging-python.orkofleet.com/portal/api/v1/charging-station/hubco-locations';
+
+  /// Google Places (Autocomplete + Details) API key. Shares the project's
+  /// Google Maps key — ensure the Places API is enabled for it in the console.
+  static const String googlePlacesApiKey =
+      'AIzaSyDdfWz53rd1de4VDmBWJblRgFrL8Hrfd-Q';
 }
