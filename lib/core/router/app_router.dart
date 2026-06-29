@@ -21,6 +21,7 @@ import 'package:orko_hubco/features/map/presentation/cubit/map_cubit.dart';
 import 'package:orko_hubco/features/notifications/presentation/page/notifications_page.dart';
 import 'package:orko_hubco/features/onboarding/presentation/bloc/onboarding_cubit.dart';
 import 'package:orko_hubco/features/onboarding/presentation/page/onboarding_page.dart';
+import 'package:orko_hubco/features/profile/presentation/cubit/charging_stats_cubit.dart';
 import 'package:orko_hubco/features/profile/presentation/cubit/profile_cubit.dart';
 import 'package:orko_hubco/features/charging/presentation/page/charging_status_page.dart';
 import 'package:orko_hubco/features/profile/presentation/screens/profile_screen.dart';
@@ -230,6 +231,9 @@ class AppRouter {
                       create: (_) => sl<ProfileCubit>()..loadProfile(),
                     ),
                     BlocProvider(create: (_) => sl<VehicleCubit>()),
+                    BlocProvider(
+                      create: (_) => sl<ChargingStatsCubit>()..load(),
+                    ),
                   ],
                   child: const ProfileScreen(),
                 ),

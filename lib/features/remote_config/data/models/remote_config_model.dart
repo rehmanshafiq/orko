@@ -165,6 +165,7 @@ class ApiEndpoints extends Equatable {
     required this.rescheduleBooking,
     required this.chargeSessionHistory,
     required this.liveSession,
+    required this.chargingStats,
     required this.vehicleMakes,
     required this.vehicleModels,
     required this.addVehicle,
@@ -207,6 +208,7 @@ class ApiEndpoints extends Equatable {
   final String rescheduleBooking;
   final String chargeSessionHistory;
   final String liveSession;
+  final String chargingStats;
   final String vehicleMakes;
   final String vehicleModels;
   final String addVehicle;
@@ -252,6 +254,7 @@ class ApiEndpoints extends Equatable {
       rescheduleBooking: json['reschedule_booking'] as String? ?? '',
       chargeSessionHistory: json['charge_session_history'] as String? ?? '',
       liveSession: json['live_session'] as String? ?? '',
+      chargingStats: json['charging_stats'] as String? ?? '',
       vehicleMakes: json['vehicle_makes'] as String? ?? '',
       vehicleModels: json['vehicle_models'] as String? ?? '',
       addVehicle: json['add_vehicle'] as String? ?? '',
@@ -301,6 +304,7 @@ class ApiEndpoints extends Equatable {
       'reschedule_booking': rescheduleBooking,
       'charge_session_history': chargeSessionHistory,
       'live_session': liveSession,
+      'charging_stats': chargingStats,
       'vehicle_makes': vehicleMakes,
       'vehicle_models': vehicleModels,
       'add_vehicle': addVehicle,
@@ -345,6 +349,7 @@ class ApiEndpoints extends Equatable {
     String? rescheduleBooking,
     String? chargeSessionHistory,
     String? liveSession,
+    String? chargingStats,
     String? vehicleMakes,
     String? vehicleModels,
     String? addVehicle,
@@ -391,6 +396,7 @@ class ApiEndpoints extends Equatable {
       rescheduleBooking: rescheduleBooking ?? this.rescheduleBooking,
       chargeSessionHistory: chargeSessionHistory ?? this.chargeSessionHistory,
       liveSession: liveSession ?? this.liveSession,
+      chargingStats: chargingStats ?? this.chargingStats,
       vehicleMakes: vehicleMakes ?? this.vehicleMakes,
       vehicleModels: vehicleModels ?? this.vehicleModels,
       addVehicle: addVehicle ?? this.addVehicle,
@@ -440,6 +446,7 @@ class ApiEndpoints extends Equatable {
     rescheduleBooking,
     chargeSessionHistory,
     liveSession,
+    chargingStats,
     vehicleMakes,
     vehicleModels,
     addVehicle,

@@ -32,6 +32,8 @@ import 'package:orko_hubco/features/notifications/domain/entities/notification_p
 import 'package:orko_hubco/features/notifications/presentation/cubit/notification_preferences_cubit.dart';
 import 'package:orko_hubco/features/notifications/presentation/cubit/notification_preferences_state.dart';
 import 'package:orko_hubco/features/profile/domain/entities/profile_entity.dart';
+import 'package:orko_hubco/features/profile/presentation/cubit/charging_stats_cubit.dart';
+import 'package:orko_hubco/features/profile/presentation/cubit/charging_stats_state.dart';
 import 'package:orko_hubco/features/profile/presentation/cubit/profile_cubit.dart';
 import 'package:orko_hubco/features/profile/presentation/cubit/profile_state.dart';
 import 'package:orko_hubco/features/profile/presentation/screens/edit_profile_screen.dart';
@@ -875,64 +877,137 @@ class _ProfileTabBody extends StatelessWidget {
   }
 }
 
+/// Charging stats grid backed by `charging_stats`. Shows per-tile spinners
+/// while loading, dashes + a retry affordance on failure, and zeroed values
+/// for guests / brand-new accounts.
 class _StatsGrid extends StatelessWidget {
+  /// Trims a trailing `.0` (40.0 → "40", 40.8 → "40.8").
+  String _trimNum(double v) {
+    if (v == v.roundToDouble()) return v.toInt().toString();
+    return v.toStringAsFixed(1);
+  }
+
+  /// Groups an integer with thousands separators (5930 → "5,930").
+  String _grouped(num v) {
+    final s = v.toInt().toString();
+    final neg = s.startsWith('-');
+    final digits = neg ? s.substring(1) : s;
+    final buf = StringBuffer();
+    for (var i = 0; i < digits.length; i++) {
+      if (i != 0 && (digits.length - i) % 3 == 0) buf.write(',');
+      buf.write(digits[i]);
+    }
+    return neg ? '-$buf' : buf.toString();
+  }
+
   @override
   Widget build(BuildContext context) {
     final ui = AppUiColors.of(context);
-    return Column(
-      children: [
-        Row(
+    return BlocBuilder<ChargingStatsCubit, ChargingStatsState>(
+      builder: (context, state) {
+        final stats = state.stats;
+        final loading = state.isLoading && stats == null;
+        final failed = state.isFailure && stats == null;
+
+        final charges = stats != null ? _grouped(stats.totalCharges) : '—';
+        final kwh = stats != null ? _trimNum(stats.totalKwh) : '—';
+        final money =
+            stats != null ? 'PKR ${_grouped(stats.moneySavedPkr)}' : '—';
+        final co2 =
+            stats != null ? '${_trimNum(stats.co2ReducedKg)} kg' : '—';
+
+        return Column(
           children: [
-            Expanded(
-              child: _StatTile(
-                icon: Icons.bolt_rounded,
-                iconBg: AppColors.transparentColor,
-                iconColor: ui.brandSecondary,
-                value: '47',
-                valueColor: ui.textPrimary,
-                label: 'Total Charges',
-              ),
+            Row(
+              children: [
+                Expanded(
+                  child: _StatTile(
+                    icon: Icons.bolt_rounded,
+                    iconBg: AppColors.transparentColor,
+                    iconColor: ui.brandSecondary,
+                    value: charges,
+                    valueColor: ui.textPrimary,
+                    label: 'Total Charges',
+                    isLoading: loading,
+                  ),
+                ),
+                10.horizontalSpace,
+                Expanded(
+                  child: _StatTile(
+                    icon: Icons.battery_charging_full_rounded,
+                    iconBg: AppColors.transparentColor,
+                    iconColor: ui.brandSecondary,
+                    value: kwh,
+                    valueColor: ui.textPrimary,
+                    label: 'kWh Charged',
+                    isLoading: loading,
+                  ),
+                ),
+              ],
             ),
-            10.horizontalSpace,
-            Expanded(
-              child: _StatTile(
-                icon: Icons.battery_charging_full_rounded,
-                iconBg: AppColors.transparentColor,
-                iconColor: ui.brandSecondary,
-                value: '1245',
-                valueColor: ui.textPrimary,
-                label: 'kWh Charged',
-              ),
+            10.verticalSpace,
+            Row(
+              children: [
+                Expanded(
+                  child: _StatTile(
+                    icon: Icons.trending_up_rounded,
+                    iconBg: AppColors.transparentColor,
+                    iconColor: ui.brandSecondary,
+                    value: money,
+                    valueColor: ui.textPrimary,
+                    label: 'Money Saved',
+                    isLoading: loading,
+                  ),
+                ),
+                10.horizontalSpace,
+                Expanded(
+                  child: _StatTile(
+                    icon: Icons.eco_outlined,
+                    iconBg: AppColors.transparentColor,
+                    iconColor: ui.brandSecondary,
+                    value: co2,
+                    valueColor: ui.textPrimary,
+                    label: 'CO2 Reduced',
+                    isLoading: loading,
+                  ),
+                ),
+              ],
             ),
+            if (failed) ...[
+              8.verticalSpace,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.error_outline_rounded,
+                      size: 14.r, color: ui.textSecondary),
+                  6.horizontalSpace,
+                  Flexible(
+                    child: AppText(
+                      state.error ?? 'Couldn\'t load your stats.',
+                      color: ui.textSecondary,
+                      fontSize: FontSizes.font12Sp,
+                      fontWeight: FontWeights.weight400,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  10.horizontalSpace,
+                  GestureDetector(
+                    onTap: () => context.read<ChargingStatsCubit>().load(),
+                    behavior: HitTestBehavior.opaque,
+                    child: AppText(
+                      'Retry',
+                      color: ui.brandPrimary,
+                      fontSize: FontSizes.font12Sp,
+                      fontWeight: FontWeights.weight700,
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ],
-        ),
-        10.verticalSpace,
-        Row(
-          children: [
-            Expanded(
-              child: _StatTile(
-                icon: Icons.trending_up_rounded,
-                iconBg: AppColors.transparentColor,
-                iconColor: ui.brandSecondary,
-                value: 'PKR 12,450',
-                valueColor: ui.textPrimary,
-                label: 'Money Saved',
-              ),
-            ),
-            10.horizontalSpace,
-            Expanded(
-              child: _StatTile(
-                icon: Icons.eco_outlined,
-                iconBg: AppColors.transparentColor,
-                iconColor: ui.brandSecondary,
-                value: '285 kg',
-                valueColor: ui.textPrimary,
-                label: 'CO2 Reduced',
-              ),
-            ),
-          ],
-        ),
-      ],
+        );
+      },
     );
   }
 }
@@ -945,6 +1020,7 @@ class _StatTile extends StatelessWidget {
     required this.value,
     required this.valueColor,
     required this.label,
+    this.isLoading = false,
   });
 
   final IconData icon;
@@ -953,6 +1029,9 @@ class _StatTile extends StatelessWidget {
   final String value;
   final Color valueColor;
   final String label;
+
+  /// When true, a small spinner replaces the value while stats load.
+  final bool isLoading;
 
   @override
   Widget build(BuildContext context) {
@@ -978,11 +1057,28 @@ class _StatTile extends StatelessWidget {
             child: Icon(icon, color: iconColor, size: 22.r),
           ),
           10.verticalSpace,
-          AppText(
-            value,
-            color: valueColor,
-            fontSize: FontSizes.font18Sp,
-            fontWeight: FontWeights.weight700,
+          SizedBox(
+            height: 24.h,
+            child: isLoading
+                ? Align(
+                    alignment: Alignment.centerLeft,
+                    child: SizedBox(
+                      width: 16.r,
+                      height: 16.r,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: ui.brandPrimary,
+                      ),
+                    ),
+                  )
+                : AppText(
+                    value,
+                    color: valueColor,
+                    fontSize: FontSizes.font18Sp,
+                    fontWeight: FontWeights.weight700,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
           ),
           4.verticalSpace,
           AppText(

@@ -2,7 +2,9 @@ import 'package:orko_hubco/core/di/injection_container.dart';
 import 'package:orko_hubco/features/profile/data/datasources/remote/profile_remote_datasource.dart';
 import 'package:orko_hubco/features/profile/data/repositories/profile_repository_impl.dart';
 import 'package:orko_hubco/features/profile/domain/repositories/profile_repository.dart';
+import 'package:orko_hubco/features/profile/domain/usecases/get_charging_stats_usecase.dart';
 import 'package:orko_hubco/features/profile/domain/usecases/get_profile_usecase.dart';
+import 'package:orko_hubco/features/profile/presentation/cubit/charging_stats_cubit.dart';
 import 'package:orko_hubco/features/profile/presentation/cubit/profile_cubit.dart';
 
 /// Registers all Profile feature dependencies.
@@ -19,7 +21,9 @@ void initProfileDependencies() {
 
   // Use Cases
   sl.registerLazySingleton(() => GetProfileUseCase(sl()));
+  sl.registerLazySingleton(() => GetChargingStatsUseCase(sl()));
 
   // Cubit
   sl.registerFactory(() => ProfileCubit(getProfileUseCase: sl()));
+  sl.registerFactory(() => ChargingStatsCubit(getChargingStats: sl()));
 }
