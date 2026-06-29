@@ -404,6 +404,135 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     }
   }
 
+  @override
+  Future<void> editUserProfile(Map<String, dynamic> data) async {
+    try {
+      final config = RemoteConfigService.config;
+      if (config == null) {
+        throw const ServerException(message: 'Remote config not initialized');
+      }
+
+      final endpoint = config.apiConstants.apiEndpoints.editUserProfile;
+      if (endpoint.trim().isEmpty) {
+        throw const ServerException(
+          message: 'Editing your profile is not available right now',
+        );
+      }
+
+      final url = _buildUrl(config.apiConstants.baseUrlQa, endpoint);
+      log('[Auth] Edit-user-profile URL: $url');
+
+      final response = await apiClient.patch(url, data: data);
+
+      final responseData = response.data;
+      final isOk = (response.statusCode == 200 || response.statusCode == 201) &&
+          (responseData is! Map ||
+              responseData['status'] == null ||
+              responseData['status'] == 200 ||
+              responseData['status'] == 201);
+      if (isOk) return;
+
+      throw ServerException(
+        message: (responseData is Map && responseData['message'] != null)
+            ? responseData['message'].toString()
+            : 'Failed to update profile',
+        statusCode: response.statusCode,
+      );
+    } on DioException catch (e) {
+      throw ServerException(
+        message: _dioMessage(e, fallback: 'Failed to update profile'),
+        statusCode: e.response?.statusCode,
+        originalError: e,
+      );
+    } catch (e) {
+      if (e is ServerException) rethrow;
+      throw ServerException(message: e.toString(), originalError: e);
+    }
+  }
+
+  @override
+  Future<void> uploadUserPicture(String imagePath) async {
+    try {
+      final config = RemoteConfigService.config;
+      if (config == null) {
+        throw const ServerException(message: 'Remote config not initialized');
+      }
+
+      final endpoint = config.apiConstants.apiEndpoints.uploadUserPicture;
+      if (endpoint.trim().isEmpty) {
+        throw const ServerException(
+          message: 'Updating your photo is not available right now',
+        );
+      }
+
+      final url = _buildUrl(config.apiConstants.baseUrlQa, endpoint);
+      log('[Auth] Upload-user-picture URL: $url');
+
+      final fileName = imagePath.split('/').last;
+      final ext = fileName.contains('.')
+          ? fileName.split('.').last.toLowerCase()
+          : 'jpg';
+      // Backend only accepts jpg/jpeg/png — tag the part with the right MIME
+      // type so it isn't sent as application/octet-stream.
+      final subtype = (ext == 'png')
+          ? 'png'
+          : (ext == 'jpeg')
+              ? 'jpeg'
+              : 'jpeg';
+      final safeName = fileName.contains('.') ? fileName : '$fileName.jpg';
+
+      final formData = FormData.fromMap({
+        'image': await MultipartFile.fromFile(
+          imagePath,
+          filename: safeName,
+          contentType: DioMediaType('image', subtype),
+        ),
+      });
+
+      // Send as real multipart/form-data (with boundary). The shared ApiClient
+      // defaults Content-Type to application/json, which would break the upload,
+      // so override it per-request.
+      final response = await apiClient.post(
+        url,
+        data: formData,
+        options: Options(contentType: 'multipart/form-data'),
+      );
+
+      final responseData = response.data;
+      final isOk = (response.statusCode == 200 || response.statusCode == 201) &&
+          (responseData is! Map ||
+              responseData['status'] == null ||
+              responseData['status'] == 200 ||
+              responseData['status'] == 201);
+      if (isOk) return;
+
+      throw ServerException(
+        message: (responseData is Map && responseData['message'] != null)
+            ? responseData['message'].toString()
+            : 'Failed to upload picture',
+        statusCode: response.statusCode,
+      );
+    } on DioException catch (e) {
+      throw ServerException(
+        message: _dioMessage(e, fallback: 'Failed to upload picture'),
+        statusCode: e.response?.statusCode,
+        originalError: e,
+      );
+    } catch (e) {
+      if (e is ServerException) rethrow;
+      throw ServerException(message: e.toString(), originalError: e);
+    }
+  }
+
+  /// Extracts a human-readable message from a Dio error response.
+  String _dioMessage(DioException e, {required String fallback}) {
+    final data = e.response?.data;
+    if (data is Map && data['message'] != null) {
+      return data['message'].toString();
+    }
+    return e.message ?? fallback;
+  }
+
   /// Joins the base URL and endpoint path into a single clean URL.
   /// e.g. base + `api/v1/orko-auth/complete-signup`.
   String _buildUrl(String baseUrl, String endpoint) {

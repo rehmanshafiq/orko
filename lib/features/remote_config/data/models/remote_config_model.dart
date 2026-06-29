@@ -154,6 +154,8 @@ class ApiEndpoints extends Equatable {
     required this.loginWithGoogle,
     required this.logoutApi,
     required this.getUser,
+    required this.editUserProfile,
+    required this.uploadUserPicture,
     required this.chargerDetails,
     required this.bookingSlots,
     required this.createBooking,
@@ -194,6 +196,8 @@ class ApiEndpoints extends Equatable {
   final String loginWithGoogle;
   final String logoutApi;
   final String getUser;
+  final String editUserProfile;
+  final String uploadUserPicture;
   final String chargerDetails;
   final String bookingSlots;
   final String createBooking;
@@ -237,6 +241,8 @@ class ApiEndpoints extends Equatable {
       loginWithGoogle: json['login_with_google'] as String? ?? '',
       logoutApi: json['logout_api'] as String? ?? '',
       getUser: json['get_user'] as String? ?? '',
+      editUserProfile: json['edit_user_profile'] as String? ?? '',
+      uploadUserPicture: json['upload_user_picture'] as String? ?? '',
       chargerDetails: json['charger_details'] as String? ?? '',
       bookingSlots: json['booking_slots'] as String? ?? '',
       createBooking: json['create_booking'] as String? ?? '',
@@ -284,6 +290,8 @@ class ApiEndpoints extends Equatable {
       'login_with_google': loginWithGoogle,
       'logout_api': logoutApi,
       'get_user': getUser,
+      'edit_user_profile': editUserProfile,
+      'upload_user_picture': uploadUserPicture,
       'charger_details': chargerDetails,
       'booking_slots': bookingSlots,
       'create_booking': createBooking,
@@ -326,6 +334,8 @@ class ApiEndpoints extends Equatable {
     String? loginWithGoogle,
     String? logoutApi,
     String? getUser,
+    String? editUserProfile,
+    String? uploadUserPicture,
     String? chargerDetails,
     String? bookingSlots,
     String? createBooking,
@@ -370,6 +380,8 @@ class ApiEndpoints extends Equatable {
       loginWithGoogle: loginWithGoogle ?? this.loginWithGoogle,
       logoutApi: logoutApi ?? this.logoutApi,
       getUser: getUser ?? this.getUser,
+      editUserProfile: editUserProfile ?? this.editUserProfile,
+      uploadUserPicture: uploadUserPicture ?? this.uploadUserPicture,
       chargerDetails: chargerDetails ?? this.chargerDetails,
       bookingSlots: bookingSlots ?? this.bookingSlots,
       createBooking: createBooking ?? this.createBooking,
@@ -417,6 +429,8 @@ class ApiEndpoints extends Equatable {
     loginWithGoogle,
     logoutApi,
     getUser,
+    editUserProfile,
+    uploadUserPicture,
     chargerDetails,
     bookingSlots,
     createBooking,

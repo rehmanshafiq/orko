@@ -61,4 +61,16 @@ abstract class AuthRepository {
   /// Fetches the current user from the `get_user` endpoint and refreshes the
   /// locally cached user. Returns the up-to-date [UserEntity].
   Future<Either<Failure, UserEntity>> getUser();
+
+  /// Updates the user profile via the `edit_user_profile` endpoint, then
+  /// re-fetches the user (`get_user`) and refreshes the cached user. Returns
+  /// the up-to-date [UserEntity].
+  Future<Either<Failure, UserEntity>> editUserProfile(
+    Map<String, dynamic> data,
+  );
+
+  /// Uploads a new profile picture via the `upload_user_picture` endpoint,
+  /// then re-fetches the user (`get_user`) and refreshes the cached user.
+  /// Returns the up-to-date [UserEntity].
+  Future<Either<Failure, UserEntity>> uploadUserPicture(String imagePath);
 }

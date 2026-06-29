@@ -47,8 +47,18 @@ class UserModel extends UserEntity {
       createdAt: json['created_at'] != null
           ? DateTime.tryParse(json['created_at'].toString())
           : null,
-      phoneNumber: json['phone_number']?.toString(),
-      countryCode: json['country_code']?.toString(),
+      // Accept common aliases so the phone always round-trips into the cache,
+      // regardless of which key the auth/getUser response uses.
+      phoneNumber: (json['phone_number'] ??
+              json['phone'] ??
+              json['mobile'] ??
+              json['mobile_number'] ??
+              json['phone_no'])
+          ?.toString(),
+      countryCode: (json['country_code'] ??
+              json['dial_code'] ??
+              json['phone_code'])
+          ?.toString(),
       domain: json['domain']?.toString(),
       tenant: _asInt(json['tenant']),
       appleEmail: json['apple_email']?.toString(),

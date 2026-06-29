@@ -26,6 +26,15 @@ class ProfileCubit extends Cubit<ProfileState> {
     if (s is ProfileLoaded) emit(s.copyWith(mainTab: tab));
   }
 
+  /// Forces a rebuild after the cached user changed (profile edit / picture
+  /// upload) without a full reload flash.
+  void notifyUserUpdated() {
+    final s = state;
+    if (s is ProfileLoaded) {
+      emit(s.copyWith(userRevision: s.userRevision + 1));
+    }
+  }
+
   void setLanguage(ProfileLanguage language) {
     final s = state;
     if (s is ProfileLoaded) emit(s.copyWith(language: language));

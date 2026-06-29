@@ -2,10 +2,12 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/constants/storage_constants.dart';
@@ -13,9 +15,11 @@ import 'package:orko_hubco/core/di/injection_container.dart';
 import 'package:orko_hubco/core/global_bloc/bloc/user_bloc.dart';
 import 'package:orko_hubco/core/services/local_storage_service.dart';
 import 'package:orko_hubco/core/theme/theme_cubit.dart';
+import 'package:orko_hubco/core/utils/image_upload_helper.dart';
 import 'package:orko_hubco/core/usecase/usecase.dart';
 import 'package:orko_hubco/core/utils/app_storage/app_storage.dart';
 import 'package:orko_hubco/features/auth/domain/usecases/get_user_usecase.dart';
+import 'package:orko_hubco/features/auth/domain/usecases/upload_user_picture_usecase.dart';
 import 'package:orko_hubco/core/utils/app_ui.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
 import 'package:orko_hubco/core/utils/widgets/auth_required_dialog.dart';
@@ -30,6 +34,7 @@ import 'package:orko_hubco/features/notifications/presentation/cubit/notificatio
 import 'package:orko_hubco/features/profile/domain/entities/profile_entity.dart';
 import 'package:orko_hubco/features/profile/presentation/cubit/profile_cubit.dart';
 import 'package:orko_hubco/features/profile/presentation/cubit/profile_state.dart';
+import 'package:orko_hubco/features/profile/presentation/screens/edit_profile_screen.dart';
 import 'package:orko_hubco/features/vehicle/domain/entities/user_vehicle_entity.dart';
 import 'package:orko_hubco/features/vehicle/presentation/cubit/vehicle_cubit.dart';
 import 'package:orko_hubco/features/vehicle/presentation/cubit/vehicle_state.dart';
@@ -206,6 +211,60 @@ Future<void> _clearUserData(LocalStorageService storage) async {
 
 /// Reads the persisted logged-in user from local storage. Returns `null` when
 /// no user is cached (e.g. guest mode) or the cached payload is unreadable.
+/// Opens the edit-profile screen (guests are prompted to sign in first) and
+/// refreshes the cached-user UI when changes are saved.
+Future<void> _onEditProfile(
+  BuildContext context,
+  UserModel? cachedUser,
+  bool isGuest,
+) async {
+  if (isGuest || cachedUser == null) {
+    AuthRequiredDialog.show(
+      context,
+      message: 'Please log in or create an account to edit your profile.',
+    );
+    return;
+  }
+
+  final saved = await Navigator.of(context).push<bool>(
+    MaterialPageRoute(
+      builder: (_) => EditProfileScreen(user: cachedUser),
+      // Presented as a fullscreen dialog: disables the interactive swipe-back
+      // pop gesture whose drag handler triggers a framework assertion
+      // (`_userGesturesInProgress > 0`). Back button / system back still work.
+      fullscreenDialog: true,
+    ),
+  );
+
+  if (saved == true && context.mounted) {
+    _onCachedUserChanged(context);
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        const SnackBar(
+          content: Text('Profile updated successfully.'),
+          backgroundColor: AppColors.primaryDarkColor,
+        ),
+      );
+  }
+}
+
+/// Rebuilds the profile UI (and other cached-user readers) after the cached
+/// user changed via an edit or photo upload. The cache itself was already
+/// refreshed by the repository's `get_user` call.
+void _onCachedUserChanged(BuildContext context) {
+  try {
+    context.read<ProfileCubit>().notifyUserUpdated();
+  } catch (_) {
+    // ProfileCubit not in scope — nothing to rebuild here.
+  }
+  try {
+    context.read<UserBloc>().add(const OnLoadCustomerFromCache());
+  } catch (_) {
+    // UserBloc not in scope — the cache was still refreshed.
+  }
+}
+
 UserModel? _readCachedUser(LocalStorageService storage) {
   final jsonString = storage.read<String>(StorageConstants.cachedUser);
   if (jsonString == null || jsonString.isEmpty) return null;
@@ -218,16 +277,345 @@ UserModel? _readCachedUser(LocalStorageService storage) {
   }
 }
 
-class _ProfileHeader extends StatelessWidget {
+class _ProfileHeader extends StatefulWidget {
   const _ProfileHeader({required this.state});
 
   final ProfileLoaded state;
 
   @override
+  State<_ProfileHeader> createState() => _ProfileHeaderState();
+}
+
+class _ProfileHeaderState extends State<_ProfileHeader> {
+  final ImagePicker _picker = ImagePicker();
+  bool _uploading = false;
+
+  /// Lets the user pick a source, then uploads the chosen image and refreshes
+  /// the cached user. Guests are prompted to sign in.
+  Future<void> _onChangePhoto() async {
+    if (_uploading) return;
+
+    final storage = sl<LocalStorageService>();
+    if (storage.isGuest) {
+      AuthRequiredDialog.show(
+        context,
+        message: 'Please log in or create an account to set a profile photo.',
+      );
+      return;
+    }
+
+    final source = await _pickImageSource();
+    if (source == null || !mounted) return;
+
+    // Camera capture needs an explicit runtime permission; the gallery uses the
+    // system photo picker which doesn't.
+    if (source == ImageSource.camera) {
+      final allowed = await _ensureCameraPermission();
+      if (!allowed || !mounted) return;
+    }
+
+    XFile? picked;
+    try {
+      picked = await _picker.pickImage(
+        source: source,
+        maxWidth: 1080,
+        maxHeight: 1080,
+        imageQuality: 85,
+      );
+    } on PlatformException catch (e) {
+      if (!mounted) return;
+      // image_picker surfaces an OS-level permission block here (e.g. the photo
+      // library is denied/restricted) — route the user to Settings.
+      if (e.code == 'camera_access_denied' ||
+          e.code == 'photo_access_denied') {
+        await _showPermissionSettingsDialog(
+          title: source == ImageSource.camera
+              ? 'Camera access needed'
+              : 'Photo access needed',
+          message: source == ImageSource.camera
+              ? 'Enable camera access in Settings to take a profile photo.'
+              : 'Enable photo access in Settings to choose a profile photo.',
+        );
+      } else {
+        _showError(
+          'Could not open the '
+          '${source == ImageSource.camera ? 'camera' : 'gallery'}.',
+        );
+      }
+      return;
+    } catch (_) {
+      if (!mounted) return;
+      _showError(
+        'Could not open the '
+        '${source == ImageSource.camera ? 'camera' : 'gallery'}.',
+      );
+      return;
+    }
+    if (picked == null) return; // user cancelled
+
+    setState(() => _uploading = true);
+
+    // The API only accepts jpg/jpeg/png. Anything else (webp, heic, …) is
+    // converted to PNG on a background isolate before uploading.
+    final String uploadPath;
+    try {
+      uploadPath = await ensureUploadableImage(picked.path);
+    } on UnsupportedImageException catch (e) {
+      if (!mounted) return;
+      setState(() => _uploading = false);
+      _showError(e.message);
+      return;
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _uploading = false);
+      _showError('Could not process the selected image. Please try another.');
+      return;
+    }
+
+    final result = await sl<UploadUserPictureUseCase>()(uploadPath);
+    if (!mounted) return;
+    setState(() => _uploading = false);
+
+    result.fold(
+      (failure) => _showError(failure.message),
+      (_) {
+        _onCachedUserChanged(context);
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            const SnackBar(
+              content: Text('Profile photo updated.'),
+              backgroundColor: AppColors.primaryDarkColor,
+            ),
+          );
+      },
+    );
+  }
+
+  Future<ImageSource?> _pickImageSource() {
+    final ui = AppUiColors.of(context);
+    return showModalBottomSheet<ImageSource>(
+      context: context,
+      backgroundColor: ui.cardBackground,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+      ),
+      builder: (sheetContext) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              12.verticalSpace,
+              Container(
+                width: 40.w,
+                height: 4.h,
+                decoration: BoxDecoration(
+                  color: ui.borderSubtle,
+                  borderRadius: BorderRadius.circular(2.r),
+                ),
+              ),
+              8.verticalSpace,
+              ListTile(
+                leading: Icon(Icons.photo_camera_outlined,
+                    color: ui.brandPrimary),
+                title: AppText(
+                  'Take Photo',
+                  color: ui.textPrimary,
+                  fontSize: FontSizes.font14Sp,
+                  fontWeight: FontWeights.weight500,
+                ),
+                onTap: () =>
+                    Navigator.of(sheetContext).pop(ImageSource.camera),
+              ),
+              ListTile(
+                leading:
+                    Icon(Icons.photo_library_outlined, color: ui.brandPrimary),
+                title: AppText(
+                  'Choose from Gallery',
+                  color: ui.textPrimary,
+                  fontSize: FontSizes.font14Sp,
+                  fontWeight: FontWeights.weight500,
+                ),
+                onTap: () =>
+                    Navigator.of(sheetContext).pop(ImageSource.gallery),
+              ),
+              8.verticalSpace,
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: AppColors.removeColor,
+        ),
+      );
+  }
+
+  /// Ensures the camera permission is granted, covering every state:
+  /// granted, denied (re-asked), permanently denied / restricted (→ Settings).
+  /// Returns true only when the camera may be used.
+  Future<bool> _ensureCameraPermission() async {
+    var status = await Permission.camera.status;
+
+    // iOS parental controls — the user can't grant it; point to Settings.
+    if (status.isRestricted) {
+      if (!mounted) return false;
+      await _showPermissionSettingsDialog(
+        title: 'Camera unavailable',
+        message:
+            'Camera access is restricted on this device and can\'t be enabled '
+            'here. Check your device restrictions in Settings.',
+      );
+      return false;
+    }
+
+    // Already blocked at the OS level — only Settings can re-enable it.
+    if (status.isPermanentlyDenied) {
+      if (!mounted) return false;
+      await _showPermissionSettingsDialog(
+        title: 'Camera access needed',
+        message:
+            'Camera access is turned off. Enable it in Settings to take a '
+            'profile photo.',
+      );
+      return false;
+    }
+
+    // First time / previously denied but re-askable → prompt the OS dialog.
+    if (!status.isGranted) {
+      status = await Permission.camera.request();
+    }
+
+    if (status.isGranted) return true;
+
+    if (!mounted) return false;
+    if (status.isPermanentlyDenied || status.isRestricted) {
+      await _showPermissionSettingsDialog(
+        title: 'Camera access needed',
+        message:
+            'Camera access is turned off. Enable it in Settings to take a '
+            'profile photo.',
+      );
+    } else {
+      // Plain denial for this attempt.
+      _showError('Camera permission is required to take a photo.');
+    }
+    return false;
+  }
+
+  /// Confirmation dialog that deep-links to the OS app settings.
+  Future<void> _showPermissionSettingsDialog({
+    required String title,
+    required String message,
+  }) async {
+    final ui = AppUiColors.of(context);
+    final goToSettings = await showDialog<bool>(
+      context: context,
+      barrierColor: AppColors.blackColor.withValues(alpha: 0.55),
+      builder: (dialogContext) => Dialog(
+        backgroundColor: ui.cardBackground,
+        insetPadding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 24.h),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(18.r),
+        ),
+        child: Padding(
+          padding: AppUtils.all18Padding,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: EdgeInsets.all(8.r),
+                    decoration: BoxDecoration(
+                      color: ui.brandPrimary.withValues(alpha: 0.12),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.photo_camera_outlined,
+                      color: ui.brandPrimary,
+                      size: 22.r,
+                    ),
+                  ),
+                  12.horizontalSpace,
+                  Expanded(
+                    child: AppText(
+                      title,
+                      color: ui.textPrimary,
+                      fontSize: FontSizes.font18Sp,
+                      fontWeight: FontWeights.weight700,
+                    ),
+                  ),
+                ],
+              ),
+              14.verticalSpace,
+              AppText(
+                message,
+                color: ui.textSecondary,
+                fontSize: FontSizes.font13Sp,
+                fontWeight: FontWeights.weight400,
+                height: 1.4,
+              ),
+              22.verticalSpace,
+              Row(
+                children: [
+                  Expanded(
+                    child: PrimaryButtonWidget(
+                      text: 'Cancel',
+                      onPress: () => Navigator.of(dialogContext).pop(false),
+                      buttonWidth: double.infinity,
+                      buttonHeight: 42.h,
+                      cornerRadius: 12.r,
+                      buttonColor: ui.chipInactiveBg,
+                      strokeColor: ui.borderSubtle,
+                      textColor: ui.textPrimary,
+                      fontSize: FontSizes.font14Sp,
+                      fontWeight: FontWeights.weight600,
+                    ),
+                  ),
+                  12.horizontalSpace,
+                  Expanded(
+                    child: PrimaryButtonWidget(
+                      text: 'Open Settings',
+                      onPress: () => Navigator.of(dialogContext).pop(true),
+                      buttonWidth: double.infinity,
+                      buttonHeight: 42.h,
+                      cornerRadius: 12.r,
+                      gradientColors: const [
+                        AppColors.primaryDarkColor,
+                        AppColors.primaryDarkButtonColor,
+                      ],
+                      textColor: AppColors.whiteColor,
+                      fontSize: FontSizes.font14Sp,
+                      fontWeight: FontWeights.weight700,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    if (goToSettings == true) {
+      await openAppSettings();
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final ui = AppUiColors.of(context);
     final cubit = context.read<ProfileCubit>();
-    final profile = state.profile;
+    final profile = widget.state.profile;
     final bottomRadius = 20.r;
 
     // Prefer the persisted logged-in user; fall back to guest, then profile.
@@ -241,9 +629,8 @@ class _ProfileHeader extends StatelessWidget {
     final displayEmail = isGuest
         ? 'Sign in to sync your account'
         : (cachedUser.email.isNotEmpty ? cachedUser.email : profile.email);
-    final memberSince = (!isGuest && cachedUser.createdAt != null)
-        ? 'Member since ${DateFormat('MMM yyyy').format(cachedUser.createdAt!)}'
-        : null;
+    // Profile image comes from the getUser response (`profile_img_url`).
+    final avatarUrl = isGuest ? null : cachedUser.avatarUrl;
 
     return Container(
       width: double.infinity,
@@ -275,11 +662,10 @@ class _ProfileHeader extends StatelessWidget {
                   CircleAvatar(
                     radius: 38.r,
                     backgroundColor: ui.textSecondary,
-                        // AppColors.whiteColor.withValues(alpha: 0.2),
-                    backgroundImage: profile.avatarUrl != null
-                        ? NetworkImage(profile.avatarUrl!)
+                    backgroundImage: (avatarUrl != null && avatarUrl.isNotEmpty)
+                        ? NetworkImage(avatarUrl)
                         : null,
-                    child: profile.avatarUrl == null
+                    child: (avatarUrl == null || avatarUrl.isEmpty)
                         ? Icon(
                             Icons.person_rounded,
                             size: 40.r,
@@ -287,23 +673,46 @@ class _ProfileHeader extends StatelessWidget {
                           )
                         : null,
                   ),
+                  // Dim + spinner while a new photo is uploading.
+                  if (_uploading)
+                    Positioned.fill(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: AppColors.blackColor.withValues(alpha: 0.45),
+                          shape: BoxShape.circle,
+                        ),
+                        alignment: Alignment.center,
+                        child: SizedBox(
+                          width: 22.r,
+                          height: 22.r,
+                          child: const CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: AppColors.whiteColor,
+                          ),
+                        ),
+                      ),
+                    ),
                   Positioned(
                     right: -2,
                     bottom: -2,
-                    child: Container(
-                      padding: AppUtils.all4Padding,
-                      decoration: BoxDecoration(
-                        color: AppColors.whiteColor,
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: ui.brandPrimary,
-                          width: 2,
+                    child: GestureDetector(
+                      onTap: _uploading ? null : _onChangePhoto,
+                      behavior: HitTestBehavior.opaque,
+                      child: Container(
+                        padding: AppUtils.all4Padding,
+                        decoration: BoxDecoration(
+                          color: AppColors.whiteColor,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: ui.brandPrimary,
+                            width: 2,
+                          ),
                         ),
-                      ),
-                      child: Icon(
-                        Icons.photo_camera_outlined,
-                        size: 14.r,
-                        color: ui.brandPrimary,
+                        child: Icon(
+                          Icons.photo_camera_outlined,
+                          size: 14.r,
+                          color: ui.brandPrimary,
+                        ),
                       ),
                     ),
                   ),
@@ -353,7 +762,7 @@ class _ProfileHeader extends StatelessWidget {
                 child: _HeaderTabChip(
                   label: 'Profile',
                   icon: Icons.person_outline_rounded,
-                  selected: state.mainTab == ProfileMainTab.profile,
+                  selected: widget.state.mainTab == ProfileMainTab.profile,
                   onTap: () => cubit.setMainTab(ProfileMainTab.profile),
                 ),
               ),
@@ -362,7 +771,7 @@ class _ProfileHeader extends StatelessWidget {
                 child: _HeaderTabChip(
                   label: 'Vehicles',
                   icon: Icons.directions_car_outlined,
-                  selected: state.mainTab == ProfileMainTab.vehicles,
+                  selected: widget.state.mainTab == ProfileMainTab.vehicles,
                   onTap: () => cubit.setMainTab(ProfileMainTab.vehicles),
                 ),
               ),
@@ -371,7 +780,7 @@ class _ProfileHeader extends StatelessWidget {
                 child: _HeaderTabChip(
                   label: 'Settings',
                   icon: Icons.settings_outlined,
-                  selected: state.mainTab == ProfileMainTab.settings,
+                  selected: widget.state.mainTab == ProfileMainTab.settings,
                   onTap: () => cubit.setMainTab(ProfileMainTab.settings),
                 ),
               ),
@@ -721,7 +1130,7 @@ class _PersonalInfoCard extends StatelessWidget {
               ),
               PrimaryButtonWidget(
                 text: 'Edit',
-                onPress: () {},
+                onPress: () => _onEditProfile(context, cachedUser, isGuest),
                 buttonWidth: 88.w,
                 buttonHeight: 38.h,
                 cornerRadius: 24.r,
@@ -1334,9 +1743,8 @@ class _AddVehicleDialogState extends State<_AddVehicleDialog> {
       mdMake: _selectedMakeId!,
       mdModel: _selectedModelId!,
       year: _selectedYear!,
-      vehicleRfid: _rfidController.text.trim().isEmpty
-          ? null
-          : _rfidController.text.trim(),
+      // Registration number (sent to the API as `vehicle_reg`) is now required.
+      vehicleRfid: _rfidController.text.trim(),
     );
 
     if (!mounted) return;
@@ -1600,7 +2008,7 @@ class _AddVehicleDialogState extends State<_AddVehicleDialog> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         AppText(
-          'Vehicle RFID (optional)',
+          'Vehicle Registration Number',
           color: ui.textPrimary,
           fontSize: FontSizes.font12Sp,
           fontWeight: FontWeights.weight600,
@@ -1608,6 +2016,15 @@ class _AddVehicleDialogState extends State<_AddVehicleDialog> {
         6.verticalSpace,
         TextFormField(
           controller: _rfidController,
+          textCapitalization: TextCapitalization.characters,
+          validator: (v) {
+            final value = v?.trim() ?? '';
+            if (value.isEmpty) return 'Registration number is required';
+            if (value.length < 3) {
+              return 'Enter a valid registration number';
+            }
+            return null;
+          },
           style: TextStyle(
             color: ui.textPrimary,
             fontSize: FontSizes.font14Sp,
@@ -1618,7 +2035,7 @@ class _AddVehicleDialogState extends State<_AddVehicleDialog> {
             filled: true,
             fillColor: ui.inputFill,
             isDense: true,
-            hintText: 'e.g. USER-RFID-001',
+            hintText: 'e.g. ABC-123',
             hintStyle: TextStyle(
               color: AppColors.hintColor,
               fontSize: FontSizes.font14Sp,
@@ -1634,6 +2051,19 @@ class _AddVehicleDialogState extends State<_AddVehicleDialog> {
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12.r),
               borderSide: BorderSide(color: ui.brandPrimary),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12.r),
+              borderSide: const BorderSide(color: AppColors.redColor),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12.r),
+              borderSide: const BorderSide(color: AppColors.redColor),
+            ),
+            errorStyle: TextStyle(
+              color: AppColors.redColor,
+              fontSize: FontSizes.font10Sp,
+              fontWeight: FontWeights.weight400,
             ),
           ),
         ),

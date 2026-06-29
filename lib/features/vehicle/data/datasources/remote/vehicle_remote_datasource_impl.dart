@@ -77,7 +77,7 @@ class VehicleRemoteDataSourceImpl implements VehicleRemoteDataSource {
           'md_model': mdModel,
           'year': year,
           if (vehicleRfid != null && vehicleRfid.isNotEmpty)
-            'vehicle_rfid': vehicleRfid,
+            'vehicle_reg': vehicleRfid,
         },
       );
 

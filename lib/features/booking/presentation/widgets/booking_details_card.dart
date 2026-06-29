@@ -58,15 +58,15 @@ class BookingDetailsCard extends StatelessWidget {
           12.verticalSpace,
           BookingDetailRow(ui: ui, label: 'Slot', value: slotLabel),
           12.verticalSpace,
-          BookingDetailRow(
-            ui: ui,
-            label: 'Amount',
-            value: AppHelpers.formatCurrency(amountPaid),
-          ),
-          if (paymentLabel != null) ...[
-            12.verticalSpace,
-            BookingDetailRow(ui: ui, label: 'Payment', value: paymentLabel!),
-          ],
+          // BookingDetailRow(
+          //   ui: ui,
+          //   label: 'Amount',
+          //   value: AppHelpers.formatCurrency(amountPaid),
+          // ),
+          // if (paymentLabel != null) ...[
+          //   12.verticalSpace,
+          //   BookingDetailRow(ui: ui, label: 'Payment', value: paymentLabel!),
+          // ],
         ],
       ),
     );

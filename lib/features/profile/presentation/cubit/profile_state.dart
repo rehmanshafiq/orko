@@ -34,26 +34,33 @@ class ProfileLoaded extends ProfileState {
   final ProfileMainTab mainTab;
   final ProfileLanguage language;
 
+  /// Bumped whenever the cached user changes (profile edit / picture upload)
+  /// to force a rebuild of widgets that read the cached user directly.
+  final int userRevision;
+
   const ProfileLoaded(
     this.profile, {
     this.mainTab = ProfileMainTab.profile,
     this.language = ProfileLanguage.english,
+    this.userRevision = 0,
   });
 
   ProfileLoaded copyWith({
     ProfileEntity? profile,
     ProfileMainTab? mainTab,
     ProfileLanguage? language,
+    int? userRevision,
   }) {
     return ProfileLoaded(
       profile ?? this.profile,
       mainTab: mainTab ?? this.mainTab,
       language: language ?? this.language,
+      userRevision: userRevision ?? this.userRevision,
     );
   }
 
   @override
-  List<Object?> get props => [profile, mainTab, language];
+  List<Object?> get props => [profile, mainTab, language, userRevision];
 }
 
 class ProfileError extends ProfileState {

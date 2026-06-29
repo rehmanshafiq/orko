@@ -71,4 +71,17 @@ abstract class AuthRemoteDataSource {
   /// Config). Returns the parsed [UserModel] (`body.user`).
   /// Throws [ServerException] on failure.
   Future<UserModel> getUser();
+
+  /// Updates the user profile via the `edit_user_profile` endpoint.
+  ///
+  /// [data] holds the snake_case fields to update (e.g. `name`, `email`,
+  /// `phone_number`). Throws [ServerException] on failure.
+  Future<void> editUserProfile(Map<String, dynamic> data);
+
+  /// Uploads a new profile picture via the `upload_user_picture` endpoint.
+  ///
+  /// [imagePath] is the absolute path of the picked image file, sent as
+  /// multipart form-data under the `image` field. Throws [ServerException] on
+  /// failure.
+  Future<void> uploadUserPicture(String imagePath);
 }

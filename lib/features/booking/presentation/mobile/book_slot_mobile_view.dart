@@ -222,17 +222,31 @@ class BookSlotMobileView extends StatelessWidget {
     return id == null ? '—' : 'BK-$id';
   }
 
-  /// Builds the slot label, e.g. `April 18 · 14:00 – 15:00`, from the confirmed
-  /// booking date and start time plus the selected duration.
+  /// Builds the slot label, e.g. `April 18 · 14:00 – 15:00`.
+  ///
+  /// Prefers the confirmed booking, but falls back to the slot/date the user
+  /// selected on this screen whenever the create response omits those fields.
+  /// The create-booking model parses missing values as empty strings (not
+  /// null), so empties are treated as missing here.
   String _slotLabel(BookingState state) {
     final booking = state.createdBooking;
-    final date = booking != null
-        ? DateTime.tryParse(booking.bookingDate)
+
+    final bookingDate = (booking?.bookingDate ?? '').trim();
+    final date = bookingDate.isNotEmpty
+        ? DateTime.tryParse(bookingDate)
         : state.selectedDate;
-    final start = booking?.startTime ?? state.selectedSlot?.startTime ?? '';
+
+    var start = (booking?.startTime ?? '').trim();
+    if (start.isEmpty) start = state.selectedSlot?.startTime ?? '';
+
+    var end = (booking?.endTime ?? '').trim();
+    if (end.isEmpty) {
+      end = state.selectedSlot != null && state.durationHours <= 1
+          ? state.selectedSlot!.endTime
+          : _addHours(start, state.durationHours);
+    }
 
     final dateLabel = date != null ? DateFormat('MMMM d').format(date) : '';
-    final end = _addHours(start, state.durationHours);
     final timeLabel = [start, end].where((t) => t.isNotEmpty).join(' – ');
 
     return [dateLabel, timeLabel].where((p) => p.isNotEmpty).join(' · ');

@@ -50,7 +50,9 @@
 		<key>NSLocationWhenInUseUsageDescription</key>
 		<string>Your location is used to center the map on you and show nearby stations.</string>
 		<key>NSCameraUsageDescription</key>
-		<string>Camera access is needed to scan QR codes at charging stations.</string>
+		<string>Camera access is needed to scan QR codes and take your profile photo.</string>
+		<key>NSPhotoLibraryUsageDescription</key>
+		<string>Photo library access is needed to choose a profile photo.</string>
 		<key>LSApplicationQueriesSchemes</key>
 		<array>
 			<string>comgooglemaps</string>
