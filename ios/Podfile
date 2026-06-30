@@ -40,6 +40,12 @@ post_install do |installer|
   installer.pods_project.targets.each do |target|
     flutter_additional_ios_build_settings(target)
 
+    # Force every pod to match the Podfile platform. Recent Firebase pods
+    # require iOS 15+, and without this some targets inherit a lower minimum.
+    target.build_configurations.each do |config|
+      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.0'
+    end
+
     # Xcode can fail ad-hoc signing (simulator) if any input files carry
     # FinderInfo/resource-fork metadata. Pods do not need code signing for
     # iOS Simulator builds, so disable it to avoid "detritus not allowed".
