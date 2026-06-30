@@ -174,23 +174,31 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
     final ui = AppUiColors.of(context);
     final media = MediaQuery.of(context);
     final bottomInset = media.padding.bottom;
-    // Cap the sheet so its top can never slide under (or touch) the status bar.
-    // Below the cap it still sizes to its content (height unchanged); at the cap
-    // the inner SingleChildScrollView takes over and the content scrolls.
-    // A small gap below the status bar keeps it visually clear.
-    final maxSheetHeight = (media.size.height - media.padding.top - 8.h)
-        .clamp(0.0, double.infinity);
+    // Fix the sheet at 70% of the screen height, but never let its top slide
+    // under (or touch) the status bar — a small gap below it keeps it clear.
+    // The inner SingleChildScrollView scrolls the content within this height.
+    final maxSheetHeight =
+        (media.size.height - media.padding.top - 8.h).clamp(0.0, double.infinity);
+    final sheetHeight = (media.size.height * 0.8).clamp(0.0, maxSheetHeight);
 
-    return Align(
-      alignment: Alignment.bottomCenter,
-      child: ConstrainedBox(
-        constraints: BoxConstraints(maxHeight: maxSheetHeight),
-        child: ClipRRect(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(22.r)),
-          child: Container(
-            width: double.infinity,
-            color: ui.cardBackground,
-            child: SingleChildScrollView(
+    return Column(
+      children: [
+        // Empty space above the sheet: tapping it dismisses the sheet.
+        Expanded(
+          child: GestureDetector(
+            onTap: () => Navigator.of(context).pop(),
+            behavior: HitTestBehavior.opaque,
+            child: const SizedBox.expand(),
+          ),
+        ),
+        SizedBox(
+          height: sheetHeight,
+          child: ClipRRect(
+            borderRadius: BorderRadius.vertical(top: Radius.circular(22.r)),
+            child: Container(
+              width: double.infinity,
+              color: ui.cardBackground,
+              child: SingleChildScrollView(
               padding: EdgeInsets.only(bottom: bottomInset + 12.h),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -288,17 +296,18 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
                       ],
                     ),
                   ),
-                  20.verticalSpace,
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 18.w),
-                    child: _applyButton(context),
-                  ),
-                ],
+                    20.verticalSpace,
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 18.w),
+                      child: _applyButton(context),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
         ),
-      ),
+      ],
     );
   }
 
