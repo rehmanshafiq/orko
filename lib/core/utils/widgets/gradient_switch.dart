@@ -8,10 +8,15 @@ class GradientSwitch extends StatelessWidget {
     super.key,
     required this.value,
     required this.onChanged,
+    this.gradientColors,
   });
 
   final bool value;
   final ValueChanged<bool>? onChanged;
+
+  /// Active-track gradient colors (top → bottom). Falls back to the app-wide
+  /// brand button gradient when null.
+  final List<Color>? gradientColors;
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +33,15 @@ class GradientSwitch extends StatelessWidget {
           height: 32.h,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16.r),
-            gradient: value ? AppColors.brandButtonGradient : null,
+            gradient: value
+                ? (gradientColors != null
+                    ? LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: gradientColors!,
+                      )
+                    : AppColors.brandButtonGradient)
+                : null,
             color: value
                 ? null
                 : AppColors.greyColor.withValues(alpha: 0.45),

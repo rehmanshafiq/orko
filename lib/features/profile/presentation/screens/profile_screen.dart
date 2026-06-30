@@ -3045,6 +3045,10 @@ class _NotificationRow extends StatelessWidget {
           GradientSwitch(
             value: value,
             onChanged: onChanged,
+            gradientColors: const [
+              AppColors.primaryDarkColor,
+              AppColors.primaryDarkButtonColor,
+            ],
           ),
         ],
       ),
