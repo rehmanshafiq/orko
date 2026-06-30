@@ -23,14 +23,24 @@ class ChargingStatusMobileView extends StatefulWidget {
 
 class _ChargingStatusMobileViewState extends State<ChargingStatusMobileView>
     with WidgetsBindingObserver {
+  /// Captured once so it's safe to use in [dispose], where looking the cubit up
+  /// via context is no longer reliable.
+  late final ChargingStatusCubit _cubit;
+
   @override
   void initState() {
     super.initState();
+    _cubit = context.read<ChargingStatusCubit>();
     WidgetsBinding.instance.addObserver(this);
   }
 
   @override
   void dispose() {
+    // Navigating back tears down this view: stop the live-session polling
+    // immediately so no further requests fire after we leave the screen. The
+    // BlocProvider also closes the cubit on pop, but pausing here guarantees
+    // the timer is cancelled the moment the view is gone.
+    _cubit.pause();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -40,16 +50,15 @@ class _ChargingStatusMobileViewState extends State<ChargingStatusMobileView>
   @override
   void didChangeAppLifecycleState(AppLifecycleState lifecycleState) {
     if (!mounted) return;
-    final cubit = context.read<ChargingStatusCubit>();
     switch (lifecycleState) {
       case AppLifecycleState.resumed:
-        cubit.resume();
+        _cubit.resume();
         break;
       case AppLifecycleState.inactive:
       case AppLifecycleState.paused:
       case AppLifecycleState.hidden:
       case AppLifecycleState.detached:
-        cubit.pause();
+        _cubit.pause();
         break;
     }
   }
