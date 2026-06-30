@@ -161,7 +161,8 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
       minPrice: _priceRange.start.roundToDouble(),
       maxPrice: _priceRange.end.roundToDouble(),
       // At (or below) the minimum bound means "no power constraint".
-      powerOutput: _powerOutput > _powerMin ? _powerOutput.roundToDouble() : null,
+      powerOutput:
+          _powerOutput > _powerMin ? _powerOutput.roundToDouble() : null,
       availableNow: _availableNow,
     );
     context.read<MapCubit>().applyFilters(filters);
@@ -171,119 +172,129 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
   @override
   Widget build(BuildContext context) {
     final ui = AppUiColors.of(context);
-    final bottomInset = MediaQuery.paddingOf(context).bottom;
+    final media = MediaQuery.of(context);
+    final bottomInset = media.padding.bottom;
+    // Cap the sheet so its top can never slide under (or touch) the status bar.
+    // Below the cap it still sizes to its content (height unchanged); at the cap
+    // the inner SingleChildScrollView takes over and the content scrolls.
+    // A small gap below the status bar keeps it visually clear.
+    final maxSheetHeight = (media.size.height - media.padding.top - 8.h)
+        .clamp(0.0, double.infinity);
 
     return Align(
       alignment: Alignment.bottomCenter,
-      child: ClipRRect(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(22.r)),
-        child: Container(
-          width: double.infinity,
-          color: ui.cardBackground,
-          child: SingleChildScrollView(
-            padding: EdgeInsets.only(bottom: bottomInset + 12.h),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                10.verticalSpace,
-                Center(
-                  child: Container(
-                    height: 4.h,
-                    width: 40.w,
-                    decoration: BoxDecoration(
-                      color: ui.textSecondary.withValues(alpha: 0.55),
-                      borderRadius: BorderRadius.circular(10.r),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxHeight: maxSheetHeight),
+        child: ClipRRect(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(22.r)),
+          child: Container(
+            width: double.infinity,
+            color: ui.cardBackground,
+            child: SingleChildScrollView(
+              padding: EdgeInsets.only(bottom: bottomInset + 12.h),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  10.verticalSpace,
+                  Center(
+                    child: Container(
+                      height: 4.h,
+                      width: 40.w,
+                      decoration: BoxDecoration(
+                        color: ui.textSecondary.withValues(alpha: 0.55),
+                        borderRadius: BorderRadius.circular(10.r),
+                      ),
                     ),
                   ),
-                ),
-                14.verticalSpace,
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 18.w),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: AppText(
-                          'Filters',
-                          color: ui.textPrimary,
-                          fontSize: FontSizes.font20Sp,
-                          fontWeight: FontWeights.weight700,
-                        ),
-                      ),
-                      GestureDetector(
-                        onTap: _reset,
-                        child: AppText(
-                          'Reset',
-                          color: ui.brandPrimary,
-                          fontSize: FontSizes.font14Sp,
-                          fontWeight: FontWeights.weight600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                12.verticalSpace,
-                Divider(height: 1, thickness: 1, color: ui.borderSubtle),
-                18.verticalSpace,
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 18.w),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      _sectionTitle('Charger Type'),
-                      10.verticalSpace,
-                      _chargerSection(ui),
-                      20.verticalSpace,
-                      _sectionTitle('Power Output'),
-                      8.verticalSpace,
-                      _powerLabelsRow(),
-                      6.verticalSpace,
-                      _singleSlider(
-                        value: _powerOutput,
-                        min: _powerMin,
-                        max: _powerMax,
-                        onChanged: (v) => setState(() => _powerOutput = v),
-                      ),
-                      20.verticalSpace,
-                      _sectionTitle('Availability'),
-                      10.verticalSpace,
-                      Row(
-                        children: [
-                          Expanded(
-                            child: AppText(
-                              'Available Now',
-                              color: ui.textPrimary,
-                              fontSize: FontSizes.font14Sp,
-                              fontWeight: FontWeights.weight500,
-                            ),
+                  14.verticalSpace,
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 18.w),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: AppText(
+                            'Filters',
+                            color: ui.textPrimary,
+                            fontSize: FontSizes.font20Sp,
+                            fontWeight: FontWeights.weight700,
                           ),
-                          _availabilitySwitch(),
-                        ],
-                      ),
-                      16.verticalSpace,
-                      _sectionTitle('Amenities'),
-                      8.verticalSpace,
-                      _amenitiesSection(ui),
-                      16.verticalSpace,
-                      _sectionTitle('Price Range'),
-                      8.verticalSpace,
-                      _priceLabelsRow(),
-                      6.verticalSpace,
-                      _rangeSlider(
-                        values: _priceRange,
-                        min: _priceMin,
-                        max: _priceMax,
-                        onChanged: (v) => setState(() => _priceRange = v),
-                      ),
-                    ],
+                        ),
+                        GestureDetector(
+                          onTap: _reset,
+                          child: AppText(
+                            'Reset',
+                            color: ui.brandPrimary,
+                            fontSize: FontSizes.font14Sp,
+                            fontWeight: FontWeights.weight600,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                20.verticalSpace,
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 18.w),
-                  child: _applyButton(context),
-                ),
-              ],
+                  12.verticalSpace,
+                  Divider(height: 1, thickness: 1, color: ui.borderSubtle),
+                  18.verticalSpace,
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 18.w),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _sectionTitle('Charger Type'),
+                        10.verticalSpace,
+                        _chargerSection(ui),
+                        20.verticalSpace,
+                        _sectionTitle('Power Output'),
+                        8.verticalSpace,
+                        _powerLabelsRow(),
+                        6.verticalSpace,
+                        _singleSlider(
+                          value: _powerOutput,
+                          min: _powerMin,
+                          max: _powerMax,
+                          onChanged: (v) => setState(() => _powerOutput = v),
+                        ),
+                        20.verticalSpace,
+                        _sectionTitle('Availability'),
+                        10.verticalSpace,
+                        Row(
+                          children: [
+                            Expanded(
+                              child: AppText(
+                                'Available Now',
+                                color: ui.textPrimary,
+                                fontSize: FontSizes.font14Sp,
+                                fontWeight: FontWeights.weight500,
+                              ),
+                            ),
+                            _availabilitySwitch(),
+                          ],
+                        ),
+                        16.verticalSpace,
+                        _sectionTitle('Amenities'),
+                        8.verticalSpace,
+                        _amenitiesSection(ui),
+                        16.verticalSpace,
+                        _sectionTitle('Price Range'),
+                        8.verticalSpace,
+                        _priceLabelsRow(),
+                        6.verticalSpace,
+                        _rangeSlider(
+                          values: _priceRange,
+                          min: _priceMin,
+                          max: _priceMax,
+                          onChanged: (v) => setState(() => _priceRange = v),
+                        ),
+                      ],
+                    ),
+                  ),
+                  20.verticalSpace,
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 18.w),
+                    child: _applyButton(context),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
