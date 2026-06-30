@@ -337,11 +337,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 fontSize: FontSizes.font12Sp,
                                 fontWeight: FontWeights.weight400,
                               ),
-                              AppText(
-                                'Terms and Conditions',
-                                color: ui.brandPrimary,
-                                fontSize: FontSizes.font12Sp,
-                                fontWeight: FontWeights.weight500,
+                              GestureDetector(
+                                onTap: () => AppHelpers.showSnackBar(
+                                  context,
+                                  'Coming Soon',
+                                ),
+                                child: AppText(
+                                  'Terms and Conditions',
+                                  color: ui.brandPrimary,
+                                  fontSize: FontSizes.font12Sp,
+                                  fontWeight: FontWeights.weight500,
+                                ),
                               ),
                             ],
                           ),
