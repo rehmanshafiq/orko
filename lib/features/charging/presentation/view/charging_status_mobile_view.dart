@@ -82,7 +82,7 @@ class _ChargingStatusMobileViewState extends State<ChargingStatusMobileView>
               return ListView(
                 padding: AppUtils.horizontal16Padding,
                 children: [
-                  4.verticalSpace,
+                  8.verticalSpace,
                   Row(
                     children: [
                       GestureDetector(
@@ -92,22 +92,27 @@ class _ChargingStatusMobileViewState extends State<ChargingStatusMobileView>
                           padding: EdgeInsets.all(6.r),
                           child: Icon(
                             Icons.arrow_back_ios_new_rounded,
-                            color: ui.textPrimary,
+                            color: ui.textMuted,
                             size: 20.sp,
                           ),
                         ),
                       ),
+                      Expanded(
+                        child: AppText(
+                          state.stationHeadline,
+                          textAlign: TextAlign.center,
+                          color: ui.textMuted,
+                          fontSize: FontSizes.font16Sp,
+                          fontWeight: FontWeights.weight400,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      // Balances the back icon so the headline stays centered.
+                      SizedBox(width: 20.sp + 12.r),
                     ],
                   ),
-                  4.verticalSpace,
-                  AppText(
-                    state.stationHeadline,
-                    textAlign: TextAlign.center,
-                    color: ui.textMuted,
-                    fontSize: FontSizes.font16Sp,
-                    fontWeight: FontWeights.weight400,
-                  ),
-                  36.verticalSpace,
+                  26.verticalSpace,
                   ChargingGaugeWidget(
                     progress: state.gaugeProgress,
                     percentLabel: state.gaugePercentLabel,
@@ -116,7 +121,7 @@ class _ChargingStatusMobileViewState extends State<ChargingStatusMobileView>
                   ),
                   36.verticalSpace,
                   MetricsGridWidget(metrics: state.metrics, ui: ui),
-                  16.verticalSpace,
+                  12.verticalSpace,
                   _ChargingSessionTargetCard(
                     ui: ui,
                     estimatedTimeLabel: state.estimatedTimeLabel,
@@ -202,13 +207,13 @@ class _ChargingSessionTargetCard extends StatelessWidget {
             fontWeight: FontWeights.weight600,
           ),
           8.verticalSpace,
-          AppText(
-            targetPercentLabel,
-            color: ui.textSecondaryWhite,
-            fontSize: FontSizes.font13Sp,
-            fontWeight: FontWeights.weight500,
-          ),
-          8.verticalSpace,
+          // AppText(
+          //   targetPercentLabel,
+          //   color: ui.textSecondaryWhite,
+          //   fontSize: FontSizes.font13Sp,
+          //   fontWeight: FontWeights.weight500,
+          // ),
+          // 8.verticalSpace,
           // SliderTheme(
           //   data: sliderTheme,
           //   child: Slider(
