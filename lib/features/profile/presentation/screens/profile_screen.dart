@@ -390,7 +390,10 @@ Future<bool?> _showDeleteAccountDialog(BuildContext context) {
                     buttonWidth: double.infinity,
                     buttonHeight: 42.h,
                     cornerRadius: 12.r,
-                    buttonColor: AppColors.removeColor,
+                    gradientColors: const [
+                      AppColors.primaryDarkColor,
+                      AppColors.primaryDarkButtonColor,
+                    ],
                     textColor: AppColors.whiteColor,
                     fontSize: FontSizes.font14Sp,
                     fontWeight: FontWeights.weight700,

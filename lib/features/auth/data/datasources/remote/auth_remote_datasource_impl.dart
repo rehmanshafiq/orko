@@ -676,7 +676,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       log('[Auth] Delete-account URL: $url');
 
       // Authorized via the saved token by AuthInterceptor.
-      final response = await apiClient.post(url);
+      final response = await apiClient.delete(url);
 
       final data = response.data;
       final isOk = response.statusCode == 200 &&
