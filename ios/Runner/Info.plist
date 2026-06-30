@@ -57,6 +57,18 @@
 		<array>
 			<string>comgooglemaps</string>
 		</array>
+        <key>CFBundleURLTypes</key>
+        <array>
+            <dict>
+                <key>CFBundleTypeRole</key>
+                <string>Editor</string>
+
+                <key>CFBundleURLSchemes</key>
+                <array>
+                    <string>com.googleusercontent.apps.60291270702-vu5pgjgmbvoj4bv00dldbioj0isreeuk</string>
+                </array>
+            </dict>
+        </array>
 		<key>UIStatusBarHidden</key>
 		<false/>
 	</dict>
