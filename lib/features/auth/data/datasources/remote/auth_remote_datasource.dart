@@ -56,6 +56,30 @@ abstract class AuthRemoteDataSource {
     String? accessToken,
   });
 
+  /// Step 1 of the forgot-password flow — `login_with_otp` endpoint (no auth).
+  ///
+  /// Sends `{ "email": <email> }` and returns the `otp_id` the backend issues,
+  /// which must be passed to [verifyResetOtp]. Throws [ServerException].
+  Future<int> loginWithOtp({required String email});
+
+  /// Step 2 of the forgot-password flow — `verify_otp` endpoint (no auth).
+  ///
+  /// Sends `{ otp_id, otp }` and returns the short-lived `access` token the
+  /// backend issues, which authorizes the [resetPassword] call. Throws
+  /// [ServerException] on failure.
+  Future<String> verifyResetOtp({required int otpId, required String otp});
+
+  /// Step 3 of the forgot-password flow — `reset_password` endpoint
+  /// (authenticated with the token from [verifyResetOtp]).
+  ///
+  /// Sends `{ new_password, confirm_password }` with `Bearer <accessToken>` and
+  /// returns the server's confirmation message. Throws [ServerException].
+  Future<String> resetPassword({
+    required String accessToken,
+    required String newPassword,
+    required String confirmPassword,
+  });
+
   /// Calls the logout API.
   Future<void> logout();
 

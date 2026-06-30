@@ -152,6 +152,8 @@ class ApiEndpoints extends Equatable {
     required this.resendOtp,
     required this.loginApi,
     required this.loginWithGoogle,
+    required this.loginWithOtp,
+    required this.resetPassword,
     required this.logoutApi,
     required this.getUser,
     required this.editUserProfile,
@@ -196,6 +198,8 @@ class ApiEndpoints extends Equatable {
   final String resendOtp;
   final String loginApi;
   final String loginWithGoogle;
+  final String loginWithOtp;
+  final String resetPassword;
   final String logoutApi;
   final String getUser;
   final String editUserProfile;
@@ -243,6 +247,8 @@ class ApiEndpoints extends Equatable {
       resendOtp: json['resend_otp'] as String? ?? '',
       loginApi: json['login_api'] as String? ?? '',
       loginWithGoogle: json['login_with_google'] as String? ?? '',
+      loginWithOtp: json['login_with_otp'] as String? ?? '',
+      resetPassword: json['reset_password'] as String? ?? '',
       logoutApi: json['logout_api'] as String? ?? '',
       getUser: json['get_user'] as String? ?? '',
       editUserProfile: json['edit_user_profile'] as String? ?? '',
@@ -294,6 +300,8 @@ class ApiEndpoints extends Equatable {
       'resend_otp': resendOtp,
       'login_api': loginApi,
       'login_with_google': loginWithGoogle,
+      'login_with_otp': loginWithOtp,
+      'reset_password': resetPassword,
       'logout_api': logoutApi,
       'get_user': getUser,
       'edit_user_profile': editUserProfile,
@@ -340,6 +348,8 @@ class ApiEndpoints extends Equatable {
     String? resendOtp,
     String? loginApi,
     String? loginWithGoogle,
+    String? loginWithOtp,
+    String? resetPassword,
     String? logoutApi,
     String? getUser,
     String? editUserProfile,
@@ -388,6 +398,8 @@ class ApiEndpoints extends Equatable {
       resendOtp: resendOtp ?? this.resendOtp,
       loginApi: loginApi ?? this.loginApi,
       loginWithGoogle: loginWithGoogle ?? this.loginWithGoogle,
+      loginWithOtp: loginWithOtp ?? this.loginWithOtp,
+      resetPassword: resetPassword ?? this.resetPassword,
       logoutApi: logoutApi ?? this.logoutApi,
       getUser: getUser ?? this.getUser,
       editUserProfile: editUserProfile ?? this.editUserProfile,
@@ -439,6 +451,8 @@ class ApiEndpoints extends Equatable {
     resendOtp,
     loginApi,
     loginWithGoogle,
+    loginWithOtp,
+    resetPassword,
     logoutApi,
     getUser,
     editUserProfile,

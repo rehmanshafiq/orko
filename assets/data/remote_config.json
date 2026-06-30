@@ -12,6 +12,8 @@
       "resend_otp": "api/v1/orko-auth/resend-otp",
       "login_api": "api/v1/orko-auth/login-with-password",
       "login_with_google": "api/v1/orko-auth/login-with-google",
+      "login_with_otp": "api/v1/orko-auth/login-with-otp",
+      "reset_password": "api/v1/orko-auth/reset-password",
       "logout_api": "api/v1/orko-auth/logout",
       "get_user": "api/v1/orko-auth/getUser",
       "edit_user_profile": "api/v1/core/user-profile",

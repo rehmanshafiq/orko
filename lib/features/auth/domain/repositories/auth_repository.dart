@@ -45,6 +45,26 @@ abstract class AuthRepository {
   /// the pending OTP by id (sign-in flow). Returns the confirmation message.
   Future<Either<Failure, String>> resendOtp({String? otpId});
 
+  /// Forgot-password step 1 — requests an OTP via `login_with_otp`. Returns the
+  /// issued `otp_id` to use with [verifyResetOtp].
+  Future<Either<Failure, int>> loginWithOtp({required String email});
+
+  /// Forgot-password step 2 — verifies the OTP via `verify_otp` and returns the
+  /// short-lived access token that authorizes [resetPassword].
+  Future<Either<Failure, String>> verifyResetOtp({
+    required int otpId,
+    required String otp,
+  });
+
+  /// Forgot-password step 3 — sets a new password via `reset_password`,
+  /// authorized with the token from [verifyResetOtp]. Returns the confirmation
+  /// message on success.
+  Future<Either<Failure, String>> resetPassword({
+    required String accessToken,
+    required String newPassword,
+    required String confirmPassword,
+  });
+
   /// Logs out the current user.
   Future<Either<Failure, void>> logout();
 

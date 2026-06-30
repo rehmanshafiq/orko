@@ -14,6 +14,7 @@ import 'package:orko_hubco/core/utils/widgets/image_view/app_image_view.dart';
 import 'package:orko_hubco/core/utils/widgets/primary_button_widget.dart';
 import 'package:orko_hubco/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:orko_hubco/features/auth/presentation/cubit/auth_state.dart';
+import 'package:orko_hubco/features/auth/presentation/widgets/forgot_password_sheet.dart';
 
 /// Login screen — uses BlocConsumer to react to auth state changes.
 class LoginScreen extends StatefulWidget {
@@ -70,6 +71,15 @@ class _LoginScreenState extends State<LoginScreen> {
     context.read<AuthCubit>().loginWithGoogle();
   }
 
+  /// Opens the forgot-password flow (request OTP by email → reset password).
+  /// On success a confirmation snackbar is shown.
+  Future<void> _onForgotPassword() async {
+    FocusScope.of(context).unfocus();
+    final message = await ForgotPasswordSheet.show(context);
+    if (!mounted || message == null) return;
+    AppHelpers.showSnackBar(context, message);
+  }
+
   /// Enters the app as a guest. Guests can browse but not book; the guest flag
   /// is cleared automatically once they log in or sign up.
   Future<void> _onContinueAsGuest() async {
@@ -111,10 +121,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     Align(
                       alignment: Alignment.centerRight,
                       child: TextButton(
-                        onPressed: () => AppHelpers.showSnackBar(
-                          context,
-                          'Coming soon',
-                        ),
+                        onPressed: _onForgotPassword,
                         style: TextButton.styleFrom(
                           padding: AppUtils.zeroPadding,
                           minimumSize: Size.zero,

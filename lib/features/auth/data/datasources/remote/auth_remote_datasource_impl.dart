@@ -320,6 +320,176 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   }
 
   @override
+  Future<int> loginWithOtp({required String email}) async {
+    try {
+      final config = RemoteConfigService.config;
+      if (config == null) {
+        throw const ServerException(message: 'Remote config not initialized');
+      }
+
+      final endpoint = config.apiConstants.apiEndpoints.loginWithOtp;
+      if (endpoint.trim().isEmpty) {
+        throw const ServerException(
+          message: 'Password reset is not available right now',
+        );
+      }
+
+      final url = _buildUrl(ApiClient.baseUrl, endpoint);
+      log('[Auth] Login-with-OTP URL: $url');
+
+      final response = await apiClient.post(url, data: {'email': email});
+
+      final data = response.data;
+      if (response.statusCode == 200 && data is Map<String, dynamic>) {
+        final body = data['body'];
+        final otpId = body is Map ? body['otp_id'] : null;
+        final parsed = otpId is num
+            ? otpId.toInt()
+            : int.tryParse(otpId?.toString() ?? '');
+        if (parsed != null) return parsed;
+      }
+
+      throw ServerException(
+        message: (data is Map<String, dynamic> && data['message'] != null)
+            ? data['message'].toString()
+            : 'Could not send the reset code',
+        statusCode: response.statusCode,
+      );
+    } on DioException catch (e) {
+      final data = e.response?.data;
+      throw ServerException(
+        message: (data is Map && data['message'] != null)
+            ? data['message'].toString()
+            : (e.message ?? 'Could not send the reset code'),
+        statusCode: e.response?.statusCode,
+        originalError: e,
+      );
+    } catch (e) {
+      if (e is ServerException) rethrow;
+      throw ServerException(message: e.toString(), originalError: e);
+    }
+  }
+
+  @override
+  Future<String> verifyResetOtp({
+    required int otpId,
+    required String otp,
+  }) async {
+    try {
+      final config = RemoteConfigService.config;
+      if (config == null) {
+        throw const ServerException(message: 'Remote config not initialized');
+      }
+
+      final endpoint = config.apiConstants.apiEndpoints.verifyOtp;
+      if (endpoint.trim().isEmpty) {
+        throw const ServerException(
+          message: 'OTP verification is not available right now',
+        );
+      }
+
+      final url = _buildUrl(ApiClient.baseUrl, endpoint);
+      log('[Auth] Verify-reset-OTP URL: $url');
+
+      // No Authorization header — the OTP itself authorizes this call.
+      final response = await apiClient.post(
+        url,
+        data: {'otp_id': otpId, 'otp': otp},
+      );
+
+      final data = response.data;
+      if (response.statusCode == 200 && data is Map<String, dynamic>) {
+        final body = data['body'];
+        final access = body is Map ? body['access'] : null;
+        if (access is String && access.trim().isNotEmpty) return access;
+      }
+
+      throw ServerException(
+        message: (data is Map<String, dynamic> && data['message'] != null)
+            ? data['message'].toString()
+            : 'OTP verification failed',
+        statusCode: response.statusCode,
+      );
+    } on DioException catch (e) {
+      final data = e.response?.data;
+      throw ServerException(
+        message: (data is Map && data['message'] != null)
+            ? data['message'].toString()
+            : (e.message ?? 'OTP verification failed'),
+        statusCode: e.response?.statusCode,
+        originalError: e,
+      );
+    } catch (e) {
+      if (e is ServerException) rethrow;
+      throw ServerException(message: e.toString(), originalError: e);
+    }
+  }
+
+  @override
+  Future<String> resetPassword({
+    required String accessToken,
+    required String newPassword,
+    required String confirmPassword,
+  }) async {
+    try {
+      final config = RemoteConfigService.config;
+      if (config == null) {
+        throw const ServerException(message: 'Remote config not initialized');
+      }
+
+      final endpoint = config.apiConstants.apiEndpoints.resetPassword;
+      if (endpoint.trim().isEmpty) {
+        throw const ServerException(
+          message: 'Password reset is not available right now',
+        );
+      }
+
+      final url = _buildUrl(ApiClient.baseUrl, endpoint);
+      log('[Auth] Reset-password URL: $url');
+
+      // Authorized with the short-lived token returned by verify-otp.
+      final response = await apiClient.post(
+        url,
+        data: {
+          'new_password': newPassword,
+          'confirm_password': confirmPassword,
+        },
+        options: Options(
+          headers: {'Authorization': 'Bearer $accessToken'},
+        ),
+      );
+
+      final data = response.data;
+      final isOk = response.statusCode == 200 &&
+          (data is! Map || data['status'] == null || data['status'] == 200);
+      if (isOk) {
+        return (data is Map && data['message'] != null)
+            ? data['message'].toString()
+            : 'Password reset successfully.';
+      }
+
+      throw ServerException(
+        message: (data is Map && data['message'] != null)
+            ? data['message'].toString()
+            : 'Could not reset your password',
+        statusCode: response.statusCode,
+      );
+    } on DioException catch (e) {
+      final data = e.response?.data;
+      throw ServerException(
+        message: (data is Map && data['message'] != null)
+            ? data['message'].toString()
+            : (e.message ?? 'Could not reset your password'),
+        statusCode: e.response?.statusCode,
+        originalError: e,
+      );
+    } catch (e) {
+      if (e is ServerException) rethrow;
+      throw ServerException(message: e.toString(), originalError: e);
+    }
+  }
+
+  @override
   Future<UserModel> getUser() async {
     try {
       final config = RemoteConfigService.config;
