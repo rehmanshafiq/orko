@@ -163,6 +163,10 @@ class _BatteryGlyph extends StatelessWidget {
     final ui = AppUiColors.of(context);
     final fillFraction = (percent.clamp(0, 100)) / 100.0;
     final outlineColor = ui.brandSecondary;
+    // Only the filled part turns red on a low battery (below 20%); the outline
+    // and terminal keep the brand color.
+    final fillColor =
+        percent <= 20 ? AppColors.removeColor : ui.brandSecondary;
 
     return SizedBox(
       width: 30.w,
@@ -185,7 +189,7 @@ class _BatteryGlyph extends StatelessWidget {
                   heightFactor: 1,
                   child: Container(
                     decoration: BoxDecoration(
-                      color: ui.brandSecondary,
+                      color: fillColor,
                       borderRadius: BorderRadius.circular(2.r),
                     ),
                   ),
