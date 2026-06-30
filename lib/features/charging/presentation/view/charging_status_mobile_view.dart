@@ -8,14 +8,51 @@ import 'package:orko_hubco/core/utils/helpers.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
 import 'package:orko_hubco/features/charging/presentation/cubit/charging_status_cubit.dart';
 import 'package:orko_hubco/features/charging/presentation/cubit/charging_status_state.dart';
-import 'package:orko_hubco/features/charging/presentation/widgets/charging_action_buttons_widget.dart';
 import 'package:orko_hubco/features/charging/presentation/widgets/charging_gauge_widget.dart';
 import 'package:orko_hubco/features/charging/presentation/widgets/charging_station_meta_item_widget.dart';
 import 'package:orko_hubco/features/charging/presentation/widgets/metrics_grid_widget.dart';
 import 'package:orko_hubco/features/charging/presentation/widgets/station_info_widget.dart';
 
-class ChargingStatusMobileView extends StatelessWidget {
+class ChargingStatusMobileView extends StatefulWidget {
   const ChargingStatusMobileView({super.key});
+
+  @override
+  State<ChargingStatusMobileView> createState() =>
+      _ChargingStatusMobileViewState();
+}
+
+class _ChargingStatusMobileViewState extends State<ChargingStatusMobileView>
+    with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  /// Pause polling when the app leaves the foreground; resume on return. This
+  /// keeps the 10s timer from firing network calls the user can't see.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState lifecycleState) {
+    if (!mounted) return;
+    final cubit = context.read<ChargingStatusCubit>();
+    switch (lifecycleState) {
+      case AppLifecycleState.resumed:
+        cubit.resume();
+        break;
+      case AppLifecycleState.inactive:
+      case AppLifecycleState.paused:
+      case AppLifecycleState.hidden:
+      case AppLifecycleState.detached:
+        cubit.pause();
+        break;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +82,24 @@ class ChargingStatusMobileView extends StatelessWidget {
               return ListView(
                 padding: AppUtils.horizontal16Padding,
                 children: [
-                  8.verticalSpace,
+                  4.verticalSpace,
+                  Row(
+                    children: [
+                      GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () => Navigator.maybePop(context),
+                        child: Padding(
+                          padding: EdgeInsets.all(6.r),
+                          child: Icon(
+                            Icons.arrow_back_ios_new_rounded,
+                            color: ui.textPrimary,
+                            size: 20.sp,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  4.verticalSpace,
                   AppText(
                     state.stationHeadline,
                     textAlign: TextAlign.center,
@@ -74,20 +128,23 @@ class ChargingStatusMobileView extends StatelessWidget {
                   StationInfoWidget(
                     infoText: state.stationInfoText,
                     ui: ui,
+                    operatingHours: state.operatingHoursText,
+                    pricing: state.priceText,
+                    contact: state.contactText,
                   ),
-                  if (state.distanceKm > 0) ...[
-                    8.verticalSpace,
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: ChargingStationMetaItemWidget(
-                        icon: Icons.location_on_rounded,
-                        text: AppHelpers.formatDistanceKm(state.distanceKm),
-                        iconColor: AppColors.mapPinBlueColor,
-                        textColor: AppColors.mapPinBlueColor,
-                        textFontWeight: FontWeights.weight600,
-                      ),
-                    ),
-                  ],
+                  // if (state.distanceKm > 0) ...[
+                  //   8.verticalSpace,
+                  //   Align(
+                  //     alignment: Alignment.centerLeft,
+                  //     child: ChargingStationMetaItemWidget(
+                  //       icon: Icons.location_on_rounded,
+                  //       text: AppHelpers.formatDistanceKm(state.distanceKm),
+                  //       iconColor: AppColors.mapPinBlueColor,
+                  //       textColor: AppColors.mapPinBlueColor,
+                  //       textFontWeight: FontWeights.weight600,
+                  //     ),
+                  //   ),
+                  // ],
                   10.verticalSpace,
                   // ChargingActionButtonsWidget(
                   //   onStopCharging: cubit.stopCharging,

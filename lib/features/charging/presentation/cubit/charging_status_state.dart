@@ -1,5 +1,10 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
+import 'package:orko_hubco/core/utils/helpers.dart';
+import 'package:orko_hubco/features/booking/domain/entities/live_session_entity.dart';
+
+/// Lifecycle of the live-session fetch that backs the charging-status screen.
+enum ChargingStatusViewStatus { initial, loading, success, failure }
 
 /// Session UI mode for the center gauge subtitle.
 enum ChargingSessionStatus {
@@ -25,66 +30,60 @@ class ChargingMetricDisplay extends Equatable {
   List<Object?> get props => [label, value, unit, icon];
 }
 
+/// Drives the charging-status screen, which polls `GET api/v1/bookings/
+/// live-session/` every few seconds. The view renders straight off the live
+/// [session]; every figure is derived defensively so a partial payload (or no
+/// session at all) never throws.
 class ChargingStatusState extends Equatable {
   const ChargingStatusState({
-    required this.stationHeadline,
-    required this.chargingPercentage,
-    required this.energyDelivered,
-    required this.energyDeliveredUnit,
-    required this.chargingSpeed,
-    required this.chargingSpeedUnit,
-    required this.sessionTime,
-    required this.cost,
-    required this.sliderValue,
-    required this.estimatedTimeLabel,
-    required this.stationInfoText,
-    required this.status,
+    this.status = ChargingStatusViewStatus.initial,
+    this.session,
+    this.error,
+    this.sliderValue = 0.80,
     this.distanceKm = 0,
   });
 
-  factory ChargingStatusState.initial() {
-    return const ChargingStatusState(
-      stationHeadline: 'HGL Charging Hub M2 Port 2 CCS',
-      chargingPercentage: 67,
-      energyDelivered: '8.4',
-      energyDeliveredUnit: 'kWh',
-      chargingSpeed: '150',
-      chargingSpeedUnit: 'kW',
-      sessionTime: '00:33:42',
-      cost: 'Rs 378',
-      sliderValue: 0.80,
-      estimatedTimeLabel: 'Est. Full Charge in 16 min',
-      stationInfoText: 'Station Info - HGL Charging Hub M2',
-      status: ChargingSessionStatus.charging,
-    );
-  }
+  /// Backwards-compatible alias kept for callers that constructed the old
+  /// hard-coded state.
+  factory ChargingStatusState.initial() => const ChargingStatusState();
 
-  final String stationHeadline;
-  final double chargingPercentage;
-  final String energyDelivered;
-  final String energyDeliveredUnit;
-  final String chargingSpeed;
-  final String chargingSpeedUnit;
-  final String sessionTime;
-  final String cost;
+  final ChargingStatusViewStatus status;
+
+  /// The latest live-session snapshot, or null before the first load.
+  final LiveSessionEntity? session;
+
+  final String? error;
+
+  /// Target-charge slider position (0–1). The slider itself is currently
+  /// disabled in the UI, but the value is retained for when it returns.
   final double sliderValue;
-  final String estimatedTimeLabel;
-  final String stationInfoText;
-  final ChargingSessionStatus status;
 
   /// Distance from nearby-stations API, in kilometers.
   final double distanceKm;
 
-  double get gaugeProgress =>
-      (chargingPercentage / 100).clamp(0.0, 1.0).toDouble();
+  bool get isLoading => status == ChargingStatusViewStatus.loading;
+  bool get isFailure => status == ChargingStatusViewStatus.failure;
 
-  String get gaugePercentLabel {
-    final v = chargingPercentage.round();
-    return '$v%';
+  /// True only when the backend reports a running session.
+  bool get hasActiveSession => session != null && session!.active;
+
+  ChargingSessionStatus get sessionStatus =>
+      hasActiveSession ? ChargingSessionStatus.charging : ChargingSessionStatus.idle;
+
+  String get stationHeadline {
+    final name = session?.locationName?.trim();
+    return (name != null && name.isNotEmpty) ? name : 'Charging Session';
   }
 
+  double get _chargePercent =>
+      (session?.currentChargePercentage ?? 0).clamp(0, 100).toDouble();
+
+  double get gaugeProgress => (_chargePercent / 100).clamp(0.0, 1.0).toDouble();
+
+  String get gaugePercentLabel => '${_chargePercent.round()}%';
+
   String get statusLabel {
-    switch (status) {
+    switch (sessionStatus) {
       case ChargingSessionStatus.charging:
         return 'Charging';
       case ChargingSessionStatus.idle:
@@ -94,83 +93,132 @@ class ChargingStatusState extends Equatable {
     }
   }
 
-  String get targetPercentLabel =>
-      '${(sliderValue * 100).round()}% Target';
+  String get targetPercentLabel => '${(sliderValue * 100).round()}% Target';
 
-  List<ChargingMetricDisplay> get metrics => [
-        ChargingMetricDisplay(
-          label: 'Energy Delivered',
-          value: energyDelivered,
-          unit: energyDeliveredUnit,
-          icon: Icons.battery_4_bar_rounded,
-        ),
-        ChargingMetricDisplay(
-          label: 'Charging Speed',
-          value: chargingSpeed,
-          unit: chargingSpeedUnit,
-          icon: Icons.bolt_rounded,
-        ),
-        ChargingMetricDisplay(
-          label: 'Session Time',
-          value: sessionTime,
-          unit: '',
-          icon: Icons.access_time_rounded,
-        ),
-        ChargingMetricDisplay(
-          label: 'Current Cost',
-          value: cost,
-          unit: '',
-          icon: Icons.payments_outlined,
-        ),
-      ];
+  /// "Est. Full Charge in 4m" when the backend reports remaining time.
+  String get estimatedTimeLabel {
+    final left = session?.timeLeft?.trim();
+    if (left == null || left.isEmpty) return 'Estimating time to full…';
+    return 'Est. Full Charge in $left';
+  }
 
-  /// Null field means keep previous value (partial update).
+  String get stationInfoText => 'Station Info - $stationHeadline';
+
+  /// Operating hours, e.g. `00:00 - 23:59`. Empty when unavailable.
+  String get operatingHoursText => session?.operatingHoursLabel ?? '';
+
+  /// Per-unit tariff, e.g. `PKR 98.4 / kwh`. Empty when unavailable.
+  String get priceText => session?.priceLabel ?? '';
+
+  /// Dialable contact number, or empty when unavailable.
+  String get contactText => session?.fullContactNumber ?? '';
+
+  List<ChargingMetricDisplay> get metrics {
+    final energy = session?.energyDeliveredKwh;
+    final speed = session?.chargingSpeedKw;
+    final time = session?.sessionTime?.trim();
+    final cost = session?.currentCost;
+    final currency = session?.currency ?? 'PKR';
+
+    return [
+      ChargingMetricDisplay(
+        label: 'Energy Delivered',
+        value: energy != null ? _trimDouble(energy) : '—',
+        unit: energy != null ? 'kWh' : '',
+        icon: Icons.battery_4_bar_rounded,
+      ),
+      ChargingMetricDisplay(
+        label: 'Charging Speed',
+        value: speed != null ? _trimDouble(speed) : '—',
+        unit: speed != null ? 'kW' : '',
+        icon: Icons.bolt_rounded,
+      ),
+      ChargingMetricDisplay(
+        label: 'Session Time',
+        value: (time != null && time.isNotEmpty) ? _formatSessionTime(time) : '—',
+        unit: '',
+        icon: Icons.access_time_rounded,
+      ),
+      ChargingMetricDisplay(
+        label: 'Current Cost',
+        value: cost != null
+            ? AppHelpers.formatCurrency(cost, currency: currency)
+            : '—',
+        unit: '',
+        icon: Icons.payments_outlined,
+      ),
+    ];
+  }
+
+  /// Drops a trailing `.0` so `1.7` stays but `60.0` shows as `60`.
+  static String _trimDouble(double value) {
+    if (value == value.roundToDouble()) return value.toInt().toString();
+    return value.toString();
+  }
+
+  /// Normalises the backend's human duration (e.g. `1h 45m`, `2d 3h 10m`,
+  /// `30s`) into `HH:MM:SS`. If it already looks like a clock value (contains
+  /// `:`) it's returned untouched.
+  static String _formatSessionTime(String raw) {
+    if (raw.contains(':')) return raw;
+
+    var totalSeconds = 0;
+    final matches = RegExp(r'(\d+)\s*(mo|w|d|h|m|s)', caseSensitive: false)
+        .allMatches(raw.toLowerCase());
+    for (final match in matches) {
+      final value = int.tryParse(match.group(1)!) ?? 0;
+      switch (match.group(2)) {
+        case 'mo':
+          totalSeconds += value * 30 * 24 * 3600;
+          break;
+        case 'w':
+          totalSeconds += value * 7 * 24 * 3600;
+          break;
+        case 'd':
+          totalSeconds += value * 24 * 3600;
+          break;
+        case 'h':
+          totalSeconds += value * 3600;
+          break;
+        case 'm':
+          totalSeconds += value * 60;
+          break;
+        case 's':
+          totalSeconds += value;
+          break;
+      }
+    }
+
+    String two(int n) => n.toString().padLeft(2, '0');
+    final hours = totalSeconds ~/ 3600;
+    final minutes = (totalSeconds % 3600) ~/ 60;
+    final seconds = totalSeconds % 60;
+    return '${two(hours)}:${two(minutes)}:${two(seconds)}';
+  }
+
   ChargingStatusState copyWith({
-    String? stationHeadline,
-    double? chargingPercentage,
-    String? energyDelivered,
-    String? energyDeliveredUnit,
-    String? chargingSpeed,
-    String? chargingSpeedUnit,
-    String? sessionTime,
-    String? cost,
+    ChargingStatusViewStatus? status,
+    LiveSessionEntity? session,
+    String? error,
+    bool clearError = false,
     double? sliderValue,
-    String? estimatedTimeLabel,
-    String? stationInfoText,
-    ChargingSessionStatus? status,
     double? distanceKm,
   }) {
     return ChargingStatusState(
-      stationHeadline: stationHeadline ?? this.stationHeadline,
-      chargingPercentage: chargingPercentage ?? this.chargingPercentage,
-      energyDelivered: energyDelivered ?? this.energyDelivered,
-      energyDeliveredUnit: energyDeliveredUnit ?? this.energyDeliveredUnit,
-      chargingSpeed: chargingSpeed ?? this.chargingSpeed,
-      chargingSpeedUnit: chargingSpeedUnit ?? this.chargingSpeedUnit,
-      sessionTime: sessionTime ?? this.sessionTime,
-      cost: cost ?? this.cost,
-      sliderValue: sliderValue ?? this.sliderValue,
-      estimatedTimeLabel: estimatedTimeLabel ?? this.estimatedTimeLabel,
-      stationInfoText: stationInfoText ?? this.stationInfoText,
       status: status ?? this.status,
+      session: session ?? this.session,
+      error: clearError ? null : (error ?? this.error),
+      sliderValue: sliderValue ?? this.sliderValue,
       distanceKm: distanceKm ?? this.distanceKm,
     );
   }
 
   @override
   List<Object?> get props => [
-        stationHeadline,
-        chargingPercentage,
-        energyDelivered,
-        energyDeliveredUnit,
-        chargingSpeed,
-        chargingSpeedUnit,
-        sessionTime,
-        cost,
-        sliderValue,
-        estimatedTimeLabel,
-        stationInfoText,
         status,
+        session,
+        error,
+        sliderValue,
         distanceKm,
       ];
 }

@@ -8,6 +8,7 @@ import 'package:orko_hubco/features/charging/domain/usecases/get_charging_statio
 import 'package:orko_hubco/features/charging/domain/usecases/get_favourite_stations_usecase.dart';
 import 'package:orko_hubco/features/charging/domain/usecases/remove_favourite_station_usecase.dart';
 import 'package:orko_hubco/features/charging/presentation/bloc/charging_station_detail_bloc.dart';
+import 'package:orko_hubco/features/charging/presentation/cubit/charging_status_cubit.dart';
 
 void initChargingDependencies() {
   // Data sources
@@ -35,5 +36,11 @@ void initChargingDependencies() {
       addFavouriteStationUseCase: sl(),
       removeFavouriteStationUseCase: sl(),
     ),
+  );
+
+  // Live charging-status cubit (new instance per screen). The live-session use
+  // case is registered by initBookingDependencies(), which runs first.
+  sl.registerFactory(
+    () => ChargingStatusCubit(getLiveSessionUseCase: sl()),
   );
 }

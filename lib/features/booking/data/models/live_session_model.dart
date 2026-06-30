@@ -15,9 +15,27 @@ class LiveSessionModel extends LiveSessionEntity {
     super.kwhDelivered,
     super.energyCost,
     super.totalCost,
+    super.sessionTime,
+    super.energyDeliveredKwh,
+    super.chargingSpeedKw,
+    super.currentChargePercentage,
+    super.currentCost,
+    super.timeLeft,
+    super.openingTime,
+    super.closingTime,
+    super.contactNumber,
+    super.countryCode,
+    super.pricingMode,
+    super.currency,
+    super.price,
   });
 
   factory LiveSessionModel.fromJson(Map<String, dynamic> json) {
+    // Both `operating_hours` and `pricing` are nested objects that may be
+    // absent or null in leaner payloads — read them defensively.
+    final operatingHours = _asMapOrNull(json['operating_hours']);
+    final pricing = _asMapOrNull(json['pricing']);
+
     return LiveSessionModel(
       active: json['active'] == true,
       sessionId: _asIntOrNull(json['session_id']),
@@ -29,7 +47,26 @@ class LiveSessionModel extends LiveSessionEntity {
       kwhDelivered: _asDoubleOrNull(json['kwh_delivered']),
       energyCost: _asDoubleOrNull(json['energy_cost']),
       totalCost: _asDoubleOrNull(json['total_cost']),
+      sessionTime: _asStringOrNull(json['session_time']),
+      energyDeliveredKwh: _asDoubleOrNull(json['energy_delivered_kwh']),
+      chargingSpeedKw: _asDoubleOrNull(json['charging_speed_kw']),
+      currentChargePercentage:
+          _asDoubleOrNull(json['current_charge_percentage']),
+      currentCost: _asDoubleOrNull(json['current_cost']),
+      timeLeft: _asStringOrNull(json['time_left']),
+      openingTime: _asStringOrNull(operatingHours?['opening_time']),
+      closingTime: _asStringOrNull(operatingHours?['closing_time']),
+      contactNumber: _asStringOrNull(json['contact_number']),
+      countryCode: _asStringOrNull(json['country_code']),
+      pricingMode: _asStringOrNull(pricing?['pricing_mode']),
+      currency: _asStringOrNull(pricing?['currency']),
+      price: _asDoubleOrNull(pricing?['price']),
     );
+  }
+
+  static Map<String, dynamic>? _asMapOrNull(dynamic value) {
+    if (value is Map) return Map<String, dynamic>.from(value);
+    return null;
   }
 
   static int? _asIntOrNull(dynamic value) {

@@ -80,7 +80,7 @@ class ActiveSessionCard extends StatelessWidget {
               const _LiveBadge(),
             ],
           ),
-          if (session.elapsed != null && session.elapsed!.trim().isNotEmpty) ...[
+          if (_elapsedLabel != null) ...[
             16.verticalSpace,
             Row(
               children: [
@@ -88,7 +88,7 @@ class ActiveSessionCard extends StatelessWidget {
                 6.horizontalSpace,
                 Expanded(
                   child: AppText(
-                    'Charging for ${session.elapsed!.trim()}',
+                    'Charging for $_elapsedLabel',
                     color: ui.textPrimary,
                     fontSize: FontSizes.font14Sp,
                     fontWeight: FontWeights.weight600,
@@ -106,17 +106,25 @@ class ActiveSessionCard extends StatelessWidget {
   }
 
   List<Widget> _buildMetrics() {
+    final currency = session.currency ?? 'PKR';
+    // Prefer the richer live-telemetry fields; fall back to the leaner payload.
+    final energy = session.energyDeliveredKwh ?? session.kwhDelivered;
+    final soc = session.currentChargePercentage ?? session.endSoc;
+    final cost = session.currentCost ?? session.totalCost;
+
     final metrics = <_Metric>[
-      if (session.kwhDelivered != null)
-        _Metric('Energy', '${_trim(session.kwhDelivered!)} kWh'),
+      if (energy != null) _Metric('Energy', '${_trim(energy)} kWh'),
+      if (session.chargingSpeedKw != null)
+        _Metric('Speed', '${_trim(session.chargingSpeedKw!)} kW'),
       if (session.startSoc != null)
         _Metric('Start SOC', '${_trim(session.startSoc!)}%'),
-      if (session.endSoc != null)
-        _Metric('Current SOC', '${_trim(session.endSoc!)}%'),
+      if (soc != null) _Metric('Current SOC', '${_trim(soc)}%'),
+      if (session.timeLeft != null && session.timeLeft!.trim().isNotEmpty)
+        _Metric('Time left', session.timeLeft!.trim()),
       if (session.energyCost != null)
         _Metric('Energy cost', AppHelpers.formatCurrency(session.energyCost!)),
-      if (session.totalCost != null)
-        _Metric('Total', AppHelpers.formatCurrency(session.totalCost!)),
+      if (cost != null)
+        _Metric('Total', AppHelpers.formatCurrency(cost, currency: currency)),
     ];
 
     if (metrics.isEmpty) return const [];
@@ -152,6 +160,16 @@ class ActiveSessionCard extends StatelessWidget {
         ],
       ),
     ];
+  }
+
+  /// Human-readable session duration, preferring the live `session_time`
+  /// figure and falling back to `elapsed`. Null when neither is present.
+  String? get _elapsedLabel {
+    final time = session.sessionTime?.trim();
+    if (time != null && time.isNotEmpty) return time;
+    final elapsed = session.elapsed?.trim();
+    if (elapsed != null && elapsed.isNotEmpty) return elapsed;
+    return null;
   }
 
   /// `2026-05-05 19:33:32` → `MMM d, yyyy · h:mm a`, falling back to the raw

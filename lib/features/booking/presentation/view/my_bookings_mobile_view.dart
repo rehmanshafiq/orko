@@ -20,6 +20,7 @@ import 'package:orko_hubco/features/booking/presentation/widgets/bookings_tab_se
 import 'package:orko_hubco/features/booking/presentation/widgets/history_booking_card.dart';
 import 'package:orko_hubco/features/booking/presentation/widgets/reschedule_sheet.dart';
 import 'package:orko_hubco/features/booking/presentation/widgets/upcoming_booking_card.dart';
+import 'package:orko_hubco/features/charging/presentation/page/charging_status_page.dart';
 
 class MyBookingsMobileView extends StatelessWidget {
   const MyBookingsMobileView({super.key});
@@ -433,6 +434,14 @@ Future<void> _scanBookingQrCode(
   }
 }
 
+/// Opens the full live charging-status screen, which polls the live-session
+/// endpoint on its own. It builds its own cubit, so it's safe to push directly.
+void _openLiveChargingSession(BuildContext context) {
+  Navigator.of(context).push(
+    MaterialPageRoute(builder: (_) => const ChargingStatusPage()),
+  );
+}
+
 class _ActiveTab extends StatelessWidget {
   const _ActiveTab({
     required this.ui,
@@ -505,6 +514,20 @@ class _ActiveTab extends StatelessWidget {
               padding: AppUtils.horizontal16Padding,
               children: [
                 ActiveSessionCard(ui: ui, session: session),
+                16.verticalSpace,
+                PrimaryButtonWidget(
+                  text: 'Live Charging Session',
+                  onPress: () => _openLiveChargingSession(context),
+                  buttonHeight: 40.h,
+                  cornerRadius: 24.r,
+                  gradientColors: const [
+                    AppColors.primaryDarkColor,
+                    AppColors.primaryDarkButtonColor,
+                  ],
+                  textColor: AppColors.whiteColor,
+                  fontSize: FontSizes.font14Sp,
+                  fontWeight: FontWeights.weight600,
+                ),
               ],
             )
           : ListView(
