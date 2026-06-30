@@ -15,6 +15,7 @@
       "login_with_otp": "api/v1/orko-auth/login-with-otp",
       "reset_password": "api/v1/orko-auth/reset-password",
       "logout_api": "api/v1/orko-auth/logout",
+      "delete_account": "api/v1/orko-auth/delete-account",
       "get_user": "api/v1/orko-auth/getUser",
       "edit_user_profile": "api/v1/core/user-profile",
       "upload_user_picture": "api/v1/core/user-profile/image",

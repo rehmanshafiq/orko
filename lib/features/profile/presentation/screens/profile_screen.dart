@@ -15,10 +15,12 @@ import 'package:orko_hubco/core/constants/storage_constants.dart';
 import 'package:orko_hubco/core/di/injection_container.dart';
 import 'package:orko_hubco/core/global_bloc/bloc/user_bloc.dart';
 import 'package:orko_hubco/core/services/local_storage_service.dart';
+import 'package:orko_hubco/core/services/push_notification_service.dart';
 import 'package:orko_hubco/core/theme/theme_cubit.dart';
 import 'package:orko_hubco/core/utils/image_upload_helper.dart';
 import 'package:orko_hubco/core/usecase/usecase.dart';
 import 'package:orko_hubco/core/utils/app_storage/app_storage.dart';
+import 'package:orko_hubco/features/auth/domain/usecases/delete_account_usecase.dart';
 import 'package:orko_hubco/features/auth/domain/usecases/get_user_usecase.dart';
 import 'package:orko_hubco/features/auth/domain/usecases/upload_user_picture_usecase.dart';
 import 'package:orko_hubco/core/utils/app_ui.dart';
@@ -146,6 +148,7 @@ class ProfileScreen extends StatelessWidget {
                                 },
                               ),
                             ),
+                            const _DeleteAccountButton(),
                           ],
                           16.verticalSpace,
                         ],
@@ -210,6 +213,196 @@ Future<void> _onSignOut(BuildContext context) async {
 Future<void> _clearUserData(LocalStorageService storage) async {
   await storage.remove(StorageConstants.vehicles);
   await storage.remove(StorageConstants.vehiclesInitialized);
+}
+
+/// "Delete Account" action in the Settings tab. Hidden for guests (no account
+/// to delete). Confirms first, then calls `delete-account`; on success the
+/// session is cleared and the user is returned to login.
+class _DeleteAccountButton extends StatefulWidget {
+  const _DeleteAccountButton();
+
+  @override
+  State<_DeleteAccountButton> createState() => _DeleteAccountButtonState();
+}
+
+class _DeleteAccountButtonState extends State<_DeleteAccountButton> {
+  bool _deleting = false;
+
+  Future<void> _onDeleteAccount() async {
+    final storage = sl<LocalStorageService>();
+    if (storage.isGuest) return; // No server account for guests.
+
+    final confirmed = await _showDeleteAccountDialog(context);
+    if (confirmed != true || !mounted) return;
+
+    setState(() => _deleting = true);
+
+    // Best-effort: drop the device token server-side while the session is still
+    // valid. Never blocks the deletion.
+    try {
+      await sl<PushNotificationService>().unregisterTokenFromBackend();
+    } catch (_) {}
+
+    final result = await sl<DeleteAccountUseCase>()(const NoParams());
+    if (!mounted) return;
+
+    await result.fold(
+      (failure) async {
+        setState(() => _deleting = false);
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(
+              content: Text(failure.message),
+              backgroundColor: AppColors.removeColor,
+            ),
+          );
+      },
+      (message) async {
+        // The repository already cleared the cached session; clear remaining
+        // user-specific local data and return to login.
+        await _clearUserData(storage);
+        await storage.setGuest(false);
+        if (!mounted) return;
+        final messenger = ScaffoldMessenger.of(context);
+        context.go('/login');
+        messenger
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(
+              content: Text(message),
+              backgroundColor: AppColors.primaryDarkColor,
+            ),
+          );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Guests have no account to delete.
+    if (sl<LocalStorageService>().isGuest) return const SizedBox.shrink();
+
+    return Center(
+      child: _deleting
+          ? Padding(
+              padding: EdgeInsets.symmetric(vertical: 10.h),
+              child: SizedBox(
+                height: 18.r,
+                width: 18.r,
+                child: const CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: AppColors.removeColor,
+                ),
+              ),
+            )
+          : TextButton.icon(
+              onPressed: _onDeleteAccount,
+              icon: Icon(
+                Icons.delete_outline_rounded,
+                color: AppColors.removeColor,
+                size: 18.r,
+              ),
+              label: AppText(
+                'Delete Account',
+                color: AppColors.removeColor,
+                fontSize: FontSizes.font14Sp,
+                fontWeight: FontWeights.weight600,
+              ),
+            ),
+    );
+  }
+}
+
+/// Confirms permanent account deletion. Returns `true` when the user confirms.
+Future<bool?> _showDeleteAccountDialog(BuildContext context) {
+  final ui = AppUiColors.of(context);
+  return showDialog<bool>(
+    context: context,
+    barrierColor: AppColors.blackColor.withValues(alpha: 0.55),
+    builder: (dialogContext) => Dialog(
+      backgroundColor: ui.cardBackground,
+      insetPadding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 24.h),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18.r)),
+      child: Padding(
+        padding: AppUtils.all18Padding,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: EdgeInsets.all(8.r),
+                  decoration: BoxDecoration(
+                    color: AppColors.removeColor.withValues(alpha: 0.12),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.delete_forever_rounded,
+                    color: AppColors.removeColor,
+                    size: 22.r,
+                  ),
+                ),
+                12.horizontalSpace,
+                Expanded(
+                  child: AppText(
+                    'Delete Account',
+                    color: ui.textPrimary,
+                    fontSize: FontSizes.font18Sp,
+                    fontWeight: FontWeights.weight700,
+                  ),
+                ),
+              ],
+            ),
+            14.verticalSpace,
+            AppText(
+              'Are you sure you want to delete your account? This permanently '
+              'removes your account and all associated data. This action cannot '
+              'be undone.',
+              color: ui.textSecondary,
+              fontSize: FontSizes.font13Sp,
+              fontWeight: FontWeights.weight400,
+              height: 1.4,
+            ),
+            22.verticalSpace,
+            Row(
+              children: [
+                Expanded(
+                  child: PrimaryButtonWidget(
+                    text: 'Cancel',
+                    onPress: () => Navigator.of(dialogContext).pop(false),
+                    buttonWidth: double.infinity,
+                    buttonHeight: 42.h,
+                    cornerRadius: 12.r,
+                    buttonColor: ui.chipInactiveBg,
+                    strokeColor: ui.borderSubtle,
+                    textColor: ui.textPrimary,
+                    fontSize: FontSizes.font14Sp,
+                    fontWeight: FontWeights.weight600,
+                  ),
+                ),
+                12.horizontalSpace,
+                Expanded(
+                  child: PrimaryButtonWidget(
+                    text: 'Delete',
+                    onPress: () => Navigator.of(dialogContext).pop(true),
+                    buttonWidth: double.infinity,
+                    buttonHeight: 42.h,
+                    cornerRadius: 12.r,
+                    buttonColor: AppColors.removeColor,
+                    textColor: AppColors.whiteColor,
+                    fontSize: FontSizes.font14Sp,
+                    fontWeight: FontWeights.weight700,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
 }
 
 /// Reads the persisted logged-in user from local storage. Returns `null` when

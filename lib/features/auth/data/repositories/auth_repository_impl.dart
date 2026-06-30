@@ -272,6 +272,29 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<Either<Failure, String>> deleteAccount() async {
+    if (!await networkInfo.isConnected) {
+      return const Left(NetworkFailure());
+    }
+
+    try {
+      final message = await remoteDataSource.deleteAccount();
+      // Account is gone server-side — clear all local session data.
+      await localDataSource.clearCache();
+      return Right(message);
+    } on ServerException catch (e) {
+      if (e.statusCode == 401) {
+        return const Left(UnauthorizedFailure());
+      }
+      return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
+    } on UnauthorizedException catch (e) {
+      return Left(UnauthorizedFailure(message: e.message));
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
+    }
+  }
+
+  @override
   Future<Either<Failure, bool>> isAuthenticated() async {
     try {
       return Right(localDataSource.hasToken);

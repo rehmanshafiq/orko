@@ -83,6 +83,11 @@ abstract class AuthRemoteDataSource {
   /// Calls the logout API.
   Future<void> logout();
 
+  /// Permanently deletes the signed-in user's account via the `delete_account`
+  /// endpoint (authorized with the saved token). Returns the server's
+  /// confirmation message. Throws [ServerException] on failure.
+  Future<String> deleteAccount();
+
   /// Fetches the current logged-in user (`get_user` endpoint from Remote
   /// Config). Returns the parsed [UserModel] (`body.user`).
   /// Throws [ServerException] on failure.

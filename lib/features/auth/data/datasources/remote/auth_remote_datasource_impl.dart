@@ -657,6 +657,61 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     }
   }
 
+  @override
+  Future<String> deleteAccount() async {
+    try {
+      final config = RemoteConfigService.config;
+      if (config == null) {
+        throw const ServerException(message: 'Remote config not initialized');
+      }
+
+      final endpoint = config.apiConstants.apiEndpoints.deleteAccount;
+      if (endpoint.trim().isEmpty) {
+        throw const ServerException(
+          message: 'Deleting your account is not available right now',
+        );
+      }
+
+      final url = _buildUrl(ApiClient.baseUrl, endpoint);
+      log('[Auth] Delete-account URL: $url');
+
+      // Authorized via the saved token by AuthInterceptor.
+      final response = await apiClient.post(url);
+
+      final data = response.data;
+      final isOk = response.statusCode == 200 &&
+          (data is! Map || data['status'] == null || data['status'] == 200);
+      if (isOk) {
+        if (data is Map) {
+          final body = data['body'];
+          if (body is Map && body['data'] != null) {
+            return body['data'].toString();
+          }
+        }
+        return 'Your account has been deleted.';
+      }
+
+      throw ServerException(
+        message: (data is Map && data['message'] != null)
+            ? data['message'].toString()
+            : 'Failed to delete your account',
+        statusCode: response.statusCode,
+      );
+    } on DioException catch (e) {
+      final data = e.response?.data;
+      throw ServerException(
+        message: (data is Map && data['message'] != null)
+            ? data['message'].toString()
+            : (e.message ?? 'Failed to delete your account'),
+        statusCode: e.response?.statusCode,
+        originalError: e,
+      );
+    } catch (e) {
+      if (e is ServerException) rethrow;
+      throw ServerException(message: e.toString(), originalError: e);
+    }
+  }
+
   /// Extracts a human-readable message from a Dio error response.
   String _dioMessage(DioException e, {required String fallback}) {
     final data = e.response?.data;

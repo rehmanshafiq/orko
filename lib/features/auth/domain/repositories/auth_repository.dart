@@ -68,6 +68,10 @@ abstract class AuthRepository {
   /// Logs out the current user.
   Future<Either<Failure, void>> logout();
 
+  /// Permanently deletes the current user's account via the `delete_account`
+  /// endpoint, then clears local cache. Returns the confirmation message.
+  Future<Either<Failure, String>> deleteAccount();
+
   /// Checks if a user is currently authenticated.
   Future<Either<Failure, bool>> isAuthenticated();
 

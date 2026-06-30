@@ -155,6 +155,7 @@ class ApiEndpoints extends Equatable {
     required this.loginWithOtp,
     required this.resetPassword,
     required this.logoutApi,
+    required this.deleteAccount,
     required this.getUser,
     required this.editUserProfile,
     required this.uploadUserPicture,
@@ -201,6 +202,7 @@ class ApiEndpoints extends Equatable {
   final String loginWithOtp;
   final String resetPassword;
   final String logoutApi;
+  final String deleteAccount;
   final String getUser;
   final String editUserProfile;
   final String uploadUserPicture;
@@ -250,6 +252,7 @@ class ApiEndpoints extends Equatable {
       loginWithOtp: json['login_with_otp'] as String? ?? '',
       resetPassword: json['reset_password'] as String? ?? '',
       logoutApi: json['logout_api'] as String? ?? '',
+      deleteAccount: json['delete_account'] as String? ?? '',
       getUser: json['get_user'] as String? ?? '',
       editUserProfile: json['edit_user_profile'] as String? ?? '',
       uploadUserPicture: json['upload_user_picture'] as String? ?? '',
@@ -303,6 +306,7 @@ class ApiEndpoints extends Equatable {
       'login_with_otp': loginWithOtp,
       'reset_password': resetPassword,
       'logout_api': logoutApi,
+      'delete_account': deleteAccount,
       'get_user': getUser,
       'edit_user_profile': editUserProfile,
       'upload_user_picture': uploadUserPicture,
@@ -351,6 +355,7 @@ class ApiEndpoints extends Equatable {
     String? loginWithOtp,
     String? resetPassword,
     String? logoutApi,
+    String? deleteAccount,
     String? getUser,
     String? editUserProfile,
     String? uploadUserPicture,
@@ -401,6 +406,7 @@ class ApiEndpoints extends Equatable {
       loginWithOtp: loginWithOtp ?? this.loginWithOtp,
       resetPassword: resetPassword ?? this.resetPassword,
       logoutApi: logoutApi ?? this.logoutApi,
+      deleteAccount: deleteAccount ?? this.deleteAccount,
       getUser: getUser ?? this.getUser,
       editUserProfile: editUserProfile ?? this.editUserProfile,
       uploadUserPicture: uploadUserPicture ?? this.uploadUserPicture,
@@ -454,6 +460,7 @@ class ApiEndpoints extends Equatable {
     loginWithOtp,
     resetPassword,
     logoutApi,
+    deleteAccount,
     getUser,
     editUserProfile,
     uploadUserPicture,

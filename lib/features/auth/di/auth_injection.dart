@@ -6,6 +6,7 @@ import 'package:orko_hubco/features/auth/data/datasources/remote/auth_remote_dat
 import 'package:orko_hubco/features/auth/data/datasources/remote/auth_remote_datasource_impl.dart';
 import 'package:orko_hubco/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:orko_hubco/features/auth/domain/repositories/auth_repository.dart';
+import 'package:orko_hubco/features/auth/domain/usecases/delete_account_usecase.dart';
 import 'package:orko_hubco/features/auth/domain/usecases/edit_user_profile_usecase.dart';
 import 'package:orko_hubco/features/auth/domain/usecases/get_user_usecase.dart';
 import 'package:orko_hubco/features/auth/domain/usecases/upload_user_picture_usecase.dart';
@@ -53,6 +54,7 @@ void initAuthDependencies() {
   sl.registerLazySingleton(() => VerifyResetOtpUseCase(sl()));
   sl.registerLazySingleton(() => ResetPasswordUseCase(sl()));
   sl.registerLazySingleton(() => LogoutUseCase(sl()));
+  sl.registerLazySingleton(() => DeleteAccountUseCase(sl()));
   sl.registerLazySingleton(() => GetUserUseCase(sl()));
   sl.registerLazySingleton(() => EditUserProfileUseCase(sl()));
   sl.registerLazySingleton(() => UploadUserPictureUseCase(sl()));
