@@ -4,7 +4,12 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/di/injection_container.dart';
+import 'package:orko_hubco/core/utils/app_storage/app_storage.dart';
+import 'package:orko_hubco/core/utils/helpers.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
+import 'package:orko_hubco/core/utils/widgets/gradient_switch.dart';
+import 'package:orko_hubco/features/notifications/presentation/cubit/notification_preferences_cubit.dart';
+import 'package:orko_hubco/features/notifications/presentation/cubit/notification_preferences_state.dart';
 import 'package:orko_hubco/features/notifications/presentation/cubit/notifications_cubit.dart';
 import 'package:orko_hubco/features/notifications/presentation/cubit/notifications_state.dart';
 import 'package:orko_hubco/features/notifications/presentation/widgets/notification_tile_widget.dart';
@@ -16,8 +21,18 @@ class NotificationsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => sl<NotificationsCubit>()..loadInitial(),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (_) => sl<NotificationsCubit>()..loadInitial()),
+        BlocProvider(
+          create: (_) {
+            final cubit = sl<NotificationPreferencesCubit>();
+            // Guests have no server preferences — leave it at its default.
+            if (!AppStorage.isGuest) cubit.load();
+            return cubit;
+          },
+        ),
+      ],
       child: const _NotificationsView(),
     );
   }
@@ -98,21 +113,28 @@ class _NotificationsViewState extends State<_NotificationsView> {
         ],
       ),
       body: SafeArea(
-        child: BlocConsumer<NotificationsCubit, NotificationsState>(
-          listenWhen: (p, c) =>
-              p.actionError != c.actionError && c.actionError != null,
-          listener: (context, state) {
-            ScaffoldMessenger.of(context)
-              ..hideCurrentSnackBar()
-              ..showSnackBar(
-                SnackBar(
-                  content: Text(state.actionError!),
-                  backgroundColor: AppColors.removeColor,
-                  behavior: SnackBarBehavior.floating,
-                ),
-              );
-          },
-          builder: (context, state) => _body(context, ui, state),
+        child: Column(
+          children: [
+            const _NotificationsToggleBar(),
+            Expanded(
+              child: BlocConsumer<NotificationsCubit, NotificationsState>(
+                listenWhen: (p, c) =>
+                    p.actionError != c.actionError && c.actionError != null,
+                listener: (context, state) {
+                  ScaffoldMessenger.of(context)
+                    ..hideCurrentSnackBar()
+                    ..showSnackBar(
+                      SnackBar(
+                        content: Text(state.actionError!),
+                        backgroundColor: AppColors.removeColor,
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                },
+                builder: (context, state) => _body(context, ui, state),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -205,6 +227,117 @@ class _NotificationsViewState extends State<_NotificationsView> {
           ),
         );
     }
+  }
+}
+
+/// Master on/off switch that enables or disables all notification categories
+/// at once (granular per-category control lives in profile settings).
+class _NotificationsToggleBar extends StatelessWidget {
+  const _NotificationsToggleBar();
+
+  @override
+  Widget build(BuildContext context) {
+    final ui = AppUiColors.of(context);
+
+    // Guests have no server preferences to manage.
+    if (AppStorage.isGuest) return const SizedBox.shrink();
+
+    return BlocConsumer<NotificationPreferencesCubit,
+        NotificationPreferencesState>(
+      listenWhen: (p, c) =>
+          p.actionError != c.actionError && c.actionError != null,
+      listener: (context, state) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(
+              content: Text(state.actionError!),
+              backgroundColor: AppColors.removeColor,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+      },
+      builder: (context, state) {
+        final cubit = context.read<NotificationPreferencesCubit>();
+        final isOn = state.preferences.anyEnabled;
+        // Disable while the initial load or a master update is in flight.
+        final isBusy =
+            state.status == NotificationPreferencesStatus.loading ||
+                state.status == NotificationPreferencesStatus.initial ||
+                state.updating.isNotEmpty;
+
+        return Container(
+          margin: EdgeInsets.fromLTRB(16.w, 12.h, 16.w, 4.h),
+          padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
+          decoration: BoxDecoration(
+            color: ui.cardBackground,
+            borderRadius: BorderRadius.circular(14.r),
+            border: Border.all(color: ui.borderSubtle),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                isOn
+                    ? Icons.notifications_active_rounded
+                    : Icons.notifications_off_rounded,
+                color: isOn ? ui.brandPrimary : ui.textMuted,
+                size: 22.sp,
+              ),
+              12.horizontalSpace,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    AppText(
+                      'Push Notifications',
+                      color: ui.textPrimary,
+                      fontSize: FontSizes.font14Sp,
+                      fontWeight: FontWeights.weight700,
+                    ),
+                    2.verticalSpace,
+                    AppText(
+                      isOn
+                          ? 'You\'ll receive notifications'
+                          : 'All notifications are turned off',
+                      color: ui.textMuted,
+                      fontSize: FontSizes.font11Sp,
+                      fontWeight: FontWeights.weight400,
+                    ),
+                  ],
+                ),
+              ),
+              8.horizontalSpace,
+              if (isBusy)
+                SizedBox(
+                  height: 18.r,
+                  width: 18.r,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: ui.brandPrimary,
+                  ),
+                )
+              else
+                GradientSwitch(
+                  value: isOn,
+                  gradientColors: const [
+                    AppColors.primaryDarkColor,
+                    AppColors.primaryDarkButtonColor,
+                  ],
+                  onChanged: (v) {
+                    cubit.setAll(v);
+                    AppHelpers.showSnackBar(
+                      context,
+                      v
+                          ? 'Notifications turned on'
+                          : 'Notifications turned off',
+                    );
+                  },
+                ),
+            ],
+          ),
+        );
+      },
+    );
   }
 }
 

@@ -39,6 +39,43 @@ class NotificationPreferencesCubit
     );
   }
 
+  /// Master on/off: optimistically sets every category to [value] and PATCHes
+  /// them in a single request, reverting on failure. Ignores re-taps while any
+  /// toggle is still in flight, and is a no-op when nothing would change.
+  Future<void> setAll(bool value) async {
+    if (state.updating.isNotEmpty) return;
+
+    final previous = state.preferences;
+    if (NotificationPreferenceKey.values
+        .every((k) => previous.valueOf(k) == value)) {
+      return;
+    }
+
+    emit(state.copyWith(
+      preferences: previous.copyWithAll(value),
+      updating: NotificationPreferenceKey.values.toSet(),
+      clearActionError: true,
+    ));
+
+    final result = await _updatePreferences(
+      UpdateNotificationPreferencesParams({
+        for (final k in NotificationPreferenceKey.values) k.apiKey: value,
+      }),
+    );
+
+    result.fold(
+      (failure) => emit(state.copyWith(
+        preferences: previous, // revert
+        updating: const {},
+        actionError: failure.message,
+      )),
+      (serverPrefs) => emit(state.copyWith(
+        preferences: serverPrefs, // server is authoritative
+        updating: const {},
+      )),
+    );
+  }
+
   /// Optimistically flips [key], PATCHes only that field, and reconciles with
   /// the server response. Reverts the toggle if the request fails. Ignores
   /// re-taps while the same key is still in flight.

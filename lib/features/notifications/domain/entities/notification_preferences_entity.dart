@@ -25,6 +25,25 @@ class NotificationPreferencesEntity extends Equatable {
         promotionalOffers = true,
         appUpdates = true;
 
+  /// True when at least one category is enabled — drives the master switch's
+  /// on/off position.
+  bool get anyEnabled =>
+      chargingUpdates || bookingReminders || promotionalOffers || appUpdates;
+
+  /// True only when every category is enabled.
+  bool get allEnabled =>
+      chargingUpdates && bookingReminders && promotionalOffers && appUpdates;
+
+  /// Returns a copy with every category set to [value].
+  NotificationPreferencesEntity copyWithAll(bool value) {
+    return NotificationPreferencesEntity(
+      chargingUpdates: value,
+      bookingReminders: value,
+      promotionalOffers: value,
+      appUpdates: value,
+    );
+  }
+
   bool valueOf(NotificationPreferenceKey key) {
     switch (key) {
       case NotificationPreferenceKey.chargingUpdates:
