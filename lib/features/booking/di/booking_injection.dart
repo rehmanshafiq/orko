@@ -12,6 +12,7 @@ import 'package:orko_hubco/features/booking/domain/usecases/get_charger_details_
 import 'package:orko_hubco/features/booking/domain/usecases/get_live_session_usecase.dart';
 import 'package:orko_hubco/features/booking/domain/usecases/get_my_bookings_usecase.dart';
 import 'package:orko_hubco/features/booking/domain/usecases/reschedule_booking_usecase.dart';
+import 'package:orko_hubco/features/booking/domain/usecases/verify_qr_usecase.dart';
 import 'package:orko_hubco/features/booking/presentation/cubit/booking_cubit.dart';
 import 'package:orko_hubco/features/booking/presentation/cubit/my_bookings_cubit.dart';
 
@@ -36,6 +37,7 @@ void initBookingDependencies() {
   sl.registerLazySingleton(() => GetLiveSessionUseCase(sl()));
   sl.registerLazySingleton(() => CancelBookingUseCase(sl()));
   sl.registerLazySingleton(() => RescheduleBookingUseCase(sl()));
+  sl.registerLazySingleton(() => VerifyQrUseCase(sl()));
 
   // Cubit (new instance per booking screen).
   // Booking goes through `book-charge-session` (no end_time), i.e. the HGL
@@ -55,6 +57,7 @@ void initBookingDependencies() {
       getLiveSessionUseCase: sl(),
       cancelBookingUseCase: sl(),
       rescheduleBookingUseCase: sl(),
+      verifyQrUseCase: sl(),
     ),
   );
 }

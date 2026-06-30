@@ -10,6 +10,7 @@ import 'package:orko_hubco/features/booking/data/models/charge_session_history_m
 import 'package:orko_hubco/features/booking/data/models/charger_details_model.dart';
 import 'package:orko_hubco/features/booking/data/models/live_session_model.dart';
 import 'package:orko_hubco/features/booking/data/models/my_booking_model.dart';
+import 'package:orko_hubco/features/booking/data/models/verify_qr_model.dart';
 import 'package:orko_hubco/features/remote_config/data/models/remote_config_model.dart';
 import 'package:orko_hubco/features/remote_config/data/services/remote_config_service.dart';
 
@@ -240,6 +241,51 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
         },
       );
       return _bookingFromResponse(response, fallback: 'Rescheduling failed');
+    });
+  }
+
+  @override
+  Future<VerifyQrModel> verifyQr({
+    required String bookingCode,
+    required String chargePointId,
+    required int connectorId,
+  }) async {
+    return _guard('verify-qr', () async {
+      final url = _endpointUrl(
+        (e) => e.verifyQr,
+        unavailableMessage: 'QR verification is not available right now',
+      );
+      log('[Booking] Verify QR URL: $url '
+          '(booking_code: $bookingCode, charge_point_id: $chargePointId, '
+          'connector_id: $connectorId)');
+
+      // A wrong connector legitimately comes back as 422 with a meaningful
+      // `{is_match: false, ...}` body — treat it as a result, not an error, by
+      // letting both 200 and 422 through Dio's status validation.
+      final response = await apiClient.post(
+        url,
+        data: {
+          'booking_code': bookingCode,
+          'charge_point_id': chargePointId,
+          'connector_id': connectorId,
+        },
+        options: Options(
+          validateStatus: (status) => status == 200 || status == 422,
+        ),
+      );
+
+      final data = response.data;
+      if (data is Map<String, dynamic> && data['body'] is Map) {
+        return VerifyQrModel.fromEnvelope(data);
+      }
+      // A 200/422 without the expected envelope: surface the backend message
+      // if present, else a generic failure.
+      throw ServerException(
+        message: (data is Map && data['message'] != null)
+            ? data['message'].toString()
+            : 'Could not verify the QR code',
+        statusCode: response.statusCode,
+      );
     });
   }
 

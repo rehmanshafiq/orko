@@ -6,7 +6,10 @@ import 'package:orko_hubco/features/booking/domain/usecases/get_charge_session_h
 import 'package:orko_hubco/features/booking/domain/usecases/get_live_session_usecase.dart';
 import 'package:orko_hubco/features/booking/domain/usecases/get_my_bookings_usecase.dart';
 import 'package:orko_hubco/features/booking/domain/usecases/reschedule_booking_usecase.dart';
+import 'package:orko_hubco/features/booking/domain/usecases/verify_qr_usecase.dart';
 import 'package:orko_hubco/features/booking/domain/entities/live_session_entity.dart';
+import 'package:orko_hubco/features/booking/domain/entities/verify_qr_result_entity.dart';
+import 'package:orko_hubco/core/error/failures.dart';
 import 'package:orko_hubco/features/booking/presentation/cubit/my_bookings_state.dart';
 import 'package:orko_hubco/features/booking/presentation/models/booking_session_model.dart';
 
@@ -20,11 +23,13 @@ class MyBookingsCubit extends Cubit<MyBookingsState> {
     required GetLiveSessionUseCase getLiveSessionUseCase,
     required CancelBookingUseCase cancelBookingUseCase,
     required RescheduleBookingUseCase rescheduleBookingUseCase,
+    required VerifyQrUseCase verifyQrUseCase,
   })  : _getMyBookingsUseCase = getMyBookingsUseCase,
         _getChargeSessionHistoryUseCase = getChargeSessionHistoryUseCase,
         _getLiveSessionUseCase = getLiveSessionUseCase,
         _cancelBookingUseCase = cancelBookingUseCase,
         _rescheduleBookingUseCase = rescheduleBookingUseCase,
+        _verifyQrUseCase = verifyQrUseCase,
         super(const MyBookingsState());
 
   final GetMyBookingsUseCase _getMyBookingsUseCase;
@@ -32,6 +37,7 @@ class MyBookingsCubit extends Cubit<MyBookingsState> {
   final GetLiveSessionUseCase _getLiveSessionUseCase;
   final CancelBookingUseCase _cancelBookingUseCase;
   final RescheduleBookingUseCase _rescheduleBookingUseCase;
+  final VerifyQrUseCase _verifyQrUseCase;
 
   /// Switches the Approved/Cancelled sub-tab within the Upcoming tab. Both lists
   /// are derived from the already-loaded my-bookings data, so no refetch needed.
@@ -203,6 +209,35 @@ class MyBookingsCubit extends Cubit<MyBookingsState> {
         return (success: true, message: message);
       },
     );
+  }
+
+  /// Verifies a scanned charger QR against an approved booking.
+  ///
+  /// Returns the [VerifyQrResultEntity] for both a match and a wrong connector
+  /// (only transport/auth/server errors come back as a [Failure]). On a
+  /// confirmed mismatch the backend flags the booking disputed, so we refresh
+  /// the list silently to reflect the new status.
+  Future<Either<Failure, VerifyQrResultEntity>> verifyQr({
+    required String bookingCode,
+    required String chargePointId,
+    required int connectorId,
+  }) async {
+    final result = await _verifyQrUseCase(
+      VerifyQrParams(
+        bookingCode: bookingCode,
+        chargePointId: chargePointId,
+        connectorId: connectorId,
+      ),
+    );
+
+    if (isClosed) return result;
+    result.fold(
+      (_) {},
+      (data) {
+        if (!data.isMatch) loadBookings(showSpinner: false);
+      },
+    );
+    return result;
   }
 
   /// Reschedules a booking to a new date/slot, then refreshes the list.

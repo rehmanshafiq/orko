@@ -4,6 +4,7 @@ import 'package:orko_hubco/features/booking/data/models/charge_session_history_m
 import 'package:orko_hubco/features/booking/data/models/charger_details_model.dart';
 import 'package:orko_hubco/features/booking/data/models/live_session_model.dart';
 import 'package:orko_hubco/features/booking/data/models/my_booking_model.dart';
+import 'package:orko_hubco/features/booking/data/models/verify_qr_model.dart';
 
 abstract class BookingRemoteDataSource {
   Future<ChargerDetailsModel> getChargerDetails({required int locationId});
@@ -40,5 +41,11 @@ abstract class BookingRemoteDataSource {
     required String bookingDate,
     required String startTime,
     required int location,
+  });
+
+  Future<VerifyQrModel> verifyQr({
+    required String bookingCode,
+    required String chargePointId,
+    required int connectorId,
   });
 }

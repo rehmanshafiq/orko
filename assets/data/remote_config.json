@@ -29,6 +29,7 @@
       "my_bookings": "api/v1/bookings/my-charging-sessions/",
       "cancel_booking": "api/v1/bookings/cancel-booking/",
       "reschedule_booking": "api/v1/bookings/reschedule-booking/",
+      "verify_qr": "api/v1/bookings/verify-qr/",
       "charge_session_history": "api/v1/bookings/charge-session-history/",
       "live_session": "api/v1/bookings/live-session/",
       "charging_stats": "api/v1/bookings/charging-stats/",

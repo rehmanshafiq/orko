@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -408,19 +410,21 @@ Future<void> _openReschedule(
   AppHelpers.showSnackBar(context, result.message, isError: !result.success);
 }
 
+/// Charger identity decoded from a scanned QR.
+typedef _ChargerQr = ({String chargePointId, int connectorId});
+
 Future<void> _scanBookingQrCode(
   BuildContext context,
   MyBookingEntity booking,
 ) async {
+  // Capture the cubit before the scanner route is pushed.
+  final cubit = context.read<MyBookingsCubit>();
   final result = await BarcodeScannerService.scanBookingQrCode(context);
   if (!context.mounted) return;
 
   switch (result) {
     case BookingQrScanSuccess(:final code):
-      AppHelpers.showSnackBar(
-        context,
-        'QR scanned for ${booking.displayName}: $code',
-      );
+      await _verifyScannedQr(context, cubit, booking, code);
     case BookingQrScanPermissionDenied():
       AppHelpers.showSnackBar(
         context,
@@ -432,6 +436,176 @@ Future<void> _scanBookingQrCode(
     case BookingQrScanCancelled():
       break;
   }
+}
+
+/// Parses the scanned [code], calls `verify-qr`, and surfaces the outcome:
+/// invalid QR, network/server failure, a match, or a wrong-connector mismatch.
+Future<void> _verifyScannedQr(
+  BuildContext context,
+  MyBookingsCubit cubit,
+  MyBookingEntity booking,
+  String code,
+) async {
+  final parsed = _parseChargerQr(code);
+  if (parsed == null) {
+    AppHelpers.showSnackBar(
+      context,
+      "This QR code isn't a valid charger code. Please scan the code on the "
+      'charger.',
+      isError: true,
+    );
+    return;
+  }
+  if (booking.bookingCode.trim().isEmpty) {
+    AppHelpers.showSnackBar(
+      context,
+      'This booking is missing its code and cannot be verified.',
+      isError: true,
+    );
+    return;
+  }
+
+  // Block input while the request is in flight.
+  showDialog<void>(
+    context: context,
+    barrierDismissible: false,
+    builder: (_) => const Center(child: CircularProgressIndicator()),
+  );
+
+  final either = await cubit.verifyQr(
+    bookingCode: booking.bookingCode,
+    chargePointId: parsed.chargePointId,
+    connectorId: parsed.connectorId,
+  );
+
+  if (!context.mounted) return;
+  // Dismiss the loader.
+  Navigator.of(context, rootNavigator: true).pop();
+  if (!context.mounted) return;
+
+  either.fold(
+    (failure) => AppHelpers.showSnackBar(context, failure.message, isError: true),
+    (res) {
+      if (res.isMatch) {
+        _showVerifyResultDialog(
+          context,
+          title: 'Charger verified',
+          message: 'This charger matches your booking'
+              '${res.bookedConnectorId != null ? ' (connector ${res.bookedConnectorId}).' : '.'}'
+              '\n\nYou\'re all set to start charging.',
+          isError: false,
+        );
+      } else {
+        final correct = res.message?.trim();
+        final fallback = res.bookedConnectorId != null
+            ? 'This charger doesn\'t match your booking. Your booking is for '
+                'connector ${res.bookedConnectorId}.'
+            : "This charger doesn't match your booking.";
+        _showVerifyResultDialog(
+          context,
+          title: 'Wrong connector',
+          message: '${(correct != null && correct.isNotEmpty) ? correct : fallback}'
+              '\n\nThis mismatch has been reported to the operator.',
+          isError: true,
+        );
+      }
+    },
+  );
+}
+
+void _showVerifyResultDialog(
+  BuildContext context, {
+  required String title,
+  required String message,
+  required bool isError,
+}) {
+  showDialog<void>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: Row(
+        children: [
+          Icon(
+            isError ? Icons.error_outline_rounded : Icons.check_circle_outline_rounded,
+            color: isError ? AppColors.removeColor : Colors.green.shade700,
+          ),
+          const SizedBox(width: 8),
+          Expanded(child: Text(title)),
+        ],
+      ),
+      content: Text(message),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(dialogContext).pop(),
+          child: const Text('OK'),
+        ),
+      ],
+    ),
+  );
+}
+
+/// Extracts the `charge_point_id` + `connector_id` a charger QR encodes.
+///
+/// Tolerant of the common encodings so a backend format change doesn't break
+/// scanning: a JSON object, a URL/query string (`...?charge_point_id=CP1&
+/// connector_id=2`), or a delimited pair (`CP00123:2`, `CP00123,2`, etc.).
+/// Returns null when neither field can be recovered.
+_ChargerQr? _parseChargerQr(String raw) {
+  final code = raw.trim();
+  if (code.isEmpty) return null;
+
+  // 1) JSON object.
+  try {
+    final decoded = jsonDecode(code);
+    if (decoded is Map) {
+      final parsed = _normalizeChargerQr(
+        decoded['charge_point_id'] ?? decoded['chargePointId'] ?? decoded['cp'],
+        decoded['connector_id'] ?? decoded['connectorId'] ?? decoded['connector'],
+      );
+      if (parsed != null) return parsed;
+    }
+  } catch (_) {
+    // Not JSON — fall through to the other formats.
+  }
+
+  // 2) URL / query string.
+  final queryIndex = code.indexOf('?');
+  final queryPart = queryIndex >= 0 ? code.substring(queryIndex + 1) : code;
+  if (queryPart.contains('=')) {
+    final params = <String, String>{};
+    for (final pair in queryPart.split(RegExp(r'[&;]'))) {
+      final kv = pair.split('=');
+      if (kv.length == 2) {
+        params[kv[0].trim().toLowerCase()] = kv[1].trim();
+      }
+    }
+    final parsed = _normalizeChargerQr(
+      params['charge_point_id'] ?? params['chargepointid'] ?? params['cp'],
+      params['connector_id'] ??
+          params['connectorid'] ??
+          params['connector'] ??
+          params['conn'],
+    );
+    if (parsed != null) return parsed;
+  }
+
+  // 3) Delimited pair, e.g. `CP00123:2`.
+  final match = RegExp(r'^(.+?)[:,|/\-](\d+)$').firstMatch(code);
+  if (match != null) {
+    final parsed = _normalizeChargerQr(match.group(1), match.group(2));
+    if (parsed != null) return parsed;
+  }
+
+  return null;
+}
+
+_ChargerQr? _normalizeChargerQr(dynamic chargePoint, dynamic connector) {
+  final cp = chargePoint?.toString().trim();
+  if (cp == null || cp.isEmpty) return null;
+  final conn = connector is num
+      ? connector.toInt()
+      : int.tryParse(connector?.toString().trim() ?? '');
+  if (conn == null) return null;
+  return (chargePointId: cp, connectorId: conn);
 }
 
 /// Opens the full live charging-status screen, which polls the live-session

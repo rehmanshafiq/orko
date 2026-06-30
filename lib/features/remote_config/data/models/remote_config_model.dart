@@ -163,6 +163,7 @@ class ApiEndpoints extends Equatable {
     required this.myBookings,
     required this.cancelBooking,
     required this.rescheduleBooking,
+    required this.verifyQr,
     required this.chargeSessionHistory,
     required this.liveSession,
     required this.chargingStats,
@@ -206,6 +207,7 @@ class ApiEndpoints extends Equatable {
   final String myBookings;
   final String cancelBooking;
   final String rescheduleBooking;
+  final String verifyQr;
   final String chargeSessionHistory;
   final String liveSession;
   final String chargingStats;
@@ -252,6 +254,7 @@ class ApiEndpoints extends Equatable {
       myBookings: json['my_bookings'] as String? ?? '',
       cancelBooking: json['cancel_booking'] as String? ?? '',
       rescheduleBooking: json['reschedule_booking'] as String? ?? '',
+      verifyQr: json['verify_qr'] as String? ?? '',
       chargeSessionHistory: json['charge_session_history'] as String? ?? '',
       liveSession: json['live_session'] as String? ?? '',
       chargingStats: json['charging_stats'] as String? ?? '',
@@ -302,6 +305,7 @@ class ApiEndpoints extends Equatable {
       'my_bookings': myBookings,
       'cancel_booking': cancelBooking,
       'reschedule_booking': rescheduleBooking,
+      'verify_qr': verifyQr,
       'charge_session_history': chargeSessionHistory,
       'live_session': liveSession,
       'charging_stats': chargingStats,
@@ -347,6 +351,7 @@ class ApiEndpoints extends Equatable {
     String? myBookings,
     String? cancelBooking,
     String? rescheduleBooking,
+    String? verifyQr,
     String? chargeSessionHistory,
     String? liveSession,
     String? chargingStats,
@@ -394,6 +399,7 @@ class ApiEndpoints extends Equatable {
       myBookings: myBookings ?? this.myBookings,
       cancelBooking: cancelBooking ?? this.cancelBooking,
       rescheduleBooking: rescheduleBooking ?? this.rescheduleBooking,
+      verifyQr: verifyQr ?? this.verifyQr,
       chargeSessionHistory: chargeSessionHistory ?? this.chargeSessionHistory,
       liveSession: liveSession ?? this.liveSession,
       chargingStats: chargingStats ?? this.chargingStats,
@@ -444,6 +450,7 @@ class ApiEndpoints extends Equatable {
     myBookings,
     cancelBooking,
     rescheduleBooking,
+    verifyQr,
     chargeSessionHistory,
     liveSession,
     chargingStats,

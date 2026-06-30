@@ -9,6 +9,7 @@ import 'package:orko_hubco/features/booking/domain/entities/charge_session_histo
 import 'package:orko_hubco/features/booking/domain/entities/charger_details_entity.dart';
 import 'package:orko_hubco/features/booking/domain/entities/live_session_entity.dart';
 import 'package:orko_hubco/features/booking/domain/entities/my_booking_entity.dart';
+import 'package:orko_hubco/features/booking/domain/entities/verify_qr_result_entity.dart';
 import 'package:orko_hubco/features/booking/domain/repositories/booking_repository.dart';
 
 class BookingRepositoryImpl implements BookingRepository {
@@ -103,6 +104,21 @@ class BookingRepositoryImpl implements BookingRepository {
         bookingDate: bookingDate,
         startTime: startTime,
         location: location,
+      ),
+    );
+  }
+
+  @override
+  Future<Either<Failure, VerifyQrResultEntity>> verifyQr({
+    required String bookingCode,
+    required String chargePointId,
+    required int connectorId,
+  }) {
+    return _run(
+      () => remoteDataSource.verifyQr(
+        bookingCode: bookingCode,
+        chargePointId: chargePointId,
+        connectorId: connectorId,
       ),
     );
   }
