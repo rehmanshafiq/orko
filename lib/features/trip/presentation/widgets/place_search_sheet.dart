@@ -100,12 +100,24 @@ class _PlaceSearchSheetState extends State<_PlaceSearchSheet> {
   @override
   Widget build(BuildContext context) {
     final ui = AppUiColors.of(context);
-    final viewInsets = MediaQuery.viewInsetsOf(context).bottom;
+    final media = MediaQuery.of(context);
+    final viewInsets = media.viewInsets.bottom;
+
+    // Keep the sheet at a fixed 75% of the screen. Lift it by the keyboard
+    // inset so its content clears the keyboard, but never lift it so far that
+    // its top would slide under the status bar — cap the lift accordingly
+    // (when it can't lift fully, the keyboard simply overlaps the bottom and
+    // the results list scrolls).
+    final sheetHeight = 0.45.sh;
+    final maxLift =
+        (media.size.height - media.padding.top - 8.h - sheetHeight)
+            .clamp(0.0, double.infinity);
+    final bottomLift = viewInsets.clamp(0.0, maxLift);
 
     return Padding(
-      padding: EdgeInsets.only(bottom: viewInsets),
+      padding: EdgeInsets.only(bottom: bottomLift),
       child: Container(
-        height: 0.75.sh,
+        height: sheetHeight,
         decoration: BoxDecoration(
           color: ui.scaffoldBackground,
           borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
