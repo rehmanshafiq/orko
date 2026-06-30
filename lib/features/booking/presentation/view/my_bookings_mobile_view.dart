@@ -269,7 +269,9 @@ class _UpcomingTab extends StatelessWidget {
   IconData _emptyIcon(UpcomingFilter filter) {
     switch (filter) {
       case UpcomingFilter.approved:
-        return Icons.calendar_today_outlined;
+        // Calendar with a check mark inside — mirrors the cancelled
+        // calendar-with-a-cross icon.
+        return Icons.event_available_outlined;
       case UpcomingFilter.cancelled:
         return Icons.event_busy_outlined;
     }
