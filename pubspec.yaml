@@ -107,6 +107,7 @@ flutter_launcher_icons:
   ios: true
   image_path: "assets/images/hubco_launcher.png"
   remove_alpha_ios: true
+  background_color_ios: "#000000" # match adaptive_icon_background so iOS looks like Android
   adaptive_icon_background: "#000000"
   adaptive_icon_foreground: "assets/images/hubco_launcher.png"
   adaptive_icon_foreground_inset: 12 # slight zoom-out so the logo clears the round/square mask safe zone (was touching the edges at 0)
