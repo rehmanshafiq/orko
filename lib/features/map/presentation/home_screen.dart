@@ -83,6 +83,12 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _availableNowSelected = false;
   final Set<String> _selectedTypes = {};
 
+  /// "Nearby Location" chip — sends `radius=30` (km) to the `nearest` API via
+  /// [MapCubit.applyFilters]; unlike the client-side chips above, this
+  /// triggers a real reload.
+  bool _nearbyLocationSelected = false;
+  static const double _nearbyLocationRadiusKm = 30;
+
   final Map<_ChargingStationMarkerKind, BitmapDescriptor> _chargingStationIcons =
       {};
 
@@ -1138,7 +1144,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           12.verticalSpace,
           AppText(
-            'Nearby Stations',
+            'Results',
             color: ui.textPrimary,
             fontSize: FontSizes.font24Sp,
             fontWeight: FontWeights.weight600,
