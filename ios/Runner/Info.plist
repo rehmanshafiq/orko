@@ -71,6 +71,8 @@
         </array>
         <key>FirebaseAppDelegateProxyEnabled</key>
         <true/>
+        <key>GIDClientID</key>
+        <string>60291270702-vu5pgjgmbvoj4bv00dldbioj0isreeuk.apps.googleusercontent.com</string>
 		<key>UIStatusBarHidden</key>
 		<false/>
 	</dict>
