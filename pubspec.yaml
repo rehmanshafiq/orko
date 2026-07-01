@@ -80,6 +80,13 @@ dependencies:
   image_picker: ^1.1.2
   image: ^4.3.0
 
+# Pin path_provider_foundation below 2.5.0: 2.5.0+ switched to an FFI
+# implementation backed by package:objective_c whose native framework fails
+# to resolve at runtime (DOBJC_initializeApi crash on launch).
+# https://github.com/flutter/flutter/issues/178915
+dependency_overrides:
+  path_provider_foundation: 2.4.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
