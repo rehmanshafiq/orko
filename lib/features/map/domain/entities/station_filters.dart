@@ -13,6 +13,7 @@ class StationFilters extends Equatable {
     this.powerOutput,
     this.radius,
     this.availableNow = false,
+    this.city,
   });
 
   final List<String> connectorTypes;
@@ -27,6 +28,9 @@ class StationFilters extends Equatable {
   final double? radius;
   final bool availableNow;
 
+  /// Selected city (sent as `city`), e.g. `Karachi`.
+  final String? city;
+
   /// True when no server-side or client-side filter is active.
   bool get isEmpty =>
       connectorTypes.isEmpty &&
@@ -35,7 +39,8 @@ class StationFilters extends Equatable {
       maxPrice == null &&
       powerOutput == null &&
       radius == null &&
-      !availableNow;
+      !availableNow &&
+      city == null;
 
   @override
   List<Object?> get props => [
@@ -46,5 +51,6 @@ class StationFilters extends Equatable {
         powerOutput,
         radius,
         availableNow,
+        city,
       ];
 }

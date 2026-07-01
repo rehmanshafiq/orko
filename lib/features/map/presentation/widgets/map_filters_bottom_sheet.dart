@@ -13,7 +13,7 @@ import 'package:orko_hubco/features/map/domain/entities/station_filters.dart';
 import 'package:orko_hubco/features/map/domain/usecases/get_filter_options_usecase.dart';
 import 'package:orko_hubco/features/map/presentation/cubit/map_cubit.dart';
 
-/// EV map filters — connector types & amenities come from the
+/// EV map filters — cities, power output & amenities come from the
 /// `filter-options` API; applying reloads stations via the `nearest` API.
 class MapFiltersBottomSheet extends StatefulWidget {
   const MapFiltersBottomSheet({
@@ -49,25 +49,21 @@ class MapFiltersBottomSheet extends StatefulWidget {
 
 class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
   // Selections (initialised from the cubit's currently-applied filters).
-  final Set<String> _selectedChargers = {};
+  String? _selectedCity;
+  double? _selectedPowerOutput;
   final Set<int> _selectedAmenityIds = {};
-  double _powerOutput = 0;
   bool _availableNow = false;
   late RangeValues _priceRange;
 
   // Slider bounds. Default until the `filter-options` API supplies real
-  // `power_output` / `price_range` values, then overwritten in [_loadOptions].
-  static const double _powerMinDefault = 0;
-  static const double _powerMaxDefault = 500;
+  // `price_range` values, then overwritten in [_loadOptions].
   static const double _priceMinDefault = 0;
   static const double _priceMaxDefault = 200;
 
-  double _powerMin = _powerMinDefault;
-  double _powerMax = _powerMaxDefault;
   double _priceMin = _priceMinDefault;
   double _priceMax = _priceMaxDefault;
 
-  // Filter options (connector types + amenities) fetched from the API.
+  // Filter options (cities, power output, amenities) fetched from the API.
   StationFilterOptionsEntity? _options;
   bool _optionsLoading = true;
   String? _optionsError;
@@ -82,9 +78,9 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
   /// Pre-select whatever filters are currently applied on the map.
   void _initFromApplied() {
     final f = context.read<MapCubit>().currentFilters;
-    _selectedChargers.addAll(f.connectorTypes);
     _selectedAmenityIds.addAll(f.amenityIds);
-    _powerOutput = (f.powerOutput ?? _powerMin).clamp(_powerMin, _powerMax);
+    _selectedPowerOutput = f.powerOutput;
+    _selectedCity = f.city;
     _availableNow = f.availableNow;
     _priceRange = RangeValues(
       (f.minPrice ?? _priceMin).clamp(_priceMin, _priceMax),
@@ -107,30 +103,27 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
       (options) => setState(() {
         _optionsLoading = false;
         _options = options;
-        // Drop any pre-selected ids that no longer exist in the options.
+        // Drop any pre-selected ids/values that no longer exist in the options.
         final validIds = options.amenities.map((a) => a.id).toSet();
         _selectedAmenityIds.removeWhere((id) => !validIds.contains(id));
-        final validTypes = options.connectorTypes.toSet();
-        _selectedChargers.removeWhere((t) => !validTypes.contains(t));
-        // Adopt the API's power/price bounds and re-fit the slider values.
-        _applyOptionRanges(options);
+        if (_selectedPowerOutput != null &&
+            !options.powerOutputOptions.contains(_selectedPowerOutput)) {
+          _selectedPowerOutput = null;
+        }
+        if (_selectedCity != null && !options.cities.contains(_selectedCity)) {
+          _selectedCity = null;
+        }
+        // Adopt the API's price bounds and re-fit the slider values.
+        _applyPriceRange(options);
       }),
     );
   }
 
-  /// Overwrites the slider bounds with the API ranges (when valid) and re-clamps
-  /// the current values: an applied filter is kept (clamped); otherwise the
-  /// power sits at the minimum and price spans the full range.
-  void _applyOptionRanges(StationFilterOptionsEntity options) {
+  /// Overwrites the price slider bounds with the API range (when valid) and
+  /// re-clamps the current values: an applied filter is kept (clamped);
+  /// otherwise price spans the full range.
+  void _applyPriceRange(StationFilterOptionsEntity options) {
     final f = context.read<MapCubit>().currentFilters;
-
-    final pMin = options.powerOutputMin;
-    final pMax = options.powerOutputMax;
-    if (pMin != null && pMax != null && pMax > pMin) {
-      _powerMin = pMin;
-      _powerMax = pMax;
-    }
-    _powerOutput = (f.powerOutput ?? _powerMin).clamp(_powerMin, _powerMax);
 
     final prMin = options.priceMin;
     final prMax = options.priceMax;
@@ -146,8 +139,8 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
 
   void _reset() {
     setState(() {
-      _selectedChargers.clear();
-      _powerOutput = _powerMin;
+      _selectedCity = null;
+      _selectedPowerOutput = null;
       _availableNow = false;
       _selectedAmenityIds.clear();
       _priceRange = RangeValues(_priceMin, _priceMax);
@@ -156,14 +149,12 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
 
   void _apply() {
     final filters = StationFilters(
-      connectorTypes: _selectedChargers.toList(growable: false),
       amenityIds: _selectedAmenityIds.toList(growable: false),
       minPrice: _priceRange.start.roundToDouble(),
       maxPrice: _priceRange.end.roundToDouble(),
-      // At (or below) the minimum bound means "no power constraint".
-      powerOutput:
-          _powerOutput > _powerMin ? _powerOutput.roundToDouble() : null,
+      powerOutput: _selectedPowerOutput,
       availableNow: _availableNow,
+      city: _selectedCity,
     );
     context.read<MapCubit>().applyFilters(filters);
     Navigator.of(context).pop();
@@ -179,7 +170,7 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
     // The inner SingleChildScrollView scrolls the content within this height.
     final maxSheetHeight =
         (media.size.height - media.padding.top - 8.h).clamp(0.0, double.infinity);
-    final sheetHeight = (media.size.height * 0.8).clamp(0.0, maxSheetHeight);
+    final sheetHeight = (media.size.height * 0.7).clamp(0.0, maxSheetHeight);
 
     return Column(
       children: [
@@ -232,7 +223,7 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
                           onTap: _reset,
                           child: AppText(
                             'Reset',
-                            color: ui.brandPrimary,
+                            color: AppColors.removeColor,
                             fontSize: FontSizes.font14Sp,
                             fontWeight: FontWeights.weight600,
                           ),
@@ -248,41 +239,30 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        _sectionTitle('Charger Type'),
+                        _sectionTitle('Location'),
                         10.verticalSpace,
-                        _chargerSection(ui),
+                        _locationSection(ui),
                         20.verticalSpace,
                         _sectionTitle('Power Output'),
-                        8.verticalSpace,
-                        _powerLabelsRow(),
-                        6.verticalSpace,
-                        _singleSlider(
-                          value: _powerOutput,
-                          min: _powerMin,
-                          max: _powerMax,
-                          onChanged: (v) => setState(() => _powerOutput = v),
-                        ),
-                        20.verticalSpace,
-                        _sectionTitle('Availability'),
                         10.verticalSpace,
-                        Row(
-                          children: [
-                            Expanded(
-                              child: AppText(
-                                'Available Now',
-                                color: ui.textPrimary,
-                                fontSize: FontSizes.font14Sp,
-                                fontWeight: FontWeights.weight500,
-                              ),
-                            ),
-                            _availabilitySwitch(),
-                          ],
-                        ),
-                        16.verticalSpace,
-                        _sectionTitle('Amenities'),
-                        8.verticalSpace,
-                        _amenitiesSection(ui),
-                        16.verticalSpace,
+                        _powerOutputSection(ui),
+                        20.verticalSpace,
+                        // _sectionTitle('Availability'),
+                        // 10.verticalSpace,
+                        // Row(
+                        //   children: [
+                        //     Expanded(
+                        //       child: AppText(
+                        //         'Available Now',
+                        //         color: ui.textPrimary,
+                        //         fontSize: FontSizes.font14Sp,
+                        //         fontWeight: FontWeights.weight500,
+                        //       ),
+                        //     ),
+                        //     _availabilitySwitch(),
+                        //   ],
+                        // ),
+                        // 16.verticalSpace,
                         _sectionTitle('Price Range'),
                         8.verticalSpace,
                         _priceLabelsRow(),
@@ -293,6 +273,10 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
                           max: _priceMax,
                           onChanged: (v) => setState(() => _priceRange = v),
                         ),
+                        20.verticalSpace,
+                        _sectionTitle('Amenities'),
+                        8.verticalSpace,
+                        _amenitiesSection(ui),
                       ],
                     ),
                   ),
@@ -320,33 +304,29 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
     );
   }
 
-  // ── Charger type (dynamic) ────────────────────────────────────────────────
+  // ── Location (dynamic, KLI cities only) ────────────────────────────────────
 
-  Widget _chargerSection(AppUiColors ui) {
+  Widget _locationSection(AppUiColors ui) {
     if (_optionsLoading) return _sectionLoader(ui);
-    if (_optionsError != null && (_options?.connectorTypes.isEmpty ?? true)) {
+    if (_optionsError != null && (_options?.cities.isEmpty ?? true)) {
       return _sectionError(ui);
     }
-    final types = _options?.connectorTypes ?? const [];
-    if (types.isEmpty) {
-      return _sectionEmpty(ui, 'No charger types available');
+    final cities = _options?.cities ?? const [];
+    if (cities.isEmpty) {
+      return _sectionEmpty(ui, 'No locations available');
     }
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
-        children: types.map((t) {
-          final selected = _selectedChargers.contains(t);
+        children: cities.map((city) {
+          final selected = _selectedCity == city;
           return Padding(
             padding: EdgeInsets.only(right: 8.w),
             child: GestureDetector(
               onTap: () => setState(() {
-                if (selected) {
-                  _selectedChargers.remove(t);
-                } else {
-                  _selectedChargers.add(t);
-                }
+                _selectedCity = selected ? null : city;
               }),
-              child: _chargerChip(t, selected),
+              child: _optionChip(city, selected),
             ),
           );
         }).toList(),
@@ -354,7 +334,43 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
     );
   }
 
-  Widget _chargerChip(String label, bool selected) {
+  // ── Power output (dynamic) ─────────────────────────────────────────────────
+
+  Widget _powerOutputSection(AppUiColors ui) {
+    if (_optionsLoading) return _sectionLoader(ui);
+    if (_optionsError != null && (_options?.powerOutputOptions.isEmpty ?? true)) {
+      return _sectionError(ui);
+    }
+    final powerOptions = _options?.powerOutputOptions ?? const [];
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          Padding(
+            padding: EdgeInsets.only(right: 8.w),
+            child: GestureDetector(
+              onTap: () => setState(() => _selectedPowerOutput = null),
+              child: _optionChip('All', _selectedPowerOutput == null),
+            ),
+          ),
+          ...powerOptions.map((kw) {
+            final selected = _selectedPowerOutput == kw;
+            return Padding(
+              padding: EdgeInsets.only(right: 8.w),
+              child: GestureDetector(
+                onTap: () => setState(() {
+                  _selectedPowerOutput = selected ? null : kw;
+                }),
+                child: _optionChip('${kw.round()} kW', selected),
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
+  Widget _optionChip(String label, bool selected) {
     final ui = AppUiColors.of(context);
     return AnimatedContainer(
       duration: const Duration(milliseconds: 180),
@@ -508,52 +524,6 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
 
   // ── Sliders & labels ──────────────────────────────────────────────────────
 
-  Widget _powerLabelsRow() {
-    final ui = AppUiColors.of(context);
-    final value = _powerOutput.round();
-    return Row(
-      children: [
-        Expanded(
-          flex: 2,
-          child: Align(
-            alignment: Alignment.centerLeft,
-            child: AppText(
-              '${_powerMin.round()} kW',
-              color: ui.textPrimary,
-              fontSize: FontSizes.font12Sp,
-              fontWeight: FontWeights.weight500,
-            ),
-          ),
-        ),
-        Expanded(
-          flex: 3,
-          child: Center(
-            child: AppText(
-              _powerOutput <= _powerMin ? 'Any' : '$value kW',
-              color: ui.textMuted,
-              fontSize: FontSizes.font12Sp,
-              fontWeight: FontWeights.weight600,
-              textAlign: TextAlign.center,
-            ),
-          ),
-        ),
-        Expanded(
-          flex: 2,
-          child: Align(
-            alignment: Alignment.centerRight,
-            child: AppText(
-              '${_powerMax.round()} kW',
-              color: ui.textPrimary,
-              fontSize: FontSizes.font12Sp,
-              fontWeight: FontWeights.weight500,
-              textAlign: TextAlign.end,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _priceLabelsRow() {
     final ui = AppUiColors.of(context);
     final left = _priceRange.start.round();
@@ -574,35 +544,6 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
           fontWeight: FontWeights.weight600,
         ),
       ],
-    );
-  }
-
-  Widget _singleSlider({
-    required double value,
-    required double min,
-    required double max,
-    required ValueChanged<double> onChanged,
-  }) {
-    final ui = AppUiColors.of(context);
-    return SliderTheme(
-      data: SliderTheme.of(context).copyWith(
-        thumbShape: RoundSliderThumbShape(
-          enabledThumbRadius: 6.r,
-          elevation: 0,
-          pressedElevation: 0,
-        ),
-        overlayShape: RoundSliderOverlayShape(overlayRadius: 12.r),
-        trackHeight: 4.h,
-        activeTrackColor: ui.brandPrimary,
-        inactiveTrackColor: ui.progressTrack,
-        thumbColor: ui.brandPrimary,
-      ),
-      child: Slider(
-        value: value.clamp(min, max),
-        min: min,
-        max: max,
-        onChanged: onChanged,
-      ),
     );
   }
 

@@ -23,6 +23,7 @@ class GetHubcoLocationsUseCase
       minPrice: params.minPrice,
       maxPrice: params.maxPrice,
       powerOutput: params.powerOutput,
+      city: params.city,
     );
   }
 }
@@ -37,6 +38,7 @@ class NearestStationsParams extends Equatable {
     this.minPrice,
     this.maxPrice,
     this.powerOutput,
+    this.city,
   });
 
   final double latitude;
@@ -47,6 +49,7 @@ class NearestStationsParams extends Equatable {
   final double? minPrice;
   final double? maxPrice;
   final double? powerOutput;
+  final String? city;
 
   @override
   List<Object?> get props => [
@@ -58,5 +61,6 @@ class NearestStationsParams extends Equatable {
         minPrice,
         maxPrice,
         powerOutput,
+        city,
       ];
 }

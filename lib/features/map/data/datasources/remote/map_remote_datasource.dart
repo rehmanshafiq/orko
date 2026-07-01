@@ -20,6 +20,7 @@ abstract class MapRemoteDataSource {
     double? minPrice,
     double? maxPrice,
     double? powerOutput,
+    String? city,
   });
 
   /// Fetches the available filter options
@@ -42,6 +43,7 @@ class MapRemoteDataSourceImpl implements MapRemoteDataSource {
     double? minPrice,
     double? maxPrice,
     double? powerOutput,
+    String? city,
   }) async {
     try {
       final config = RemoteConfigService.config;
@@ -70,8 +72,10 @@ class MapRemoteDataSourceImpl implements MapRemoteDataSource {
           'amenity_id': amenityIds,
         if (minPrice != null) 'min_price': minPrice,
         if (maxPrice != null) 'max_price': maxPrice,
-        // Sent as an integer (`power_output=60`, not `60.0`).
-        if (powerOutput != null) 'power_output': powerOutput.round(),
+        // Always sent — an integer for a specific value (`power_output=60`,
+        // not `60.0`), or empty for "All".
+        'power_output': powerOutput != null ? powerOutput.round() : '',
+        if (city != null && city.isNotEmpty) 'city': city,
       };
 
       log('[Map] Nearest stations URL: $url (query: $queryParameters)');

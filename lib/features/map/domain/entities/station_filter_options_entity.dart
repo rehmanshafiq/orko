@@ -4,34 +4,33 @@ import 'package:equatable/equatable.dart';
 /// — used to populate the map filters sheet.
 class StationFilterOptionsEntity extends Equatable {
   const StationFilterOptionsEntity({
-    this.connectorTypes = const [],
     this.amenities = const [],
-    this.powerOutputMin,
-    this.powerOutputMax,
+    this.powerOutputOptions = const [],
     this.priceMin,
     this.priceMax,
+    this.cities = const [],
   });
 
-  final List<String> connectorTypes;
   final List<AmenityOptionEntity> amenities;
 
-  /// Power-output slider bounds (kW) from the API's `power_output: [min, max]`.
-  /// Null when the API omits them — the UI falls back to its defaults.
-  final double? powerOutputMin;
-  final double? powerOutputMax;
+  /// Selectable power-output values (kW) from the API's `power_output` list.
+  final List<double> powerOutputOptions;
 
   /// Price-range slider bounds (per kWh) from the API's `price_range: [min, max]`.
   final double? priceMin;
   final double? priceMax;
 
+  /// Selectable city names from the API's `cities` list, filtered down to
+  /// the currently supported KLI cities (Karachi, Lahore, Islamabad).
+  final List<String> cities;
+
   @override
   List<Object?> get props => [
-        connectorTypes,
         amenities,
-        powerOutputMin,
-        powerOutputMax,
+        powerOutputOptions,
         priceMin,
         priceMax,
+        cities,
       ];
 }
 

@@ -28,6 +28,7 @@ class MapRepositoryImpl implements MapRepository {
     double? minPrice,
     double? maxPrice,
     double? powerOutput,
+    String? city,
   }) async {
     // Primary: remote nearest API.
     try {
@@ -40,6 +41,7 @@ class MapRepositoryImpl implements MapRepository {
         minPrice: minPrice,
         maxPrice: maxPrice,
         powerOutput: powerOutput,
+        city: city,
       );
       return Right(stations);
     } catch (e) {

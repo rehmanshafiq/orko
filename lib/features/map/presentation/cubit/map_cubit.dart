@@ -61,6 +61,7 @@ class MapCubit extends Cubit<MapState> {
         minPrice: filters.minPrice,
         maxPrice: filters.maxPrice,
         powerOutput: filters.powerOutput,
+        city: filters.city,
       ),
     );
 

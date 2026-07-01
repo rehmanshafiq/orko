@@ -16,6 +16,7 @@ abstract class MapRepository {
     double? minPrice,
     double? maxPrice,
     double? powerOutput,
+    String? city,
   });
 
   /// Returns the available filter options (connector types + amenities).

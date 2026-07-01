@@ -4,26 +4,22 @@ import 'package:orko_hubco/features/map/domain/entities/station_filter_options_e
 /// Parsed defensively so missing/malformed keys can never throw.
 class StationFilterOptionsModel extends StationFilterOptionsEntity {
   const StationFilterOptionsModel({
-    super.connectorTypes,
     super.amenities,
-    super.powerOutputMin,
-    super.powerOutputMax,
+    super.powerOutputOptions,
     super.priceMin,
     super.priceMax,
+    super.cities,
   });
 
-  factory StationFilterOptionsModel.fromJson(Map<String, dynamic> json) {
-    final rawConnectors = json['connector_types'];
-    final rawAmenities = json['amenities'];
-    final powerRange = _asRange(json['power_output']);
-    final priceRange = _asRange(json['price_range']);
+  /// Cities currently supported by the app's Location filter — the API may
+  /// return other cities, but only these are selectable for now.
+  static const _supportedCities = {'karachi', 'lahore', 'islamabad'};
 
-    final connectorTypes = rawConnectors is List
-        ? rawConnectors
-            .map((e) => e?.toString().trim() ?? '')
-            .where((e) => e.isNotEmpty)
-            .toList(growable: false)
-        : const <String>[];
+  factory StationFilterOptionsModel.fromJson(Map<String, dynamic> json) {
+    final rawAmenities = json['amenities'];
+    final rawPowerOutput = json['power_output'];
+    final rawCities = json['cities'];
+    final priceRange = _asRange(json['price_range']);
 
     final amenities = rawAmenities is List
         ? rawAmenities
@@ -33,13 +29,26 @@ class StationFilterOptionsModel extends StationFilterOptionsEntity {
             .toList(growable: false)
         : const <AmenityOptionEntity>[];
 
+    final powerOutputOptions = rawPowerOutput is List
+        ? rawPowerOutput
+            .map(_asDouble)
+            .whereType<double>()
+            .toList(growable: false)
+        : const <double>[];
+
+    final cities = rawCities is List
+        ? rawCities
+            .map((e) => e?.toString().trim() ?? '')
+            .where((e) => _supportedCities.contains(e.toLowerCase()))
+            .toList(growable: false)
+        : const <String>[];
+
     return StationFilterOptionsModel(
-      connectorTypes: connectorTypes,
       amenities: amenities,
-      powerOutputMin: powerRange?.$1,
-      powerOutputMax: powerRange?.$2,
+      powerOutputOptions: powerOutputOptions,
       priceMin: priceRange?.$1,
       priceMax: priceRange?.$2,
+      cities: cities,
     );
   }
 
