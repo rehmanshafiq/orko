@@ -2366,10 +2366,10 @@ class _AddVehicleDialogState extends State<_AddVehicleDialog> {
     }
     return _VehicleDropdownField<int>(
       ui: ui,
-      label: 'Make',
+      label: 'Vehicle',
       hintText: state.makesStatus == VehicleStatus.loading
           ? 'Loading makes...'
-          : 'Select make',
+          : 'Select Vehicle',
       value: _selectedMakeId,
       isLoading: state.makesStatus == VehicleStatus.loading,
       enabled: state.makesStatus == VehicleStatus.success,
@@ -2529,7 +2529,7 @@ class _MakeLogo extends StatelessWidget {
     Widget fallback() => Icon(
           Icons.directions_car_outlined,
           size: 18.r,
-          color: ui.textSecondary,
+          color: AppColors.whiteColor,
         );
 
     return SizedBox(
@@ -2540,6 +2540,9 @@ class _MakeLogo extends StatelessWidget {
           : Image.network(
               url,
               fit: BoxFit.contain,
+              // Render the brand logo as a white silhouette.
+              color: ui.textSecondary,
+              colorBlendMode: BlendMode.srcIn,
               errorBuilder: (_, __, ___) => fallback(),
               loadingBuilder: (context, child, progress) =>
                   progress == null ? child : fallback(),
