@@ -249,8 +249,8 @@ class _FilterScreenState extends State<FilterScreen> {
     final ui = AppUiColors.of(context);
     final radius = BorderRadius.circular(8.r);
     final child = Container(
-      height: isCompact ? 30.h : 52.h,
-      width: isCompact ? 30.w : 52.w,
+      height: isCompact ? 34.h : 52.h,
+      width: isCompact ? 34.w : 52.w,
       decoration: BoxDecoration(
         color: isPrimary ? ui.searchBackground : ui.searchBackground,
         borderRadius: radius,
