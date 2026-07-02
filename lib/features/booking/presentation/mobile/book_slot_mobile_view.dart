@@ -25,10 +25,15 @@ class BookSlotMobileView extends StatelessWidget {
     super.key,
     this.stationName,
     this.stationAddress,
+    this.fromTrip = false,
   });
 
   final String? stationName;
   final String? stationAddress;
+
+  /// True when opened from the Trip planner's Pre-book flow — forwarded to the
+  /// booking success screen so its close button returns to the Trip planner.
+  final bool fromTrip;
 
   static const String _defaultStationTitle = 'HGL Charging Hub Motorway M2';
   static const String _defaultStationAddress =
@@ -204,6 +209,7 @@ class BookSlotMobileView extends StatelessWidget {
             stationName: state.stationName ?? stationName ?? _defaultStationTitle,
             slotLabel: _slotLabel(state),
             amountPaid: amount,
+            fromTrip: fromTrip,
           ),
         );
         break;

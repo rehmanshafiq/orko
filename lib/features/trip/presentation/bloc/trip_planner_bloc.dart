@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:go_router/go_router.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_images.dart';
 import 'package:orko_hubco/core/constants/charging_stations.dart';
@@ -791,14 +792,12 @@ class TripPlannerBloc extends Bloc<TripPlannerEvent, TripPlannerState> {
     BuildContext context, {
     required HubcoLocationEntity station,
   }) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => BookSlotPage(
-          locationId: station.id,
-          stationName: station.name,
-          stationAddress: station.address,
-        ),
-      ),
+    // Route through the root-level `/book-slot` (not an imperative push) and
+    // flag the flow as trip-originated, so the booking success screen's close
+    // action returns to the Trip planner and clears the intermediate stack.
+    context.push(
+      '/book-slot',
+      extra: BookSlotArgs(station: station, fromTrip: true),
     );
   }
 

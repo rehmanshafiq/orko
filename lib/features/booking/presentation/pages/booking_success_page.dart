@@ -9,6 +9,7 @@ class BookingSuccessArgs extends Equatable {
     required this.stationName,
     required this.slotLabel,
     required this.amountPaid,
+    this.fromTrip = false,
   });
 
   final String bookingRef;
@@ -16,8 +17,13 @@ class BookingSuccessArgs extends Equatable {
   final String slotLabel;
   final int amountPaid;
 
+  /// True when this booking was started from the Trip planner (Pre-book flow).
+  /// Closing the success screen then returns to the Trip planner instead of Home.
+  final bool fromTrip;
+
   @override
-  List<Object?> get props => [bookingRef, stationName, slotLabel, amountPaid];
+  List<Object?> get props =>
+      [bookingRef, stationName, slotLabel, amountPaid, fromTrip];
 }
 
 class BookingSuccessPage extends StatelessWidget {
@@ -32,6 +38,7 @@ class BookingSuccessPage extends StatelessWidget {
       stationName: args.stationName,
       slotLabel: args.slotLabel,
       amountPaid: args.amountPaid,
+      fromTrip: args.fromTrip,
     );
   }
 }

@@ -18,6 +18,7 @@ class BookingSuccessMobileView extends StatelessWidget {
     required this.stationName,
     required this.slotLabel,
     required this.amountPaid,
+    this.fromTrip = false,
   });
 
   final String bookingRef;
@@ -25,17 +26,25 @@ class BookingSuccessMobileView extends StatelessWidget {
   final String slotLabel;
   final int amountPaid;
 
+  /// When true this booking came from the Trip planner's Pre-book flow, so
+  /// closing returns to the Trip planner; otherwise it returns Home.
+  final bool fromTrip;
+
+  /// Destination when the success screen is closed — clears the intermediate
+  /// booking pages from the stack.
+  String get _closeDestination => fromTrip ? '/trip' : '/home';
+
   @override
   Widget build(BuildContext context) {
     final ui = AppUiColors.of(context);
     // The success screen is pushed on top of the booking screen, so the Android
     // system back gesture would otherwise return there. Intercept the pop and
-    // route home instead, matching the close button.
+    // route to the close destination instead, matching the close button.
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
-        context.go('/home');
+        context.go(_closeDestination);
       },
       child: Scaffold(
         backgroundColor: ui.scaffoldBackground,
@@ -47,7 +56,7 @@ class BookingSuccessMobileView extends StatelessWidget {
                 child: Align(
                   alignment: Alignment.centerRight,
                   child: IconButton(
-                    onPressed: () => context.go('/home'),
+                    onPressed: () => context.go(_closeDestination),
                     icon: Icon(
                       Icons.close_rounded,
                       color: ui.textSecondary,

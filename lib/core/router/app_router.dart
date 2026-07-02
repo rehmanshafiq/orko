@@ -132,6 +132,7 @@ class AppRouter {
               vehicleId: extra.vehicleId,
               stationName: extra.station.name,
               stationAddress: extra.station.address,
+              fromTrip: extra.fromTrip,
             );
           }
           // Legacy callers pass only the station (no vehicle context).
