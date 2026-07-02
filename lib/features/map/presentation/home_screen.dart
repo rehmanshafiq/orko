@@ -618,12 +618,22 @@ class _HomeScreenState extends State<HomeScreen> {
     unawaited(_rebuildClusters());
   }
 
+  /// Deepest zoom a cluster tap will animate to — street level, where a station
+  /// group is fully broken apart.
+  static const double _clusterTapMaxZoom = 18.5;
+
+  /// Zoom added per cluster tap. Sized so that drilling from the initial framing
+  /// ([_initialZoom]) into a location takes ~3 taps instead of the ~7 a small
+  /// step required.
+  static const double _clusterTapZoomStep = 4.5;
+
   /// Tapping a cluster zooms in to break it apart; the camera-idle callback
   /// then re-clusters at the new zoom.
   Future<void> _onClusterTap(_StationCluster cluster) async {
     final controller = _mapController;
     if (controller == null) return;
-    final targetZoom = (_currentZoom + 2).clamp(1.0, 20.0).toDouble();
+    final targetZoom =
+        (_currentZoom + _clusterTapZoomStep).clamp(1.0, _clusterTapMaxZoom).toDouble();
     await controller.animateCamera(
       CameraUpdate.newLatLngZoom(cluster.position, targetZoom),
     );
