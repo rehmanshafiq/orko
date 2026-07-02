@@ -169,6 +169,7 @@ class SearchMobileView extends StatelessWidget {
       title: station.name,
       subtitle: station.subtitle,
       distance: AppHelpers.formatDistanceKm(station.distanceKm),
+      power: station.powerLabel,
       available:
           '${station.availableConnectors}/${station.numberOfConnectors} Available',
       tags: station.tags,

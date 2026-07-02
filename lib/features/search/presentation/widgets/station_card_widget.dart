@@ -14,6 +14,7 @@ class StationCardWidget extends StatelessWidget {
     required this.distance,
     required this.available,
     required this.tags,
+    this.power = '',
     this.rating,
     this.onTap,
     super.key,
@@ -24,6 +25,9 @@ class StationCardWidget extends StatelessWidget {
   final String distance;
   final String available;
   final List<String> tags;
+
+  /// Power rating label, e.g. `'60 kWh'`. Hidden when empty.
+  final String power;
 
   /// Average rating (e.g. popular stations). Hidden when null.
   final double? rating;
@@ -61,7 +65,7 @@ class StationCardWidget extends StatelessWidget {
                             color: ui.textPrimary,
                             fontSize: FontSizes.font14Sp,
                             fontWeight: FontWeights.weight700,
-                            maxLines: 1,
+                            maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
@@ -108,7 +112,7 @@ class StationCardWidget extends StatelessWidget {
                   ],
                 ],
               ),
-              if (visibleTags.isNotEmpty) ...[
+              if (visibleTags.isNotEmpty || power.isNotEmpty) ...[
                 6.verticalSpace,
                 Row(
                   children: [
@@ -116,17 +120,35 @@ class StationCardWidget extends StatelessWidget {
                         color: ui.textMuted, size: 13.sp),
                     6.horizontalSpace,
                     Icon(Icons.bolt_outlined, color: ui.textMuted, size: 13.sp),
-                    8.horizontalSpace,
-                    Expanded(
-                      child: Wrap(
-                        spacing: 4.w,
-                        runSpacing: 4.h,
+                    // 8.horizontalSpace,
+                    const Spacer(),
+                    if (power.isNotEmpty) ...[
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          for (final tag in visibleTags)
-                            TagChipWidget(label: tag),
+                          Icon(Icons.bolt_rounded,
+                              color: ui.textMuted, size: 13.sp),
+                          2.horizontalSpace,
+                          AppText(
+                            power,
+                            color: ui.textPrimary,
+                            fontSize: FontSizes.font8Sp,
+                            fontWeight: FontWeights.weight500,
+                          ),
+                          8.horizontalSpace
                         ],
                       ),
-                    ),
+                    ],
+                    // Expanded(
+                    //   child: Wrap(
+                    //     spacing: 4.w,
+                    //     runSpacing: 4.h,
+                    //     children: [
+                    //       for (final tag in visibleTags)
+                    //         TagChipWidget(label: tag),
+                    //     ],
+                    //   ),
+                    // ),
                   ],
                 ),
               ],

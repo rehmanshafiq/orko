@@ -18,6 +18,7 @@ class StationResultEntity extends Equatable {
     this.availableConnectors = 0,
     this.available = false,
     this.powerTypes = const [],
+    this.powerRatings = const [],
     this.connectorTypes = const [],
     this.averageRating,
     this.latitude = 0,
@@ -42,6 +43,18 @@ class StationResultEntity extends Equatable {
 
   /// Power kinds from the `type` array, e.g. `['DC']`, `['AC', 'AC/DC']`.
   final List<String> powerTypes;
+
+  /// Power ratings from the `power` array, e.g. `['60']` (kWh). Empty when the
+  /// endpoint doesn't provide it.
+  final List<String> powerRatings;
+
+  /// Human-readable power label for the card, e.g. `'60 kWh'` (or
+  /// `'60, 120 kWh'` for multiple). Empty when no rating is available.
+  String get powerLabel {
+    final values = powerRatings.map((e) => e.trim()).where((e) => e.isNotEmpty);
+    if (values.isEmpty) return '';
+    return '${values.join(', ')} kWh';
+  }
 
   /// Connector kinds from `connector_types`, e.g. `['CCS2', 'CHAdeMO']`
   /// (popular only — empty for search results).
@@ -76,6 +89,7 @@ class StationResultEntity extends Equatable {
         availableConnectors,
         available,
         powerTypes,
+        powerRatings,
         connectorTypes,
         averageRating,
         latitude,

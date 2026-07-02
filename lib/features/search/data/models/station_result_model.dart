@@ -12,6 +12,7 @@ class StationResultModel extends StationResultEntity {
     super.availableConnectors,
     super.available,
     super.powerTypes,
+    super.powerRatings,
     super.connectorTypes,
     super.averageRating,
     super.latitude,
@@ -34,6 +35,7 @@ class StationResultModel extends StationResultEntity {
       availableConnectors: _asInt(json['available_connectors']),
       available: json['available'] == true,
       powerTypes: _asStringList(json['type']),
+      powerRatings: _asStringList(json['power']),
       connectorTypes: _asStringList(json['connector_types']),
       latitude: _asDouble(locationMap['lat']),
       longitude: _asDouble(locationMap['long']),
@@ -52,6 +54,7 @@ class StationResultModel extends StationResultEntity {
       availableConnectors: _asInt(json['available_connectors']),
       available: json['available'] == true,
       powerTypes: _asStringList(json['type']),
+      powerRatings: _asStringList(json['power']),
       connectorTypes: _asStringList(json['connector_types']),
       averageRating: json['average_rating'] == null
           ? null
