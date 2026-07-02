@@ -20,6 +20,7 @@ class TripChargingStopCardWidget extends StatelessWidget {
     required this.onViewDetails,
     required this.onPreBook,
     required this.formatPkr,
+    this.booked = false,
     super.key,
   });
 
@@ -31,6 +32,10 @@ class TripChargingStopCardWidget extends StatelessWidget {
   final VoidCallback onViewDetails;
   final VoidCallback onPreBook;
   final String Function(int) formatPkr;
+
+  /// True when the user already booked this station in this session — the
+  /// Pre-book button then reads "Booked" and is disabled.
+  final bool booked;
 
   /// Maps an amenity label to a representative icon, falling back to a generic
   /// check mark for anything not explicitly recognised.
@@ -178,6 +183,8 @@ class TripChargingStopCardWidget extends StatelessWidget {
                   child: PrimaryButtonWidget(
                     text: 'View Details',
                     onPress: onViewDetails,
+                    // Disabled once the stop is booked, matching Pre-book.
+                    isEnabled: !booked,
                     buttonWidth: double.infinity,
                     buttonHeight: 38.h,
                     cornerRadius: 8.r,
@@ -191,8 +198,10 @@ class TripChargingStopCardWidget extends StatelessWidget {
                 8.horizontalSpace,
                 Expanded(
                   child: PrimaryButtonWidget(
-                    text: 'Pre-book',
+                    text: booked ? 'Booked' : 'Pre-book',
                     onPress: onPreBook,
+                    // A booked stop can't be pre-booked again from here.
+                    isEnabled: !booked,
                     buttonWidth: double.infinity,
                     buttonHeight: 38.h,
                     cornerRadius: 8.r,

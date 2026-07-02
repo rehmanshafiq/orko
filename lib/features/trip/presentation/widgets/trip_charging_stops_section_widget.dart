@@ -18,6 +18,7 @@ class TripChargingStopsSectionWidget extends StatelessWidget {
     required this.onViewDetails,
     required this.onPreBook,
     required this.formatPkr,
+    this.bookedStationIds = const <int>{},
     super.key,
   });
 
@@ -29,6 +30,9 @@ class TripChargingStopsSectionWidget extends StatelessWidget {
   final ValueChanged<int> onViewDetails;
   final ValueChanged<int> onPreBook;
   final String Function(int) formatPkr;
+
+  /// Station ids booked this session — their stop cards show "Booked".
+  final Set<int> bookedStationIds;
 
   @override
   Widget build(BuildContext context) {
@@ -65,6 +69,7 @@ class TripChargingStopsSectionWidget extends StatelessWidget {
                         onViewDetails: () => onViewDetails(i),
                         onPreBook: () => onPreBook(i),
                         formatPkr: formatPkr,
+                        booked: bookedStationIds.contains(plan!.stops[i].id),
                       ),
                     ),
                   ],

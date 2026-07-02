@@ -9,6 +9,7 @@ import 'package:orko_hubco/core/utils/app_storage/app_storage.dart';
 import 'package:orko_hubco/core/utils/app_ui.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
 import 'package:orko_hubco/core/utils/widgets/auth_required_dialog.dart';
+import 'package:orko_hubco/features/booking/presentation/booked_stations_session.dart';
 import 'package:orko_hubco/features/booking/presentation/cubit/booking_cubit.dart';
 import 'package:orko_hubco/features/booking/presentation/cubit/booking_state.dart';
 import 'package:orko_hubco/features/booking/presentation/pages/booking_success_page.dart';
@@ -200,6 +201,13 @@ class BookSlotMobileView extends StatelessWidget {
         //     behavior: SnackBarBehavior.floating,
         //   ),
         // );
+        // Remember the booked station so the trip planner can flip that
+        // stop's "Pre-book" button to "Booked". Only reached on a confirmed
+        // create-booking success, so a mere visit never marks anything.
+        final bookedLocationId = state.locationId;
+        if (bookedLocationId != null) {
+          BookedStationsSession.markBooked(bookedLocationId);
+        }
         final pricePerKwh = state.selectedPort?.price?.price ?? 0;
         final amount = (pricePerKwh * 10 * state.durationHours).round();
         context.push(

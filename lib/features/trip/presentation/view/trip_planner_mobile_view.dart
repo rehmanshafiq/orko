@@ -8,6 +8,7 @@ import 'package:orko_hubco/core/utils/app_ui.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
 import 'package:orko_hubco/core/utils/widgets/auth_required_dialog.dart';
 import 'package:orko_hubco/core/utils/widgets/primary_button_widget.dart';
+import 'package:orko_hubco/features/booking/presentation/booked_stations_session.dart';
 import 'package:orko_hubco/features/trip/presentation/bloc/trip_planner_bloc.dart';
 import 'package:orko_hubco/features/trip/presentation/bloc/trip_planner_event.dart';
 import 'package:orko_hubco/features/trip/presentation/bloc/trip_planner_state.dart';
@@ -36,8 +37,10 @@ class _TripPlannerMobileViewState extends State<TripPlannerMobileView> {
   int _formResetTick = 0;
 
   /// Resets the planned trip + form and forces the Make dropdown to clear.
+  /// Also drops the session's "Booked" stop marks so a fresh plan starts clean.
   void _onClear(BuildContext context) {
     TripVehicleDropdownWidget.clearSavedSelection();
+    BookedStationsSession.clear();
     context.read<TripPlannerBloc>().add(const TripPlannerResetRequested());
     setState(() => _formResetTick++);
   }
@@ -440,24 +443,33 @@ class _TripPlannerMobileViewState extends State<TripPlannerMobileView> {
                       ),
                     ),
                     16.verticalSpace,
-                    TripChargingStopsSectionWidget(
-                      plan: state.currentPlan,
-                      currentBatteryPercent: state.currentBatteryPercent,
-                      targetArrivalBatteryPercent:
-                          state.targetArrivalBatteryPercent,
-                      expandedChargingStopIndex: state.expandedChargingStopIndex,
-                      onToggleChargingStop: (index) => context
-                          .read<TripPlannerBloc>()
-                          .add(TripPlannerChargingStopExpanded(index)),
-                      onViewDetails: (index) => bloc.openChargingStationDetails(
-                        context,
-                        station: state.currentPlan!.stops[index],
+                    // Rebuilds when a booking succeeds anywhere in the session
+                    // so already-booked stops show "Booked" on return here.
+                    ValueListenableBuilder<Set<int>>(
+                      valueListenable: BookedStationsSession.ids,
+                      builder: (context, bookedIds, _) =>
+                          TripChargingStopsSectionWidget(
+                        plan: state.currentPlan,
+                        currentBatteryPercent: state.currentBatteryPercent,
+                        targetArrivalBatteryPercent:
+                            state.targetArrivalBatteryPercent,
+                        expandedChargingStopIndex:
+                            state.expandedChargingStopIndex,
+                        bookedStationIds: bookedIds,
+                        onToggleChargingStop: (index) => context
+                            .read<TripPlannerBloc>()
+                            .add(TripPlannerChargingStopExpanded(index)),
+                        onViewDetails: (index) =>
+                            bloc.openChargingStationDetails(
+                          context,
+                          station: state.currentPlan!.stops[index],
+                        ),
+                        onPreBook: (index) => bloc.openPreBook(
+                          context,
+                          station: state.currentPlan!.stops[index],
+                        ),
+                        formatPkr: bloc.formatPkr,
                       ),
-                      onPreBook: (index) => bloc.openPreBook(
-                        context,
-                        station: state.currentPlan!.stops[index],
-                      ),
-                      formatPkr: bloc.formatPkr,
                     ),
                     16.verticalSpace,
                     // TripRouteSuggestionCardWidget(
