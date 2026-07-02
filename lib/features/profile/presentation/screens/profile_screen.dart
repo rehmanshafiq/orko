@@ -2817,15 +2817,15 @@ class _VehicleCard extends StatelessWidget {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
-                          if (_subtitle.isNotEmpty) ...[
-                            4.verticalSpace,
-                            AppText(
-                              _subtitle,
-                              color: ui.textSecondary,
-                              fontSize: FontSizes.font12Sp,
-                              fontWeight: FontWeights.weight400,
-                            ),
-                          ],
+                          // if (_subtitle.isNotEmpty) ...[
+                          //   4.verticalSpace,
+                          //   AppText(
+                          //     _subtitle,
+                          //     color: ui.textSecondary,
+                          //     fontSize: FontSizes.font12Sp,
+                          //     fontWeight: FontWeights.weight400,
+                          //   ),
+                          // ],
                           if (vehicle.registrationNo != null &&
                               vehicle.registrationNo!.trim().isNotEmpty) ...[
                             6.verticalSpace,
@@ -2854,21 +2854,21 @@ class _VehicleCard extends StatelessWidget {
                         ],
                       ),
                     ),
-                    if (vehicle.connectorType.trim().isNotEmpty)
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                            horizontal: 10.w, vertical: 5.h),
-                        decoration: BoxDecoration(
-                          color: ui.brandPrimary.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(8.r),
-                        ),
-                        child: AppText(
-                          vehicle.connectorType.trim(),
-                          color: ui.brandPrimary,
-                          fontSize: FontSizes.font10Sp,
-                          fontWeight: FontWeights.weight700,
-                        ),
-                      ),
+                    // if (vehicle.connectorType.trim().isNotEmpty)
+                    //   Container(
+                    //     padding: EdgeInsets.symmetric(
+                    //         horizontal: 10.w, vertical: 5.h),
+                    //     decoration: BoxDecoration(
+                    //       color: ui.brandPrimary.withValues(alpha: 0.12),
+                    //       borderRadius: BorderRadius.circular(8.r),
+                    //     ),
+                    //     child: AppText(
+                    //       vehicle.connectorType.trim(),
+                    //       color: ui.brandPrimary,
+                    //       fontSize: FontSizes.font10Sp,
+                    //       fontWeight: FontWeights.weight700,
+                    //     ),
+                    //   ),
                     if (isDeleting)
                       Padding(
                         padding: EdgeInsets.only(left: 8.w),
