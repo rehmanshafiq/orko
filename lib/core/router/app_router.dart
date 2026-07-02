@@ -289,14 +289,9 @@ class AppRouter {
               GoRoute(
                 path: '/trip',
                 name: 'trip',
-                // Rebuild the whole Trip subtree (fresh bloc + reload) every time
-                // the Trip tab is tapped — see BottomNavShell.tripRefreshTick.
-                builder: (context, state) => ValueListenableBuilder<int>(
-                  valueListenable: BottomNavShell.tripRefreshTick,
-                  builder: (context, tick, _) => TripPlannerPage(
-                    key: ValueKey<int>(tick),
-                  ),
-                ),
+                // Kept alive by the indexed-stack shell so the planned trip and
+                // form survive switching to another tab and back.
+                builder: (context, state) => const TripPlannerPage(),
               ),
             ],
           ),

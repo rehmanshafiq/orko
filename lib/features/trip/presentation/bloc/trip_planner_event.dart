@@ -27,6 +27,12 @@ class TripPlannerSaveTripRequested extends TripPlannerEvent {
   const TripPlannerSaveTripRequested();
 }
 
+/// Clears the form + planned trip back to the default state (keeps loaded
+/// marker icons so a re-plan doesn't reload them).
+class TripPlannerResetRequested extends TripPlannerEvent {
+  const TripPlannerResetRequested();
+}
+
 class TripPlannerRouteSelected extends TripPlannerEvent {
   const TripPlannerRouteSelected(this.index);
 

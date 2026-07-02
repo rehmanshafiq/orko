@@ -19,6 +19,12 @@ class TripVehicleDropdownWidget extends StatefulWidget {
   /// Notified whenever the selection changes (null when cleared/none).
   final ValueChanged<UserVehicleEntity?>? onVehicleSelected;
 
+  /// Clears the session-scoped last selection so a fresh instance starts empty
+  /// (used by the trip planner's "Clear" action).
+  static void clearSavedSelection() {
+    _TripVehicleDropdownWidgetState._lastSelection = null;
+  }
+
   @override
   State<TripVehicleDropdownWidget> createState() =>
       _TripVehicleDropdownWidgetState();

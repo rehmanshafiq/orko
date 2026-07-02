@@ -31,9 +31,16 @@ class TripPlannerMobileView extends StatefulWidget {
 }
 
 class _TripPlannerMobileViewState extends State<TripPlannerMobileView> {
-  /// Drives the planned-trip body: the route map (true) or the stops list.
-  /// Toggled via the Map/List switch inside [TripSummaryCardWidget].
-  bool _isMapView = true;
+  /// Bumped by "Clear" so the vehicle (Make) dropdown — which keeps its own
+  /// selection state — is rebuilt fresh alongside the bloc reset.
+  int _formResetTick = 0;
+
+  /// Resets the planned trip + form and forces the Make dropdown to clear.
+  void _onClear(BuildContext context) {
+    TripVehicleDropdownWidget.clearSavedSelection();
+    context.read<TripPlannerBloc>().add(const TripPlannerResetRequested());
+    setState(() => _formResetTick++);
+  }
 
   /// Runs guest + form validation, then dispatches the plan-trip request.
   void _onPlanTrip(
@@ -186,6 +193,42 @@ class _TripPlannerMobileViewState extends State<TripPlannerMobileView> {
                   Row(
                     children: [
                       const Expanded(child: TripHeaderWidget()),
+                      // "Clear" appears once a trip is planned or every field is
+                      // filled. Listens to the location controllers so it toggles
+                      // as they change (those don't emit bloc state on their own).
+                      ListenableBuilder(
+                        listenable: Listenable.merge([
+                          bloc.startLocationController,
+                          bloc.endLocationController,
+                        ]),
+                        builder: (context, _) {
+                          final allFieldsFilled = bloc
+                                  .startLocationController.text
+                                  .trim()
+                                  .isNotEmpty &&
+                              bloc.endLocationController.text.trim().isNotEmpty &&
+                              state.selectedVehicle != null;
+                          if (!state.tripPlanned && !allFieldsFilled) {
+                            return const SizedBox.shrink();
+                          }
+                          return Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              GestureDetector(
+                                behavior: HitTestBehavior.opaque,
+                                onTap: () => _onClear(context),
+                                child: AppText(
+                                  'Clear',
+                                  color: AppColors.removeColor,
+                                  fontSize: FontSizes.font12Sp,
+                                  fontWeight: FontWeights.weight700,
+                                ),
+                              ),
+                              16.horizontalSpace,
+                            ],
+                          );
+                        },
+                      ),
                       GestureDetector(
                         behavior: HitTestBehavior.opaque,
                         onTap: () {
@@ -237,6 +280,7 @@ class _TripPlannerMobileViewState extends State<TripPlannerMobileView> {
                   ),
                   12.verticalSpace,
                   TripVehicleDropdownWidget(
+                    key: ValueKey<int>(_formResetTick),
                     onVehicleSelected: (vehicle) => context
                         .read<TripPlannerBloc>()
                         .add(TripPlannerVehicleSelected(vehicle)),
@@ -380,25 +424,22 @@ class _TripPlannerMobileViewState extends State<TripPlannerMobileView> {
                       ),
                       16.verticalSpace,
                     ],
-                    // Map view shows the route map above the stops list; list
-                    // view shows only the list.
-                    if (_isMapView) ...[
-                      TripMapCardWidget(
-                        plan: state.currentPlan,
-                        startIcon: state.startIcon,
-                        endIcon: state.endIcon,
-                        stopIcon: state.stopIcon,
-                        darkMapStyle: TripPlannerBloc.darkMapStyle,
-                        onMapCreated: (controller) => context
-                            .read<TripPlannerBloc>()
-                            .add(TripPlannerMapCreated(controller)),
-                        onStopTap: (index) => bloc.openChargingStationDetails(
-                          context,
-                          station: state.currentPlan!.stops[index],
-                        ),
+                    // Route map above the stops list.
+                    TripMapCardWidget(
+                      plan: state.currentPlan,
+                      startIcon: state.startIcon,
+                      endIcon: state.endIcon,
+                      stopIcon: state.stopIcon,
+                      darkMapStyle: TripPlannerBloc.darkMapStyle,
+                      onMapCreated: (controller) => context
+                          .read<TripPlannerBloc>()
+                          .add(TripPlannerMapCreated(controller)),
+                      onStopTap: (index) => bloc.openChargingStationDetails(
+                        context,
+                        station: state.currentPlan!.stops[index],
                       ),
-                      16.verticalSpace,
-                    ],
+                    ),
+                    16.verticalSpace,
                     TripChargingStopsSectionWidget(
                       plan: state.currentPlan,
                       currentBatteryPercent: state.currentBatteryPercent,
@@ -430,17 +471,6 @@ class _TripPlannerMobileViewState extends State<TripPlannerMobileView> {
                       plan: state.currentPlan,
                       formatDuration: bloc.formatDuration,
                       formatPkr: bloc.formatPkr,
-                      isMapView: _isMapView,
-                      onViewModeChanged: (isMapView) {
-                        if (isMapView == _isMapView) return;
-                        setState(() => _isMapView = isMapView);
-                        // Returning to the map rebuilds it — re-frame the route.
-                        if (isMapView) {
-                          context
-                              .read<TripPlannerBloc>()
-                              .add(const TripPlannerFitMapRoute());
-                        }
-                      },
                     ),
                     16.verticalSpace,
                     PrimaryButtonWidget(

@@ -39,6 +39,7 @@ class TripPlannerBloc extends Bloc<TripPlannerEvent, TripPlannerState> {
     on<TripPlannerPlanTripPressed>(_handlePlanTripPressed);
     on<TripPlannerPlanTripRequested>(_handlePlanTripRequested);
     on<TripPlannerSaveTripRequested>(_handleSaveTripRequested);
+    on<TripPlannerResetRequested>(_handleResetRequested);
     on<TripPlannerRouteSelected>(_handleRouteSelected);
     on<TripPlannerVehicleSelected>(_handleVehicleSelected);
     on<TripPlannerBatteryChanged>(_handleBatteryChanged);
@@ -278,6 +279,26 @@ class TripPlannerBloc extends Bloc<TripPlannerEvent, TripPlannerState> {
     result.fold(
       (failure) => emit(state.copyWith(saving: false, saveError: failure.message)),
       (_) => emit(state.copyWith(saving: false, saveSuccess: true)),
+    );
+  }
+
+  /// Resets the form and any planned trip back to defaults. Loaded marker
+  /// icons are preserved so a subsequent plan doesn't re-render them.
+  void _handleResetRequested(
+    TripPlannerResetRequested event,
+    Emitter<TripPlannerState> emit,
+  ) {
+    _startPlace = null;
+    _endPlace = null;
+    _startLocationController.clear();
+    _endLocationController.clear();
+    emit(
+      TripPlannerState.initial().copyWith(
+        iconsLoaded: state.iconsLoaded,
+        stopIcon: state.stopIcon,
+        startIcon: state.startIcon,
+        endIcon: state.endIcon,
+      ),
     );
   }
 
