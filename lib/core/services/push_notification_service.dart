@@ -2,6 +2,7 @@ import 'dart:developer';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get_storage/get_storage.dart';
@@ -139,8 +140,26 @@ class PushNotificationService {
   }
 
   Future<void> _syncToken() async {
+    // On iOS the FCM token can't be minted until APNs hands the app a device
+    // token, which arrives asynchronously after registration. Wait briefly for
+    // it and log the outcome — if this stays null, the problem is APNs-side
+    // (entitlement, provisioning, or Apple's sandbox), not FCM.
+    if (defaultTargetPlatform == TargetPlatform.iOS) {
+      String? apnsToken;
+      for (var attempt = 0; attempt < 10; attempt++) {
+        apnsToken = await _messaging.getAPNSToken();
+        if (apnsToken != null) break;
+        await Future<void>.delayed(const Duration(seconds: 1));
+      }
+      log('[Push] APNs token: ${apnsToken ?? 'NOT SET after 10s — device never registered with APNs'}');
+    }
+
     final token = await refreshToken();
-    log('[Push] FCM token: ${token == null ? 'unavailable' : '${token.substring(0, token.length.clamp(0, 12))}…'}');
+    // Full token in debug builds so it can be pasted into test tooling;
+    // truncated in release to keep it out of production logs.
+    log(kDebugMode
+        ? '[Push] FCM token: $token'
+        : '[Push] FCM token: ${token == null ? 'unavailable' : '${token.substring(0, token.length.clamp(0, 12))}…'}');
     await _maybeRegisterToken(token);
   }
 
@@ -202,6 +221,11 @@ class PushNotificationService {
   void _onForegroundMessage(RemoteMessage message) {
     final notification = message.notification;
     if (notification == null) return; // data-only — nothing to display.
+
+    // iOS already presents foreground pushes natively via
+    // setForegroundNotificationPresentationOptions — drawing a local
+    // notification here too would duplicate it. Android needs the manual draw.
+    if (defaultTargetPlatform == TargetPlatform.iOS) return;
 
     _localNotifications.show(
       id: notification.hashCode,

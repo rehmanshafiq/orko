@@ -1144,7 +1144,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           12.verticalSpace,
           AppText(
-            'Results',
+            'Nearby Stations',
             color: ui.textPrimary,
             fontSize: FontSizes.font24Sp,
             fontWeight: FontWeights.weight600,
