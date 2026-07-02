@@ -712,6 +712,50 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     }
   }
 
+  @override
+  Future<void> deleteUserPicture() async {
+    try {
+      final config = RemoteConfigService.config;
+      if (config == null) {
+        throw const ServerException(message: 'Remote config not initialized');
+      }
+
+      final endpoint = config.apiConstants.apiEndpoints.deleteUserPicture;
+      if (endpoint.trim().isEmpty) {
+        throw const ServerException(
+          message: 'Removing your photo is not available right now',
+        );
+      }
+
+      final url = _buildUrl(ApiClient.baseUrl, endpoint);
+      log('[Auth] Delete-user-picture URL: $url');
+
+      // Authorized via the saved token by AuthInterceptor.
+      final response = await apiClient.delete(url);
+
+      final data = response.data;
+      final isOk = response.statusCode == 200 &&
+          (data is! Map || data['status'] == null || data['status'] == 200);
+      if (isOk) return;
+
+      throw ServerException(
+        message: (data is Map && data['message'] != null)
+            ? data['message'].toString()
+            : 'Failed to remove picture',
+        statusCode: response.statusCode,
+      );
+    } on DioException catch (e) {
+      throw ServerException(
+        message: _dioMessage(e, fallback: 'Failed to remove picture'),
+        statusCode: e.response?.statusCode,
+        originalError: e,
+      );
+    } catch (e) {
+      if (e is ServerException) rethrow;
+      throw ServerException(message: e.toString(), originalError: e);
+    }
+  }
+
   /// Extracts a human-readable message from a Dio error response.
   String _dioMessage(DioException e, {required String fallback}) {
     final data = e.response?.data;

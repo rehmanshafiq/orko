@@ -19,6 +19,7 @@
       "get_user": "api/v1/orko-auth/getUser",
       "edit_user_profile": "api/v1/core/user-profile",
       "upload_user_picture": "api/v1/core/user-profile/image",
+      "delete_user_picture": "api/v1/core/user-profile/image",
       "charging_station_map": "api/v1/charging-station/nearest?",
       "charging_station_filter_options": "api/v1/charging-station/filter-options/",
       "charging_station_detail": "api/v1/charging-station/",

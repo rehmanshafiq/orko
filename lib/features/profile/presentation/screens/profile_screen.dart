@@ -23,6 +23,7 @@ import 'package:orko_hubco/core/utils/app_storage/app_storage.dart';
 import 'package:orko_hubco/features/auth/domain/usecases/delete_account_usecase.dart';
 import 'package:orko_hubco/features/auth/domain/usecases/get_user_usecase.dart';
 import 'package:orko_hubco/features/auth/domain/usecases/upload_user_picture_usecase.dart';
+import 'package:orko_hubco/features/auth/domain/usecases/delete_user_picture_usecase.dart';
 import 'package:orko_hubco/core/utils/app_ui.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
 import 'package:orko_hubco/core/utils/widgets/auth_required_dialog.dart';
@@ -476,6 +477,9 @@ UserModel? _readCachedUser(LocalStorageService storage) {
   }
 }
 
+/// Actions offered by the profile-photo bottom sheet.
+enum _PhotoSheetAction { camera, gallery, remove }
+
 class _ProfileHeader extends StatefulWidget {
   const _ProfileHeader({required this.state});
 
@@ -503,8 +507,21 @@ class _ProfileHeaderState extends State<_ProfileHeader> {
       return;
     }
 
-    final source = await _pickImageSource();
-    if (source == null || !mounted) return;
+    // Offer "Remove Photo" only when the user actually has one set.
+    final cachedUser = _readCachedUser(storage);
+    final hasPhoto = (cachedUser?.avatarUrl ?? '').isNotEmpty;
+
+    final action = await _pickImageSource(hasPhoto: hasPhoto);
+    if (action == null || !mounted) return;
+
+    if (action == _PhotoSheetAction.remove) {
+      await _onRemovePhoto();
+      return;
+    }
+
+    final source = action == _PhotoSheetAction.camera
+        ? ImageSource.camera
+        : ImageSource.gallery;
 
     // Camera capture needs an explicit runtime permission; the gallery uses the
     // system photo picker which doesn't.
@@ -591,9 +608,9 @@ class _ProfileHeaderState extends State<_ProfileHeader> {
     );
   }
 
-  Future<ImageSource?> _pickImageSource() {
+  Future<_PhotoSheetAction?> _pickImageSource({required bool hasPhoto}) {
     final ui = AppUiColors.of(context);
-    return showModalBottomSheet<ImageSource>(
+    return showModalBottomSheet<_PhotoSheetAction>(
       context: context,
       backgroundColor: ui.cardBackground,
       shape: RoundedRectangleBorder(
@@ -624,7 +641,7 @@ class _ProfileHeaderState extends State<_ProfileHeader> {
                   fontWeight: FontWeights.weight500,
                 ),
                 onTap: () =>
-                    Navigator.of(sheetContext).pop(ImageSource.camera),
+                    Navigator.of(sheetContext).pop(_PhotoSheetAction.camera),
               ),
               ListTile(
                 leading:
@@ -636,13 +653,148 @@ class _ProfileHeaderState extends State<_ProfileHeader> {
                   fontWeight: FontWeights.weight500,
                 ),
                 onTap: () =>
-                    Navigator.of(sheetContext).pop(ImageSource.gallery),
+                    Navigator.of(sheetContext).pop(_PhotoSheetAction.gallery),
               ),
+              // Only offer removal when there's a photo to remove.
+              if (hasPhoto)
+                ListTile(
+                  leading: Icon(Icons.delete_outline_rounded,
+                      color: AppColors.removeColor),
+                  title: AppText(
+                    'Remove Photo',
+                    color: AppColors.removeColor,
+                    fontSize: FontSizes.font14Sp,
+                    fontWeight: FontWeights.weight500,
+                  ),
+                  onTap: () =>
+                      Navigator.of(sheetContext).pop(_PhotoSheetAction.remove),
+                ),
               8.verticalSpace,
             ],
           ),
         );
       },
+    );
+  }
+
+  /// Confirms, then deletes the profile picture via `delete_user_picture` and
+  /// refreshes the cached user. Guest / no-photo cases are already filtered out
+  /// before this is reached. Best-effort with full error surfacing.
+  Future<void> _onRemovePhoto() async {
+    if (_uploading) return;
+
+    final confirmed = await _showRemovePhotoDialog();
+    if (confirmed != true || !mounted) return;
+
+    setState(() => _uploading = true);
+
+    final result = await sl<DeleteUserPictureUseCase>()(const NoParams());
+    if (!mounted) return;
+    setState(() => _uploading = false);
+
+    result.fold(
+      (failure) => _showError(failure.message),
+      (_) {
+        _onCachedUserChanged(context);
+        Fluttertoast.showToast(
+          msg: 'Profile photo removed.',
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+        );
+      },
+    );
+  }
+
+  /// Confirmation dialog for removing the profile picture. Returns `true` when
+  /// the user confirms.
+  Future<bool?> _showRemovePhotoDialog() {
+    final ui = AppUiColors.of(context);
+    return showDialog<bool>(
+      context: context,
+      barrierColor: AppColors.blackColor.withValues(alpha: 0.55),
+      builder: (dialogContext) => Dialog(
+        backgroundColor: ui.cardBackground,
+        insetPadding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 24.h),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18.r)),
+        child: Padding(
+          padding: AppUtils.all18Padding,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: EdgeInsets.all(8.r),
+                    decoration: BoxDecoration(
+                      color: AppColors.removeColor.withValues(alpha: 0.12),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.delete_outline_rounded,
+                      color: AppColors.removeColor,
+                      size: 22.r,
+                    ),
+                  ),
+                  12.horizontalSpace,
+                  Expanded(
+                    child: AppText(
+                      'Remove Photo',
+                      color: ui.textPrimary,
+                      fontSize: FontSizes.font18Sp,
+                      fontWeight: FontWeights.weight700,
+                    ),
+                  ),
+                ],
+              ),
+              14.verticalSpace,
+              AppText(
+                'Are you sure you want to remove your profile photo?',
+                color: ui.textSecondary,
+                fontSize: FontSizes.font13Sp,
+                fontWeight: FontWeights.weight400,
+                height: 1.4,
+              ),
+              22.verticalSpace,
+              Row(
+                children: [
+                  Expanded(
+                    child: PrimaryButtonWidget(
+                      text: 'Cancel',
+                      onPress: () => Navigator.of(dialogContext).pop(false),
+                      buttonWidth: double.infinity,
+                      buttonHeight: 42.h,
+                      cornerRadius: 12.r,
+                      buttonColor: ui.chipInactiveBg,
+                      strokeColor: ui.borderSubtle,
+                      textColor: ui.textPrimary,
+                      fontSize: FontSizes.font14Sp,
+                      fontWeight: FontWeights.weight600,
+                    ),
+                  ),
+                  12.horizontalSpace,
+                  Expanded(
+                    child: PrimaryButtonWidget(
+                      text: 'Remove',
+                      onPress: () => Navigator.of(dialogContext).pop(true),
+                      buttonWidth: double.infinity,
+                      buttonHeight: 42.h,
+                      cornerRadius: 12.r,
+                      gradientColors: const [
+                        AppColors.primaryDarkColor,
+                        AppColors.primaryDarkButtonColor,
+                      ],
+                      textColor: AppColors.whiteColor,
+                      fontSize: FontSizes.font14Sp,
+                      fontWeight: FontWeights.weight700,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 

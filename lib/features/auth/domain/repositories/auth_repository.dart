@@ -90,4 +90,9 @@ abstract class AuthRepository {
   /// then re-fetches the user (`get_user`) and refreshes the cached user.
   /// Returns the up-to-date [UserEntity].
   Future<Either<Failure, UserEntity>> uploadUserPicture(String imagePath);
+
+  /// Removes the profile picture via the `delete_user_picture` endpoint, then
+  /// re-fetches the user (`get_user`) and refreshes the cached user. Returns
+  /// the up-to-date [UserEntity].
+  Future<Either<Failure, UserEntity>> deleteUserPicture();
 }

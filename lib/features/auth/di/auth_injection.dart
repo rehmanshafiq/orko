@@ -10,6 +10,7 @@ import 'package:orko_hubco/features/auth/domain/usecases/delete_account_usecase.
 import 'package:orko_hubco/features/auth/domain/usecases/edit_user_profile_usecase.dart';
 import 'package:orko_hubco/features/auth/domain/usecases/get_user_usecase.dart';
 import 'package:orko_hubco/features/auth/domain/usecases/upload_user_picture_usecase.dart';
+import 'package:orko_hubco/features/auth/domain/usecases/delete_user_picture_usecase.dart';
 import 'package:orko_hubco/features/auth/domain/usecases/login_usecase.dart';
 import 'package:orko_hubco/features/auth/domain/usecases/login_with_google_usecase.dart';
 import 'package:orko_hubco/features/auth/domain/usecases/login_with_otp_usecase.dart';
@@ -58,6 +59,7 @@ void initAuthDependencies() {
   sl.registerLazySingleton(() => GetUserUseCase(sl()));
   sl.registerLazySingleton(() => EditUserProfileUseCase(sl()));
   sl.registerLazySingleton(() => UploadUserPictureUseCase(sl()));
+  sl.registerLazySingleton(() => DeleteUserPictureUseCase(sl()));
 
   // ── Cubit ─────────────────────────────────────────────────────────────
   sl.registerFactory(

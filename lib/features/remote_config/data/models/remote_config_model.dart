@@ -159,6 +159,7 @@ class ApiEndpoints extends Equatable {
     required this.getUser,
     required this.editUserProfile,
     required this.uploadUserPicture,
+    required this.deleteUserPicture,
     required this.chargerDetails,
     required this.bookingSlots,
     required this.createBooking,
@@ -206,6 +207,7 @@ class ApiEndpoints extends Equatable {
   final String getUser;
   final String editUserProfile;
   final String uploadUserPicture;
+  final String deleteUserPicture;
   final String chargerDetails;
   final String bookingSlots;
   final String createBooking;
@@ -256,6 +258,7 @@ class ApiEndpoints extends Equatable {
       getUser: json['get_user'] as String? ?? '',
       editUserProfile: json['edit_user_profile'] as String? ?? '',
       uploadUserPicture: json['upload_user_picture'] as String? ?? '',
+      deleteUserPicture: json['delete_user_picture'] as String? ?? '',
       chargerDetails: json['charger_details'] as String? ?? '',
       bookingSlots: json['booking_slots'] as String? ?? '',
       createBooking: json['create_booking'] as String? ?? '',
@@ -310,6 +313,7 @@ class ApiEndpoints extends Equatable {
       'get_user': getUser,
       'edit_user_profile': editUserProfile,
       'upload_user_picture': uploadUserPicture,
+      'delete_user_picture': deleteUserPicture,
       'charger_details': chargerDetails,
       'booking_slots': bookingSlots,
       'create_booking': createBooking,
@@ -359,6 +363,7 @@ class ApiEndpoints extends Equatable {
     String? getUser,
     String? editUserProfile,
     String? uploadUserPicture,
+    String? deleteUserPicture,
     String? chargerDetails,
     String? bookingSlots,
     String? createBooking,
@@ -410,6 +415,7 @@ class ApiEndpoints extends Equatable {
       getUser: getUser ?? this.getUser,
       editUserProfile: editUserProfile ?? this.editUserProfile,
       uploadUserPicture: uploadUserPicture ?? this.uploadUserPicture,
+      deleteUserPicture: deleteUserPicture ?? this.deleteUserPicture,
       chargerDetails: chargerDetails ?? this.chargerDetails,
       bookingSlots: bookingSlots ?? this.bookingSlots,
       createBooking: createBooking ?? this.createBooking,
@@ -464,6 +470,7 @@ class ApiEndpoints extends Equatable {
     getUser,
     editUserProfile,
     uploadUserPicture,
+    deleteUserPicture,
     chargerDetails,
     bookingSlots,
     createBooking,

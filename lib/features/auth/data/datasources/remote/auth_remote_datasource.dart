@@ -105,4 +105,9 @@ abstract class AuthRemoteDataSource {
   /// multipart form-data under the `image` field. Throws [ServerException] on
   /// failure.
   Future<void> uploadUserPicture(String imagePath);
+
+  /// Removes the current profile picture via the `delete_user_picture`
+  /// endpoint (authorized with the saved token). Throws [ServerException] on
+  /// failure.
+  Future<void> deleteUserPicture();
 }
