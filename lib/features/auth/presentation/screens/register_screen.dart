@@ -208,6 +208,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       fontSize: FontSizes.font28Sp,
                       fontWeight: FontWeights.weight700,
                     ),
+                    4.verticalSpace,
+                    AppText(
+                      'Charging Every Journey',
+                      textAlign: TextAlign.center,
+                      color: ui.brandPrimary,
+                      fontSize: FontSizes.font14Sp,
+                      fontWeight: FontWeights.weight600,
+                    ),
                     6.verticalSpace,
                     AppText(
                       'Join HGL and start your green journey.',
@@ -344,9 +352,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 ),
                                 child: AppText(
                                   'Terms and Conditions',
-                                  color: ui.brandPrimary,
+                                  color: ui.textPrimary,
                                   fontSize: FontSizes.font12Sp,
-                                  fontWeight: FontWeights.weight500,
+                                  fontWeight: FontWeights.weight700,
                                 ),
                               ),
                             ],
