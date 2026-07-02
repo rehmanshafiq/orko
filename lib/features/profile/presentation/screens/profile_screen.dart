@@ -2590,6 +2590,9 @@ class _VehicleDropdownField<T> extends StatelessWidget {
         DropdownButtonFormField<T>(
           initialValue: value,
           isExpanded: true,
+          // Cap the popup height so long lists (e.g. makes) scroll instead of
+          // stretching to the full screen height.
+          menuMaxHeight: 260.h,
           validator: validator,
           onChanged: enabled ? onChanged : null,
           icon: isLoading
