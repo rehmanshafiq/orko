@@ -225,17 +225,23 @@ class AppRouter {
               GoRoute(
                 path: '/account',
                 name: 'account',
-                builder: (context, state) => MultiBlocProvider(
-                  providers: [
-                    BlocProvider(
-                      create: (_) => sl<ProfileCubit>()..loadProfile(),
-                    ),
-                    BlocProvider(create: (_) => sl<VehicleCubit>()),
-                    BlocProvider(
-                      create: (_) => sl<ChargingStatsCubit>()..load(),
-                    ),
-                  ],
-                  child: const ProfileScreen(),
+                // Rebuild on each Profile-tab tap so it always reopens on the
+                // Profile sub-tab — see BottomNavShell.accountRefreshTick.
+                builder: (context, state) => ValueListenableBuilder<int>(
+                  valueListenable: BottomNavShell.accountRefreshTick,
+                  builder: (context, tick, _) => MultiBlocProvider(
+                    key: ValueKey<int>(tick),
+                    providers: [
+                      BlocProvider(
+                        create: (_) => sl<ProfileCubit>()..loadProfile(),
+                      ),
+                      BlocProvider(create: (_) => sl<VehicleCubit>()),
+                      BlocProvider(
+                        create: (_) => sl<ChargingStatsCubit>()..load(),
+                      ),
+                    ],
+                    child: const ProfileScreen(),
+                  ),
                 ),
               ),
             ],

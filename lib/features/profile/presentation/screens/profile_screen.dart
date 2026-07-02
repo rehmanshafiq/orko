@@ -1276,8 +1276,9 @@ class _StatsGrid extends StatelessWidget {
                     iconColor: ui.brandSecondary,
                     value: charges,
                     valueColor: ui.textPrimary,
-                    label: 'Total Charges',
+                    label: 'Total Charging Sessions',
                     isLoading: loading,
+                    valueLeftPadding: 4.0,
                   ),
                 ),
                 10.horizontalSpace,
@@ -1370,6 +1371,7 @@ class _StatTile extends StatelessWidget {
     required this.valueColor,
     required this.label,
     this.isLoading = false,
+    this.valueLeftPadding = 0,
   });
 
   final IconData icon;
@@ -1381,6 +1383,9 @@ class _StatTile extends StatelessWidget {
 
   /// When true, a small spinner replaces the value while stats load.
   final bool isLoading;
+
+  /// Left inset applied to the value only (used to nudge a specific tile).
+  final double valueLeftPadding;
 
   @override
   Widget build(BuildContext context) {
@@ -1397,37 +1402,45 @@ class _StatTile extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: EdgeInsets.all(8.r),
-            decoration: BoxDecoration(
-              color: iconBg,
-              shape: BoxShape.circle,
+          // Shift left by the icon glyph's built-in optical padding so its
+          // visible edge lines up flush with the value/label text below.
+          Transform.translate(
+            offset: Offset(-2.r, 0),
+            child: Container(
+              padding: EdgeInsets.zero,
+              decoration: BoxDecoration(
+                color: iconBg,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: iconColor, size: 24.r),
             ),
-            child: Icon(icon, color: iconColor, size: 22.r),
           ),
           10.verticalSpace,
           SizedBox(
             height: 24.h,
-            child: isLoading
-                ? Align(
-                    alignment: Alignment.centerLeft,
-                    child: SizedBox(
-                      width: 16.r,
-                      height: 16.r,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: ui.brandPrimary,
+            child: Padding(
+              padding: EdgeInsets.only(left: valueLeftPadding),
+              child: isLoading
+                  ? Align(
+                      alignment: Alignment.centerLeft,
+                      child: SizedBox(
+                        width: 16.r,
+                        height: 16.r,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: ui.brandPrimary,
+                        ),
                       ),
+                    )
+                  : AppText(
+                      value,
+                      color: valueColor,
+                      fontSize: FontSizes.font18Sp,
+                      fontWeight: FontWeights.weight700,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  )
-                : AppText(
-                    value,
-                    color: valueColor,
-                    fontSize: FontSizes.font18Sp,
-                    fontWeight: FontWeights.weight700,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+            ),
           ),
           4.verticalSpace,
           AppText(
