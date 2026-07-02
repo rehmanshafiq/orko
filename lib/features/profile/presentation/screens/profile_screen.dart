@@ -2126,7 +2126,10 @@ Future<bool?> _showDeleteVehicleDialog(
                     buttonWidth: double.infinity,
                     buttonHeight: 42.h,
                     cornerRadius: 12.r,
-                    buttonColor: AppColors.removeColor,
+                    gradientColors: const [
+                      AppColors.primaryDarkColor,
+                      AppColors.primaryDarkButtonColor,
+                    ],
                     textColor: AppColors.whiteColor,
                     fontSize: FontSizes.font14Sp,
                     fontWeight: FontWeights.weight700,
@@ -2156,16 +2159,6 @@ class _AddVehicleDialogState extends State<_AddVehicleDialog> {
 
   int? _selectedMakeId;
   int? _selectedModelId;
-  String? _selectedYear;
-
-  late final List<String> _years = _buildYears();
-
-  static List<String> _buildYears() {
-    final currentYear = DateTime.now().year;
-    return [
-      for (var y = currentYear + 1; y >= 1990; y--) y.toString(),
-    ];
-  }
 
   @override
   void initState() {
@@ -2200,7 +2193,9 @@ class _AddVehicleDialogState extends State<_AddVehicleDialog> {
     final result = await cubit.addVehicle(
       mdMake: _selectedMakeId!,
       mdModel: _selectedModelId!,
-      year: _selectedYear!,
+      // Year is no longer collected in the form; the API still requires a
+      // value, so default it to the current year.
+      year: DateTime.now().year.toString(),
       // Registration number (sent to the API as `vehicle_reg`) is now required.
       vehicleRfid: _rfidController.text.trim(),
     );
@@ -2288,27 +2283,6 @@ class _AddVehicleDialogState extends State<_AddVehicleDialog> {
                     _buildMakeField(ui, state),
                     14.verticalSpace,
                     _buildModelField(ui, state),
-                    14.verticalSpace,
-                    _VehicleDropdownField<String>(
-                      ui: ui,
-                      label: 'Year',
-                      hintText: 'Select year',
-                      value: _selectedYear,
-                      items: [
-                        for (final y in _years)
-                          DropdownMenuItem<String>(
-                            value: y,
-                            child: AppText(
-                              y,
-                              color: ui.textPrimary,
-                              fontSize: FontSizes.font14Sp,
-                              fontWeight: FontWeights.weight500,
-                            ),
-                          ),
-                      ],
-                      validator: (v) => v == null ? 'Year is required' : null,
-                      onChanged: (v) => setState(() => _selectedYear = v),
-                    ),
                     14.verticalSpace,
                     _buildRfidField(ui),
                     22.verticalSpace,
