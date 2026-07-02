@@ -2377,11 +2377,21 @@ class _AddVehicleDialogState extends State<_AddVehicleDialog> {
         for (final make in state.makes)
           DropdownMenuItem<int>(
             value: make.id,
-            child: AppText(
-              make.name,
-              color: ui.textPrimary,
-              fontSize: FontSizes.font14Sp,
-              fontWeight: FontWeights.weight500,
+            child: Row(
+              children: [
+                _MakeLogo(url: make.logo),
+                8.horizontalSpace,
+                Flexible(
+                  child: AppText(
+                    make.name,
+                    color: ui.textPrimary,
+                    fontSize: FontSizes.font14Sp,
+                    fontWeight: FontWeights.weight500,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
             ),
           ),
       ],
@@ -2500,6 +2510,40 @@ class _AddVehicleDialogState extends State<_AddVehicleDialog> {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Small brand-logo thumbnail shown beside a make in the dropdown. Falls back
+/// to a neutral car icon when the URL is empty or fails to load.
+class _MakeLogo extends StatelessWidget {
+  const _MakeLogo({required this.url});
+
+  final String url;
+
+  @override
+  Widget build(BuildContext context) {
+    final ui = AppUiColors.of(context);
+    final size = 24.r;
+
+    Widget fallback() => Icon(
+          Icons.directions_car_outlined,
+          size: 18.r,
+          color: ui.textSecondary,
+        );
+
+    return SizedBox(
+      width: size,
+      height: size,
+      child: url.isEmpty
+          ? fallback()
+          : Image.network(
+              url,
+              fit: BoxFit.contain,
+              errorBuilder: (_, __, ___) => fallback(),
+              loadingBuilder: (context, child, progress) =>
+                  progress == null ? child : fallback(),
+            ),
     );
   }
 }
