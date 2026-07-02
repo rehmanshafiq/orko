@@ -132,7 +132,7 @@ class _TripVehicleDropdownWidgetState extends State<TripVehicleDropdownWidget> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         AppText(
-          'Make',
+          'Vehicle',
           color: ui.textPrimary,
           fontSize: FontSizes.font12Sp,
           fontWeight: FontWeights.weight600,
@@ -204,7 +204,7 @@ class _TripVehicleDropdownWidgetState extends State<TripVehicleDropdownWidget> {
                         size: 20.r,
                       ),
                 child: AppText(
-                  selected != null ? _label(selected) : 'Select make',
+                  selected != null ? _label(selected) : 'Select Vehicle',
                   color:
                       selected != null ? ui.textPrimary : AppColors.hintColor,
                   fontSize: FontSizes.font12Sp,
