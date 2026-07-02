@@ -1151,9 +1151,17 @@ class _HomeScreenState extends State<HomeScreen> {
     }).toList();
   }
 
+  /// Nearby Stations list only shows stations within this many km (based on the
+  /// `distance` field from the charging-station map API). Display-only cap for
+  /// the bottom-sheet list; the map markers still show every station.
+  static const double _nearbyStationsMaxDistanceKm = 30;
+
   Widget _buildBottomSheet(BuildContext context) {
     final ui = AppUiColors.of(context);
-    final allStations = _locations;
+    // Only stations within 30 km feed the Nearby Stations list (map unaffected).
+    final allStations = _locations
+        .where((s) => s.distance <= _nearbyStationsMaxDistanceKm)
+        .toList();
     final types = _distinctConnectorTypes(allStations);
     // Ignore any stale selections for types not present in the current data.
     final activeTypes = _selectedTypes.where(types.contains).toSet();
