@@ -17,6 +17,8 @@ import 'package:orko_hubco/features/bottom_navigation/presentation/screens/botto
 import 'package:orko_hubco/features/map/domain/entities/hubco_location_entity.dart';
 import 'package:orko_hubco/features/charging/presentation/page/charging_station_detail_page.dart';
 import 'package:orko_hubco/features/map/presentation/home_screen.dart';
+import 'package:orko_hubco/features/map/presentation/filter_screen.dart';
+import 'package:orko_hubco/features/map/domain/entities/station_filters.dart';
 import 'package:orko_hubco/features/map/presentation/cubit/map_cubit.dart';
 import 'package:orko_hubco/features/notifications/presentation/page/notifications_page.dart';
 import 'package:orko_hubco/features/onboarding/presentation/bloc/onboarding_cubit.dart';
@@ -192,6 +194,23 @@ class AppRouter {
         name: 'notifications',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const NotificationsPage(),
+      ),
+
+      // Filter results — its own MapCubit so filtering here never touches the
+      // home map or its "Nearby Stations" row.
+      GoRoute(
+        path: '/filter-results',
+        name: 'filter-results',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final extra = state.extra;
+          final filters =
+              extra is StationFilters ? extra : const StationFilters();
+          return BlocProvider(
+            create: (_) => sl<MapCubit>()..applyFilters(filters),
+            child: FilterScreen(filters: filters),
+          );
+        },
       ),
 
       // ── Main Shell (Bottom Nav) ─────────────────────────────────────

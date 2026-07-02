@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/di/injection_container.dart';
@@ -156,8 +157,12 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
       availableNow: _availableNow,
       city: _selectedCity,
     );
-    context.read<MapCubit>().applyFilters(filters);
+    // Show the results on a dedicated screen instead of re-filtering the home
+    // map / "Nearby Stations" row. Capture the router before popping the sheet,
+    // since this context is torn down as the modal closes.
+    final router = GoRouter.of(context);
     Navigator.of(context).pop();
+    router.push('/filter-results', extra: filters);
   }
 
   @override

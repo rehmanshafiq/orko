@@ -31,6 +31,12 @@ import 'package:orko_hubco/features/map/presentation/widgets/map_filters_bottom_
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
+  /// Set by the Filter results screen when the user taps a station card: the
+  /// home map listens to this and animates its camera to the station's marker.
+  /// Reset back to null once handled so the same station can be focused again.
+  static final ValueNotifier<HubcoLocationEntity?> focusStationNotifier =
+      ValueNotifier<HubcoLocationEntity?>(null);
+
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
@@ -138,13 +144,38 @@ class _HomeScreenState extends State<HomeScreen> {
       _unreadPollInterval,
       (_) => _refreshUnreadCount(),
     );
+    HomeScreen.focusStationNotifier.addListener(_onFocusStationRequested);
   }
 
   @override
   void dispose() {
+    HomeScreen.focusStationNotifier.removeListener(_onFocusStationRequested);
     _unreadPollTimer?.cancel();
     _mapController?.dispose();
     super.dispose();
+  }
+
+  /// Zoom used when focusing a single station from the filter results screen —
+  /// deep enough that its marker is no longer inside a cluster bubble.
+  static const double _focusStationZoom = 16;
+
+  /// Handles a focus request coming from the Filter results screen: animates
+  /// the map camera to the selected station, then clears the request.
+  Future<void> _onFocusStationRequested() async {
+    final station = HomeScreen.focusStationNotifier.value;
+    if (station == null) return;
+    // Clear immediately so tapping the same station again re-triggers this.
+    HomeScreen.focusStationNotifier.value = null;
+
+    final controller = _mapController;
+    if (controller == null || !mounted) return;
+    await controller.animateCamera(
+      CameraUpdate.newLatLngZoom(
+        LatLng(station.latitude, station.longitude),
+        _focusStationZoom,
+      ),
+    );
+    _onCameraPositionChanged(_focusStationZoom);
   }
 
   /// Fetches the unread badge count. No-op for guests (the endpoint is
