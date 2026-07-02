@@ -42,6 +42,7 @@ class NotificationsCubit extends Cubit<NotificationsState> {
     final result = await _getNotifications(
       const GetNotificationsParams(page: 1, pageSize: _pageSize),
     );
+    if (isClosed) return; // Screen closed mid-request — nothing to update.
 
     await result.fold(
       (failure) async {
@@ -72,6 +73,9 @@ class NotificationsCubit extends Cubit<NotificationsState> {
     final result = await _getNotifications(
       const GetNotificationsParams(page: 1, pageSize: _pageSize),
     );
+    // Pull-to-refresh can outlive the screen (the RefreshIndicator future
+    // resolves after pop); bail before emitting on a closed cubit.
+    if (isClosed) return;
 
     await result.fold(
       (failure) async {
@@ -102,6 +106,7 @@ class NotificationsCubit extends Cubit<NotificationsState> {
     final result = await _getNotifications(
       GetNotificationsParams(page: nextPage, pageSize: _pageSize),
     );
+    if (isClosed) return;
 
     result.fold(
       (failure) {
@@ -138,6 +143,7 @@ class NotificationsCubit extends Cubit<NotificationsState> {
     ));
 
     final result = await _markRead(id);
+    if (isClosed) return;
     result.fold(
       (failure) {
         // Revert the optimistic update.
@@ -170,6 +176,7 @@ class NotificationsCubit extends Cubit<NotificationsState> {
     ));
 
     final result = await _markAllRead(const NoParams());
+    if (isClosed) return;
     result.fold(
       (failure) {
         emit(state.copyWith(
@@ -195,6 +202,7 @@ class NotificationsCubit extends Cubit<NotificationsState> {
     emit(state.copyWith(clearing: true, clearActionError: true));
 
     final result = await _clearAll(const NoParams());
+    if (isClosed) return false;
     return result.fold(
       (failure) {
         emit(state.copyWith(clearing: false, actionError: failure.message));
@@ -217,6 +225,7 @@ class NotificationsCubit extends Cubit<NotificationsState> {
   /// Best-effort unread-count sync (failure leaves the prior value intact).
   Future<void> _refreshUnreadCount() async {
     final result = await _getUnreadCount(const NoParams());
+    if (isClosed) return;
     result.fold(
       (_) {},
       (count) => emit(state.copyWith(unreadCount: count)),
