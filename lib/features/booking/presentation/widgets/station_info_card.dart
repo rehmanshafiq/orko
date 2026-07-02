@@ -13,11 +13,15 @@ class StationInfoCard extends StatelessWidget {
     required this.title,
     required this.address,
     required this.ui,
+    this.connectorTypes = const [],
   });
 
   final String title;
   final String address;
   final AppUiColors ui;
+
+  /// Connector types shown as plug chips (from each port's `connectorType`).
+  final List<String> connectorTypes;
 
   @override
   Widget build(BuildContext context) {
@@ -46,28 +50,21 @@ class StationInfoCard extends StatelessWidget {
             fontSize: FontSizes.font12Sp,
             fontWeight: FontWeights.weight400,
           ),
-          10.verticalSpace,
-          Row(
-            children: [
-              _PlugChipRow(
-                ui: ui,
-                label: 'CCS',
-                assetPath: AppImages.icCss2,
-              ),
-              12.horizontalSpace,
-              _PlugChipRow(
-                ui: ui,
-                label: 'CHAdeMO',
-                assetPath: AppImages.icCss2,
-              ),
-              12.horizontalSpace,
-              _PlugChipRow(
-                ui: ui,
-                label: 'Type 2',
-                assetPath: AppImages.icCss2,
-              ),
-            ],
-          ),
+          if (connectorTypes.isNotEmpty) ...[
+            10.verticalSpace,
+            Wrap(
+              spacing: 12.w,
+              runSpacing: 6.h,
+              children: [
+                for (final type in connectorTypes)
+                  _PlugChipRow(
+                    ui: ui,
+                    label: type,
+                    assetPath: AppImages.icCss2,
+                  ),
+              ],
+            ),
+          ],
         ],
       ),
     );

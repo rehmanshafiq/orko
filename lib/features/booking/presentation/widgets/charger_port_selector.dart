@@ -4,21 +4,20 @@ import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/features/booking/domain/entities/charger_details_entity.dart';
 import 'package:orko_hubco/features/booking/presentation/widgets/port_card.dart';
 
-/// Horizontal list of the location's connectors. Unavailable connectors
-/// (Preparing/Faulted/etc.) are dimmed and non-selectable.
+/// Horizontal list of the location's connectors. The first available connector
+/// is preselected by the cubit; the cards are display-only. Unavailable
+/// connectors (Preparing/Faulted/etc.) are dimmed.
 class ChargerPortSelector extends StatelessWidget {
   const ChargerPortSelector({
     super.key,
     required this.ui,
     required this.ports,
     required this.selectedPortId,
-    required this.onPortSelected,
   });
 
   final AppUiColors ui;
   final List<ChargerPortEntity> ports;
   final int? selectedPortId;
-  final ValueChanged<int> onPortSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +38,6 @@ class ChargerPortSelector extends StatelessWidget {
                 : port.connectorState,
             enabled: port.isAvailable,
             selected: port.id == selectedPortId,
-            onTap: () => onPortSelected(port.id),
           );
         },
       ),

@@ -99,6 +99,12 @@ class BookSlotMobileView extends StatelessWidget {
                               stationAddress ??
                               _defaultStationAddress,
                           ui: ui,
+                          // Plug chips mirror each port's connectorType.
+                          connectorTypes: state.ports
+                              .map((p) => p.connectorType.trim())
+                              .where((t) => t.isNotEmpty)
+                              .toSet()
+                              .toList(),
                         ),
                         20.verticalSpace,
                         AppText(
@@ -317,7 +323,6 @@ class _ChargerSection extends StatelessWidget {
           ui: ui,
           ports: state.ports,
           selectedPortId: state.selectedPortId,
-          onPortSelected: cubit.selectPort,
         );
     }
   }

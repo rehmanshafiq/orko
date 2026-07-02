@@ -15,7 +15,6 @@ class PortCard extends StatelessWidget {
     required this.specs,
     required this.stateLabel,
     required this.selected,
-    required this.onTap,
     this.enabled = true,
   });
 
@@ -27,9 +26,8 @@ class PortCard extends StatelessWidget {
   final String stateLabel;
   final bool selected;
 
-  /// When false the card is dimmed and non-interactive (connector not bookable).
+  /// When false the card is dimmed (connector not bookable).
   final bool enabled;
-  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -37,65 +35,58 @@ class PortCard extends StatelessWidget {
     final borderColor = selected ? ui.brandPrimary : ui.borderSubtle;
     final stateColor = enabled ? ui.brandPrimary : AppColors.slotBusyYellowColor;
 
-    final card = Material(
-      color: AppColors.transparentColor,
-      child: InkWell(
-        onTap: enabled ? onTap : null,
+    final card = Container(
+      width: 148.w,
+      padding: AppUtils.all12Padding,
+      decoration: BoxDecoration(
+        color: backgroundColor,
         borderRadius: BorderRadius.circular(14.r),
-        child: Ink(
-          width: 148.w,
-          padding: AppUtils.all12Padding,
-          decoration: BoxDecoration(
-            color: backgroundColor,
-            borderRadius: BorderRadius.circular(14.r),
-            border: Border.all(color: borderColor, width: selected ? 2 : 1),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+        border: Border.all(color: borderColor, width: selected ? 2 : 1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  AppText(
-                    portLabel,
-                    color: selected
-                        ? (ui.isLight ? AppColors.blackColor : AppColors.whiteColor)
-                        : ui.textPrimary,
-                    fontSize: FontSizes.font14Sp,
-                    fontWeight: FontWeights.weight400,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(top: 4.0),
-                    child: AppSvgImageView(
-                      appImagePath: AppImages.icCss2Png,
-                      width: 42.sp,
-                      height: 42.sp,
-                      fit: BoxFit.contain,
-                      color: AppColors.iconsGreyColor,
-                    ),
-                  ),
-                ],
-              ),
-              8.verticalSpace,
               AppText(
-                specs,
-                color: ui.textSecondary,
-                fontSize: FontSizes.font12Sp,
+                portLabel,
+                color: selected
+                    ? (ui.isLight ? AppColors.blackColor : AppColors.whiteColor)
+                    : ui.textPrimary,
+                fontSize: FontSizes.font14Sp,
                 fontWeight: FontWeights.weight400,
               ),
-              8.verticalSpace,
-              Align(
-                alignment: Alignment.centerLeft,
-                child: AppText(
-                  stateLabel,
-                  color: stateColor,
-                  fontSize: FontSizes.font10Sp,
-                  fontWeight: FontWeights.weight500,
+              Padding(
+                padding: const EdgeInsets.only(top: 4.0),
+                child: AppSvgImageView(
+                  appImagePath: AppImages.icCss2Png,
+                  width: 42.sp,
+                  height: 42.sp,
+                  fit: BoxFit.contain,
+                  color: AppColors.iconsGreyColor,
                 ),
               ),
             ],
           ),
-        ),
+          8.verticalSpace,
+          AppText(
+            specs,
+            color: ui.textSecondary,
+            fontSize: FontSizes.font12Sp,
+            fontWeight: FontWeights.weight400,
+          ),
+          8.verticalSpace,
+          Align(
+            alignment: Alignment.centerLeft,
+            child: AppText(
+              stateLabel,
+              color: stateColor,
+              fontSize: FontSizes.font10Sp,
+              fontWeight: FontWeights.weight500,
+            ),
+          ),
+        ],
       ),
     );
 
