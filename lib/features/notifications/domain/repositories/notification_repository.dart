@@ -19,6 +19,9 @@ abstract class NotificationRepository {
   /// Marks every notification read.
   Future<Either<Failure, bool>> markAllRead();
 
+  /// Permanently deletes every notification for the user.
+  Future<Either<Failure, bool>> clearAll();
+
   /// Current notification preference toggle states.
   Future<Either<Failure, NotificationPreferencesEntity>> getPreferences();
 

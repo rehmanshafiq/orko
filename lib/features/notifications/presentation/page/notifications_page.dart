@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/di/injection_container.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
+import 'package:orko_hubco/core/utils/widgets/primary_button_widget.dart';
 import 'package:orko_hubco/features/notifications/presentation/cubit/notifications_cubit.dart';
 import 'package:orko_hubco/features/notifications/presentation/cubit/notifications_state.dart';
 import 'package:orko_hubco/features/notifications/presentation/widgets/notification_tile_widget.dart';
@@ -56,6 +58,23 @@ class _NotificationsViewState extends State<_NotificationsView> {
     }
   }
 
+  /// Confirms, then deletes every notification. Success shows a toast; failures
+  /// surface through the existing [actionError] snackbar listener.
+  Future<void> _onClearAll(BuildContext context) async {
+    final cubit = context.read<NotificationsCubit>();
+    final confirmed = await _showClearAllDialog(context);
+    if (confirmed != true) return;
+
+    final cleared = await cubit.clearAllNotifications();
+    if (!mounted || !cleared) return;
+
+    Fluttertoast.showToast(
+      msg: 'Notifications cleared.',
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.BOTTOM,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final ui = AppUiColors.of(context);
@@ -91,6 +110,43 @@ class _NotificationsViewState extends State<_NotificationsView> {
                   color: state.markingAll ? ui.textMuted : ui.brandPrimary,
                   fontSize: FontSizes.font12Sp,
                   fontWeight: FontWeights.weight700,
+                ),
+              );
+            },
+          ),
+          // Clear all — deletes every notification. Only shown when the list
+          // is non-empty; a spinner replaces the icon while the delete runs.
+          BlocBuilder<NotificationsCubit, NotificationsState>(
+            buildWhen: (p, c) =>
+                p.status != c.status ||
+                p.notifications.length != c.notifications.length ||
+                p.clearing != c.clearing,
+            builder: (context, state) {
+              final canClear = state.status == NotificationsStatus.success &&
+                  state.notifications.isNotEmpty;
+              if (!canClear) return const SizedBox.shrink();
+              if (state.clearing) {
+                return Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 14.w),
+                  child: Center(
+                    child: SizedBox(
+                      height: 18.r,
+                      width: 18.r,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: ui.brandPrimary,
+                      ),
+                    ),
+                  ),
+                );
+              }
+              return IconButton(
+                tooltip: 'Clear notifications',
+                onPressed: () => _onClearAll(context),
+                icon: Icon(
+                  Icons.delete_sweep_outlined,
+                  color: AppColors.removeColor,
+                  size: 22.r,
                 ),
               );
             },
@@ -253,6 +309,99 @@ class _Footer extends StatelessWidget {
     }
     return const SizedBox.shrink();
   }
+}
+
+/// Confirms clearing every notification. Returns `true` when the user confirms.
+Future<bool?> _showClearAllDialog(BuildContext context) {
+  final ui = AppUiColors.of(context);
+  return showDialog<bool>(
+    context: context,
+    barrierColor: AppColors.blackColor.withValues(alpha: 0.55),
+    builder: (dialogContext) => Dialog(
+      backgroundColor: ui.cardBackground,
+      insetPadding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 24.h),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18.r)),
+      child: Padding(
+        padding: EdgeInsets.all(18.r),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: EdgeInsets.all(8.r),
+                  decoration: BoxDecoration(
+                    color: AppColors.removeColor.withValues(alpha: 0.12),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.delete_sweep_outlined,
+                    color: AppColors.removeColor,
+                    size: 22.r,
+                  ),
+                ),
+                12.horizontalSpace,
+                Expanded(
+                  child: AppText(
+                    'Clear Notifications',
+                    color: ui.textPrimary,
+                    fontSize: FontSizes.font18Sp,
+                    fontWeight: FontWeights.weight700,
+                  ),
+                ),
+              ],
+            ),
+            14.verticalSpace,
+            AppText(
+              'Are you sure you want to clear all notifications? This action '
+              'cannot be undone.',
+              color: ui.textSecondary,
+              fontSize: FontSizes.font13Sp,
+              fontWeight: FontWeights.weight400,
+              height: 1.4,
+            ),
+            22.verticalSpace,
+            Row(
+              children: [
+                Expanded(
+                  child: PrimaryButtonWidget(
+                    text: 'Cancel',
+                    onPress: () => Navigator.of(dialogContext).pop(false),
+                    buttonWidth: double.infinity,
+                    buttonHeight: 42.h,
+                    cornerRadius: 12.r,
+                    buttonColor: ui.chipInactiveBg,
+                    strokeColor: ui.borderSubtle,
+                    textColor: ui.textPrimary,
+                    fontSize: FontSizes.font14Sp,
+                    fontWeight: FontWeights.weight600,
+                  ),
+                ),
+                12.horizontalSpace,
+                Expanded(
+                  child: PrimaryButtonWidget(
+                    text: 'Clear',
+                    onPress: () => Navigator.of(dialogContext).pop(true),
+                    buttonWidth: double.infinity,
+                    buttonHeight: 42.h,
+                    cornerRadius: 12.r,
+                    gradientColors: const [
+                      AppColors.primaryDarkColor,
+                      AppColors.primaryDarkButtonColor,
+                    ],
+                    textColor: AppColors.whiteColor,
+                    fontSize: FontSizes.font14Sp,
+                    fontWeight: FontWeights.weight700,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
 }
 
 class _ErrorState extends StatelessWidget {

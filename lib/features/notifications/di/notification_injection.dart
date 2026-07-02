@@ -3,6 +3,7 @@ import 'package:orko_hubco/features/notifications/data/datasources/remote/notifi
 import 'package:orko_hubco/features/notifications/data/datasources/remote/notification_remote_datasource_impl.dart';
 import 'package:orko_hubco/features/notifications/data/repositories/notification_repository_impl.dart';
 import 'package:orko_hubco/features/notifications/domain/repositories/notification_repository.dart';
+import 'package:orko_hubco/features/notifications/domain/usecases/clear_notifications_usecase.dart';
 import 'package:orko_hubco/features/notifications/domain/usecases/delete_device_token_usecase.dart';
 import 'package:orko_hubco/features/notifications/domain/usecases/get_notification_preferences_usecase.dart';
 import 'package:orko_hubco/features/notifications/domain/usecases/get_notifications_usecase.dart';
@@ -30,6 +31,7 @@ void initNotificationDependencies() {
   sl.registerLazySingleton(() => GetUnreadCountUseCase(sl()));
   sl.registerLazySingleton(() => MarkNotificationReadUseCase(sl()));
   sl.registerLazySingleton(() => MarkAllNotificationsReadUseCase(sl()));
+  sl.registerLazySingleton(() => ClearNotificationsUseCase(sl()));
   sl.registerLazySingleton(() => GetNotificationPreferencesUseCase(sl()));
   sl.registerLazySingleton(() => UpdateNotificationPreferencesUseCase(sl()));
   sl.registerLazySingleton(() => RegisterDeviceTokenUseCase(sl()));
@@ -42,6 +44,7 @@ void initNotificationDependencies() {
       getUnreadCount: sl(),
       markRead: sl(),
       markAllRead: sl(),
+      clearAll: sl(),
     ),
   );
   sl.registerFactory(

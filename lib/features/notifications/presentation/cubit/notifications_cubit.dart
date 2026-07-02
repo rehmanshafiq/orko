@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:orko_hubco/core/usecase/usecase.dart';
 import 'package:orko_hubco/features/notifications/domain/usecases/get_notifications_usecase.dart';
 import 'package:orko_hubco/features/notifications/domain/usecases/get_unread_count_usecase.dart';
+import 'package:orko_hubco/features/notifications/domain/usecases/clear_notifications_usecase.dart';
 import 'package:orko_hubco/features/notifications/domain/usecases/mark_all_notifications_read_usecase.dart';
 import 'package:orko_hubco/features/notifications/domain/usecases/mark_notification_read_usecase.dart';
 import 'package:orko_hubco/features/notifications/presentation/cubit/notifications_state.dart';
@@ -12,16 +13,19 @@ class NotificationsCubit extends Cubit<NotificationsState> {
     required GetUnreadCountUseCase getUnreadCount,
     required MarkNotificationReadUseCase markRead,
     required MarkAllNotificationsReadUseCase markAllRead,
+    required ClearNotificationsUseCase clearAll,
   })  : _getNotifications = getNotifications,
         _getUnreadCount = getUnreadCount,
         _markRead = markRead,
         _markAllRead = markAllRead,
+        _clearAll = clearAll,
         super(const NotificationsState());
 
   final GetNotificationsUseCase _getNotifications;
   final GetUnreadCountUseCase _getUnreadCount;
   final MarkNotificationReadUseCase _markRead;
   final MarkAllNotificationsReadUseCase _markAllRead;
+  final ClearNotificationsUseCase _clearAll;
 
   static const int _pageSize = 20;
 
@@ -177,6 +181,35 @@ class NotificationsCubit extends Cubit<NotificationsState> {
       },
       (_) {
         emit(state.copyWith(markingAll: false));
+      },
+    );
+  }
+
+  /// Permanently deletes every notification. Non-optimistic: the list stays on
+  /// screen (with the button spinner) until the server confirms, then it's
+  /// emptied. Returns `true` on success so the caller can show a confirmation.
+  Future<bool> clearAllNotifications() async {
+    if (state.clearing) return false;
+    if (state.notifications.isEmpty) return false;
+
+    emit(state.copyWith(clearing: true, clearActionError: true));
+
+    final result = await _clearAll(const NoParams());
+    return result.fold(
+      (failure) {
+        emit(state.copyWith(clearing: false, actionError: failure.message));
+        return false;
+      },
+      (_) {
+        emit(state.copyWith(
+          status: NotificationsStatus.success,
+          notifications: const [],
+          unreadCount: 0,
+          page: 1,
+          hasMore: false,
+          clearing: false,
+        ));
+        return true;
       },
     );
   }

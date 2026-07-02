@@ -42,6 +42,11 @@ class NotificationRepositoryImpl implements NotificationRepository {
   }
 
   @override
+  Future<Either<Failure, bool>> clearAll() {
+    return _run(() => remoteDataSource.clearAll());
+  }
+
+  @override
   Future<Either<Failure, NotificationPreferencesEntity>> getPreferences() {
     return _run(() => remoteDataSource.getPreferences());
   }

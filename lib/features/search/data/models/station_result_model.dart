@@ -37,6 +37,9 @@ class StationResultModel extends StationResultEntity {
       powerTypes: _asStringList(json['type']),
       powerRatings: _asStringList(json['power']),
       connectorTypes: _asStringList(json['connector_types']),
+      averageRating: json['average_rating'] == null
+          ? null
+          : _asDouble(json['average_rating']),
       latitude: _asDouble(locationMap['lat']),
       longitude: _asDouble(locationMap['long']),
     );

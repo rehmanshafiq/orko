@@ -20,6 +20,7 @@ class NotificationRemoteDataSourceImpl implements NotificationRemoteDataSource {
       'api/v1/notifications/unread-count/';
   static const String _markAllReadFallback =
       'api/v1/notifications/mark-all-read/';
+  static const String _clearAllFallback = 'api/v1/notifications/';
   static const String _preferencesFallback =
       'api/v1/notifications/preferences/';
   static const String _deviceTokenFallback =
@@ -85,6 +86,20 @@ class NotificationRemoteDataSourceImpl implements NotificationRemoteDataSource {
 
       final response = await apiClient.post(url);
       _ensureOk(response, fallback: 'Failed to mark all notifications read');
+      return true;
+    });
+  }
+
+  @override
+  Future<bool> clearAll() async {
+    return _guard('clear-all', () async {
+      final url = _resolveUrl(
+        _endpoint((e) => e.notificationsClearAll, _clearAllFallback),
+      );
+      log('[Notifications] Clear-all DELETE URL: $url');
+
+      final response = await apiClient.delete(url);
+      _ensureOk(response, fallback: 'Failed to clear notifications');
       return true;
     });
   }

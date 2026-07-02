@@ -13,6 +13,7 @@ class NotificationsState extends Equatable {
     this.isLoadingMore = false,
     this.isRefreshing = false,
     this.markingAll = false,
+    this.clearing = false,
     this.errorMessage,
     this.actionError,
   });
@@ -35,6 +36,9 @@ class NotificationsState extends Equatable {
   /// Mark-all-read is in flight.
   final bool markingAll;
 
+  /// Clear-all (delete every notification) is in flight.
+  final bool clearing;
+
   /// Fatal error for the initial load (drives the full-screen error state).
   final String? errorMessage;
 
@@ -53,6 +57,7 @@ class NotificationsState extends Equatable {
     bool? isLoadingMore,
     bool? isRefreshing,
     bool? markingAll,
+    bool? clearing,
     String? errorMessage,
     bool clearErrorMessage = false,
     String? actionError,
@@ -67,6 +72,7 @@ class NotificationsState extends Equatable {
       isLoadingMore: isLoadingMore ?? this.isLoadingMore,
       isRefreshing: isRefreshing ?? this.isRefreshing,
       markingAll: markingAll ?? this.markingAll,
+      clearing: clearing ?? this.clearing,
       errorMessage: clearErrorMessage ? null : (errorMessage ?? this.errorMessage),
       actionError: clearActionError ? null : (actionError ?? this.actionError),
     );
@@ -82,6 +88,7 @@ class NotificationsState extends Equatable {
         isLoadingMore,
         isRefreshing,
         markingAll,
+        clearing,
         errorMessage,
         actionError,
       ];

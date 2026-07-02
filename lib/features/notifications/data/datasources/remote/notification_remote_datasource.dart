@@ -13,6 +13,9 @@ abstract class NotificationRemoteDataSource {
 
   Future<bool> markAllRead();
 
+  /// Permanently deletes every notification for the user.
+  Future<bool> clearAll();
+
   Future<NotificationPreferencesModel> getPreferences();
 
   Future<NotificationPreferencesModel> updatePreferences(
