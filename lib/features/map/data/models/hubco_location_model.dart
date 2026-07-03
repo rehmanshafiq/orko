@@ -14,6 +14,7 @@ class HubcoLocationModel extends HubcoLocationEntity {
     super.availableConnectors,
     super.available,
     super.connectorTypes,
+    super.powerOutputs,
     super.prices,
   });
 
@@ -49,6 +50,7 @@ class HubcoLocationModel extends HubcoLocationEntity {
       availableConnectors: _asInt(json['available_connectors']),
       available: json['available'] == true,
       connectorTypes: _asStringList(json['type']),
+      powerOutputs: _asDoubleList(json['power']),
       prices: _asList(json['prices']).map(_priceFromJson).toList(growable: false),
     );
   }
@@ -60,6 +62,15 @@ class HubcoLocationModel extends HubcoLocationEntity {
     return value
         .map((e) => e?.toString().trim() ?? '')
         .where((e) => e.isNotEmpty)
+        .toList(growable: false);
+  }
+
+  /// Parses a `power` array (e.g. `[60]`) into non-negative kW values.
+  static List<double> _asDoubleList(dynamic value) {
+    if (value is! List) return const [];
+    return value
+        .map((e) => e is num ? e.toDouble() : double.tryParse('$e'))
+        .whereType<double>()
         .toList(growable: false);
   }
 

@@ -38,6 +38,9 @@ class HubcoLocationEntity extends Equatable {
   /// Power/connector kinds from the `type` array, e.g. `['DC']`, `['AC', 'AC/DC']`.
   final List<String> connectorTypes;
 
+  /// Peak power outputs in kW from the `power` array, e.g. `[60]`.
+  final List<double> powerOutputs;
+
   final List<StationPriceEntity> prices;
 
   const HubcoLocationEntity({
@@ -53,6 +56,7 @@ class HubcoLocationEntity extends Equatable {
     this.availableConnectors = 0,
     this.available = false,
     this.connectorTypes = const [],
+    this.powerOutputs = const [],
     this.prices = const [],
   });
 
@@ -70,6 +74,7 @@ class HubcoLocationEntity extends Equatable {
         availableConnectors,
         available,
         connectorTypes,
+        powerOutputs,
         prices,
       ];
 }

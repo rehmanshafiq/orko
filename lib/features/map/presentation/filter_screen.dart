@@ -515,6 +515,15 @@ class _FilterScreenState extends State<FilterScreen> {
     return '${station.availableConnectors}/$total Available';
   }
 
+  /// Peak power(s) formatted like `60 kW` (joins multiple with `/`). Empty when
+  /// the API sent no `power` values.
+  String _stationPowerLabel(HubcoLocationEntity station) {
+    if (station.powerOutputs.isEmpty) return '';
+    final parts = station.powerOutputs.map((p) =>
+        p == p.roundToDouble() ? p.toStringAsFixed(0) : p.toStringAsFixed(1));
+    return '${parts.join('/')} kW';
+  }
+
   String _stationPriceLabel(HubcoLocationEntity station) {
     if (station.prices.isEmpty) return '—';
 
@@ -608,7 +617,10 @@ class _FilterScreenState extends State<FilterScreen> {
               8.verticalSpace,
               Row(
                 children: [
-                  _StationPlugIconsRow(color: ui.textSecondary),
+                  _StationPlugIconsRow(
+                    color: ui.textSecondary,
+                    powerLabel: _stationPowerLabel(station),
+                  ),
                   const Spacer(),
                   Flexible(
                     child: AppText(
@@ -632,9 +644,12 @@ class _FilterScreenState extends State<FilterScreen> {
 }
 
 class _StationPlugIconsRow extends StatelessWidget {
-  const _StationPlugIconsRow({required this.color});
+  const _StationPlugIconsRow({required this.color, this.powerLabel = ''});
 
   final Color color;
+
+  /// Peak power label (e.g. `60 kW`) shown next to the plug icon; hidden empty.
+  final String powerLabel;
 
   static const _iconSize = 34.0;
 
@@ -644,6 +659,15 @@ class _StationPlugIconsRow extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         _PlugIcon(assetPath: AppImages.icCss2, color: color),
+        if (powerLabel.isNotEmpty) ...[
+          8.horizontalSpace,
+          AppText(
+            powerLabel,
+            color: color,
+            fontSize: FontSizes.font13Sp,
+            fontWeight: FontWeights.weight500,
+          ),
+        ],
         50.horizontalSpace,
       ],
     );
