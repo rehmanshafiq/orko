@@ -164,11 +164,9 @@ class _SavedTripDetailViewState extends State<SavedTripDetailView> {
           12.verticalSpace,
           _row(ui, 'Distance', km(trip.totalDistanceKm)),
           6.verticalSpace,
-          _row(ui, 'Drive time', mins(trip.totalDriveMinutes)),
+          _row(ui, 'Estimated Charging Time', mins(trip.totalChargingMinutes)),
           6.verticalSpace,
-          _row(ui, 'Charging time', mins(trip.totalChargingMinutes)),
-          6.verticalSpace,
-          _row(ui, 'Total cost', money(trip.totalCost)),
+          _row(ui, 'Estimated Charging Cost', money(trip.totalCost)),
           6.verticalSpace,
           _row(ui, 'Start charge', '${trip.startSoc.round()}%'),
         ],
@@ -184,7 +182,7 @@ class _SavedTripDetailViewState extends State<SavedTripDetailView> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SizedBox(
-          width: 96.w,
+          width: 170.w,
           child: AppText(
             label,
             color: ui.textMuted,
