@@ -537,11 +537,22 @@ class _TripPlannerMobileViewState extends State<TripPlannerMobileView> {
                           ? (state.saving ? 'Updating…' : 'Edit Trip')
                           : (state.saving ? 'Saving…' : 'Save Trip'),
                       isEnabled: !state.saving,
-                      onPress: () => context.read<TripPlannerBloc>().add(
-                            state.isEditMode
-                                ? const TripPlannerEditTripRequested()
-                                : const TripPlannerSaveTripRequested(),
-                          ),
+                      onPress: () {
+                        // Edit mode: require at least one changed input before
+                        // updating — otherwise it would re-save an identical trip.
+                        if (state.isEditMode && !bloc.editHasChanges) {
+                          _showValidationError(
+                            context,
+                            'Change the start, destination, vehicle or battery before updating your trip.',
+                          );
+                          return;
+                        }
+                        context.read<TripPlannerBloc>().add(
+                              state.isEditMode
+                                  ? const TripPlannerEditTripRequested()
+                                  : const TripPlannerSaveTripRequested(),
+                            );
+                      },
                       gradientColors: const [
                         AppColors.primaryDarkColor,
                         AppColors.primaryDarkButtonColor,

@@ -57,6 +57,8 @@ class TripPlannerBloc extends Bloc<TripPlannerEvent, TripPlannerState> {
     on<TripPlannerMapCreated>(_handleMapCreated);
     on<TripPlannerFitMapRoute>(_handleFitMapRoute);
 
+    _editingTrip = editingTrip;
+
     // Edit mode: prefill the start/destination fields (text + exact coords) so
     // the planner opens on the saved trip's inputs. Vehicle + start SoC are
     // seeded into the initial state above.
@@ -101,6 +103,28 @@ class TripPlannerBloc extends Bloc<TripPlannerEvent, TripPlannerState> {
   final PlanTripUseCase _planTrip;
   final SaveTripUseCase _saveTrip;
   final EditTripUseCase _editTrip;
+
+  /// The saved trip being edited (edit mode only). Used to detect whether the
+  /// user actually changed any input before allowing an "Edit Trip" submit.
+  SavedTripEntity? _editingTrip;
+
+  /// Edit mode: `true` when the most-recently-planned inputs (origin,
+  /// destination, vehicle, start SoC) differ from the original saved trip.
+  /// Returns `false` for a no-op edit so the UI can block re-saving an
+  /// unchanged trip. When not in edit mode / not yet planned, returns `true`.
+  bool get editHasChanges {
+    final original = _editingTrip;
+    final params = state.lastPlanParams;
+    if (original == null || params == null) return true;
+    bool sameCoord(double a, double b) => (a - b).abs() <= 0.0001;
+    final unchanged = sameCoord(params.originLatitude, original.originLatitude) &&
+        sameCoord(params.originLongitude, original.originLongitude) &&
+        sameCoord(params.destinationLatitude, original.destinationLatitude) &&
+        sameCoord(params.destinationLongitude, original.destinationLongitude) &&
+        params.customerVehicleId == original.vehicle?.id &&
+        params.startSoc == original.startSoc.round();
+    return !unchanged;
+  }
 
   /// 100% state of charge = 380 km usable range.
   static const double kmPerPercentCharge = 3.8;
@@ -346,6 +370,14 @@ class TripPlannerBloc extends Bloc<TripPlannerEvent, TripPlannerState> {
     if (params == null) {
       emit(state.copyWith(
         saveError: 'Change a field and tap Plan Trip before updating.',
+      ));
+      return;
+    }
+    // Block a no-op update: nothing changed vs the original saved trip.
+    if (!editHasChanges) {
+      emit(state.copyWith(
+        saveError:
+            'Change the start, destination, vehicle or battery before updating your trip.',
       ));
       return;
     }
