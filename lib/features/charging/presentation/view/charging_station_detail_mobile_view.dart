@@ -105,20 +105,21 @@ class ChargingStationDetailMobileView extends StatelessWidget {
                           ),
                         ),
                         actions: [
-                          Padding(
-                            padding: EdgeInsets.only(right: 8.w),
-                            child: ChargingStationGlassButtonWidget(
-                              icon: state.favorite
-                                  ? Icons.favorite_rounded
-                                  : Icons.favorite_border_rounded,
-                              onTap: () => context
-                                  .read<ChargingStationDetailBloc>()
-                                  .add(const ChargingStationDetailFavoriteToggled()),
-                              iconColor: state.favorite
-                                  ? ui.brandPrimary
-                                  : ui.textPrimary,
+                          if (!(state.isLoading && !state.isSuccess))
+                            Padding(
+                              padding: EdgeInsets.only(right: 8.w),
+                              child: ChargingStationGlassButtonWidget(
+                                icon: state.favorite
+                                    ? Icons.favorite_rounded
+                                    : Icons.favorite_border_rounded,
+                                onTap: () => context
+                                    .read<ChargingStationDetailBloc>()
+                                    .add(const ChargingStationDetailFavoriteToggled()),
+                                iconColor: state.favorite
+                                    ? ui.brandPrimary
+                                    : ui.textPrimary,
+                              ),
                             ),
-                          ),
                         ],
                         flexibleSpace: FlexibleSpaceBar(
                           collapseMode: CollapseMode.parallax,

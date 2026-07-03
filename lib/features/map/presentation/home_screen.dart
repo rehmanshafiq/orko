@@ -927,11 +927,12 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ),
                                     8.verticalSpace,
                                   ],
-                                  _buildMapControlButton(
-                                    context,
-                                    icon: Icons.my_location_rounded,
-                                    onTap: _goToMyLocation,
-                                  ),
+                                  if (state is! MapLoading)
+                                    _buildMapControlButton(
+                                      context,
+                                      icon: Icons.my_location_rounded,
+                                      onTap: _goToMyLocation,
+                                    ),
                                 ],
                               ),
                             ),
