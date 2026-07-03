@@ -34,6 +34,10 @@ class _SavedTripDetailViewState extends State<SavedTripDetailView> {
   /// and drives the app-bar spinner.
   bool _deleting = false;
 
+  /// Set once an edit succeeds (the trip was recomputed in place). Returned on
+  /// back navigation so the Saved Trips list reloads its now-stale summary.
+  bool _didChange = false;
+
   @override
   void initState() {
     super.initState();
@@ -107,7 +111,10 @@ class _SavedTripDetailViewState extends State<SavedTripDetailView> {
         builder: (_) => TripPlannerMobileView(editTrip: trip),
       ),
     );
-    if (updated == true && mounted) _load();
+    if (updated == true && mounted) {
+      _didChange = true;
+      _load();
+    }
   }
 
   Future<bool?> _confirmDelete() {
@@ -156,7 +163,15 @@ class _SavedTripDetailViewState extends State<SavedTripDetailView> {
   @override
   Widget build(BuildContext context) {
     final ui = AppUiColors.of(context);
-    return Scaffold(
+    return PopScope<Object?>(
+      // The trip may have been edited in place; intercept the back button so we
+      // return whether it changed, letting the Saved Trips list refresh.
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        Navigator.of(context).pop(_didChange);
+      },
+      child: Scaffold(
       backgroundColor: ui.scaffoldBackground,
       appBar: AppBar(
         backgroundColor: ui.scaffoldBackground,
@@ -206,6 +221,7 @@ class _SavedTripDetailViewState extends State<SavedTripDetailView> {
         ],
       ),
       body: SafeArea(child: _body(ui)),
+      ),
     );
   }
 
