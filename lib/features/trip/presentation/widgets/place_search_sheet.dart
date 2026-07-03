@@ -14,19 +14,30 @@ import 'package:orko_hubco/core/utils/widgets/app_text.dart';
 Future<PlaceLocation?> showPlaceSearchSheet(
   BuildContext context, {
   required String title,
+  bool showCurrentLocation = false,
 }) {
   return showModalBottomSheet<PlaceLocation>(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
-    builder: (_) => _PlaceSearchSheet(title: title),
+    builder: (_) => _PlaceSearchSheet(
+      title: title,
+      showCurrentLocation: showCurrentLocation,
+    ),
   );
 }
 
 class _PlaceSearchSheet extends StatefulWidget {
-  const _PlaceSearchSheet({required this.title});
+  const _PlaceSearchSheet({
+    required this.title,
+    this.showCurrentLocation = false,
+  });
 
   final String title;
+
+  /// When true, shows the "Use my current location" affordance (only the Start
+  /// field opts in).
+  final bool showCurrentLocation;
 
   @override
   State<_PlaceSearchSheet> createState() => _PlaceSearchSheetState();
@@ -271,8 +282,10 @@ class _PlaceSearchSheetState extends State<_PlaceSearchSheet> {
                       ],
                     ),
                   ),
-                  10.verticalSpace,
-                  _currentLocationTile(ui),
+                  if (widget.showCurrentLocation) ...[
+                    10.verticalSpace,
+                    _currentLocationTile(ui),
+                  ],
                 ],
               ),
             ),

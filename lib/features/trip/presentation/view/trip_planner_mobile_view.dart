@@ -132,6 +132,8 @@ class _TripPlannerMobileViewState extends State<TripPlannerMobileView> {
     final place = await showPlaceSearchSheet(
       context,
       title: isStart ? 'Start location' : 'Destination',
+      // "Use my current location" is offered only for the start field.
+      showCurrentLocation: isStart,
     );
     if (place == null) return;
     if (isStart) {
