@@ -323,18 +323,29 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
-        children: cities.map((city) {
-          final selected = _selectedCity == city;
-          return Padding(
+        children: [
+          // "All" clears the city filter, so applying sends an empty `city`
+          // query param (all locations).
+          Padding(
             padding: EdgeInsets.only(right: 8.w),
             child: GestureDetector(
-              onTap: () => setState(() {
-                _selectedCity = selected ? null : city;
-              }),
-              child: _optionChip(city, selected),
+              onTap: () => setState(() => _selectedCity = null),
+              child: _optionChip('All', _selectedCity == null),
             ),
-          );
-        }).toList(),
+          ),
+          ...cities.map((city) {
+            final selected = _selectedCity == city;
+            return Padding(
+              padding: EdgeInsets.only(right: 8.w),
+              child: GestureDetector(
+                onTap: () => setState(() {
+                  _selectedCity = selected ? null : city;
+                }),
+                child: _optionChip(city, selected),
+              ),
+            );
+          }),
+        ],
       ),
     );
   }
