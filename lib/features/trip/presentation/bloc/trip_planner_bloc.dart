@@ -126,6 +126,27 @@ class TripPlannerBloc extends Bloc<TripPlannerEvent, TripPlannerState> {
     return !unchanged;
   }
 
+  /// `true` when the current form inputs (start/destination place, vehicle,
+  /// battery) no longer match the last *planned* params — i.e. the user edited
+  /// something after planning and must re-plan before the edit is submitted.
+  bool get hasUnplannedChanges {
+    final params = state.lastPlanParams;
+    if (params == null) return false;
+    bool sameCoord(double a, double b) => (a - b).abs() <= 0.0001;
+    final start = _startPlace;
+    final end = _endPlace;
+    final startMatches = start == null ||
+        (sameCoord(start.lat, params.originLatitude) &&
+            sameCoord(start.lng, params.originLongitude));
+    final endMatches = end == null ||
+        (sameCoord(end.lat, params.destinationLatitude) &&
+            sameCoord(end.lng, params.destinationLongitude));
+    final vehicleMatches = state.selectedVehicle?.id == params.customerVehicleId;
+    final batteryMatches =
+        state.currentBatteryPercent.toInt() == params.startSoc;
+    return !(startMatches && endMatches && vehicleMatches && batteryMatches);
+  }
+
   /// 100% state of charge = 380 km usable range.
   static const double kmPerPercentCharge = 3.8;
 
@@ -370,6 +391,15 @@ class TripPlannerBloc extends Bloc<TripPlannerEvent, TripPlannerState> {
     if (params == null) {
       emit(state.copyWith(
         saveError: 'Change a field and tap Plan Trip before updating.',
+      ));
+      return;
+    }
+    // The user edited an input after planning — the plan no longer matches, so
+    // they must re-plan before the edit reflects their change.
+    if (hasUnplannedChanges) {
+      emit(state.copyWith(
+        saveError:
+            'You\'ve changed the trip details. Tap Plan Trip again before updating.',
       ));
       return;
     }

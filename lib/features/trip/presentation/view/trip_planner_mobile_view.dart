@@ -538,14 +538,25 @@ class _TripPlannerMobileViewState extends State<TripPlannerMobileView> {
                           : (state.saving ? 'Saving…' : 'Save Trip'),
                       isEnabled: !state.saving,
                       onPress: () {
-                        // Edit mode: require at least one changed input before
-                        // updating — otherwise it would re-save an identical trip.
-                        if (state.isEditMode && !bloc.editHasChanges) {
-                          _showValidationError(
-                            context,
-                            'Change the start, destination, vehicle or battery before updating your trip.',
-                          );
-                          return;
+                        if (state.isEditMode) {
+                          // Edited an input after planning → the shown plan is
+                          // stale; make them re-plan first.
+                          if (bloc.hasUnplannedChanges) {
+                            _showValidationError(
+                              context,
+                              'You\'ve changed the trip details. Tap Plan Trip again before updating.',
+                            );
+                            return;
+                          }
+                          // Nothing changed vs the saved trip → block a no-op
+                          // update.
+                          if (!bloc.editHasChanges) {
+                            _showValidationError(
+                              context,
+                              'Change the start, destination, vehicle or battery before updating your trip.',
+                            );
+                            return;
+                          }
                         }
                         context.read<TripPlannerBloc>().add(
                               state.isEditMode
