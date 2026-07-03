@@ -441,19 +441,19 @@ class _FilterScreenState extends State<FilterScreen> {
         onTap: () =>
             setState(() => _availableNowSelected = !_availableNowSelected),
       ),
-      for (final type in types)
-        _chip(
-          context,
-          type,
-          isActive: _selectedTypes.contains(type),
-          onTap: () => setState(() {
-            if (_selectedTypes.contains(type)) {
-              _selectedTypes.remove(type);
-            } else {
-              _selectedTypes.add(type);
-            }
-          }),
-        ),
+      // for (final type in types)
+      //   _chip(
+      //     context,
+      //     type,
+      //     isActive: _selectedTypes.contains(type),
+      //     onTap: () => setState(() {
+      //       if (_selectedTypes.contains(type)) {
+      //         _selectedTypes.remove(type);
+      //       } else {
+      //         _selectedTypes.add(type);
+      //       }
+      //     }),
+      //   ),
     ];
 
     return SingleChildScrollView(
