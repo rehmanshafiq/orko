@@ -1,7 +1,11 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:orko_hubco/core/usecase/usecase.dart';
 import 'package:orko_hubco/core/utils/app_storage/app_storage.dart';
+import 'package:orko_hubco/features/vehicle/domain/entities/vehicle_make_entity.dart';
+import 'package:orko_hubco/features/vehicle/domain/entities/vehicle_model_entity.dart';
 import 'package:orko_hubco/features/vehicle/domain/usecases/add_vehicle_usecase.dart';
+import 'package:orko_hubco/features/vehicle/domain/usecases/create_custom_make_usecase.dart';
+import 'package:orko_hubco/features/vehicle/domain/usecases/create_custom_model_usecase.dart';
 import 'package:orko_hubco/features/vehicle/domain/usecases/delete_vehicle_usecase.dart';
 import 'package:orko_hubco/features/vehicle/domain/usecases/get_user_vehicles_usecase.dart';
 import 'package:orko_hubco/features/vehicle/domain/usecases/get_vehicle_makes_usecase.dart';
@@ -11,6 +15,12 @@ import 'package:orko_hubco/features/vehicle/presentation/cubit/vehicle_state.dar
 /// Outcome of add-vehicle, surfaced to the dialog for snackbars/closing.
 typedef VehicleActionResult = ({bool success, String message});
 
+/// Outcome of creating a custom make (carries the new make on success).
+typedef CustomMakeResult = ({bool success, String message, VehicleMakeEntity? make});
+
+/// Outcome of creating a custom model (carries the new model on success).
+typedef CustomModelResult = ({bool success, String message, VehicleModelEntity? model});
+
 class VehicleCubit extends Cubit<VehicleState> {
   VehicleCubit({
     required GetVehicleMakesUseCase getMakesUseCase,
@@ -18,11 +28,15 @@ class VehicleCubit extends Cubit<VehicleState> {
     required AddVehicleUseCase addVehicleUseCase,
     required GetUserVehiclesUseCase getUserVehiclesUseCase,
     required DeleteVehicleUseCase deleteVehicleUseCase,
+    required CreateCustomMakeUseCase createCustomMakeUseCase,
+    required CreateCustomModelUseCase createCustomModelUseCase,
   })  : _getMakesUseCase = getMakesUseCase,
         _getModelsUseCase = getModelsUseCase,
         _addVehicleUseCase = addVehicleUseCase,
         _getUserVehiclesUseCase = getUserVehiclesUseCase,
         _deleteVehicleUseCase = deleteVehicleUseCase,
+        _createCustomMakeUseCase = createCustomMakeUseCase,
+        _createCustomModelUseCase = createCustomModelUseCase,
         super(const VehicleState());
 
   final GetVehicleMakesUseCase _getMakesUseCase;
@@ -30,6 +44,8 @@ class VehicleCubit extends Cubit<VehicleState> {
   final AddVehicleUseCase _addVehicleUseCase;
   final GetUserVehiclesUseCase _getUserVehiclesUseCase;
   final DeleteVehicleUseCase _deleteVehicleUseCase;
+  final CreateCustomMakeUseCase _createCustomMakeUseCase;
+  final CreateCustomModelUseCase _createCustomModelUseCase;
 
   /// Loads the user's vehicles for the Vehicles tab. Guests have no server
   /// session, so we surface an empty list rather than an Unauthorized error.
@@ -117,6 +133,79 @@ class VehicleCubit extends Cubit<VehicleState> {
       models: const [],
       clearModelsError: true,
     ));
+  }
+
+  /// Creates a custom make and appends it to the makes list so it can be
+  /// selected immediately. Returns the created make on success.
+  Future<CustomMakeResult> createCustomMake(String name) async {
+    if (state.isCreatingMake) {
+      return (success: false, message: 'Please wait…', make: null);
+    }
+    emit(state.copyWith(isCreatingMake: true));
+    final result = await _createCustomMakeUseCase(name);
+    if (isClosed) return (success: false, message: '', make: null);
+    return result.fold(
+      (failure) {
+        emit(state.copyWith(isCreatingMake: false));
+        return (success: false, message: failure.message, make: null);
+      },
+      (make) {
+        // Append (avoid duplicates) so the dropdown immediately offers it.
+        final makes = [
+          ...state.makes.where((m) => m.id != make.id),
+          make,
+        ];
+        emit(state.copyWith(
+          isCreatingMake: false,
+          makes: makes,
+          makesStatus: VehicleStatus.success,
+          clearMakesError: true,
+        ));
+        return (success: true, message: 'Make added.', make: make);
+      },
+    );
+  }
+
+  /// Creates a custom model under [mdMake] and appends it to the models list so
+  /// it can be selected immediately. Returns the created model on success.
+  Future<CustomModelResult> createCustomModel({
+    required int mdMake,
+    required String name,
+    required String connectorType,
+    required double batteryCapacity,
+    required int mileage,
+  }) async {
+    if (state.isCreatingModel) {
+      return (success: false, message: 'Please wait…', model: null);
+    }
+    emit(state.copyWith(isCreatingModel: true));
+    final result = await _createCustomModelUseCase(CreateCustomModelParams(
+      mdMake: mdMake,
+      name: name,
+      connectorType: connectorType,
+      batteryCapacity: batteryCapacity,
+      mileage: mileage,
+    ));
+    if (isClosed) return (success: false, message: '', model: null);
+    return result.fold(
+      (failure) {
+        emit(state.copyWith(isCreatingModel: false));
+        return (success: false, message: failure.message, model: null);
+      },
+      (model) {
+        final models = [
+          ...state.models.where((m) => m.id != model.id),
+          model,
+        ];
+        emit(state.copyWith(
+          isCreatingModel: false,
+          models: models,
+          modelsStatus: VehicleStatus.success,
+          clearModelsError: true,
+        ));
+        return (success: true, message: 'Model added.', model: model);
+      },
+    );
   }
 
   /// Creates a vehicle, then silently refreshes the user's vehicle list.

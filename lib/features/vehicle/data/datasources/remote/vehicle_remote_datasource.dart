@@ -23,4 +23,18 @@ abstract class VehicleRemoteDataSource {
 
   /// `DELETE api/v1/vehicle/add-vehicle/` — soft-deletes the vehicle [id].
   Future<void> deleteVehicle({required int id});
+
+  /// `POST api/v1/vehicle/custom-make/` — creates a tenant custom make and
+  /// returns it (so it can be selected in the make dropdown).
+  Future<VehicleMakeModel> createCustomMake({required String name});
+
+  /// `POST api/v1/vehicle/custom-model/` — creates a custom model under
+  /// [mdMake] and returns it.
+  Future<VehicleModelModel> createCustomModel({
+    required int mdMake,
+    required String name,
+    required String connectorType,
+    required double batteryCapacity,
+    required int mileage,
+  });
 }

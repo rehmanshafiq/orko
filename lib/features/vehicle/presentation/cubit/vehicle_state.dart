@@ -18,6 +18,8 @@ class VehicleState extends Equatable {
     this.modelsError,
     this.isSubmitting = false,
     this.deletingId,
+    this.isCreatingMake = false,
+    this.isCreatingModel = false,
   });
 
   // ── User's vehicles (Vehicles tab) ──────────────────────────────────────
@@ -41,6 +43,10 @@ class VehicleState extends Equatable {
   /// Id of the vehicle currently being deleted (drives a per-card spinner).
   final int? deletingId;
 
+  /// True while a custom make / model creation request is in flight.
+  final bool isCreatingMake;
+  final bool isCreatingModel;
+
   bool isDeleting(int id) => deletingId == id;
 
   VehicleState copyWith({
@@ -59,6 +65,8 @@ class VehicleState extends Equatable {
     bool? isSubmitting,
     int? deletingId,
     bool clearDeletingId = false,
+    bool? isCreatingMake,
+    bool? isCreatingModel,
   }) {
     return VehicleState(
       vehiclesStatus: vehiclesStatus ?? this.vehiclesStatus,
@@ -73,6 +81,8 @@ class VehicleState extends Equatable {
       modelsError: clearModelsError ? null : (modelsError ?? this.modelsError),
       isSubmitting: isSubmitting ?? this.isSubmitting,
       deletingId: clearDeletingId ? null : (deletingId ?? this.deletingId),
+      isCreatingMake: isCreatingMake ?? this.isCreatingMake,
+      isCreatingModel: isCreatingModel ?? this.isCreatingModel,
     );
   }
 
@@ -89,5 +99,7 @@ class VehicleState extends Equatable {
         modelsError,
         isSubmitting,
         deletingId,
+        isCreatingMake,
+        isCreatingModel,
       ];
 }

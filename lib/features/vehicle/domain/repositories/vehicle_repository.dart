@@ -27,4 +27,18 @@ abstract class VehicleRepository {
 
   /// `DELETE /vehicle/add-vehicle/` — soft-deletes the vehicle [id].
   Future<Either<Failure, void>> deleteVehicle({required int id});
+
+  /// `POST /vehicle/custom-make/` — creates a custom make; returns it.
+  Future<Either<Failure, VehicleMakeEntity>> createCustomMake({
+    required String name,
+  });
+
+  /// `POST /vehicle/custom-model/` — creates a custom model; returns it.
+  Future<Either<Failure, VehicleModelEntity>> createCustomModel({
+    required int mdMake,
+    required String name,
+    required String connectorType,
+    required double batteryCapacity,
+    required int mileage,
+  });
 }

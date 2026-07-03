@@ -90,6 +90,59 @@ class VehicleRemoteDataSourceImpl implements VehicleRemoteDataSource {
   }
 
   @override
+  Future<VehicleMakeModel> createCustomMake({required String name}) async {
+    return _guard('custom-make', () async {
+      final url = _endpointUrl(
+        (e) => e.customMake,
+        fallbackPath: 'api/v1/vehicle/custom-make/',
+        unavailableMessage: 'Adding a custom make is not available right now',
+      );
+      log('[Vehicle] Custom make URL: $url (name: $name)');
+
+      final response = await apiClient.post(url, data: {'name': name});
+      final body = _bodyOf(response, fallback: 'Failed to create make');
+      if (body is Map) {
+        return VehicleMakeModel.fromJson(Map<String, dynamic>.from(body));
+      }
+      throw const ServerException(message: 'Failed to create make');
+    });
+  }
+
+  @override
+  Future<VehicleModelModel> createCustomModel({
+    required int mdMake,
+    required String name,
+    required String connectorType,
+    required double batteryCapacity,
+    required int mileage,
+  }) async {
+    return _guard('custom-model', () async {
+      final url = _endpointUrl(
+        (e) => e.customModel,
+        fallbackPath: 'api/v1/vehicle/custom-model/',
+        unavailableMessage: 'Adding a custom model is not available right now',
+      );
+      log('[Vehicle] Custom model URL: $url (make: $mdMake, name: $name)');
+
+      final response = await apiClient.post(
+        url,
+        data: {
+          'md_make': mdMake,
+          'name': name,
+          'connector_type': connectorType,
+          'battery_capacity': batteryCapacity,
+          'mileage': mileage,
+        },
+      );
+      final body = _bodyOf(response, fallback: 'Failed to create model');
+      if (body is Map) {
+        return VehicleModelModel.fromJson(Map<String, dynamic>.from(body));
+      }
+      throw const ServerException(message: 'Failed to create model');
+    });
+  }
+
+  @override
   Future<List<UserVehicleModel>> getUserVehicles() async {
     return _guard('user-vehicles', () async {
       final url = _endpointUrl(

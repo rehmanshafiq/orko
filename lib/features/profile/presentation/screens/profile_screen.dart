@@ -2155,11 +2155,27 @@ class _AddVehicleDialog extends StatefulWidget {
 }
 
 class _AddVehicleDialogState extends State<_AddVehicleDialog> {
+  /// Sentinel dropdown value for the "Other (add custom)" option.
+  static const int _kOther = -1;
+
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _rfidController = TextEditingController();
 
+  // Custom make / model inputs.
+  final TextEditingController _customMakeController = TextEditingController();
+  final TextEditingController _customModelNameController =
+      TextEditingController();
+  final TextEditingController _connectorController = TextEditingController();
+  final TextEditingController _batteryController = TextEditingController();
+  final TextEditingController _mileageController = TextEditingController();
+
   int? _selectedMakeId;
   int? _selectedModelId;
+
+  /// Whether the inline "add custom make/model" forms are showing (i.e. the
+  /// user picked "Other" and hasn't created it yet).
+  bool _showCustomMakeForm = false;
+  bool _showCustomModelForm = false;
 
   @override
   void initState() {
@@ -2175,19 +2191,143 @@ class _AddVehicleDialogState extends State<_AddVehicleDialog> {
   @override
   void dispose() {
     _rfidController.dispose();
+    _customMakeController.dispose();
+    _customModelNameController.dispose();
+    _connectorController.dispose();
+    _batteryController.dispose();
+    _mileageController.dispose();
     super.dispose();
   }
 
   void _onMakeChanged(int? makeId) {
-    if (makeId == null || makeId == _selectedMakeId) return;
+    if (makeId == null) return;
+    // "Other" → reveal the custom-make text input instead of selecting a make.
+    if (makeId == _kOther) {
+      setState(() {
+        _showCustomMakeForm = true;
+        _selectedMakeId = null;
+        _selectedModelId = null;
+        _showCustomModelForm = false;
+      });
+      context.read<VehicleCubit>().resetModels();
+      return;
+    }
+    if (makeId == _selectedMakeId && !_showCustomMakeForm) return;
     setState(() {
       _selectedMakeId = makeId;
       _selectedModelId = null;
+      _showCustomMakeForm = false;
+      _showCustomModelForm = false;
     });
     context.read<VehicleCubit>().loadModels(makeId);
   }
 
+  void _onModelChanged(int? modelId) {
+    if (modelId == null) return;
+    if (modelId == _kOther) {
+      setState(() {
+        _showCustomModelForm = true;
+        _selectedModelId = null;
+      });
+      return;
+    }
+    setState(() {
+      _selectedModelId = modelId;
+      _showCustomModelForm = false;
+    });
+  }
+
+  /// Creates the custom make, then selects it so the user can add a model.
+  Future<void> _onCreateCustomMake() async {
+    final name = _customMakeController.text.trim();
+    if (name.isEmpty) {
+      _showError('Enter a make name.');
+      return;
+    }
+    final cubit = context.read<VehicleCubit>();
+    final result = await cubit.createCustomMake(name);
+    if (!mounted) return;
+    if (result.success && result.make != null) {
+      setState(() {
+        _selectedMakeId = result.make!.id;
+        _showCustomMakeForm = false;
+        // A brand-new make has no models yet — force the custom-model form.
+        _selectedModelId = null;
+        _showCustomModelForm = false;
+      });
+      cubit.resetModels();
+    } else {
+      _showError(result.message);
+    }
+  }
+
+  /// Creates the custom model under the selected make, then selects it.
+  Future<void> _onCreateCustomModel() async {
+    final makeId = _selectedMakeId;
+    if (makeId == null) {
+      _showError('Select or create a make first.');
+      return;
+    }
+    final name = _customModelNameController.text.trim();
+    final connector = _connectorController.text.trim();
+    final battery = double.tryParse(_batteryController.text.trim());
+    final mileage = int.tryParse(_mileageController.text.trim());
+    if (name.isEmpty) {
+      _showError('Enter a model name.');
+      return;
+    }
+    if (connector.isEmpty) {
+      _showError('Enter the connector type (e.g. CCS).');
+      return;
+    }
+    if (battery == null || battery <= 0) {
+      _showError('Enter a valid battery capacity (kWh).');
+      return;
+    }
+    if (mileage == null || mileage <= 0) {
+      _showError('Enter a valid mileage (km).');
+      return;
+    }
+    final cubit = context.read<VehicleCubit>();
+    final result = await cubit.createCustomModel(
+      mdMake: makeId,
+      name: name,
+      connectorType: connector,
+      batteryCapacity: battery,
+      mileage: mileage,
+    );
+    if (!mounted) return;
+    if (result.success && result.model != null) {
+      setState(() {
+        _selectedModelId = result.model!.id;
+        _showCustomModelForm = false;
+      });
+    } else {
+      _showError(result.message);
+    }
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: AppColors.removeColor,
+        ),
+      );
+  }
+
   Future<void> _submit() async {
+    // Custom make/model must be created (not just typed) before submitting.
+    if (_showCustomMakeForm || _selectedMakeId == null) {
+      _showError('Please select a make, or add your custom make first.');
+      return;
+    }
+    if (_showCustomModelForm || _selectedModelId == null) {
+      _showError('Please select a model, or add your custom model first.');
+      return;
+    }
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
     final cubit = context.read<VehicleCubit>();
@@ -2282,8 +2422,16 @@ class _AddVehicleDialogState extends State<_AddVehicleDialog> {
                     ),
                     18.verticalSpace,
                     _buildMakeField(ui, state),
+                    if (_showCustomMakeForm) ...[
+                      10.verticalSpace,
+                      _buildCustomMakeForm(ui, state),
+                    ],
                     14.verticalSpace,
                     _buildModelField(ui, state),
+                    if (_showCustomModelForm) ...[
+                      10.verticalSpace,
+                      _buildCustomModelForm(ui, state),
+                    ],
                     14.verticalSpace,
                     _buildRfidField(ui),
                     22.verticalSpace,
@@ -2366,12 +2514,15 @@ class _AddVehicleDialogState extends State<_AddVehicleDialog> {
       );
     }
     return _VehicleDropdownField<int>(
+      // Rebuild when the selection changes programmatically (e.g. after
+      // creating a custom make), so the field reflects the new value.
+      key: ValueKey('make_${_showCustomMakeForm ? 'other' : _selectedMakeId}'),
       ui: ui,
       label: 'Vehicle',
       hintText: state.makesStatus == VehicleStatus.loading
           ? 'Loading makes...'
           : 'Select Vehicle',
-      value: _selectedMakeId,
+      value: _showCustomMakeForm ? _kOther : _selectedMakeId,
       isLoading: state.makesStatus == VehicleStatus.loading,
       enabled: state.makesStatus == VehicleStatus.success,
       items: [
@@ -2395,9 +2546,33 @@ class _AddVehicleDialogState extends State<_AddVehicleDialog> {
               ],
             ),
           ),
+        _otherDropdownItem(ui),
       ],
-      validator: (v) => v == null ? 'Make is required' : null,
+      validator: (v) =>
+          (v == null || v == _kOther) && !_showCustomMakeForm
+              ? 'Make is required'
+              : null,
       onChanged: _onMakeChanged,
+    );
+  }
+
+  /// The shared "Other (add custom)" dropdown option.
+  DropdownMenuItem<int> _otherDropdownItem(AppUiColors ui) {
+    return DropdownMenuItem<int>(
+      value: _kOther,
+      child: Row(
+        children: [
+          Icon(Icons.add_circle_outline_rounded,
+              size: 18.r, color: ui.brandPrimary),
+          8.horizontalSpace,
+          AppText(
+            'Other (add custom)',
+            color: ui.brandPrimary,
+            fontSize: FontSizes.font14Sp,
+            fontWeight: FontWeights.weight600,
+          ),
+        ],
+      ),
     );
   }
 
@@ -2414,17 +2589,22 @@ class _AddVehicleDialogState extends State<_AddVehicleDialog> {
     }
     final hasModels = state.models.isNotEmpty;
     final loading = state.modelsStatus == VehicleStatus.loading;
+    // A make must be picked/created first; once it is, "Other" is always
+    // offered (a brand-new custom make legitimately has no models yet).
+    final makeReady = _selectedMakeId != null && !_showCustomMakeForm;
     return _VehicleDropdownField<int>(
+      key: ValueKey(
+          'model_${_showCustomModelForm ? 'other' : _selectedModelId}_$makeReady'),
       ui: ui,
       label: 'Model',
-      hintText: _selectedMakeId == null
+      hintText: !makeReady
           ? 'Select make first'
           : loading
               ? 'Loading models...'
-              : (hasModels ? 'Select model' : 'No models available'),
-      value: _selectedModelId,
+              : (hasModels ? 'Select model' : 'Add a custom model'),
+      value: _showCustomModelForm ? _kOther : _selectedModelId,
       isLoading: loading,
-      enabled: _selectedMakeId != null && hasModels && !loading,
+      enabled: makeReady && !loading,
       items: [
         for (final model in state.models)
           DropdownMenuItem<int>(
@@ -2440,9 +2620,217 @@ class _AddVehicleDialogState extends State<_AddVehicleDialog> {
               overflow: TextOverflow.ellipsis,
             ),
           ),
+        _otherDropdownItem(ui),
       ],
-      validator: (v) => v == null ? 'Model is required' : null,
-      onChanged: (v) => setState(() => _selectedModelId = v),
+      validator: (v) =>
+          (v == null || v == _kOther) && !_showCustomModelForm
+              ? 'Model is required'
+              : null,
+      onChanged: _onModelChanged,
+    );
+  }
+
+  /// Inline "add custom make" form shown when the user picks "Other".
+  Widget _buildCustomMakeForm(AppUiColors ui, VehicleState state) {
+    return Container(
+      padding: AppUtils.all12Padding,
+      decoration: BoxDecoration(
+        color: ui.inputFill,
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(color: ui.borderSubtle),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _customInput(
+            ui,
+            label: 'Make Name',
+            controller: _customMakeController,
+            hint: 'e.g. Tesla',
+            capitalization: TextCapitalization.words,
+          ),
+          12.verticalSpace,
+          _customActionButton(
+            label: 'Add Make',
+            loading: state.isCreatingMake,
+            onTap: _onCreateCustomMake,
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Inline "add custom model" form shown when the user picks "Other".
+  Widget _buildCustomModelForm(AppUiColors ui, VehicleState state) {
+    return Container(
+      padding: AppUtils.all12Padding,
+      decoration: BoxDecoration(
+        color: ui.inputFill,
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(color: ui.borderSubtle),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _customInput(
+            ui,
+            label: 'Model Name',
+            controller: _customModelNameController,
+            hint: 'e.g. Model 3',
+            capitalization: TextCapitalization.words,
+          ),
+          12.verticalSpace,
+          _customInput(
+            ui,
+            label: 'Connector Type',
+            controller: _connectorController,
+            hint: 'e.g. CCS',
+            capitalization: TextCapitalization.characters,
+          ),
+          12.verticalSpace,
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: _customInput(
+                  ui,
+                  label: 'Battery (kWh)',
+                  controller: _batteryController,
+                  hint: 'e.g. 60',
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                  ],
+                ),
+              ),
+              12.horizontalSpace,
+              Expanded(
+                child: _customInput(
+                  ui,
+                  label: 'Mileage (km)',
+                  controller: _mileageController,
+                  hint: 'e.g. 200',
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                  ],
+                ),
+              ),
+            ],
+          ),
+          12.verticalSpace,
+          _customActionButton(
+            label: 'Add Model',
+            loading: state.isCreatingModel,
+            onTap: _onCreateCustomModel,
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// A labelled text input styled like the registration field, used by the
+  /// custom make/model forms (plain [TextField] — validated manually).
+  Widget _customInput(
+    AppUiColors ui, {
+    required String label,
+    required TextEditingController controller,
+    required String hint,
+    TextInputType keyboardType = TextInputType.text,
+    TextCapitalization capitalization = TextCapitalization.none,
+    List<TextInputFormatter>? inputFormatters,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        AppText(
+          label,
+          color: ui.textPrimary,
+          fontSize: FontSizes.font12Sp,
+          fontWeight: FontWeights.weight600,
+        ),
+        6.verticalSpace,
+        TextField(
+          controller: controller,
+          keyboardType: keyboardType,
+          textCapitalization: capitalization,
+          inputFormatters: inputFormatters,
+          style: TextStyle(
+            color: ui.textPrimary,
+            fontSize: FontSizes.font14Sp,
+            fontWeight: FontWeights.weight500,
+            fontFamily: AppFonts.lexend,
+          ),
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: ui.cardBackground,
+            isDense: true,
+            hintText: hint,
+            hintStyle: TextStyle(
+              color: AppColors.hintColor,
+              fontSize: FontSizes.font14Sp,
+              fontWeight: FontWeights.weight400,
+              fontFamily: AppFonts.lexend,
+            ),
+            contentPadding:
+                EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12.r),
+              borderSide: BorderSide(color: ui.inputBorder),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12.r),
+              borderSide: BorderSide(color: ui.brandPrimary),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Small gradient action button (with in-flight spinner) for the custom forms.
+  Widget _customActionButton({
+    required String label,
+    required bool loading,
+    required VoidCallback onTap,
+  }) {
+    if (loading) {
+      return Container(
+        height: 38.h,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(24.r),
+          gradient: const LinearGradient(
+            colors: [
+              AppColors.primaryDarkColor,
+              AppColors.primaryDarkButtonColor,
+            ],
+          ),
+        ),
+        child: SizedBox(
+          width: 18.r,
+          height: 18.r,
+          child: const CircularProgressIndicator(
+            strokeWidth: 2,
+            color: AppColors.whiteColor,
+          ),
+        ),
+      );
+    }
+    return PrimaryButtonWidget(
+      text: label,
+      onPress: onTap,
+      buttonWidth: double.infinity,
+      buttonHeight: 38.h,
+      cornerRadius: 24.r,
+      gradientColors: const [
+        AppColors.primaryDarkColor,
+        AppColors.primaryDarkButtonColor,
+      ],
+      textColor: AppColors.whiteColor,
+      fontSize: FontSizes.font14Sp,
+      fontWeight: FontWeights.weight700,
     );
   }
 
@@ -2555,6 +2943,7 @@ class _MakeLogo extends StatelessWidget {
 /// A labelled dropdown matching the dialog's field styling.
 class _VehicleDropdownField<T> extends StatelessWidget {
   const _VehicleDropdownField({
+    super.key,
     required this.ui,
     required this.label,
     required this.hintText,

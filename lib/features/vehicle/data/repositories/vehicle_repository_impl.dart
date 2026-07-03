@@ -57,6 +57,32 @@ class VehicleRepositoryImpl implements VehicleRepository {
     return _run(() => remoteDataSource.deleteVehicle(id: id));
   }
 
+  @override
+  Future<Either<Failure, VehicleMakeEntity>> createCustomMake({
+    required String name,
+  }) {
+    return _run(() => remoteDataSource.createCustomMake(name: name));
+  }
+
+  @override
+  Future<Either<Failure, VehicleModelEntity>> createCustomModel({
+    required int mdMake,
+    required String name,
+    required String connectorType,
+    required double batteryCapacity,
+    required int mileage,
+  }) {
+    return _run(
+      () => remoteDataSource.createCustomModel(
+        mdMake: mdMake,
+        name: name,
+        connectorType: connectorType,
+        batteryCapacity: batteryCapacity,
+        mileage: mileage,
+      ),
+    );
+  }
+
   /// Shared connectivity guard + exception→failure mapping for every call.
   Future<Either<Failure, T>> _run<T>(Future<T> Function() action) async {
     if (!await networkInfo.isConnected) {

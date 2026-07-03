@@ -174,6 +174,8 @@ class ApiEndpoints extends Equatable {
     required this.vehicleMakes,
     required this.vehicleModels,
     required this.addVehicle,
+    required this.customMake,
+    required this.customModel,
     required this.deleteVehicle,
     required this.userVehicles,
     required this.chargerCompatibility,
@@ -225,6 +227,8 @@ class ApiEndpoints extends Equatable {
   final String vehicleMakes;
   final String vehicleModels;
   final String addVehicle;
+  final String customMake;
+  final String customModel;
   final String deleteVehicle;
   final String userVehicles;
   final String chargerCompatibility;
@@ -279,6 +283,8 @@ class ApiEndpoints extends Equatable {
       vehicleMakes: json['vehicle_makes'] as String? ?? '',
       vehicleModels: json['vehicle_models'] as String? ?? '',
       addVehicle: json['add_vehicle'] as String? ?? '',
+      customMake: json['custom_make'] as String? ?? '',
+      customModel: json['custom_model'] as String? ?? '',
       deleteVehicle: json['delete_vehicle'] as String? ?? '',
       userVehicles: json['user_vehicles'] as String? ?? '',
       chargerCompatibility: json['charger_compatibility'] as String? ?? '',
@@ -337,6 +343,8 @@ class ApiEndpoints extends Equatable {
       'vehicle_makes': vehicleMakes,
       'vehicle_models': vehicleModels,
       'add_vehicle': addVehicle,
+      'custom_make': customMake,
+      'custom_model': customModel,
       'delete_vehicle': deleteVehicle,
       'user_vehicles': userVehicles,
       'charger_compatibility': chargerCompatibility,
@@ -390,6 +398,8 @@ class ApiEndpoints extends Equatable {
     String? vehicleMakes,
     String? vehicleModels,
     String? addVehicle,
+    String? customMake,
+    String? customModel,
     String? deleteVehicle,
     String? userVehicles,
     String? chargerCompatibility,
@@ -445,6 +455,8 @@ class ApiEndpoints extends Equatable {
       vehicleMakes: vehicleMakes ?? this.vehicleMakes,
       vehicleModels: vehicleModels ?? this.vehicleModels,
       addVehicle: addVehicle ?? this.addVehicle,
+      customMake: customMake ?? this.customMake,
+      customModel: customModel ?? this.customModel,
       deleteVehicle: deleteVehicle ?? this.deleteVehicle,
       userVehicles: userVehicles ?? this.userVehicles,
       chargerCompatibility: chargerCompatibility ?? this.chargerCompatibility,
@@ -504,6 +516,8 @@ class ApiEndpoints extends Equatable {
     vehicleMakes,
     vehicleModels,
     addVehicle,
+    customMake,
+    customModel,
     deleteVehicle,
     userVehicles,
     chargerCompatibility,
