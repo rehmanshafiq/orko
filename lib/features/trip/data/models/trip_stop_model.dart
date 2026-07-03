@@ -22,6 +22,7 @@ class TripStopModel extends TripStopEntity {
     super.connectorId,
     super.connectorTypeMatchesVehicle,
     super.distanceFromRouteKm,
+    super.distanceFromPreviousStopKm,
     super.amenities,
   });
 
@@ -42,6 +43,8 @@ class TripStopModel extends TripStopEntity {
       connectorPowerKw: TripJson.asDouble(json['connector_power_kw']),
       distanceFromStartKm: TripJson.asDouble(json['distance_from_start_km']),
       distanceFromRouteKm: TripJson.asDoubleOrNull(json['distance_from_route_km']),
+      distanceFromPreviousStopKm:
+          TripJson.asDoubleOrNull(json['distance_from_previous_stop_km']),
       arrivalSoc: TripJson.asDouble(json['arrival_soc']),
       departureSoc: TripJson.asDouble(json['departure_soc']),
       energyAddedKwh: TripJson.asDouble(json['energy_added_kwh']),

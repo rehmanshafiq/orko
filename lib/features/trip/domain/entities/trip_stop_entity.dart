@@ -26,6 +26,7 @@ class TripStopEntity extends Equatable {
     this.connectorId,
     this.connectorTypeMatchesVehicle = true,
     this.distanceFromRouteKm,
+    this.distanceFromPreviousStopKm,
     this.amenities = const [],
   });
 
@@ -45,6 +46,10 @@ class TripStopEntity extends Equatable {
 
   /// Only present on `plan-trip` stops.
   final double? distanceFromRouteKm;
+
+  /// Distance (km) from the previous stop on the route. Only present on
+  /// `plan-trip` stops.
+  final double? distanceFromPreviousStopKm;
   final double arrivalSoc;
   final double departureSoc;
   final double energyAddedKwh;
@@ -68,6 +73,7 @@ class TripStopEntity extends Equatable {
         connectorPowerKw,
         distanceFromStartKm,
         distanceFromRouteKm,
+        distanceFromPreviousStopKm,
         arrivalSoc,
         departureSoc,
         energyAddedKwh,

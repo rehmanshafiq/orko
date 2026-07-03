@@ -151,6 +151,21 @@ class TripChargingStopCardWidget extends StatelessWidget {
               ),
             ],
           ),
+          if (info.distanceFromPreviousStopKm != null) ...[
+            10.verticalSpace,
+            Row(
+              children: [
+                Expanded(
+                  child: TripChargingStopMetricWidget(
+                    label: 'Distance from previous stop',
+                    value:
+                        '${info.distanceFromPreviousStopKm!.toStringAsFixed(2)} km',
+                    valueColor: ui.textPrimary,
+                  ),
+                ),
+              ],
+            ),
+          ],
           if (expanded) ...[
             if (info.amenities.isNotEmpty) ...[
               14.verticalSpace,
