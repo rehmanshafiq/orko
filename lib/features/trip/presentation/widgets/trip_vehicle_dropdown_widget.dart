@@ -132,7 +132,7 @@ class _TripVehicleDropdownWidgetState extends State<TripVehicleDropdownWidget> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         AppText(
-          'Vehicle',
+          'Select Vehicle',
           color: ui.textPrimary,
           fontSize: FontSizes.font12Sp,
           fontWeight: FontWeights.weight600,
