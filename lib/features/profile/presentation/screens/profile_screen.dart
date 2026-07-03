@@ -140,7 +140,7 @@ class ProfileScreen extends StatelessWidget {
                                             ),
                                           )
                                         : AppText(
-                                            'Sign out',
+                                            'Logout',
                                             color: AppColors.removeColor,
                                             fontSize: FontSizes.font14Sp,
                                             fontWeight: FontWeights.weight600,
@@ -3040,11 +3040,12 @@ class _SettingsTabBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ui = AppUiColors.of(context);
+    final storage = sl<LocalStorageService>();
+    final cachedUser = _readCachedUser(storage);
+    final isGuest = storage.isGuest || cachedUser == null;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const _NotificationPreferencesSection(),
-        14.verticalSpace,
         const _AppearanceSection(),
         14.verticalSpace,
         _SectionCard(
@@ -3059,6 +3060,12 @@ class _SettingsTabBody extends StatelessWidget {
               ),
               10.verticalSpace,
               _AccountTile(
+                icon: Icons.person_outline_rounded,
+                label: 'Edit Profile',
+                onTap: () => _onEditProfile(context, cachedUser, isGuest),
+              ),
+              _DividerLine(),
+              _AccountTile(
                 icon: Icons.shield_outlined,
                 label: 'Privacy & Security',
                 onTap: _showComingSoon,
@@ -3072,6 +3079,8 @@ class _SettingsTabBody extends StatelessWidget {
             ],
           ),
         ),
+        14.verticalSpace,
+        const _NotificationPreferencesSection(),
       ],
     );
   }
@@ -3202,8 +3211,20 @@ class _LanguageChip extends StatelessWidget {
 /// (`GET/PATCH /api/v1/notifications/preferences/`). Each toggle is optimistic
 /// and reverts on failure; rows lock individually while their PATCH is in
 /// flight. Guests are prompted to sign in.
-class _NotificationPreferencesSection extends StatelessWidget {
+class _NotificationPreferencesSection extends StatefulWidget {
   const _NotificationPreferencesSection();
+
+  @override
+  State<_NotificationPreferencesSection> createState() =>
+      _NotificationPreferencesSectionState();
+}
+
+class _NotificationPreferencesSectionState
+    extends State<_NotificationPreferencesSection> {
+  // Collapsed by default; tapping the header expands the preferences.
+  bool _expanded = false;
+
+  void _toggle() => setState(() => _expanded = !_expanded);
 
   @override
   Widget build(BuildContext context) {
@@ -3212,13 +3233,22 @@ class _NotificationPreferencesSection extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const _NotificationsHeader(),
-            12.verticalSpace,
-            AppText(
-              'Sign in to manage your notification preferences.',
-              color: AppUiColors.of(context).textSecondary,
-              fontSize: FontSizes.font13Sp,
-              fontWeight: FontWeights.weight400,
+            _NotificationsHeader(expanded: _expanded, onTap: _toggle),
+            AnimatedCrossFade(
+              firstChild: const SizedBox(width: double.infinity),
+              secondChild: Padding(
+                padding: EdgeInsets.only(top: 12.h),
+                child: AppText(
+                  'Sign in to manage your notification preferences.',
+                  color: AppUiColors.of(context).textSecondary,
+                  fontSize: FontSizes.font13Sp,
+                  fontWeight: FontWeights.weight400,
+                ),
+              ),
+              crossFadeState: _expanded
+                  ? CrossFadeState.showSecond
+                  : CrossFadeState.showFirst,
+              duration: const Duration(milliseconds: 200),
             ),
           ],
         ),
@@ -3226,34 +3256,65 @@ class _NotificationPreferencesSection extends StatelessWidget {
     }
     return BlocProvider(
       create: (_) => sl<NotificationPreferencesCubit>()..load(),
-      child: const _NotificationPreferencesView(),
+      child: _NotificationPreferencesView(
+        expanded: _expanded,
+        onToggle: _toggle,
+      ),
     );
   }
 }
 
 class _NotificationsHeader extends StatelessWidget {
-  const _NotificationsHeader();
+  const _NotificationsHeader({this.expanded, this.onTap});
+
+  /// When non-null, a chevron is shown that rotates with the expanded state.
+  final bool? expanded;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     final ui = AppUiColors.of(context);
-    return Row(
+    final row = Row(
       children: [
         Icon(Icons.notifications_outlined, color: ui.textMuted, size: 20.r),
         8.horizontalSpace,
-        AppText(
-          'Notifications',
-          color: ui.textPrimary,
-          fontSize: FontSizes.font16Sp,
-          fontWeight: FontWeights.weight700,
+        Expanded(
+          child: AppText(
+            'Notifications',
+            color: ui.textPrimary,
+            fontSize: FontSizes.font16Sp,
+            fontWeight: FontWeights.weight700,
+          ),
         ),
+        if (expanded != null)
+          AnimatedRotation(
+            turns: expanded! ? 0.5 : 0.0,
+            duration: const Duration(milliseconds: 200),
+            child: Icon(
+              Icons.keyboard_arrow_down_rounded,
+              color: ui.textSecondary,
+              size: 24.r,
+            ),
+          ),
       ],
+    );
+    if (onTap == null) return row;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8.r),
+      child: row,
     );
   }
 }
 
 class _NotificationPreferencesView extends StatelessWidget {
-  const _NotificationPreferencesView();
+  const _NotificationPreferencesView({
+    required this.expanded,
+    required this.onToggle,
+  });
+
+  final bool expanded;
+  final VoidCallback onToggle;
 
   @override
   Widget build(BuildContext context) {
@@ -3276,9 +3337,18 @@ class _NotificationPreferencesView extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const _NotificationsHeader(),
-              8.verticalSpace,
-              _buildBody(context, AppUiColors.of(context), state),
+              _NotificationsHeader(expanded: expanded, onTap: onToggle),
+              AnimatedCrossFade(
+                firstChild: const SizedBox(width: double.infinity),
+                secondChild: Padding(
+                  padding: EdgeInsets.only(top: 8.h),
+                  child: _buildBody(context, AppUiColors.of(context), state),
+                ),
+                crossFadeState: expanded
+                    ? CrossFadeState.showSecond
+                    : CrossFadeState.showFirst,
+                duration: const Duration(milliseconds: 200),
+              ),
             ],
           ),
         );
