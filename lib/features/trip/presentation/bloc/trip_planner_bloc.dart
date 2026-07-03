@@ -9,6 +9,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
+import 'package:orko_hubco/core/utils/helpers.dart';
 import 'package:orko_hubco/core/constants/app_images.dart';
 import 'package:orko_hubco/core/constants/charging_stations.dart';
 import 'package:orko_hubco/core/di/injection_container.dart';
@@ -775,7 +776,7 @@ class TripPlannerBloc extends Bloc<TripPlannerEvent, TripPlannerState> {
     return '${hours}h ${minutes}m';
   }
 
-  String formatPkr(int amount) => 'PKR $amount';
+  String formatPkr(int amount) => AppHelpers.formatRs(amount);
 
   void openChargingStationDetails(
     BuildContext context, {

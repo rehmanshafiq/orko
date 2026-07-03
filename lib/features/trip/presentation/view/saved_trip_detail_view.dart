@@ -5,6 +5,7 @@ import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/di/injection_container.dart';
 import 'package:orko_hubco/core/utils/app_ui.dart';
+import 'package:orko_hubco/core/utils/helpers.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
 import 'package:orko_hubco/features/trip/domain/entities/saved_trip_entity.dart';
 import 'package:orko_hubco/features/trip/domain/entities/trip_stop_entity.dart';
@@ -245,7 +246,7 @@ class _SavedTripDetailViewState extends State<SavedTripDetailView> {
               )
             else
               for (final stop in trip.stops) ...[
-                _StopCard(stop: stop, currency: trip.currency),
+                _StopCard(stop: stop),
                 8.verticalSpace,
               ],
             24.verticalSpace,
@@ -257,7 +258,7 @@ class _SavedTripDetailViewState extends State<SavedTripDetailView> {
   Widget _summary(AppUiColors ui, SavedTripEntity trip) {
     String km(double v) => '${v.round()} km';
     String mins(double v) => '${v.round()} min';
-    String money(double v) => '${trip.currency} ${v.round()}';
+    String money(double v) => AppHelpers.formatRs(v.round());
 
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 14.h),
@@ -317,10 +318,9 @@ class _SavedTripDetailViewState extends State<SavedTripDetailView> {
 }
 
 class _StopCard extends StatelessWidget {
-  const _StopCard({required this.stop, required this.currency});
+  const _StopCard({required this.stop});
 
   final TripStopEntity stop;
-  final String currency;
 
   @override
   Widget build(BuildContext context) {
@@ -358,7 +358,7 @@ class _StopCard extends StatelessWidget {
               Expanded(child: _metric(ui, 'Arrive', '${stop.arrivalSoc.round()}%')),
               Expanded(child: _metric(ui, 'Depart', '${stop.departureSoc.round()}%')),
               Expanded(child: _metric(ui, 'Time', '${stop.chargingMinutes.round()} min')),
-              Expanded(child: _metric(ui, 'Cost', '$currency ${stop.cost.round()}')),
+              Expanded(child: _metric(ui, 'Cost', AppHelpers.formatRs(stop.cost.round()))),
             ],
           ),
         ],

@@ -5,6 +5,7 @@ import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/di/injection_container.dart';
 import 'package:orko_hubco/core/usecase/usecase.dart';
 import 'package:orko_hubco/core/utils/app_ui.dart';
+import 'package:orko_hubco/core/utils/helpers.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
 import 'package:orko_hubco/features/trip/domain/entities/saved_trip_entity.dart';
 import 'package:orko_hubco/features/trip/domain/usecases/get_saved_trips_usecase.dart';
@@ -195,7 +196,7 @@ class _TripCard extends StatelessWidget {
               children: [
                 _meta(ui, '${trip.totalDistanceKm.round()} km'),
                 _dot(ui),
-                _meta(ui, '${trip.currency} ${trip.totalCost.round()}'),
+                _meta(ui, AppHelpers.formatRs(trip.totalCost.round())),
                 _dot(ui),
                 _meta(ui, '${trip.stops.length} stops'),
               ],

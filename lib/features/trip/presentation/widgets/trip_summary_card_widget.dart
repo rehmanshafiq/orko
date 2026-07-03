@@ -25,11 +25,8 @@ class TripSummaryCardWidget extends StatelessWidget {
   }
 
   String _formatChargingCost(int amount) {
-    final formatted = formatPkr(amount);
-    if (formatted.startsWith('PKR ')) {
-      return 'Rs ${formatted.substring(4)}';
-    }
-    return formatted;
+    // `formatPkr` already yields the `Rs. 1,456` style used across the flow.
+    return formatPkr(amount);
   }
 
   @override

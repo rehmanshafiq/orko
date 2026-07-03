@@ -17,6 +17,14 @@ class AppHelpers {
     return '$currency ${_amountFormat.format(amount)}';
   }
 
+  /// Whole-number, comma-grouped amount (e.g. `1456` → `1,456`).
+  static final NumberFormat _wholeAmountFormat = NumberFormat('#,##0');
+
+  /// Formats a monetary [amount] as `Rs. 1,456` — comma-grouped, no decimals.
+  /// Used across the trip-planner flow for a consistent currency style.
+  static String formatRs(num amount) =>
+      'Rs. ${_wholeAmountFormat.format(amount)}';
+
   /// Shows a snackbar with the given message.
   static void showSnackBar(BuildContext context, String message, {bool isError = false}) {
     ScaffoldMessenger.of(context).showSnackBar(
