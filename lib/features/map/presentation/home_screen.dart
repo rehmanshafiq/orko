@@ -24,6 +24,7 @@ import 'package:orko_hubco/features/notifications/domain/usecases/get_unread_cou
 import 'package:orko_hubco/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:orko_hubco/features/auth/presentation/cubit/auth_state.dart';
 import 'package:orko_hubco/features/map/domain/entities/hubco_location_entity.dart';
+import 'package:orko_hubco/features/map/domain/entities/station_filters.dart';
 import 'package:orko_hubco/features/map/presentation/cubit/map_state.dart';
 import 'package:orko_hubco/features/map/presentation/cubit/map_cubit.dart';
 import 'package:orko_hubco/features/map/presentation/widgets/map_filters_bottom_sheet.dart';
@@ -125,6 +126,10 @@ class _HomeScreenState extends State<HomeScreen> {
   /// updates (and the SDK's marker-redraw flicker) when panning doesn't change
   /// the grouping.
   String _lastClusterSignature = '';
+
+  /// Whether the results sheet is expanded to fill the screen. Only usable when
+  /// filters are applied; forced back to false whenever filters are cleared.
+  bool _sheetExpanded = false;
 
   /// Unread notification count for the bell badge. 0 hides the badge.
   int _unreadCount = 0;
@@ -841,6 +846,11 @@ class _HomeScreenState extends State<HomeScreen> {
           },
           builder: (context, state) {
             final errorMessage = state is MapError ? state.message : null;
+            // Filters drive the "Results"/full-screen behaviour; only usable
+            // when something is actually filtered.
+            final filtersApplied =
+                !context.read<MapCubit>().currentFilters.isEmpty;
+            final sheetExpanded = _sheetExpanded && filtersApplied;
 
             return Stack(
               children: [
@@ -892,33 +902,43 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: _buildErrorBanner(context, errorMessage),
                         ),
                       ],
-                      Expanded(
-                        child: Align(
-                          alignment: Alignment.bottomRight,
-                          child: Padding(
-                            padding: const EdgeInsets.only(right: 16, bottom: 16),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                if (_showZoomOutButton) ...[
+                      // When the sheet is expanded it fills the remaining space
+                      // (covering the map, like the Filter results screen);
+                      // otherwise the map controls float above the compact sheet.
+                      if (sheetExpanded)
+                        Expanded(
+                          child: _buildBottomSheet(context, expanded: true),
+                        )
+                      else ...[
+                        Expanded(
+                          child: Align(
+                            alignment: Alignment.bottomRight,
+                            child: Padding(
+                              padding:
+                                  const EdgeInsets.only(right: 16, bottom: 16),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  if (_showZoomOutButton) ...[
+                                    _buildMapControlButton(
+                                      context,
+                                      icon: Icons.zoom_out_map_rounded,
+                                      onTap: _zoomOutToInitial,
+                                    ),
+                                    8.verticalSpace,
+                                  ],
                                   _buildMapControlButton(
                                     context,
-                                    icon: Icons.zoom_out_map_rounded,
-                                    onTap: _zoomOutToInitial,
+                                    icon: Icons.my_location_rounded,
+                                    onTap: _goToMyLocation,
                                   ),
-                                  8.verticalSpace,
                                 ],
-                                _buildMapControlButton(
-                                  context,
-                                  icon: Icons.my_location_rounded,
-                                  onTap: _goToMyLocation,
-                                ),
-                              ],
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      _buildBottomSheet(context),
+                        _buildBottomSheet(context, expanded: false),
+                      ],
                     ],
                   ),
                 ),
@@ -1156,17 +1176,142 @@ class _HomeScreenState extends State<HomeScreen> {
   /// the bottom-sheet list; the map markers still show every station.
   static const double _nearbyStationsMaxDistanceKm = 30;
 
-  Widget _buildBottomSheet(BuildContext context) {
+  /// Clears the applied filters: reloads the map with an empty filter set, which
+  /// reverts the sheet to "Nearby Stations" (30 km cap), repaints every charger
+  /// marker, and hides the "Clear Filter" affordance. Also collapses the sheet.
+  void _clearFilters() {
+    if (_sheetExpanded) setState(() => _sheetExpanded = false);
+    context.read<MapCubit>().applyFilters(const StationFilters());
+  }
+
+  /// Handles a vertical drag on the sheet header. Swiping up expands the sheet
+  /// to full screen (only when filters are applied); swiping down collapses it.
+  void _onSheetDragEnd(DragEndDetails details, {required bool filtersApplied}) {
+    final velocity = details.primaryVelocity ?? 0;
+    if (velocity < -80 && filtersApplied && !_sheetExpanded) {
+      setState(() => _sheetExpanded = true);
+    } else if (velocity > 80 && _sheetExpanded) {
+      setState(() => _sheetExpanded = false);
+    }
+  }
+
+  Widget _buildBottomSheet(BuildContext context, {required bool expanded}) {
     final ui = AppUiColors.of(context);
-    // Only stations within 30 km feed the Nearby Stations list (map unaffected).
-    final allStations = _locations
-        .where((s) => s.distance <= _nearbyStationsMaxDistanceKm)
-        .toList();
+    // When filters from the sheet are applied, mirror the Filter results screen:
+    // list every matching station under a "Results" heading. Otherwise fall back
+    // to the distance-capped "Nearby Stations" list.
+    final filtersApplied = !context.read<MapCubit>().currentFilters.isEmpty;
+    final allStations = filtersApplied
+        ? _locations
+        : _locations
+            .where((s) => s.distance <= _nearbyStationsMaxDistanceKm)
+            .toList();
     final types = _distinctConnectorTypes(allStations);
     // Ignore any stale selections for types not present in the current data.
     final activeTypes = _selectedTypes.where(types.contains).toSet();
     final nearbyStations = _applyChipFilters(allStations, activeTypes);
     final hasActiveFilters = _availableNowSelected || activeTypes.isNotEmpty;
+
+    // Header (handle + title/clear + chips) doubles as the drag target that
+    // expands/collapses the sheet. Kept off the list so list scrolling is
+    // unaffected.
+    final header = GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onVerticalDragEnd: (d) =>
+          _onSheetDragEnd(d, filtersApplied: filtersApplied),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Align(
+            child: Container(
+              height: 3.h,
+              width: 66.w,
+              decoration: BoxDecoration(
+                color: ui.textSecondary.withValues(alpha: 0.65),
+                borderRadius: BorderRadius.circular(10.r),
+              ),
+            ),
+          ),
+          12.verticalSpace,
+          Row(
+            children: [
+              Expanded(
+                child: AppText(
+                  filtersApplied ? 'Results' : 'Nearby Stations',
+                  color: ui.textPrimary,
+                  fontSize: FontSizes.font24Sp,
+                  fontWeight: FontWeights.weight600,
+                ),
+              ),
+              // Only shown while filters are active; tapping resets the map.
+              if (filtersApplied)
+                GestureDetector(
+                  onTap: _clearFilters,
+                  behavior: HitTestBehavior.opaque,
+                  child: AppText(
+                    'Clear Filter',
+                    color: AppColors.removeColor,
+                    fontSize: FontSizes.font14Sp,
+                    fontWeight: FontWeights.weight600,
+                  ),
+                ),
+            ],
+          ),
+          10.verticalSpace,
+          _buildFilterChips(context, types),
+          12.verticalSpace,
+        ],
+      ),
+    );
+
+    final Widget listArea;
+    if (nearbyStations.isEmpty) {
+      final message = Padding(
+        padding: EdgeInsets.symmetric(vertical: 12.h),
+        child: AppText(
+          hasActiveFilters
+              ? 'No stations match the selected filters'
+              : (filtersApplied
+                  ? 'No stations match your filters'
+                  : 'No stations available'),
+          color: ui.textSecondary,
+          fontSize: FontSizes.font12Sp,
+          fontWeight: FontWeights.weight500,
+        ),
+      );
+      listArea = expanded
+          ? Expanded(child: Align(alignment: Alignment.topLeft, child: message))
+          : message;
+    } else if (expanded) {
+      // Full-screen: a vertical, scrollable list of full-width cards.
+      listArea = Expanded(
+        child: ListView.separated(
+          padding: EdgeInsets.only(bottom: 12.h),
+          itemCount: nearbyStations.length,
+          separatorBuilder: (_, __) => 10.verticalSpace,
+          itemBuilder: (context, index) =>
+              _stationCard(context, nearbyStations[index]),
+        ),
+      );
+    } else {
+      // Compact: a single horizontal row of fixed-width cards.
+      listArea = SizedBox(
+        height: 118.h,
+        child: ListView.separated(
+          scrollDirection: Axis.horizontal,
+          itemCount: nearbyStations.length,
+          separatorBuilder: (_, __) => 8.horizontalSpace,
+          itemBuilder: (context, index) {
+            final station = nearbyStations[index];
+            return SizedBox(
+              width: 280.w,
+              child: _stationCard(context, station),
+            );
+          },
+        ),
+      );
+    }
 
     return Container(
       padding: AppUtils.homeBottomSheetPadding,
@@ -1180,55 +1325,10 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: expanded ? MainAxisSize.max : MainAxisSize.min,
         children: [
-          Align(
-            child: Container(
-              height: 3.h,
-              width: 66.w,
-              decoration: BoxDecoration(
-                color: ui.textSecondary.withValues(alpha: 0.65),
-                borderRadius: BorderRadius.circular(10.r),
-              ),
-            ),
-          ),
-          12.verticalSpace,
-          AppText(
-            'Nearby Stations',
-            color: ui.textPrimary,
-            fontSize: FontSizes.font24Sp,
-            fontWeight: FontWeights.weight600,
-          ),
-          10.verticalSpace,
-          _buildFilterChips(context, types),
-          12.verticalSpace,
-          if (nearbyStations.isEmpty)
-            Padding(
-              padding: EdgeInsets.symmetric(vertical: 12.h),
-              child: AppText(
-                hasActiveFilters
-                    ? 'No stations match the selected filters'
-                    : 'No stations available',
-                color: ui.textSecondary,
-                fontSize: FontSizes.font12Sp,
-                fontWeight: FontWeights.weight500,
-              ),
-            )
-          else
-            SizedBox(
-              height: 118.h,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                itemCount: nearbyStations.length,
-                separatorBuilder: (_, __) => 8.horizontalSpace,
-                itemBuilder: (context, index) {
-                  final station = nearbyStations[index];
-                  return SizedBox(
-                    width: 280.w,
-                    child: _stationCard(context, station),
-                  );
-                },
-              ),
-            ),
+          header,
+          listArea,
         ],
       ),
     );

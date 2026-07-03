@@ -157,11 +157,16 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
       availableNow: _availableNow,
       city: _selectedCity,
     );
-    // Show the results on a dedicated screen instead of re-filtering the home
-    // map / "Nearby Stations" row. Capture the router before popping the sheet,
+    // Capture the calling screen's cubit + router before popping the sheet,
     // since this context is torn down as the modal closes.
+    final cubit = context.read<MapCubit>();
     final router = GoRouter.of(context);
+    // Also apply the filters to the calling map (the home map behind the sheet),
+    // so its charger markers and "Nearby Stations" list reflect the filters when
+    // the user returns from the results screen.
+    cubit.applyFilters(filters);
     Navigator.of(context).pop();
+    // Show the results on a dedicated screen (its own MapCubit instance).
     router.push('/filter-results', extra: filters);
   }
 
