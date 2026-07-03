@@ -81,6 +81,48 @@ class GooglePlacesService {
         : fromConfig;
   }
 
+  static const String _geocodeUrl =
+      'https://maps.googleapis.com/maps/api/geocode/json';
+
+  /// Reverse-geocodes [lat]/[lng] into a readable [PlaceLocation] (its
+  /// `formatted_address`). Returns `null` on any failure so callers can fall
+  /// back to a generic label while still using the raw coordinates.
+  Future<PlaceLocation?> reverseGeocode(double lat, double lng) async {
+    try {
+      final response = await _dio.get(
+        _geocodeUrl,
+        queryParameters: {
+          'latlng': '$lat,$lng',
+          'key': _apiKey,
+        },
+      );
+
+      final data = response.data as Map<String, dynamic>;
+      if (data['status'] != 'OK') {
+        debugPrint('[Places] reverseGeocode status=${data['status']} '
+            '${data['error_message']}');
+        return null;
+      }
+
+      final results = data['results'] as List?;
+      if (results == null || results.isEmpty) return null;
+
+      final first = results.first as Map<String, dynamic>;
+      final address = (first['formatted_address'] as String? ?? '').trim();
+      if (address.isEmpty) return null;
+
+      return PlaceLocation(
+        name: address,
+        address: address,
+        latitude: lat,
+        longitude: lng,
+      );
+    } catch (e) {
+      debugPrint('[Places] reverseGeocode failed: $e');
+      return null;
+    }
+  }
+
   /// Returns autocomplete predictions for [input], biased to Pakistan.
   ///
   /// [sessionToken] groups autocomplete calls with the follow-up details call

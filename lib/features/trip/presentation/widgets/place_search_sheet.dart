@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/services/google_places_service.dart';
@@ -44,6 +45,10 @@ class _PlaceSearchSheetState extends State<_PlaceSearchSheet> {
   List<PlaceSuggestion> _suggestions = const [];
   bool _searching = false;
   bool _resolving = false;
+
+  /// True while resolving the device GPS + reverse geocoding for the
+  /// "Use my current location" action.
+  bool _locating = false;
 
   @override
   void initState() {
@@ -94,6 +99,62 @@ class _PlaceSearchSheetState extends State<_PlaceSearchSheet> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Couldn\'t load that location. Try again.')),
       );
+    }
+  }
+
+  /// Resolves the device's current position, reverse-geocodes it to a readable
+  /// address, and returns it as the picked place. Handles disabled location
+  /// services and denied permissions with a snackbar.
+  Future<void> _useCurrentLocation() async {
+    if (_locating || _resolving) return;
+
+    final messenger = ScaffoldMessenger.of(context);
+    void fail(String message) {
+      messenger.showSnackBar(SnackBar(content: Text(message)));
+    }
+
+    final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!mounted) return;
+    if (!serviceEnabled) {
+      fail('Turn on location services to use your current location.');
+      return;
+    }
+
+    var permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+    }
+    if (!mounted) return;
+    if (permission == LocationPermission.denied ||
+        permission == LocationPermission.deniedForever) {
+      fail('Location permission is required to use your current location.');
+      return;
+    }
+
+    setState(() => _locating = true);
+    try {
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+          timeLimit: Duration(seconds: 10),
+        ),
+      );
+      // Prefer a readable address; fall back to the raw coordinates so trip
+      // planning still has a usable point even if geocoding fails.
+      final place =
+          await _places.reverseGeocode(position.latitude, position.longitude) ??
+              PlaceLocation(
+                name: 'My Current Location',
+                address: '',
+                latitude: position.latitude,
+                longitude: position.longitude,
+              );
+      if (!mounted) return;
+      Navigator.of(context).pop(place);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _locating = false);
+      fail('Could not get your current location. Try again.');
     }
   }
 
@@ -210,11 +271,50 @@ class _PlaceSearchSheetState extends State<_PlaceSearchSheet> {
                       ],
                     ),
                   ),
+                  10.verticalSpace,
+                  _currentLocationTile(ui),
                 ],
               ),
             ),
             8.verticalSpace,
             Expanded(child: _buildResults(ui)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// "Use my current location" row shown directly below the search field —
+  /// mirrors the Google Maps affordance.
+  Widget _currentLocationTile(AppUiColors ui) {
+    return InkWell(
+      onTap: _locating ? null : _useCurrentLocation,
+      borderRadius: BorderRadius.circular(8.r),
+      child: Padding(
+        padding: EdgeInsets.symmetric(vertical: 8.h),
+        child: Row(
+          children: [
+            SizedBox(
+              width: 18.sp,
+              height: 18.sp,
+              child: _locating
+                  ? CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: ui.brandPrimary,
+                    )
+                  : Icon(
+                      Icons.my_location_rounded,
+                      size: 18.sp,
+                      color: ui.brandPrimary,
+                    ),
+            ),
+            10.horizontalSpace,
+            AppText(
+              _locating ? 'Getting your location…' : 'Use my current location',
+              color: ui.brandPrimary,
+              fontSize: FontSizes.font14Sp,
+              fontWeight: FontWeights.weight600,
+            ),
           ],
         ),
       ),
