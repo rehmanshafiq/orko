@@ -1218,8 +1218,8 @@ class _ProfileTabBody extends StatelessWidget {
         14.verticalSpace,
         // _AchievementsCard(),
         // 14.verticalSpace,
-        _PersonalInfoCard(profile: profile),
-        14.verticalSpace,
+        // _PersonalInfoCard(profile: profile),
+        // 14.verticalSpace,
         // _DrivingEfficiencyCard(),
       ],
     );
@@ -3299,9 +3299,9 @@ class _NotificationsHeader extends StatelessWidget {
       ],
     );
     if (onTap == null) return row;
-    return InkWell(
+    return GestureDetector(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(8.r),
+      behavior: HitTestBehavior.opaque,
       child: row,
     );
   }
