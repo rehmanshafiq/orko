@@ -10,4 +10,7 @@ abstract class TripRemoteDataSource {
   Future<List<SavedTripModel>> getSavedTrips();
 
   Future<SavedTripModel> getSavedTripDetail(int id);
+
+  /// `DELETE /trip-planning/trips/<id>/` — returns the success message.
+  Future<String> deleteSavedTrip(int id);
 }

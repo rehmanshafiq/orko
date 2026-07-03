@@ -16,4 +16,8 @@ abstract class TripRepository {
 
   /// `GET /trip-planning/trips/<id>/` — a single saved trip.
   Future<Either<Failure, SavedTripEntity>> getSavedTripDetail(int id);
+
+  /// `DELETE /trip-planning/trips/<id>/` — deletes a saved trip; returns the
+  /// success message.
+  Future<Either<Failure, String>> deleteSavedTrip(int id);
 }

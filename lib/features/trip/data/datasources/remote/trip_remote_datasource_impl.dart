@@ -98,6 +98,24 @@ class TripRemoteDataSourceImpl implements TripRemoteDataSource {
     });
   }
 
+  @override
+  Future<String> deleteSavedTrip(int id) async {
+    return _guard('delete-trip', () async {
+      // `delete_trip` is the `trips/` base; the id segment is appended.
+      final url = _endpointUrl(
+        (e) => '${e.deleteTrip}$id/',
+        fallbackPath: 'api/v1/trip-planning/trips/$id/',
+        unavailableMessage: 'Deleting a trip is not available right now',
+      );
+      log('[Trip] Delete trip URL: $url');
+
+      final response = await apiClient.delete(url);
+      // Validates the {status, message, body} envelope (body is {} here).
+      _bodyOf(response, fallback: 'Failed to delete trip');
+      return _envelopeMessage(response) ?? 'Trip plan deleted successfully.';
+    });
+  }
+
   // ── Helpers ───────────────────────────────────────────────────────────
 
   /// Normalises every error into a [ServerException] carrying the backend's

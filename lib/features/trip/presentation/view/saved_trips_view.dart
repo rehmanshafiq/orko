@@ -125,11 +125,16 @@ class _SavedTripsViewState extends State<SavedTripsView> {
             separatorBuilder: (_, __) => 10.verticalSpace,
             itemBuilder: (_, i) => _TripCard(
               trip: _trips[i],
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => SavedTripDetailView(tripId: _trips[i].id),
-                ),
-              ),
+              onTap: () async {
+                final deleted = await Navigator.of(context).push<bool>(
+                  MaterialPageRoute(
+                    builder: (_) => SavedTripDetailView(tripId: _trips[i].id),
+                  ),
+                );
+                // The detail screen returns `true` after a successful delete;
+                // refresh the list so the removed trip disappears.
+                if (deleted == true && mounted) _load();
+              },
             ),
           ),
         );

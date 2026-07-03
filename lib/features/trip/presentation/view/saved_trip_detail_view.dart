@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/di/injection_container.dart';
@@ -7,6 +8,7 @@ import 'package:orko_hubco/core/utils/app_ui.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
 import 'package:orko_hubco/features/trip/domain/entities/saved_trip_entity.dart';
 import 'package:orko_hubco/features/trip/domain/entities/trip_stop_entity.dart';
+import 'package:orko_hubco/features/trip/domain/usecases/delete_saved_trip_usecase.dart';
 import 'package:orko_hubco/features/trip/domain/usecases/get_saved_trip_detail_usecase.dart';
 
 /// Loads and shows a single saved trip (`GET /trips/<id>/`).
@@ -25,6 +27,10 @@ class _SavedTripDetailViewState extends State<SavedTripDetailView> {
   _Status _status = _Status.loading;
   String? _error;
   SavedTripEntity? _trip;
+
+  /// True while the delete request is in flight — guards against double taps
+  /// and drives the app-bar spinner.
+  bool _deleting = false;
 
   @override
   void initState() {
@@ -51,6 +57,86 @@ class _SavedTripDetailViewState extends State<SavedTripDetailView> {
     );
   }
 
+  /// Confirms, then deletes this trip. On success shows a toast and pops back
+  /// with `true` so the Saved Trips list can refresh.
+  Future<void> _onDelete() async {
+    if (_deleting) return;
+
+    final confirmed = await _confirmDelete();
+    if (confirmed != true || !mounted) return;
+
+    setState(() => _deleting = true);
+
+    final result = await sl<DeleteSavedTripUseCase>()(widget.tripId);
+    if (!mounted) return;
+
+    result.fold(
+      (failure) {
+        setState(() => _deleting = false);
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(
+              content: Text(failure.message),
+              backgroundColor: AppColors.removeColor,
+            ),
+          );
+      },
+      (message) {
+        Fluttertoast.showToast(
+          msg: message,
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+        );
+        // Signal the previous (Saved Trips) screen to reload its list.
+        Navigator.of(context).pop(true);
+      },
+    );
+  }
+
+  Future<bool?> _confirmDelete() {
+    final ui = AppUiColors.of(context);
+    return showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: ui.scaffoldBackground,
+        title: AppText(
+          'Delete Trip',
+          color: ui.textPrimary,
+          fontSize: FontSizes.font16Sp,
+          fontWeight: FontWeights.weight700,
+        ),
+        content: AppText(
+          'Are you sure you want to delete this saved trip? This action cannot '
+          'be undone.',
+          color: ui.textSecondary,
+          fontSize: FontSizes.font12Sp,
+          fontWeight: FontWeights.weight400,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: AppText(
+              'Cancel',
+              color: ui.textSecondary,
+              fontSize: FontSizes.font12Sp,
+              fontWeight: FontWeights.weight600,
+            ),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: AppText(
+              'Delete',
+              color: AppColors.removeColor,
+              fontSize: FontSizes.font12Sp,
+              fontWeight: FontWeights.weight700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final ui = AppUiColors.of(context);
@@ -64,6 +150,33 @@ class _SavedTripDetailViewState extends State<SavedTripDetailView> {
           fontSize: FontSizes.font16Sp,
           fontWeight: FontWeights.weight700,
         ),
+        actions: [
+          // Delete is only actionable once a trip has actually loaded.
+          if (_status == _Status.success)
+            _deleting
+                ? Padding(
+                    padding: EdgeInsets.only(right: 16.w),
+                    child: Center(
+                      child: SizedBox(
+                        width: 18.r,
+                        height: 18.r,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: AppColors.removeColor,
+                        ),
+                      ),
+                    ),
+                  )
+                : TextButton(
+                    onPressed: _onDelete,
+                    child: AppText(
+                      'Delete',
+                      color: AppColors.removeColor,
+                      fontSize: FontSizes.font14Sp,
+                      fontWeight: FontWeights.weight700,
+                    ),
+                  ),
+        ],
       ),
       body: SafeArea(child: _body(ui)),
     );

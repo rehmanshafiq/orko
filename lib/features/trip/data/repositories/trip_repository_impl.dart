@@ -37,6 +37,11 @@ class TripRepositoryImpl implements TripRepository {
     return _run(() => remoteDataSource.getSavedTripDetail(id));
   }
 
+  @override
+  Future<Either<Failure, String>> deleteSavedTrip(int id) {
+    return _run(() => remoteDataSource.deleteSavedTrip(id));
+  }
+
   /// Shared connectivity guard + exception→failure mapping for every call.
   Future<Either<Failure, T>> _run<T>(Future<T> Function() action) async {
     if (!await networkInfo.isConnected) {
