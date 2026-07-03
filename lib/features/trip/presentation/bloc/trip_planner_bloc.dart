@@ -16,7 +16,9 @@ import 'package:orko_hubco/core/di/injection_container.dart';
 import 'package:orko_hubco/features/booking/presentation/pages/book_slot_page.dart';
 import 'package:orko_hubco/features/map/domain/entities/hubco_location_entity.dart';
 import 'package:orko_hubco/features/charging/presentation/page/charging_station_detail_page.dart';
+import 'package:orko_hubco/features/trip/domain/entities/saved_trip_entity.dart';
 import 'package:orko_hubco/features/trip/domain/entities/trip_plan_entity.dart';
+import 'package:orko_hubco/features/trip/domain/usecases/edit_trip_usecase.dart';
 import 'package:orko_hubco/features/trip/domain/usecases/plan_trip_usecase.dart';
 import 'package:orko_hubco/features/trip/domain/usecases/save_trip_usecase.dart';
 import 'package:orko_hubco/features/trip/domain/usecases/trip_plan_params.dart';
@@ -31,9 +33,12 @@ class TripPlannerBloc extends Bloc<TripPlannerEvent, TripPlannerState> {
   TripPlannerBloc({
     PlanTripUseCase? planTrip,
     SaveTripUseCase? saveTrip,
+    EditTripUseCase? editTrip,
+    SavedTripEntity? editingTrip,
   })  : _planTrip = planTrip ?? sl<PlanTripUseCase>(),
         _saveTrip = saveTrip ?? sl<SaveTripUseCase>(),
-        super(TripPlannerState.initial()) {
+        _editTrip = editTrip ?? sl<EditTripUseCase>(),
+        super(_initialStateFor(editingTrip)) {
     _startLocationController.addListener(_onLocationChanged);
     _endLocationController.addListener(_onLocationChanged);
 
@@ -41,6 +46,7 @@ class TripPlannerBloc extends Bloc<TripPlannerEvent, TripPlannerState> {
     on<TripPlannerPlanTripPressed>(_handlePlanTripPressed);
     on<TripPlannerPlanTripRequested>(_handlePlanTripRequested);
     on<TripPlannerSaveTripRequested>(_handleSaveTripRequested);
+    on<TripPlannerEditTripRequested>(_handleEditTripRequested);
     on<TripPlannerResetRequested>(_handleResetRequested);
     on<TripPlannerRouteSelected>(_handleRouteSelected);
     on<TripPlannerVehicleSelected>(_handleVehicleSelected);
@@ -50,10 +56,51 @@ class TripPlannerBloc extends Bloc<TripPlannerEvent, TripPlannerState> {
     on<TripPlannerLoadMarkerIcons>(_handleLoadMarkerIcons);
     on<TripPlannerMapCreated>(_handleMapCreated);
     on<TripPlannerFitMapRoute>(_handleFitMapRoute);
+
+    // Edit mode: prefill the start/destination fields (text + exact coords) so
+    // the planner opens on the saved trip's inputs. Vehicle + start SoC are
+    // seeded into the initial state above.
+    if (editingTrip != null) {
+      final startName = editingTrip.originAddress?.trim().isNotEmpty == true
+          ? editingTrip.originAddress!.trim()
+          : _coordLabel(editingTrip.originLatitude, editingTrip.originLongitude);
+      final endName = editingTrip.destinationAddress?.trim().isNotEmpty == true
+          ? editingTrip.destinationAddress!.trim()
+          : _coordLabel(
+              editingTrip.destinationLatitude, editingTrip.destinationLongitude);
+      _startPlace = (
+        lat: editingTrip.originLatitude,
+        lng: editingTrip.originLongitude,
+        name: startName,
+      );
+      _endPlace = (
+        lat: editingTrip.destinationLatitude,
+        lng: editingTrip.destinationLongitude,
+        name: endName,
+      );
+      _startLocationController.text = startName;
+      _endLocationController.text = endName;
+    }
   }
+
+  /// Builds the initial state, seeding vehicle / start SoC / edit-id when the
+  /// planner is opened to edit an existing saved trip.
+  static TripPlannerState _initialStateFor(SavedTripEntity? trip) {
+    final base = TripPlannerState.initial();
+    if (trip == null) return base;
+    return base.copyWith(
+      editTripId: trip.id,
+      selectedVehicle: trip.vehicle,
+      currentBatteryPercent: trip.startSoc.clamp(0, 100).toDouble(),
+    );
+  }
+
+  static String _coordLabel(double lat, double lng) =>
+      '${lat.toStringAsFixed(4)}, ${lng.toStringAsFixed(4)}';
 
   final PlanTripUseCase _planTrip;
   final SaveTripUseCase _saveTrip;
+  final EditTripUseCase _editTrip;
 
   /// 100% state of charge = 380 km usable range.
   static const double kmPerPercentCharge = 3.8;
@@ -278,6 +325,32 @@ class TripPlannerBloc extends Bloc<TripPlannerEvent, TripPlannerState> {
     }
     emit(state.copyWith(saving: true, clearSaveError: true, saveSuccess: false));
     final result = await _saveTrip(params);
+    result.fold(
+      (failure) => emit(state.copyWith(saving: false, saveError: failure.message)),
+      (_) => emit(state.copyWith(saving: false, saveSuccess: true)),
+    );
+  }
+
+  /// Edit mode: PUTs the re-planned inputs to `edit-trip/{id}`. Requires a fresh
+  /// plan (so we send the exact inputs the user just re-planned with).
+  Future<void> _handleEditTripRequested(
+    TripPlannerEditTripRequested event,
+    Emitter<TripPlannerState> emit,
+  ) async {
+    final id = state.editTripId;
+    final params = state.lastPlanParams;
+    if (id == null) {
+      emit(state.copyWith(saveError: 'Nothing to update.'));
+      return;
+    }
+    if (params == null) {
+      emit(state.copyWith(
+        saveError: 'Change a field and tap Plan Trip before updating.',
+      ));
+      return;
+    }
+    emit(state.copyWith(saving: true, clearSaveError: true, saveSuccess: false));
+    final result = await _editTrip(EditTripParams(tripId: id, params: params));
     result.fold(
       (failure) => emit(state.copyWith(saving: false, saveError: failure.message)),
       (_) => emit(state.copyWith(saving: false, saveSuccess: true)),

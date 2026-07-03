@@ -49,6 +49,7 @@
       "saved_trips": "api/v1/trip-planning/trips/",
       "saved_trip_detail": "api/v1/trip-planning/trips/",
       "delete_trip": "api/v1/trip-planning/trips/",
+      "edit_trip": "api/v1/trip-planning/edit-trip/",
       "notifications": "api/v1/notifications/",
       "notifications_clear_all": "api/v1/notifications/",
       "notifications_unread_count": "api/v1/notifications/unread-count/",

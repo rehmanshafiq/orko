@@ -20,4 +20,11 @@ abstract class TripRepository {
   /// `DELETE /trip-planning/trips/<id>/` — deletes a saved trip; returns the
   /// success message.
   Future<Either<Failure, String>> deleteSavedTrip(int id);
+
+  /// `PUT /trip-planning/edit-trip/<id>/` — updates a saved trip's inputs and
+  /// returns the freshly recomputed trip.
+  Future<Either<Failure, SavedTripEntity>> editTrip({
+    required int tripId,
+    required TripPlanParams params,
+  });
 }

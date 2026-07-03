@@ -14,15 +14,30 @@ import 'package:orko_hubco/features/vehicle/domain/usecases/get_user_vehicles_us
 /// dropdown for the trip planner. Self-contained: handles guest, loading,
 /// error (+retry), empty, and success states.
 class TripVehicleDropdownWidget extends StatefulWidget {
-  const TripVehicleDropdownWidget({super.key, this.onVehicleSelected});
+  const TripVehicleDropdownWidget({
+    super.key,
+    this.onVehicleSelected,
+    this.initialVehicleId,
+  });
 
   /// Notified whenever the selection changes (null when cleared/none).
   final ValueChanged<UserVehicleEntity?>? onVehicleSelected;
+
+  /// When set (edit mode), the dropdown eagerly loads the user's vehicles and
+  /// selects the one with this id — resolving the *complete* vehicle (with
+  /// battery/range) rather than a saved trip's slimmed-down copy.
+  final int? initialVehicleId;
 
   /// Clears the session-scoped last selection so a fresh instance starts empty
   /// (used by the trip planner's "Clear" action).
   static void clearSavedSelection() {
     _TripVehicleDropdownWidgetState._lastSelection = null;
+  }
+
+  /// Seeds the session-scoped selection so a fresh instance opens pre-selected
+  /// (used when the planner opens in edit mode with a saved trip's vehicle).
+  static void setSavedSelection(UserVehicleEntity? vehicle) {
+    _TripVehicleDropdownWidgetState._lastSelection = vehicle;
   }
 
   @override
@@ -54,9 +69,25 @@ class _TripVehicleDropdownWidgetState extends State<TripVehicleDropdownWidget> {
   @override
   void initState() {
     super.initState();
+    if (_isGuest) return;
+
+    // Edit mode: we only trust the vehicle id from the saved trip (its embedded
+    // vehicle can be missing battery/range). Show its label immediately if we
+    // have one cached, then fetch the full list to resolve the complete entity.
+    if (widget.initialVehicleId != null) {
+      _selectedId = widget.initialVehicleId;
+      if (_lastSelection?.id == widget.initialVehicleId) {
+        _vehicles = [_lastSelection!];
+      }
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _load(silent: _vehicles.isNotEmpty);
+      });
+      return;
+    }
+
     // Restore the previously selected make (without an API call) so switching
     // tabs and returning keeps the selection. Tapping the field reloads it.
-    if (!_isGuest && _lastSelection != null) {
+    if (_lastSelection != null) {
       _selectedId = _lastSelection!.id;
       _vehicles = [_lastSelection!];
       // Re-notify the (fresh) bloc so EV details reflect the restored vehicle.

@@ -13,4 +13,10 @@ abstract class TripRemoteDataSource {
 
   /// `DELETE /trip-planning/trips/<id>/` — returns the success message.
   Future<String> deleteSavedTrip(int id);
+
+  /// `PUT /trip-planning/edit-trip/<id>/` — returns the recomputed trip.
+  Future<SavedTripModel> editTrip({
+    required int tripId,
+    required TripPlanParams params,
+  });
 }

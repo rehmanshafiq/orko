@@ -4,6 +4,7 @@ import 'package:orko_hubco/features/trip/data/datasources/remote/trip_remote_dat
 import 'package:orko_hubco/features/trip/data/repositories/trip_repository_impl.dart';
 import 'package:orko_hubco/features/trip/domain/repositories/trip_repository.dart';
 import 'package:orko_hubco/features/trip/domain/usecases/delete_saved_trip_usecase.dart';
+import 'package:orko_hubco/features/trip/domain/usecases/edit_trip_usecase.dart';
 import 'package:orko_hubco/features/trip/domain/usecases/get_saved_trip_detail_usecase.dart';
 import 'package:orko_hubco/features/trip/domain/usecases/get_saved_trips_usecase.dart';
 import 'package:orko_hubco/features/trip/domain/usecases/plan_trip_usecase.dart';
@@ -26,4 +27,5 @@ void initTripDependencies() {
   sl.registerLazySingleton(() => GetSavedTripsUseCase(sl()));
   sl.registerLazySingleton(() => GetSavedTripDetailUseCase(sl()));
   sl.registerLazySingleton(() => DeleteSavedTripUseCase(sl()));
+  sl.registerLazySingleton(() => EditTripUseCase(sl()));
 }

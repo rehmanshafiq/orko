@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/utils/app_storage/app_storage.dart';
@@ -9,6 +10,7 @@ import 'package:orko_hubco/core/utils/widgets/app_text.dart';
 import 'package:orko_hubco/core/utils/widgets/auth_required_dialog.dart';
 import 'package:orko_hubco/core/utils/widgets/primary_button_widget.dart';
 import 'package:orko_hubco/features/booking/presentation/booked_stations_session.dart';
+import 'package:orko_hubco/features/trip/domain/entities/saved_trip_entity.dart';
 import 'package:orko_hubco/features/trip/presentation/bloc/trip_planner_bloc.dart';
 import 'package:orko_hubco/features/trip/presentation/bloc/trip_planner_event.dart';
 import 'package:orko_hubco/features/trip/presentation/bloc/trip_planner_state.dart';
@@ -25,7 +27,12 @@ import 'package:orko_hubco/features/trip/presentation/widgets/trip_vehicle_dropd
 import 'package:orko_hubco/features/trip/presentation/view/saved_trips_view.dart';
 
 class TripPlannerMobileView extends StatefulWidget {
-  const TripPlannerMobileView({super.key});
+  const TripPlannerMobileView({super.key, this.editTrip});
+
+  /// When non-null, the planner opens in edit mode: fields, vehicle and start
+  /// SoC are pre-filled from this saved trip, and the primary save action
+  /// becomes "Edit Trip" (calls the edit-trip API) once the user re-plans.
+  final SavedTripEntity? editTrip;
 
   @override
   State<TripPlannerMobileView> createState() => _TripPlannerMobileViewState();
@@ -35,6 +42,16 @@ class _TripPlannerMobileViewState extends State<TripPlannerMobileView> {
   /// Bumped by "Clear" so the vehicle (Make) dropdown — which keeps its own
   /// selection state — is rebuilt fresh alongside the bloc reset.
   int _formResetTick = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    // Seed the vehicle dropdown so it opens showing the saved trip's vehicle
+    // (the bloc's selectedVehicle drives the EV card; this drives the field).
+    if (widget.editTrip != null) {
+      TripVehicleDropdownWidget.setSavedSelection(widget.editTrip!.vehicle);
+    }
+  }
 
   /// Resets the planned trip + form and forces the Make dropdown to clear.
   /// Also drops the session's "Booked" stop marks so a fresh plan starts clean.
@@ -154,13 +171,24 @@ class _TripPlannerMobileViewState extends State<TripPlannerMobileView> {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => TripPlannerBloc(),
+      create: (_) => TripPlannerBloc(editingTrip: widget.editTrip),
       child: BlocConsumer<TripPlannerBloc, TripPlannerState>(
         listenWhen: (p, c) =>
             p.saveSuccess != c.saveSuccess || p.saveError != c.saveError,
         listener: (context, state) {
           final messenger = ScaffoldMessenger.of(context);
           if (state.saveSuccess) {
+            if (state.isEditMode) {
+              // Edit succeeded — toast and return to the trip detail (true tells
+              // it to reload the freshly-recomputed trip).
+              Fluttertoast.showToast(
+                msg: 'Trip plan updated successfully.',
+                toastLength: Toast.LENGTH_SHORT,
+                gravity: ToastGravity.BOTTOM,
+              );
+              Navigator.of(context).pop(true);
+              return;
+            }
             messenger.showSnackBar(
               const SnackBar(
                 content: Text('Trip plan saved successfully.'),
@@ -197,6 +225,20 @@ class _TripPlannerMobileViewState extends State<TripPlannerMobileView> {
                   10.verticalSpace,
                   Row(
                     children: [
+                      // Edit mode is pushed as a route (no AppBar) — give it a
+                      // back affordance.
+                      if (widget.editTrip != null) ...[
+                        GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () => Navigator.of(context).maybePop(),
+                          child: Icon(
+                            Icons.arrow_back_rounded,
+                            color: ui.textPrimary,
+                            size: 22.sp,
+                          ),
+                        ),
+                        8.horizontalSpace,
+                      ],
                       const Expanded(child: TripHeaderWidget()),
                       // "Clear" appears once a trip is planned or every field is
                       // filled. Listens to the location controllers so it toggles
@@ -286,6 +328,9 @@ class _TripPlannerMobileViewState extends State<TripPlannerMobileView> {
                   12.verticalSpace,
                   TripVehicleDropdownWidget(
                     key: ValueKey<int>(_formResetTick),
+                    // Edit mode: resolve the complete vehicle (battery/range)
+                    // from the user-vehicle API by id, not the trip's slim copy.
+                    initialVehicleId: widget.editTrip?.vehicle?.id,
                     onVehicleSelected: (vehicle) => context
                         .read<TripPlannerBloc>()
                         .add(TripPlannerVehicleSelected(vehicle)),
@@ -488,11 +533,15 @@ class _TripPlannerMobileViewState extends State<TripPlannerMobileView> {
                     ),
                     16.verticalSpace,
                     PrimaryButtonWidget(
-                      text: state.saving ? 'Saving…' : 'Save Trip',
+                      text: state.isEditMode
+                          ? (state.saving ? 'Updating…' : 'Edit Trip')
+                          : (state.saving ? 'Saving…' : 'Save Trip'),
                       isEnabled: !state.saving,
-                      onPress: () => context
-                          .read<TripPlannerBloc>()
-                          .add(const TripPlannerSaveTripRequested()),
+                      onPress: () => context.read<TripPlannerBloc>().add(
+                            state.isEditMode
+                                ? const TripPlannerEditTripRequested()
+                                : const TripPlannerSaveTripRequested(),
+                          ),
                       gradientColors: const [
                         AppColors.primaryDarkColor,
                         AppColors.primaryDarkButtonColor,

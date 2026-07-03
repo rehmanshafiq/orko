@@ -11,6 +11,7 @@ import 'package:orko_hubco/features/trip/domain/entities/saved_trip_entity.dart'
 import 'package:orko_hubco/features/trip/domain/entities/trip_stop_entity.dart';
 import 'package:orko_hubco/features/trip/domain/usecases/delete_saved_trip_usecase.dart';
 import 'package:orko_hubco/features/trip/domain/usecases/get_saved_trip_detail_usecase.dart';
+import 'package:orko_hubco/features/trip/presentation/view/trip_planner_mobile_view.dart';
 
 /// Loads and shows a single saved trip (`GET /trips/<id>/`).
 class SavedTripDetailView extends StatefulWidget {
@@ -95,6 +96,20 @@ class _SavedTripDetailViewState extends State<SavedTripDetailView> {
     );
   }
 
+  /// Opens the trip planner in edit mode, pre-filled with this trip. When the
+  /// edit succeeds the planner pops with `true`, so we reload to show the
+  /// freshly recomputed stops/summary.
+  Future<void> _onEdit() async {
+    final trip = _trip;
+    if (trip == null || _deleting) return;
+    final updated = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (_) => TripPlannerMobileView(editTrip: trip),
+      ),
+    );
+    if (updated == true && mounted) _load();
+  }
+
   Future<bool?> _confirmDelete() {
     final ui = AppUiColors.of(context);
     return showDialog<bool>(
@@ -152,7 +167,18 @@ class _SavedTripDetailViewState extends State<SavedTripDetailView> {
           fontWeight: FontWeights.weight700,
         ),
         actions: [
-          // Delete is only actionable once a trip has actually loaded.
+          // Edit + Delete are only actionable once a trip has loaded, and are
+          // hidden while a delete is in flight.
+          if (_status == _Status.success && !_deleting)
+            TextButton(
+              onPressed: _onEdit,
+              child: AppText(
+                'Edit',
+                color: ui.brandPrimary,
+                fontSize: FontSizes.font14Sp,
+                fontWeight: FontWeights.weight700,
+              ),
+            ),
           if (_status == _Status.success)
             _deleting
                 ? Padding(

@@ -116,6 +116,29 @@ class TripRemoteDataSourceImpl implements TripRemoteDataSource {
     });
   }
 
+  @override
+  Future<SavedTripModel> editTrip({
+    required int tripId,
+    required TripPlanParams params,
+  }) async {
+    return _guard('edit-trip', () async {
+      // `edit_trip` is the `edit-trip/` base; the id segment is appended.
+      final url = _endpointUrl(
+        (e) => '${e.editTrip}$tripId/',
+        fallbackPath: 'api/v1/trip-planning/edit-trip/$tripId/',
+        unavailableMessage: 'Editing a trip is not available right now',
+      );
+      log('[Trip] Edit trip URL: $url');
+
+      final response = await apiClient.put(url, data: params.toJson());
+      final body = _bodyOf(response, fallback: 'Failed to update trip');
+      if (body is! Map) {
+        throw const ServerException(message: 'Failed to update trip');
+      }
+      return SavedTripModel.fromJson(Map<String, dynamic>.from(body));
+    });
+  }
+
   // ── Helpers ───────────────────────────────────────────────────────────
 
   /// Normalises every error into a [ServerException] carrying the backend's

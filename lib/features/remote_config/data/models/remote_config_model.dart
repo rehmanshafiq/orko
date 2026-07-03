@@ -183,6 +183,7 @@ class ApiEndpoints extends Equatable {
     required this.savedTrips,
     required this.savedTripDetail,
     required this.deleteTrip,
+    required this.editTrip,
     required this.notifications,
     required this.notificationsClearAll,
     required this.notificationsUnreadCount,
@@ -233,6 +234,7 @@ class ApiEndpoints extends Equatable {
   final String savedTrips;
   final String savedTripDetail;
   final String deleteTrip;
+  final String editTrip;
   final String notifications;
   final String notificationsClearAll;
   final String notificationsUnreadCount;
@@ -286,6 +288,7 @@ class ApiEndpoints extends Equatable {
       savedTrips: json['saved_trips'] as String? ?? '',
       savedTripDetail: json['saved_trip_detail'] as String? ?? '',
       deleteTrip: json['delete_trip'] as String? ?? '',
+      editTrip: json['edit_trip'] as String? ?? '',
       notifications: json['notifications'] as String? ?? '',
       notificationsClearAll: json['notifications_clear_all'] as String? ?? '',
       notificationsUnreadCount:
@@ -343,6 +346,7 @@ class ApiEndpoints extends Equatable {
       'saved_trips': savedTrips,
       'saved_trip_detail': savedTripDetail,
       'delete_trip': deleteTrip,
+      'edit_trip': editTrip,
       'notifications': notifications,
       'notifications_clear_all': notificationsClearAll,
       'notifications_unread_count': notificationsUnreadCount,
@@ -395,6 +399,7 @@ class ApiEndpoints extends Equatable {
     String? savedTrips,
     String? savedTripDetail,
     String? deleteTrip,
+    String? editTrip,
     String? notifications,
     String? notificationsClearAll,
     String? notificationsUnreadCount,
@@ -449,6 +454,7 @@ class ApiEndpoints extends Equatable {
       savedTrips: savedTrips ?? this.savedTrips,
       savedTripDetail: savedTripDetail ?? this.savedTripDetail,
       deleteTrip: deleteTrip ?? this.deleteTrip,
+      editTrip: editTrip ?? this.editTrip,
       notifications: notifications ?? this.notifications,
       notificationsClearAll:
           notificationsClearAll ?? this.notificationsClearAll,
@@ -507,6 +513,7 @@ class ApiEndpoints extends Equatable {
     savedTrips,
     savedTripDetail,
     deleteTrip,
+    editTrip,
     notifications,
     notificationsClearAll,
     notificationsUnreadCount,

@@ -30,6 +30,7 @@ class TripPlannerState extends Equatable {
     this.saving = false,
     this.saveError,
     this.saveSuccess = false,
+    this.editTripId,
   });
 
   factory TripPlannerState.initial() {
@@ -55,6 +56,7 @@ class TripPlannerState extends Equatable {
       saving: false,
       saveError: null,
       saveSuccess: false,
+      editTripId: null,
     );
   }
 
@@ -99,6 +101,13 @@ class TripPlannerState extends Equatable {
   /// True for one emission after a successful save.
   final bool saveSuccess;
 
+  /// Non-null when the planner was opened to edit an existing saved trip; holds
+  /// that trip's id. Drives the "Edit Trip" button and the edit API call.
+  final int? editTripId;
+
+  /// Convenience: the planner is in edit mode.
+  bool get isEditMode => editTripId != null;
+
   TripPlanModel? get currentPlan => routePlans[selectedRouteIndex];
 
   TripPlannerState copyWith({
@@ -130,6 +139,7 @@ class TripPlannerState extends Equatable {
     String? saveError,
     bool clearSaveError = false,
     bool? saveSuccess,
+    int? editTripId,
   }) {
     return TripPlannerState(
       currentBatteryPercent: currentBatteryPercent ?? this.currentBatteryPercent,
@@ -158,6 +168,7 @@ class TripPlannerState extends Equatable {
       saving: saving ?? this.saving,
       saveError: clearSaveError ? null : (saveError ?? this.saveError),
       saveSuccess: saveSuccess ?? this.saveSuccess,
+      editTripId: editTripId ?? this.editTripId,
     );
   }
 
@@ -184,6 +195,7 @@ class TripPlannerState extends Equatable {
         saving,
         saveError,
         saveSuccess,
+        editTripId,
       ];
 }
 
