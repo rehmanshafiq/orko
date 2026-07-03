@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -2742,35 +2743,41 @@ class _VehicleCard extends StatelessWidget {
   final VoidCallback? onDelete;
   final bool isDeleting;
 
-  Widget _vehicleImage(AppUiColors ui) {
+  Widget _vehicleImage(BuildContext context, AppUiColors ui) {
     final imageUrl = vehicle.modelImage;
     if (imageUrl == null || imageUrl.isEmpty) {
       return _vehicleImagePlaceholder(ui);
     }
-    return Image.network(
-      imageUrl,
+    // CachedNetworkImage keeps the decoded image in memory + on disk, so once a
+    // vehicle's photo has loaded it re-appears instantly — no spinner flash when
+    // the list rebuilds (e.g. right after adding a vehicle) or when scrolling
+    // between cards. Decoding to the on-screen height keeps memory low and the
+    // decode fast.
+    final cacheHeight =
+        (140.h * MediaQuery.of(context).devicePixelRatio).round();
+    return CachedNetworkImage(
+      imageUrl: imageUrl,
+      cacheKey: imageUrl,
       height: 140.h,
       width: double.infinity,
       fit: BoxFit.cover,
-      loadingBuilder: (context, child, progress) {
-        if (progress == null) return child;
-        return Container(
-          height: 140.h,
-          width: double.infinity,
-          color: ui.vehicleImagePlaceholder,
-          alignment: Alignment.center,
-          child: SizedBox(
-            width: 24.r,
-            height: 24.r,
-            child: CircularProgressIndicator(
-              strokeWidth: 2.4,
-              color: ui.brandPrimary,
-            ),
+      memCacheHeight: cacheHeight,
+      fadeInDuration: const Duration(milliseconds: 150),
+      placeholder: (context, url) => Container(
+        height: 140.h,
+        width: double.infinity,
+        color: ui.vehicleImagePlaceholder,
+        alignment: Alignment.center,
+        child: SizedBox(
+          width: 24.r,
+          height: 24.r,
+          child: CircularProgressIndicator(
+            strokeWidth: 2.4,
+            color: ui.brandPrimary,
           ),
-        );
-      },
-      errorBuilder: (context, error, stackTrace) =>
-          _vehicleImagePlaceholder(ui),
+        ),
+      ),
+      errorWidget: (context, url, error) => _vehicleImagePlaceholder(ui),
     );
   }
 
@@ -2820,7 +2827,7 @@ class _VehicleCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _vehicleImage(ui),
+          _vehicleImage(context, ui),
           Padding(
             padding: AppUtils.all12Padding,
             child: Column(
