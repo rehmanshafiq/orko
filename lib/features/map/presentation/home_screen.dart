@@ -1118,8 +1118,8 @@ class _HomeScreenState extends State<HomeScreen> {
     final ui = AppUiColors.of(context);
     final radius = BorderRadius.circular(8.r);
     final child = Container(
-      height: isCompact ? 34.h : 52.h,
-      width: isCompact ? 34.w : 52.w,
+      height: isCompact ? 31.h : 52.h,
+      width: isCompact ? 31.w : 52.w,
       decoration: BoxDecoration(
         color: isPrimary ? ui.searchBackground : ui.searchBackground,
         borderRadius: radius,
