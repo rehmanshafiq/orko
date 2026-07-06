@@ -92,18 +92,18 @@ class BookingSuccessMobileView extends StatelessWidget {
                   ),
                 ),
               ),
-              // Padding(
-              //   padding: AppUtils.horizontal16Padding.add(
-              //     EdgeInsets.only(bottom: 12.h, top: 8.h),
-              //   ),
-              //   child: DownloadReceiptButton(
-              //     bookingRef: bookingRef,
-              //     stationName: stationName,
-              //     slotLabel: slotLabel,
-              //     paymentLabel: '—',
-              //     amountPaid: amountPaid,
-              //   ),
-              // ),
+              Padding(
+                padding: AppUtils.horizontal16Padding.add(
+                  EdgeInsets.only(bottom: 12.h, top: 8.h),
+                ),
+                child: DownloadReceiptButton(
+                  bookingRef: bookingRef,
+                  stationName: stationName,
+                  slotLabel: slotLabel,
+                  paymentLabel: '—',
+                  amountPaid: amountPaid,
+                ),
+              ),
             ],
           ),
         ),

@@ -37,6 +37,7 @@ import 'package:orko_hubco/features/auth/presentation/cubit/auth_state.dart';
 import 'package:orko_hubco/features/booking/domain/entities/charge_session_history_entity.dart';
 import 'package:orko_hubco/features/booking/presentation/cubit/my_bookings_cubit.dart';
 import 'package:orko_hubco/features/booking/presentation/cubit/my_bookings_state.dart';
+import 'package:orko_hubco/features/booking/presentation/mobile/charging_session_receipt_mobile_view.dart';
 import 'package:orko_hubco/features/notifications/domain/entities/notification_preferences_entity.dart';
 import 'package:orko_hubco/features/notifications/presentation/cubit/notification_preferences_cubit.dart';
 import 'package:orko_hubco/features/notifications/presentation/cubit/notification_preferences_state.dart';
@@ -1240,9 +1241,18 @@ class _ProfileTabBody extends StatelessWidget {
 /// Reuses the same charge-session-history data as the My Bookings → History tab
 /// (via [MyBookingsCubit]) and handles every edge case: first-load spinner,
 /// failure + retry, guest / empty state, and in-progress rows with no
-/// energy/cost yet.
-class _HistorySection extends StatelessWidget {
+/// energy/cost yet. Collapsed by default; tap the header to expand.
+class _HistorySection extends StatefulWidget {
   const _HistorySection();
+
+  @override
+  State<_HistorySection> createState() => _HistorySectionState();
+}
+
+class _HistorySectionState extends State<_HistorySection> {
+  bool _expanded = false;
+
+  void _toggle() => setState(() => _expanded = !_expanded);
 
   @override
   Widget build(BuildContext context) {
@@ -1253,8 +1263,23 @@ class _HistorySection extends StatelessWidget {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _HistoryHeader(ui: ui, state: state),
-              _HistoryBody(ui: ui, state: state),
+              _HistoryHeader(
+                ui: ui,
+                state: state,
+                expanded: _expanded,
+                onTap: _toggle,
+              ),
+              AnimatedCrossFade(
+                firstChild: const SizedBox(width: double.infinity),
+                secondChild: Padding(
+                  padding: EdgeInsets.only(top: 8.h),
+                  child: _HistoryBody(ui: ui, state: state),
+                ),
+                crossFadeState: _expanded
+                    ? CrossFadeState.showSecond
+                    : CrossFadeState.showFirst,
+                duration: const Duration(milliseconds: 200),
+              ),
             ],
           );
         },
@@ -1264,36 +1289,58 @@ class _HistorySection extends StatelessWidget {
 }
 
 class _HistoryHeader extends StatelessWidget {
-  const _HistoryHeader({required this.ui, required this.state});
+  const _HistoryHeader({
+    required this.ui,
+    required this.state,
+    required this.expanded,
+    required this.onTap,
+  });
 
   final AppUiColors ui;
   final MyBookingsState state;
+  final bool expanded;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final count = state.historySessions.length;
     final showCount =
         state.historyStatus == MyBookingsStatus.success && count > 0;
-    return Row(
-      children: [
-        Icon(Icons.history_rounded, color: ui.brandPrimary, size: 22.r),
-        8.horizontalSpace,
-        Expanded(
-          child: AppText(
-            'Charging History',
-            color: ui.textPrimary,
-            fontSize: FontSizes.font16Sp,
-            fontWeight: FontWeights.weight700,
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Row(
+        children: [
+          Icon(Icons.history_rounded, color: ui.brandPrimary, size: 22.r),
+          8.horizontalSpace,
+          Expanded(
+            child: AppText(
+              'Charging History',
+              color: ui.textPrimary,
+              fontSize: FontSizes.font16Sp,
+              fontWeight: FontWeights.weight700,
+            ),
           ),
-        ),
-        if (showCount)
-          AppText(
-            count == 1 ? '1 session' : '$count sessions',
-            color: ui.textSecondary,
-            fontSize: FontSizes.font12Sp,
-            fontWeight: FontWeights.weight500,
+          if (showCount) ...[
+            AppText(
+              count == 1 ? '1 session' : '$count sessions',
+              color: ui.textSecondary,
+              fontSize: FontSizes.font12Sp,
+              fontWeight: FontWeights.weight500,
+            ),
+            4.horizontalSpace,
+          ],
+          AnimatedRotation(
+            turns: expanded ? 0.5 : 0.0,
+            duration: const Duration(milliseconds: 200),
+            child: Icon(
+              Icons.keyboard_arrow_down_rounded,
+              color: ui.textSecondary,
+              size: 24.r,
+            ),
           ),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -1521,11 +1568,15 @@ class _HistoryRow extends StatelessWidget {
         ? session.status.trim()
         : (isInProgress ? 'In progress' : 'Unknown');
 
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: 12.h),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => _openSessionReceipt(context, session),
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: 12.h),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
           SizedBox(
             width: _HistoryColumns.icon,
             child: Container(
@@ -1604,7 +1655,9 @@ class _HistoryRow extends StatelessWidget {
               ),
             ),
           ),
-        ],
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -1659,6 +1712,28 @@ class _HistoryStatusBadge extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Opens the charging-session receipt screen. In-progress sessions have no
+/// final cost yet, so we surface a snackbar instead of a partial receipt.
+void _openSessionReceipt(
+  BuildContext context,
+  ChargeSessionHistoryEntity session,
+) {
+  if (session.isInProgress) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Receipt is available once your session is completed.'),
+      ),
+    );
+    return;
+  }
+
+  Navigator.of(context).push(
+    MaterialPageRoute<void>(
+      builder: (_) => ChargingSessionReceiptMobileView(session: session),
+    ),
+  );
 }
 
 /// Formats a `yyyy-MM-dd HH:mm:ss` timestamp into `MMM d, yyyy · h:mm a`,
