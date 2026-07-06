@@ -403,6 +403,14 @@ class _StopCard extends StatelessWidget {
               Expanded(child: _metric(ui, 'Cost', AppHelpers.formatRs(stop.cost.round()))),
             ],
           ),
+          if (stop.distanceFromPreviousStopKm != null) ...[
+            10.verticalSpace,
+            _metric(
+              ui,
+              'Distance from previous stop',
+              '${stop.distanceFromPreviousStopKm!.toStringAsFixed(2)} km',
+            ),
+          ],
         ],
       ),
     );

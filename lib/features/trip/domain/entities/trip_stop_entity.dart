@@ -47,8 +47,7 @@ class TripStopEntity extends Equatable {
   /// Only present on `plan-trip` stops.
   final double? distanceFromRouteKm;
 
-  /// Distance (km) from the previous stop on the route. Only present on
-  /// `plan-trip` stops.
+  /// Distance (km) from the previous stop on the route.
   final double? distanceFromPreviousStopKm;
   final double arrivalSoc;
   final double departureSoc;

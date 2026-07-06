@@ -68,6 +68,8 @@ class TripStopModel extends TripStopEntity {
       connectorType: TripJson.asString(json['connector_type']),
       connectorPowerKw: TripJson.asDouble(json['connector_power_kw']),
       distanceFromStartKm: TripJson.asDouble(json['distance_from_start_km']),
+      distanceFromPreviousStopKm:
+          TripJson.asDoubleOrNull(json['distance_from_previous_stop_km']),
       arrivalSoc: TripJson.asDouble(json['arrival_soc']),
       departureSoc: TripJson.asDouble(json['departure_soc']),
       energyAddedKwh: TripJson.asDouble(json['energy_added_kwh']),
