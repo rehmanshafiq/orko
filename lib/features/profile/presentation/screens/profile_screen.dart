@@ -1254,7 +1254,6 @@ class _HistorySection extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               _HistoryHeader(ui: ui, state: state),
-              4.verticalSpace,
               _HistoryBody(ui: ui, state: state),
             ],
           );
@@ -1466,7 +1465,7 @@ class _HistoryColumnHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: 8.h),
+      padding: EdgeInsets.only(bottom: 4.h),
       child: Row(
         children: [
           SizedBox(width: _HistoryColumns.icon),
