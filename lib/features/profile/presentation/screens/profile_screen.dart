@@ -19,7 +19,6 @@ import 'package:orko_hubco/core/global_bloc/bloc/user_bloc.dart';
 import 'package:orko_hubco/core/services/local_storage_service.dart';
 import 'package:orko_hubco/core/services/push_notification_service.dart';
 import 'package:orko_hubco/core/theme/theme_cubit.dart';
-import 'package:orko_hubco/core/utils/helpers.dart';
 import 'package:orko_hubco/core/utils/image_upload_helper.dart';
 import 'package:orko_hubco/core/usecase/usecase.dart';
 import 'package:orko_hubco/core/utils/app_storage/app_storage.dart';
@@ -1517,7 +1516,7 @@ class _HistoryRow extends StatelessWidget {
         ? '${_trimHistoryNum(session.energyConsumed!)} kWh'
         : '—';
     final amountLabel = session.totalCost != null
-        ? AppHelpers.formatCurrency(session.totalCost!)
+        ? _formatHistoryAmount(session.totalCost!)
         : '—';
     final statusLabel = session.status.trim().isNotEmpty
         ? session.status.trim()
@@ -1676,6 +1675,36 @@ String _formatHistoryStartedAt(String? raw) {
 String _trimHistoryNum(double value) {
   if (value == value.roundToDouble()) return value.toInt().toString();
   return value.toString();
+}
+
+/// Formats a monetary amount as `PKR 1,622.5` with comma-separated thousands,
+/// matching the stats grid style on this screen.
+String _formatHistoryAmount(double amount) {
+  final neg = amount < 0;
+  final abs = amount.abs();
+
+  if (abs == abs.roundToDouble()) {
+    return 'PKR ${_groupHistoryNum(abs.round(), neg: neg)}';
+  }
+
+  final fixed = abs.toStringAsFixed(1);
+  final dotIndex = fixed.indexOf('.');
+  final whole = _groupHistoryNum(int.parse(fixed.substring(0, dotIndex)));
+  final frac = fixed.substring(dotIndex + 1);
+  if (frac == '0') return 'PKR ${neg ? '-$whole' : whole}';
+  return 'PKR ${neg ? '-$whole.$frac' : '$whole.$frac'}';
+}
+
+/// Groups an integer with thousands separators (5930 → "5,930").
+String _groupHistoryNum(int v, {bool neg = false}) {
+  final s = v.abs().toString();
+  final buf = StringBuffer();
+  for (var i = 0; i < s.length; i++) {
+    if (i != 0 && (s.length - i) % 3 == 0) buf.write(',');
+    buf.write(s[i]);
+  }
+  final grouped = buf.toString();
+  return neg ? '-$grouped' : grouped;
 }
 
 /// Charging stats grid backed by `charging_stats`. Shows per-tile spinners
