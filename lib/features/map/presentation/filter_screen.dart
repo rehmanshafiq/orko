@@ -617,11 +617,11 @@ class _FilterScreenState extends State<FilterScreen> {
                 ],
               ),
               if (locationLabel.isNotEmpty) ...[
-                2.verticalSpace,
+                5.verticalSpace,
                 AppText(
                   station.name,
                   color: ui.textSecondary,
-                  fontSize: FontSizes.font12Sp,
+                  fontSize: FontSizes.font13Sp,
                   fontWeight: FontWeights.weight500,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,

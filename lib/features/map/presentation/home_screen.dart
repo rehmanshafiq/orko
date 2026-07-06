@@ -1298,7 +1298,7 @@ class _HomeScreenState extends State<HomeScreen> {
     } else {
       // Compact: a single horizontal row of fixed-width cards.
       listArea = SizedBox(
-        height: 138.h,
+        height: 140.h,
         child: ListView.separated(
           scrollDirection: Axis.horizontal,
           itemCount: nearbyStations.length,
@@ -1499,7 +1499,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       color: ui.textPrimary,
                       fontSize: FontSizes.font15Sp,
                       fontWeight: FontWeights.weight700,
-                      maxLines: 2,
+                      maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
@@ -1531,11 +1531,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
               if (locationLabel.isNotEmpty) ...[
-                2.verticalSpace,
+                5.verticalSpace,
                 AppText(
                   station.name,
                   color: ui.textSecondary,
-                  fontSize: FontSizes.font12Sp,
+                  fontSize: FontSizes.font13Sp,
                   fontWeight: FontWeights.weight500,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
