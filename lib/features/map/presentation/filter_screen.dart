@@ -509,6 +509,14 @@ class _FilterScreenState extends State<FilterScreen> {
     return AppHelpers.formatDistanceKm(station.distance);
   }
 
+  /// Card title from the API `area`/`city`, e.g. `HGL – F11, Islamabad`.
+  /// Empty when neither is provided (the card then falls back to the name).
+  String _stationLocationLabel(HubcoLocationEntity station) {
+    final parts = [station.area, station.city].where((s) => s.isNotEmpty);
+    if (parts.isEmpty) return '';
+    return 'HGL – ${parts.join(', ')}';
+  }
+
   String _stationAvailabilityLabel(HubcoLocationEntity station) {
     final total = station.numberOfConnectors;
     if (total <= 0) return '—';
@@ -551,6 +559,7 @@ class _FilterScreenState extends State<FilterScreen> {
 
   Widget _stationCard(BuildContext context, HubcoLocationEntity station) {
     final ui = AppUiColors.of(context);
+    final locationLabel = _stationLocationLabel(station);
     return Material(
       color: AppColors.transparentColor,
       child: InkWell(
@@ -571,7 +580,7 @@ class _FilterScreenState extends State<FilterScreen> {
                 children: [
                   Expanded(
                     child: AppText(
-                      station.name,
+                      locationLabel.isNotEmpty ? locationLabel : station.name,
                       color: ui.textPrimary,
                       fontSize: FontSizes.font15Sp,
                       fontWeight: FontWeights.weight700,
@@ -607,6 +616,17 @@ class _FilterScreenState extends State<FilterScreen> {
                   ),
                 ],
               ),
+              if (locationLabel.isNotEmpty) ...[
+                2.verticalSpace,
+                AppText(
+                  station.name,
+                  color: ui.textSecondary,
+                  fontSize: FontSizes.font12Sp,
+                  fontWeight: FontWeights.weight500,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
               4.verticalSpace,
               AppText(
                 _stationAvailabilityLabel(station),

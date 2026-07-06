@@ -19,6 +19,12 @@ class HubcoLocationEntity extends Equatable {
   final int id;
   final String name;
   final String address;
+
+  /// Area/locality from the charging-station map API (e.g. `F11`).
+  final String area;
+
+  /// City from the charging-station map API (e.g. `Islamabad`).
+  final String city;
   final double latitude;
   final double longitude;
   final bool status;
@@ -47,6 +53,8 @@ class HubcoLocationEntity extends Equatable {
     required this.id,
     required this.name,
     required this.address,
+    this.area = '',
+    this.city = '',
     required this.latitude,
     required this.longitude,
     required this.status,
@@ -65,6 +73,8 @@ class HubcoLocationEntity extends Equatable {
         id,
         name,
         address,
+        area,
+        city,
         latitude,
         longitude,
         status,
