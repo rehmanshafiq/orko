@@ -54,6 +54,8 @@
 		<true/>
 		<key>NSLocationWhenInUseUsageDescription</key>
 		<string>Your location is used to center the map on you and show nearby stations.</string>
+		<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+		<string>Your location is used to center the map on you and show nearby stations, including in the background.</string>
 		<key>NSCameraUsageDescription</key>
 		<string>Camera access is needed to scan QR codes and take your profile photo.</string>
 		<key>NSPhotoLibraryUsageDescription</key>
