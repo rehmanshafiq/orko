@@ -13,6 +13,8 @@ class StationResultEntity extends Equatable {
     required this.id,
     required this.name,
     this.subtitle = '',
+    this.area = '',
+    this.city = '',
     this.distanceKm = 0,
     this.numberOfConnectors = 0,
     this.availableConnectors = 0,
@@ -31,6 +33,12 @@ class StationResultEntity extends Equatable {
 
   /// Secondary line: parent company (search) or city (popular).
   final String subtitle;
+
+  /// Area from the API `area` key, e.g. `F11`. Empty when not provided.
+  final String area;
+
+  /// City from the API `city` key. Empty when not provided.
+  final String city;
 
   /// Distance from the requesting device, in kilometers (0 when unknown).
   final double distanceKm;
@@ -84,6 +92,8 @@ class StationResultEntity extends Equatable {
         id,
         name,
         subtitle,
+        area,
+        city,
         distanceKm,
         numberOfConnectors,
         availableConnectors,

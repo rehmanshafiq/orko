@@ -57,38 +57,30 @@ class StationCardWidget extends StatelessWidget {
               Row(
                 children: [
                   Expanded(
-                    child: Row(
-                      children: [
-                        Flexible(
-                          child: AppText(
-                            title,
-                            color: ui.textPrimary,
-                            fontSize: FontSizes.font14Sp,
-                            fontWeight: FontWeights.weight700,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        if (subtitle.isNotEmpty) ...[
-                          5.horizontalSpace,
-                          Flexible(
-                            child: AppText(
-                              subtitle,
-                              color: ui.textMuted,
-                              fontSize: FontSizes.font12Sp,
-                              fontWeight: FontWeights.weight400,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ],
+                    child: AppText(
+                      title,
+                      color: ui.textPrimary,
+                      fontSize: FontSizes.font14Sp,
+                      fontWeight: FontWeights.weight700,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                   8.horizontalSpace,
                   DistanceChipWidget(text: distance),
                 ],
               ),
+              if (subtitle.isNotEmpty) ...[
+                4.verticalSpace,
+                AppText(
+                  subtitle,
+                  color: ui.textMuted,
+                  fontSize: FontSizes.font14Sp,
+                  fontWeight: FontWeights.weight400,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
               4.verticalSpace,
               Row(
                 children: [
@@ -117,28 +109,36 @@ class StationCardWidget extends StatelessWidget {
                 Row(
                   children: [
                     Icon(Icons.ev_station_outlined,
-                        color: ui.textMuted, size: 13.sp),
+                        color: ui.textMuted, size: 14.sp),
                     6.horizontalSpace,
-                    Icon(Icons.bolt_outlined, color: ui.textMuted, size: 13.sp),
-                    // 8.horizontalSpace,
-                    const Spacer(),
+                    Icon(Icons.bolt_outlined, color: ui.textMuted, size: 17.sp),
+                    6.horizontalSpace,
                     if (power.isNotEmpty) ...[
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.bolt_rounded,
-                              color: ui.textMuted, size: 13.sp),
-                          2.horizontalSpace,
-                          AppText(
-                            power,
-                            color: ui.textPrimary,
-                            fontSize: FontSizes.font8Sp,
-                            fontWeight: FontWeights.weight500,
-                          ),
-                          8.horizontalSpace
-                        ],
+                      AppText(
+                        power,
+                        color: ui.textPrimary,
+                        fontSize: FontSizes.font10Sp,
+                        fontWeight: FontWeights.weight500,
                       ),
                     ],
+                    // const Spacer(),
+                    // if (power.isNotEmpty) ...[
+                    //   Row(
+                    //     mainAxisSize: MainAxisSize.min,
+                    //     children: [
+                    //       Icon(Icons.bolt_rounded,
+                    //           color: ui.textMuted, size: 13.sp),
+                    //       2.horizontalSpace,
+                    //       AppText(
+                    //         power,
+                    //         color: ui.textPrimary,
+                    //         fontSize: FontSizes.font8Sp,
+                    //         fontWeight: FontWeights.weight500,
+                    //       ),
+                    //       8.horizontalSpace
+                    //     ],
+                    //   ),
+                    // ],
                     // Expanded(
                     //   child: Wrap(
                     //     spacing: 4.w,

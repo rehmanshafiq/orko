@@ -164,10 +164,19 @@ class SearchMobileView extends StatelessWidget {
     return widgets;
   }
 
+  /// Card title from the API `area`/`city`, e.g. `HGL – F11, Islamabad`.
+  /// Empty when neither is provided (the card then falls back to the name).
+  String _stationLocationLabel(StationResultEntity station) {
+    final parts = [station.area, station.city].where((s) => s.isNotEmpty);
+    if (parts.isEmpty) return '';
+    return 'HGL – ${parts.join(', ')}';
+  }
+
   Widget _stationCard(BuildContext context, StationResultEntity station) {
+    final locationLabel = _stationLocationLabel(station);
     return StationCardWidget(
-      title: station.name,
-      subtitle: station.subtitle,
+      title: locationLabel.isNotEmpty ? locationLabel : station.name,
+      subtitle: locationLabel.isNotEmpty ? station.name : station.subtitle,
       distance: AppHelpers.formatDistanceKm(station.distanceKm),
       power: station.powerLabel,
       available:
@@ -186,6 +195,8 @@ class SearchMobileView extends StatelessWidget {
       id: station.id,
       name: station.name,
       address: station.subtitle,
+      area: station.area,
+      city: station.city,
       latitude: station.latitude,
       longitude: station.longitude,
       status: station.available,
