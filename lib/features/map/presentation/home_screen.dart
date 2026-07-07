@@ -1298,7 +1298,7 @@ class _HomeScreenState extends State<HomeScreen> {
     } else {
       // Compact: a single horizontal row of fixed-width cards.
       listArea = SizedBox(
-        height: 140.h,
+        height: 158.h,
         child: ListView.separated(
           scrollDirection: Axis.horizontal,
           itemCount: nearbyStations.length,
@@ -1307,7 +1307,7 @@ class _HomeScreenState extends State<HomeScreen> {
             final station = nearbyStations[index];
             return SizedBox(
               width: 280.w,
-              child: _stationCard(context, station),
+              child: _stationCard(context, station, isHorizontal: true),
             );
           },
         ),
@@ -1472,7 +1472,11 @@ class _HomeScreenState extends State<HomeScreen> {
     return buffer.toString();
   }
 
-  Widget _stationCard(BuildContext context, HubcoLocationEntity station) {
+  Widget _stationCard(
+    BuildContext context,
+    HubcoLocationEntity station, {
+    bool isHorizontal = false,
+  }) {
     final ui = AppUiColors.of(context);
     final locationLabel = _stationLocationLabel(station);
     return Material(
@@ -1497,9 +1501,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: AppText(
                       locationLabel.isNotEmpty ? locationLabel : station.name,
                       color: ui.textPrimary,
-                      fontSize: FontSizes.font15Sp,
+                      fontSize: FontSizes.font14Sp,
                       fontWeight: FontWeights.weight700,
-                      maxLines: 1,
+                      maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
@@ -1537,7 +1541,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   color: ui.textSecondary,
                   fontSize: FontSizes.font13Sp,
                   fontWeight: FontWeights.weight500,
-                  maxLines: 2,
+                  maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
               ],
@@ -1555,7 +1559,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     color: ui.textSecondary,
                     powerLabel: _stationPowerLabel(station),
                   ),
-                  const Spacer(),
+                  if (isHorizontal) 14.horizontalSpace else const Spacer(),
                   Flexible(
                     child: AppText(
                       _stationPriceLabel(station),

@@ -582,9 +582,9 @@ class _FilterScreenState extends State<FilterScreen> {
                     child: AppText(
                       locationLabel.isNotEmpty ? locationLabel : station.name,
                       color: ui.textPrimary,
-                      fontSize: FontSizes.font15Sp,
+                      fontSize: FontSizes.font14Sp,
                       fontWeight: FontWeights.weight700,
-                      maxLines: 1,
+                      maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
