@@ -29,7 +29,6 @@ import 'package:orko_hubco/features/auth/domain/usecases/delete_user_picture_use
 import 'package:orko_hubco/core/utils/app_ui.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
 import 'package:orko_hubco/core/utils/widgets/auth_required_dialog.dart';
-import 'package:orko_hubco/core/utils/widgets/gradient_switch.dart';
 import 'package:orko_hubco/core/utils/widgets/primary_button_widget.dart';
 import 'package:orko_hubco/features/auth/data/models/user_model.dart';
 import 'package:orko_hubco/features/auth/presentation/cubit/auth_cubit.dart';
@@ -38,9 +37,7 @@ import 'package:orko_hubco/features/booking/domain/entities/charge_session_histo
 import 'package:orko_hubco/features/booking/presentation/cubit/my_bookings_cubit.dart';
 import 'package:orko_hubco/features/booking/presentation/cubit/my_bookings_state.dart';
 import 'package:orko_hubco/features/booking/presentation/mobile/charging_session_receipt_mobile_view.dart';
-import 'package:orko_hubco/features/notifications/domain/entities/notification_preferences_entity.dart';
-import 'package:orko_hubco/features/notifications/presentation/cubit/notification_preferences_cubit.dart';
-import 'package:orko_hubco/features/notifications/presentation/cubit/notification_preferences_state.dart';
+import 'package:orko_hubco/features/notifications/presentation/page/notification_preferences_page.dart';
 import 'package:orko_hubco/features/profile/domain/entities/profile_entity.dart';
 import 'package:orko_hubco/features/profile/presentation/cubit/charging_stats_cubit.dart';
 import 'package:orko_hubco/features/profile/presentation/cubit/charging_stats_state.dart';
@@ -3152,7 +3149,7 @@ class _AddVehicleDialogState extends State<_AddVehicleDialog> {
       ui: ui,
       label: 'Model',
       hintText: !makeReady
-          ? 'Select make first'
+          ? 'Select vehicle first'
           : loading
               ? 'Loading models...'
               : (hasModels ? 'Select model' : 'Add a custom model'),
@@ -4016,6 +4013,16 @@ class _SettingsTabBody extends StatelessWidget {
               ),
               _DividerLine(),
               _AccountTile(
+                icon: Icons.notifications_outlined,
+                label: 'Notifications',
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const NotificationPreferencesPage(),
+                  ),
+                ),
+              ),
+              _DividerLine(),
+              _AccountTile(
                 icon: Icons.shield_outlined,
                 label: 'Privacy & Security',
                 onTap: _showComingSoon,
@@ -4029,8 +4036,6 @@ class _SettingsTabBody extends StatelessWidget {
             ],
           ),
         ),
-        14.verticalSpace,
-        const _NotificationPreferencesSection(),
       ],
     );
   }
@@ -4152,310 +4157,6 @@ class _LanguageChip extends StatelessWidget {
             textAlign: TextAlign.center,
           ),
         ),
-      ),
-    );
-  }
-}
-
-/// Notifications card backed by the preferences API
-/// (`GET/PATCH /api/v1/notifications/preferences/`). Each toggle is optimistic
-/// and reverts on failure; rows lock individually while their PATCH is in
-/// flight. Guests are prompted to sign in.
-class _NotificationPreferencesSection extends StatefulWidget {
-  const _NotificationPreferencesSection();
-
-  @override
-  State<_NotificationPreferencesSection> createState() =>
-      _NotificationPreferencesSectionState();
-}
-
-class _NotificationPreferencesSectionState
-    extends State<_NotificationPreferencesSection> {
-  // Collapsed by default; tapping the header expands the preferences.
-  bool _expanded = false;
-
-  void _toggle() => setState(() => _expanded = !_expanded);
-
-  @override
-  Widget build(BuildContext context) {
-    if (AppStorage.isGuest) {
-      return _SectionCard(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _NotificationsHeader(expanded: _expanded, onTap: _toggle),
-            AnimatedCrossFade(
-              firstChild: const SizedBox(width: double.infinity),
-              secondChild: Padding(
-                padding: EdgeInsets.only(top: 12.h),
-                child: AppText(
-                  'Sign in to manage your notification preferences.',
-                  color: AppUiColors.of(context).textSecondary,
-                  fontSize: FontSizes.font13Sp,
-                  fontWeight: FontWeights.weight400,
-                ),
-              ),
-              crossFadeState: _expanded
-                  ? CrossFadeState.showSecond
-                  : CrossFadeState.showFirst,
-              duration: const Duration(milliseconds: 200),
-            ),
-          ],
-        ),
-      );
-    }
-    return BlocProvider(
-      create: (_) => sl<NotificationPreferencesCubit>()..load(),
-      child: _NotificationPreferencesView(
-        expanded: _expanded,
-        onToggle: _toggle,
-      ),
-    );
-  }
-}
-
-class _NotificationsHeader extends StatelessWidget {
-  const _NotificationsHeader({this.expanded, this.onTap});
-
-  /// When non-null, a chevron is shown that rotates with the expanded state.
-  final bool? expanded;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final ui = AppUiColors.of(context);
-    final row = Row(
-      children: [
-        Icon(Icons.notifications_outlined, color: ui.textMuted, size: 20.r),
-        8.horizontalSpace,
-        Expanded(
-          child: AppText(
-            'Notifications',
-            color: ui.textPrimary,
-            fontSize: FontSizes.font16Sp,
-            fontWeight: FontWeights.weight700,
-          ),
-        ),
-        if (expanded != null)
-          AnimatedRotation(
-            turns: expanded! ? 0.5 : 0.0,
-            duration: const Duration(milliseconds: 200),
-            child: Icon(
-              Icons.keyboard_arrow_down_rounded,
-              color: ui.textSecondary,
-              size: 24.r,
-            ),
-          ),
-      ],
-    );
-    if (onTap == null) return row;
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: row,
-    );
-  }
-}
-
-class _NotificationPreferencesView extends StatelessWidget {
-  const _NotificationPreferencesView({
-    required this.expanded,
-    required this.onToggle,
-  });
-
-  final bool expanded;
-  final VoidCallback onToggle;
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocConsumer<NotificationPreferencesCubit,
-        NotificationPreferencesState>(
-      listenWhen: (p, c) =>
-          p.actionError != c.actionError && c.actionError != null,
-      listener: (context, state) {
-        ScaffoldMessenger.of(context)
-          ..hideCurrentSnackBar()
-          ..showSnackBar(
-            SnackBar(
-              content: Text(state.actionError!),
-              backgroundColor: AppColors.removeColor,
-            ),
-          );
-      },
-      builder: (context, state) {
-        return _SectionCard(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _NotificationsHeader(expanded: expanded, onTap: onToggle),
-              AnimatedCrossFade(
-                firstChild: const SizedBox(width: double.infinity),
-                secondChild: Padding(
-                  padding: EdgeInsets.only(top: 8.h),
-                  child: _buildBody(context, AppUiColors.of(context), state),
-                ),
-                crossFadeState: expanded
-                    ? CrossFadeState.showSecond
-                    : CrossFadeState.showFirst,
-                duration: const Duration(milliseconds: 200),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildBody(
-    BuildContext context,
-    AppUiColors ui,
-    NotificationPreferencesState state,
-  ) {
-    final cubit = context.read<NotificationPreferencesCubit>();
-
-    switch (state.status) {
-      case NotificationPreferencesStatus.initial:
-      case NotificationPreferencesStatus.loading:
-        return Padding(
-          padding: EdgeInsets.symmetric(vertical: 28.h),
-          child: Center(
-            child: SizedBox(
-              width: 26.w,
-              height: 26.w,
-              child: CircularProgressIndicator(
-                strokeWidth: 2.4,
-                color: ui.brandPrimary,
-              ),
-            ),
-          ),
-        );
-
-      case NotificationPreferencesStatus.failure:
-        return Padding(
-          padding: EdgeInsets.symmetric(vertical: 16.h),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              AppText(
-                state.errorMessage ?? 'Could not load notification settings.',
-                color: ui.textSecondary,
-                fontSize: FontSizes.font13Sp,
-                fontWeight: FontWeights.weight400,
-              ),
-              8.verticalSpace,
-              GestureDetector(
-                onTap: cubit.load,
-                behavior: HitTestBehavior.opaque,
-                child: AppText(
-                  'Retry',
-                  color: ui.brandPrimary,
-                  fontSize: FontSizes.font13Sp,
-                  fontWeight: FontWeights.weight700,
-                ),
-              ),
-            ],
-          ),
-        );
-
-      case NotificationPreferencesStatus.success:
-        final prefs = state.preferences;
-        ValueChanged<bool>? handlerFor(NotificationPreferenceKey key) =>
-            state.isUpdating(key)
-                ? null
-                : (value) => cubit.toggle(key, value);
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _NotificationRow(
-              title: 'Charging Updates',
-              subtitle: 'Get notified about charging status',
-              value: prefs.chargingUpdates,
-              onChanged:
-                  handlerFor(NotificationPreferenceKey.chargingUpdates),
-            ),
-            _DividerLine(),
-            _NotificationRow(
-              title: 'Booking Reminders',
-              subtitle: 'Reminders for upcoming bookings',
-              value: prefs.bookingReminders,
-              onChanged:
-                  handlerFor(NotificationPreferenceKey.bookingReminders),
-            ),
-            _DividerLine(),
-            _NotificationRow(
-              title: 'Promotional Offers',
-              subtitle: 'Special deals and discounts',
-              value: prefs.promotionalOffers,
-              onChanged:
-                  handlerFor(NotificationPreferenceKey.promotionalOffers),
-            ),
-            _DividerLine(),
-            _NotificationRow(
-              title: 'App Updates',
-              subtitle: 'New features and improvements',
-              value: prefs.appUpdates,
-              onChanged: handlerFor(NotificationPreferenceKey.appUpdates),
-            ),
-          ],
-        );
-    }
-  }
-}
-
-class _NotificationRow extends StatelessWidget {
-  const _NotificationRow({
-    required this.title,
-    required this.subtitle,
-    required this.value,
-    required this.onChanged,
-  });
-
-  final String title;
-  final String subtitle;
-  final bool value;
-
-  /// Null disables the row (e.g. while its PATCH is in flight).
-  final ValueChanged<bool>? onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    final ui = AppUiColors.of(context);
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: 10.h),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                AppText(
-                  title,
-                  color: ui.textPrimary,
-                  fontSize: FontSizes.font14Sp,
-                  fontWeight: FontWeights.weight600,
-                ),
-                4.verticalSpace,
-                AppText(
-                  subtitle,
-                  color: ui.textSecondary,
-                  fontSize: FontSizes.font12Sp,
-                  fontWeight: FontWeights.weight400,
-                ),
-              ],
-            ),
-          ),
-          8.horizontalSpace,
-          GradientSwitch(
-            value: value,
-            onChanged: onChanged,
-            gradientColors: const [
-              AppColors.primaryDarkColor,
-              AppColors.primaryDarkButtonColor,
-            ],
-          ),
-        ],
       ),
     );
   }
