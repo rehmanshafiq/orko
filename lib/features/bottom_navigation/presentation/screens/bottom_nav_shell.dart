@@ -127,13 +127,9 @@ class BottomNavShell extends StatelessWidget {
               height: 48.r,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: isActive
-                    ? ui.brandPrimary.withValues(alpha: 0.15)
-                    : ui.bottomNavItemBg,
+                color: ui.bottomNavItemBg,
                 border: Border.all(
-                  color: isActive
-                      ? ui.brandPrimary.withValues(alpha: 0.35)
-                      : ui.bottomNavBorder,
+                  color: isActive ? ui.navActive : ui.bottomNavBorder,
                 ),
               ),
               child: Icon(icon, color: itemColor, size: 23),
