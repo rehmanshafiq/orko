@@ -65,6 +65,4 @@ class AppUtils {
       EdgeInsets.only(left: 6.w, right: 6.w, bottom: 8.h);
   static EdgeInsets get bottomNavInnerPadding =>
       EdgeInsets.symmetric(horizontal: 6.w, vertical: 4.h);
-  static EdgeInsets get bottomNavItemVerticalPadding =>
-      EdgeInsets.symmetric(vertical: 2.h);
 }

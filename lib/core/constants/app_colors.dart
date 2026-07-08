@@ -25,6 +25,7 @@ class AppColors {
   static const sandColor = Color(0xFFE8E6DC);
   static const myAccountBorderColor = Color(0xFFE2E2E2);
   static const colorsOutlineColor = Color(0xFFEBEBEB);
+  static const greyBorderColor = Color(0xFF6A6B6D);
   static const primaryLightDarkColor = Color(0xFF699836);
   static const primaryDarkButtonColor = Color(0xFF1C5528);
   /// Brand button gradient stops (top → bottom), shared by primary buttons and toggles.
@@ -137,6 +138,15 @@ class AppUiColors {
   Color get bottomNavShadow => isLight
       ? AppColors.blackColor.withValues(alpha: 0.08)
       : AppColors.blackColor.withValues(alpha: 0.4);
+
+  /// Circular background behind each bottom nav icon.
+  Color get bottomNavItemBg => isLight
+      ? AppColors.blackColor.withValues(alpha: 0.04)
+      : AppColors.whiteColor.withValues(alpha: 0.05);
+
+  Color get borderMuted => isLight
+      ? AppColors.hintColor
+      : AppColors.greyBorderColor;
 
   Color get navInactive => isLight
       ? AppColors.greyColor
