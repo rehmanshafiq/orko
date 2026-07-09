@@ -11,12 +11,17 @@ class TopActionIconWidget extends StatelessWidget {
     super.key,
     this.isPrimary = false,
     this.isCompact = false,
+    this.compactSize = 31,
     this.onTap,
   });
 
   final IconData icon;
   final bool isPrimary;
   final bool isCompact;
+
+  /// Side length (logical px, pre-`.h`/`.w`) of the compact variant. Defaults
+  /// to the home top-bar size; the filter screen overrides it to 34.
+  final double compactSize;
   final VoidCallback? onTap;
 
   @override
@@ -24,8 +29,8 @@ class TopActionIconWidget extends StatelessWidget {
     final ui = AppUiColors.of(context);
     final radius = BorderRadius.circular(8.r);
     final child = Container(
-      height: isCompact ? 31.h : 52.h,
-      width: isCompact ? 31.w : 52.w,
+      height: isCompact ? compactSize.h : 52.h,
+      width: isCompact ? compactSize.w : 52.w,
       decoration: BoxDecoration(
         color: ui.searchBackground,
         borderRadius: radius,

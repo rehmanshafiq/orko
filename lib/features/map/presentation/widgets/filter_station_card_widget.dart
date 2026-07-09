@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:go_router/go_router.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
@@ -8,17 +7,17 @@ import 'package:orko_hubco/features/map/domain/entities/hubco_location_entity.da
 import 'package:orko_hubco/features/map/presentation/widgets/station_label_helpers.dart';
 import 'package:orko_hubco/features/map/presentation/widgets/station_plug_icons_row_widget.dart';
 
-/// Station summary card used in the home bottom sheet. [isHorizontal] renders
-/// the compact fixed-width variant used in the collapsed horizontal list.
-class HomeStationCardWidget extends StatelessWidget {
-  const HomeStationCardWidget(
+/// Full-width station card in the filter results list. Tapping it closes the
+/// screen and focuses the tapped station on the home map (via [onTap]).
+class FilterStationCardWidget extends StatelessWidget {
+  const FilterStationCardWidget(
     this.station, {
     super.key,
-    this.isHorizontal = false,
+    required this.onTap,
   });
 
   final HubcoLocationEntity station;
-  final bool isHorizontal;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +26,7 @@ class HomeStationCardWidget extends StatelessWidget {
     return Material(
       color: AppColors.transparentColor,
       child: InkWell(
-        onTap: () => context.push('/station-detail', extra: station),
+        onTap: onTap,
         borderRadius: BorderRadius.circular(24.r),
         child: Ink(
           padding: EdgeInsets.fromLTRB(14.w, 12.h, 14.w, 4.h),
@@ -91,7 +90,7 @@ class HomeStationCardWidget extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
               ],
-              6.verticalSpace,
+              4.verticalSpace,
               AppText(
                 stationAvailabilityLabel(station),
                 color: ui.textSecondary,
@@ -105,7 +104,7 @@ class HomeStationCardWidget extends StatelessWidget {
                     color: ui.textSecondary,
                     powerLabel: stationPowerLabel(station),
                   ),
-                  if (isHorizontal) 14.horizontalSpace else const Spacer(),
+                  const Spacer(),
                   Flexible(
                     child: AppText(
                       stationPriceLabel(station),

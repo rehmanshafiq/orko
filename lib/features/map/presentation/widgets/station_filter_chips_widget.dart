@@ -5,10 +5,11 @@ import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/utils/app_ui.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
 
-/// Horizontally-scrollable chip row for the Nearby Stations list: an
-/// "Available Now" toggle plus (disabled) one chip per connector [types] value.
-class HomeFilterChipsWidget extends StatelessWidget {
-  const HomeFilterChipsWidget({
+/// Horizontally-scrollable chip row shared by the home "Nearby Stations" sheet
+/// and the filter results sheet: an "Available Now" toggle plus (disabled) one
+/// chip per connector [types] value.
+class StationFilterChipsWidget extends StatelessWidget {
+  const StationFilterChipsWidget({
     super.key,
     required this.types,
     required this.availableNowSelected,

@@ -5,8 +5,8 @@ import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/utils/app_ui.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
 import 'package:orko_hubco/features/map/domain/entities/hubco_location_entity.dart';
-import 'package:orko_hubco/features/map/presentation/widgets/home_filter_chips_widget.dart';
 import 'package:orko_hubco/features/map/presentation/widgets/home_station_card_widget.dart';
+import 'package:orko_hubco/features/map/presentation/widgets/station_filter_chips_widget.dart';
 
 /// Bottom sheet listing stations. When filters are applied it mirrors the
 /// Filter results screen ("Results", full-width vertical cards once expanded);
@@ -145,7 +145,7 @@ class HomeBottomSheetWidget extends StatelessWidget {
             ],
           ),
           10.verticalSpace,
-          HomeFilterChipsWidget(
+          StationFilterChipsWidget(
             types: types,
             availableNowSelected: availableNowSelected,
             selectedTypes: selectedTypes,

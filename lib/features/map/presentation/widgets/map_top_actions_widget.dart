@@ -9,20 +9,24 @@ import 'package:orko_hubco/features/map/presentation/widgets/map_filters_bottom_
 import 'package:orko_hubco/features/map/presentation/widgets/notification_bell_widget.dart';
 import 'package:orko_hubco/features/map/presentation/widgets/top_action_icon_widget.dart';
 
-/// Home top bar: tap-to-search field with an inline filter button, plus the
-/// notification bell.
-class HomeTopActionsWidget extends StatelessWidget {
-  const HomeTopActionsWidget({
+/// Shared map top bar (home + filter results): a tap-to-search field with an
+/// inline filter button, plus the notification bell.
+class MapTopActionsWidget extends StatelessWidget {
+  const MapTopActionsWidget({
     super.key,
     required this.stationCount,
     required this.unreadCount,
     required this.onNotificationsTap,
+    this.compactFilterSize = 31,
   });
 
   /// Station count forwarded to the filters bottom sheet.
   final int stationCount;
   final int unreadCount;
   final VoidCallback onNotificationsTap;
+
+  /// Side length of the inline filter button. Home uses 31; filter uses 34.
+  final double compactFilterSize;
 
   @override
   Widget build(BuildContext context) {
@@ -59,6 +63,7 @@ class HomeTopActionsWidget extends StatelessWidget {
                       Icons.tune_rounded,
                       isPrimary: true,
                       isCompact: true,
+                      compactSize: compactFilterSize,
                       onTap: () => MapFiltersBottomSheet.show(
                         context,
                         stationCount: stationCount,

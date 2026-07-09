@@ -24,8 +24,8 @@ import 'package:orko_hubco/features/map/presentation/cubit/map_state.dart';
 import 'package:orko_hubco/features/map/presentation/cubit/map_cubit.dart';
 import 'package:orko_hubco/features/map/presentation/widgets/home_bottom_sheet_widget.dart';
 import 'package:orko_hubco/features/map/presentation/widgets/home_error_banner_widget.dart';
-import 'package:orko_hubco/features/map/presentation/widgets/home_top_actions_widget.dart';
 import 'package:orko_hubco/features/map/presentation/widgets/map_control_button_widget.dart';
+import 'package:orko_hubco/features/map/presentation/widgets/map_top_actions_widget.dart';
 
 class HomeMobileView extends StatefulWidget {
   const HomeMobileView({super.key});
@@ -634,7 +634,7 @@ class _HomeMobileViewState extends State<HomeMobileView> {
                       10.verticalSpace,
                       Padding(
                         padding: AppUtils.horizontal16Padding,
-                        child: HomeTopActionsWidget(
+                        child: MapTopActionsWidget(
                           stationCount: _locations.length,
                           unreadCount: _unreadCount,
                           onNotificationsTap: _openNotifications,

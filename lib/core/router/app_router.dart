@@ -17,7 +17,7 @@ import 'package:orko_hubco/features/bottom_navigation/presentation/screens/botto
 import 'package:orko_hubco/features/map/domain/entities/hubco_location_entity.dart';
 import 'package:orko_hubco/features/charging/presentation/page/charging_station_detail_page.dart';
 import 'package:orko_hubco/features/map/presentation/page/home_page.dart';
-import 'package:orko_hubco/features/map/presentation/filter_screen.dart';
+import 'package:orko_hubco/features/map/presentation/page/filter_page.dart';
 import 'package:orko_hubco/features/map/domain/entities/station_filters.dart';
 import 'package:orko_hubco/features/map/presentation/cubit/map_cubit.dart';
 import 'package:orko_hubco/features/notifications/presentation/page/notifications_page.dart';
@@ -210,7 +210,7 @@ class AppRouter {
               extra is StationFilters ? extra : const StationFilters();
           return BlocProvider(
             create: (_) => sl<MapCubit>()..applyFilters(filters),
-            child: FilterScreen(filters: filters),
+            child: FilterPage(filters: filters),
           );
         },
       ),
