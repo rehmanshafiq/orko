@@ -90,13 +90,15 @@ class UpcomingBookingCard extends StatelessWidget {
                   color: Colors.transparent,
                   borderRadius: BorderRadius.circular(12.r),
                   border: Border.all(
-                    color: ui.isLight ? ui.iconContainerOutline : ui.brandPrimary,
+                    color: AppColors.greyColor,
                     width: 1.5,
                   ),
                 ),
                 child: Icon(
                   Icons.calendar_today_outlined,
-                  color: ui.brandPrimary,
+                  color: ui.isLight
+                      ? AppColors.blackColor
+                      : AppColors.whiteColor,
                   size: 22.sp,
                 ),
               ),
@@ -173,19 +175,12 @@ class UpcomingBookingCard extends StatelessWidget {
           // Scan QR (approved only).
           if (showScanQr) ...[
             16.verticalSpace,
-            PrimaryButtonWidget(
-              text: 'Scan QR Code',
+            _OutlinedActionButton(
+              ui: ui,
+              label: 'Scan QR Code',
               leadingIcon: Icons.qr_code_scanner_rounded,
-              onPress: onScanQr,
+              onPressed: onScanQr,
               isEnabled: !isProcessing,
-              buttonHeight: 38.h,
-              cornerRadius: 24.r,
-              gradientColors: const [
-                AppColors.primaryDarkColor,
-                AppColors.primaryDarkButtonColor,
-              ],
-              fontSize: FontSizes.font14Sp,
-              fontWeight: FontWeights.weight700,
             ),
           ],
           // Modify / Cancel row — rendered only if at least one is available.
@@ -210,16 +205,10 @@ class UpcomingBookingCard extends StatelessWidget {
                 children: [
                   if (showModify)
                     Expanded(
-                      child: PrimaryButtonWidget(
-                        text: 'Modify',
-                        onPress: onModify,
-                        buttonHeight: 38.h,
-                        cornerRadius: 12.r,
-                        strokeColor: AppColors.greyColor,
-                        buttonColor: ui.cardBackground,
-                        textColor: ui.textPrimary,
-                        fontSize: FontSizes.font14Sp,
-                        fontWeight: FontWeights.weight700,
+                      child: _OutlinedActionButton(
+                        ui: ui,
+                        label: 'Modify',
+                        onPressed: onModify,
                       ),
                     ),
                   if (showModify && booking.canCancel) 12.horizontalSpace,
@@ -241,6 +230,80 @@ class UpcomingBookingCard extends StatelessWidget {
               ),
           ],
         ],
+      ),
+    );
+  }
+}
+
+/// Outlined action button: no fill, grey outline at rest, and a brand-green
+/// outline while the button is selected (pressed/focused/hovered). Used for
+/// both "Modify" and "Scan QR Code".
+class _OutlinedActionButton extends StatelessWidget {
+  const _OutlinedActionButton({
+    required this.ui,
+    required this.label,
+    required this.onPressed,
+    this.leadingIcon,
+    this.isEnabled = true,
+  });
+
+  final AppUiColors ui;
+  final String label;
+  final VoidCallback onPressed;
+  final IconData? leadingIcon;
+  final bool isEnabled;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 38.h,
+      child: OutlinedButton(
+        onPressed: isEnabled ? onPressed : null,
+        style: ButtonStyle(
+          backgroundColor:
+              const WidgetStatePropertyAll(AppColors.transparentColor),
+          shape: WidgetStatePropertyAll(
+            RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12.r),
+            ),
+          ),
+          side: WidgetStateProperty.resolveWith((states) {
+            if (states.contains(WidgetState.disabled)) {
+              return const BorderSide(color: AppColors.greyColor);
+            }
+            final selected = states.contains(WidgetState.pressed) ||
+                states.contains(WidgetState.focused) ||
+                states.contains(WidgetState.hovered);
+            return BorderSide(
+              color: selected ? ui.brandPrimary : AppColors.greyColor,
+            );
+          }),
+          overlayColor: WidgetStatePropertyAll(
+            ui.brandPrimary.withValues(alpha: 0.08),
+          ),
+          padding: WidgetStatePropertyAll(
+            EdgeInsets.symmetric(horizontal: 12.w),
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            if (leadingIcon != null) ...[
+              Icon(leadingIcon, color: ui.textPrimary, size: 18.sp),
+              8.horizontalSpace,
+            ],
+            Flexible(
+              child: AppText(
+                label,
+                color: ui.textPrimary,
+                fontSize: FontSizes.font14Sp,
+                fontWeight: FontWeights.weight700,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
