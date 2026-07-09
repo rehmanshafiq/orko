@@ -9,15 +9,11 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
-import 'package:orko_hubco/core/constants/app_images.dart';
-import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/di/injection_container.dart';
 import 'package:orko_hubco/core/usecase/usecase.dart';
 import 'package:orko_hubco/core/utils/app_storage/app_storage.dart';
-import 'package:orko_hubco/core/utils/widgets/image_view/app_image_view.dart';
 import 'package:orko_hubco/core/utils/app_ui.dart';
 import 'package:orko_hubco/core/utils/helpers.dart';
-import 'package:orko_hubco/core/utils/widgets/app_text.dart';
 import 'package:orko_hubco/core/utils/widgets/auth_required_dialog.dart';
 import 'package:orko_hubco/features/notifications/domain/usecases/get_unread_count_usecase.dart';
 import 'package:orko_hubco/features/auth/presentation/cubit/auth_cubit.dart';
@@ -26,10 +22,13 @@ import 'package:orko_hubco/features/map/domain/entities/hubco_location_entity.da
 import 'package:orko_hubco/features/map/domain/entities/station_filters.dart';
 import 'package:orko_hubco/features/map/presentation/cubit/map_state.dart';
 import 'package:orko_hubco/features/map/presentation/cubit/map_cubit.dart';
-import 'package:orko_hubco/features/map/presentation/widgets/map_filters_bottom_sheet.dart';
+import 'package:orko_hubco/features/map/presentation/widgets/home_bottom_sheet_widget.dart';
+import 'package:orko_hubco/features/map/presentation/widgets/home_error_banner_widget.dart';
+import 'package:orko_hubco/features/map/presentation/widgets/home_top_actions_widget.dart';
+import 'package:orko_hubco/features/map/presentation/widgets/map_control_button_widget.dart';
 
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+class HomeMobileView extends StatefulWidget {
+  const HomeMobileView({super.key});
 
   /// Set by the Filter results screen when the user taps a station card: the
   /// home map listens to this and animates its camera to the station's marker.
@@ -38,10 +37,10 @@ class HomeScreen extends StatefulWidget {
       ValueNotifier<HubcoLocationEntity?>(null);
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  State<HomeMobileView> createState() => _HomeMobileViewState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeMobileViewState extends State<HomeMobileView> {
   static const LatLng _center = LatLng(24.8607, 67.0011);
   static const String _darkMapStyle = '''
 [
@@ -89,12 +88,6 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _availableNowSelected = false;
   final Set<String> _selectedTypes = {};
 
-  /// "Nearby Location" chip — sends `radius=30` (km) to the `nearest` API via
-  /// [MapCubit.applyFilters]; unlike the client-side chips above, this
-  /// triggers a real reload.
-  bool _nearbyLocationSelected = false;
-  static const double _nearbyLocationRadiusKm = 30;
-
   final Map<_ChargingStationMarkerKind, BitmapDescriptor> _chargingStationIcons =
       {};
 
@@ -129,12 +122,12 @@ class _HomeScreenState extends State<HomeScreen> {
       _unreadPollInterval,
       (_) => _refreshUnreadCount(),
     );
-    HomeScreen.focusStationNotifier.addListener(_onFocusStationRequested);
+    HomeMobileView.focusStationNotifier.addListener(_onFocusStationRequested);
   }
 
   @override
   void dispose() {
-    HomeScreen.focusStationNotifier.removeListener(_onFocusStationRequested);
+    HomeMobileView.focusStationNotifier.removeListener(_onFocusStationRequested);
     _unreadPollTimer?.cancel();
     _mapController?.dispose();
     super.dispose();
@@ -146,10 +139,10 @@ class _HomeScreenState extends State<HomeScreen> {
   /// Handles a focus request coming from the Filter results screen: animates
   /// the map camera to the selected station, then clears the request.
   Future<void> _onFocusStationRequested() async {
-    final station = HomeScreen.focusStationNotifier.value;
+    final station = HomeMobileView.focusStationNotifier.value;
     if (station == null) return;
     // Clear immediately so tapping the same station again re-triggers this.
-    HomeScreen.focusStationNotifier.value = null;
+    HomeMobileView.focusStationNotifier.value = null;
 
     final controller = _mapController;
     if (controller == null || !mounted) return;
@@ -335,7 +328,8 @@ class _HomeScreenState extends State<HomeScreen> {
   /// out on the map at a glance. Cached after the first build.
   Future<Map<_ChargingStationMarkerKind, BitmapDescriptor?>>
       _resolveChargingStationIcon() async {
-    if (_chargingStationIcons.length == _ChargingStationMarkerKind.values.length) {
+    if (_chargingStationIcons.length ==
+        _ChargingStationMarkerKind.values.length) {
       return {
         for (final kind in _ChargingStationMarkerKind.values)
           kind: _chargingStationIcons[kind],
@@ -534,6 +528,47 @@ class _HomeScreenState extends State<HomeScreen> {
     await controller.animateCamera(CameraUpdate.newCameraPosition(position));
   }
 
+  Marker _toMarker(HubcoLocationEntity station, BitmapDescriptor? icon) {
+    return Marker(
+      markerId: MarkerId(station.id.toString()),
+      position: LatLng(station.latitude, station.longitude),
+      icon: icon ?? BitmapDescriptor.defaultMarker,
+      // Pin tip (not bitmap bottom — the glow pads it) points at the station.
+      anchor: const Offset(0.5, _stationPinTipFraction),
+      infoWindow: InfoWindow(title: station.name),
+      onTap: () => context.push('/station-detail', extra: station),
+    );
+  }
+
+  /// Clears the applied filters: reloads the map with an empty filter set, which
+  /// reverts the sheet to "Nearby Stations" (30 km cap), repaints every charger
+  /// marker, and hides the "Clear Filter" affordance. Also collapses the sheet.
+  void _clearFilters() {
+    if (_sheetExpanded) setState(() => _sheetExpanded = false);
+    context.read<MapCubit>().applyFilters(const StationFilters());
+  }
+
+  /// Handles a vertical drag on the sheet header. Swiping up expands the sheet
+  /// to full screen (only when filters are applied); swiping down collapses it.
+  void _onSheetDragEnd(DragEndDetails details, {required bool filtersApplied}) {
+    final velocity = details.primaryVelocity ?? 0;
+    if (velocity < -80 && filtersApplied && !_sheetExpanded) {
+      setState(() => _sheetExpanded = true);
+    } else if (velocity > 80 && _sheetExpanded) {
+      setState(() => _sheetExpanded = false);
+    }
+  }
+
+  void _toggleType(String type) {
+    setState(() {
+      if (_selectedTypes.contains(type)) {
+        _selectedTypes.remove(type);
+      } else {
+        _selectedTypes.add(type);
+      }
+    });
+  }
+
   // ── Build ─────────────────────────────────────────────────────────────────
 
   @override
@@ -599,22 +634,24 @@ class _HomeScreenState extends State<HomeScreen> {
                       10.verticalSpace,
                       Padding(
                         padding: AppUtils.horizontal16Padding,
-                        child: _buildTopActions(context),
+                        child: HomeTopActionsWidget(
+                          stationCount: _locations.length,
+                          unreadCount: _unreadCount,
+                          onNotificationsTap: _openNotifications,
+                        ),
                       ),
                       if (errorMessage != null) ...[
                         8.verticalSpace,
                         Padding(
                           padding: AppUtils.horizontal16Padding,
-                          child: _buildErrorBanner(context, errorMessage),
+                          child: HomeErrorBannerWidget(errorMessage),
                         ),
                       ],
                       // When the sheet is expanded it fills the remaining space
                       // (covering the map, like the Filter results screen);
                       // otherwise the map controls float above the compact sheet.
                       if (sheetExpanded)
-                        Expanded(
-                          child: _buildBottomSheet(context, expanded: true),
-                        )
+                        Expanded(child: _bottomSheet(expanded: true))
                       else ...[
                         Expanded(
                           child: Align(
@@ -626,16 +663,14 @@ class _HomeScreenState extends State<HomeScreen> {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   if (_showZoomOutButton) ...[
-                                    _buildMapControlButton(
-                                      context,
+                                    MapControlButtonWidget(
                                       icon: Icons.zoom_out_map_rounded,
                                       onTap: _zoomOutToInitial,
                                     ),
                                     8.verticalSpace,
                                   ],
                                   if (state is! MapLoading)
-                                    _buildMapControlButton(
-                                      context,
+                                    MapControlButtonWidget(
                                       icon: Icons.my_location_rounded,
                                       onTap: _goToMyLocation,
                                     ),
@@ -644,7 +679,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ),
                         ),
-                        _buildBottomSheet(context, expanded: false),
+                        _bottomSheet(expanded: false),
                       ],
                     ],
                   ),
@@ -653,9 +688,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 // ── Loading spinner ────────────────────────────────────────
                 if (state is MapLoading)
                   Center(
-                    child: CircularProgressIndicator(
-                      color: ui.brandPrimary,
-                    ),
+                    child: CircularProgressIndicator(color: ui.brandPrimary),
                   ),
               ],
             );
@@ -665,698 +698,22 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // ── Reusable widgets ──────────────────────────────────────────────────────
-
-  Widget _buildMapControlButton(
-    BuildContext context, {
-    required IconData icon,
-    required VoidCallback onTap,
-  }) {
-    final ui = AppUiColors.of(context);
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(8.r),
-        child: Ink(
-          height: 52.h,
-          width: 52.w,
-          decoration: BoxDecoration(
-            color: ui.cardBackground.withValues(alpha: ui.isLight ? 0.95 : 0.2),
-            borderRadius: BorderRadius.circular(8.r),
-            border: Border.all(
-              color: ui.borderSubtle,
-            ),
-          ),
-          child: Icon(
-            icon,
-            size: 26,
-            color: ui.textPrimary,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildErrorBanner(BuildContext context, String message) {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.symmetric(vertical: 8.h, horizontal: 10.w),
-      decoration: BoxDecoration(
-        color: Colors.redAccent.withValues(alpha: 0.16),
-        borderRadius: BorderRadius.circular(8.r),
-        border: Border.all(color: Colors.redAccent.withValues(alpha: 0.28)),
-      ),
-      child: AppText(
-        message,
-        color: AppUiColors.of(context).textPrimary,
-        fontSize: FontSizes.font12Sp,
-        fontWeight: FontWeights.weight500,
-      ),
-    );
-  }
-
-  Widget _buildTopActions(BuildContext context) {
-    final ui = AppUiColors.of(context);
-    return Row(
-      children: [
-        Expanded(
-          child: Material(
-            color: AppColors.transparentColor,
-            child: InkWell(
-              onTap: () => context.push('/search'),
-              borderRadius: BorderRadius.circular(10.r),
-              child: Ink(
-                padding: AppUtils.homeTopSearchPadding,
-                decoration: BoxDecoration(
-                  color: ui.searchBackground,
-                  borderRadius: BorderRadius.circular(10.r),
-                  border: Border.all(
-                    color: ui.borderSubtle,
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.search,
-                      color: ui.textMuted,
-                      size: 25,
-                    ),
-                    8.horizontalSpace,
-                    Expanded(
-                      child: AppText(
-                        'Search stations or locations',
-                        color: ui.textMuted,
-                        fontSize: FontSizes.font14Sp,
-                        fontWeight: FontWeights.weight400,
-                      ),
-                    ),
-                    8.horizontalSpace,
-                    _topActionIcon(
-                      context,
-                      Icons.tune_rounded,
-                      isPrimary: true,
-                      isCompact: true,
-                      onTap: () => MapFiltersBottomSheet.show(
-                        context,
-                        stationCount: _locations.length,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-        10.horizontalSpace,
-        _buildNotificationBell(context),
-      ],
-    );
-  }
-
-  /// Notification bell with an unread-count badge overlay.
-  Widget _buildNotificationBell(BuildContext context) {
-    final ui = AppUiColors.of(context);
-    final bell = _topActionIcon(
-      context,
-      Icons.notifications_none_rounded,
-      onTap: _openNotifications,
-    );
-
-    if (_unreadCount <= 0) return bell;
-
-    final label = _unreadCount > 99 ? '99+' : '$_unreadCount';
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        bell,
-        Positioned(
-          right: -2,
-          top: -2,
-          child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 5.w, vertical: 2.h),
-            constraints: BoxConstraints(minWidth: 18.r),
-            decoration: BoxDecoration(
-              color: AppColors.removeColor,
-              borderRadius: BorderRadius.circular(20.r),
-              border: Border.all(color: ui.scaffoldBackground, width: 1.5),
-            ),
-            alignment: Alignment.center,
-            child: AppText(
-              label,
-              color: AppColors.whiteColor,
-              fontSize: FontSizes.font10Sp,
-              fontWeight: FontWeights.weight700,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _topActionIcon(
-    BuildContext context,
-    IconData icon, {
-    bool isPrimary = false,
-    bool isCompact = false,
-    VoidCallback? onTap,
-  }) {
-    final ui = AppUiColors.of(context);
-    final radius = BorderRadius.circular(8.r);
-    final child = Container(
-      height: isCompact ? 31.h : 52.h,
-      width: isCompact ? 31.w : 52.w,
-      decoration: BoxDecoration(
-        color: isPrimary ? ui.searchBackground : ui.searchBackground,
-        borderRadius: radius,
-        border: Border.all(
-          color: isPrimary ? ui.brandPrimary : ui.borderSubtle,
-        ),
-      ),
-      alignment: Alignment.center,
-      child: Icon(
-        icon,
-        size: isCompact ? 15 : 26,
-        color: ui.textMuted,
-      ),
-    );
-
-    if (onTap == null) return child;
-
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: radius,
-        child: child,
-      ),
-    );
-  }
-
-  /// Distinct connector kinds (`type`) across all loaded stations, sorted.
-  List<String> _distinctConnectorTypes(List<HubcoLocationEntity> stations) {
-    final set = <String>{};
-    for (final s in stations) {
-      set.addAll(s.connectorTypes);
-    }
-    final list = set.toList()..sort();
-    return list;
-  }
-
-  /// Applies the selected chips to [stations]: "Available Now" keeps only
-  /// available stations; selected types keep stations matching any of them.
-  List<HubcoLocationEntity> _applyChipFilters(
-    List<HubcoLocationEntity> stations,
-    Set<String> activeTypes,
-  ) {
-    return stations.where((s) {
-      if (_availableNowSelected && !s.available) return false;
-      if (activeTypes.isNotEmpty && !s.connectorTypes.any(activeTypes.contains)) {
-        return false;
-      }
-      return true;
-    }).toList();
-  }
-
-  /// Nearby Stations list only shows stations within this many km (based on the
-  /// `distance` field from the charging-station map API). Display-only cap for
-  /// the bottom-sheet list; the map markers still show every station.
-  static const double _nearbyStationsMaxDistanceKm = 30;
-
-  /// Clears the applied filters: reloads the map with an empty filter set, which
-  /// reverts the sheet to "Nearby Stations" (30 km cap), repaints every charger
-  /// marker, and hides the "Clear Filter" affordance. Also collapses the sheet.
-  void _clearFilters() {
-    if (_sheetExpanded) setState(() => _sheetExpanded = false);
-    context.read<MapCubit>().applyFilters(const StationFilters());
-  }
-
-  /// Handles a vertical drag on the sheet header. Swiping up expands the sheet
-  /// to full screen (only when filters are applied); swiping down collapses it.
-  void _onSheetDragEnd(DragEndDetails details, {required bool filtersApplied}) {
-    final velocity = details.primaryVelocity ?? 0;
-    if (velocity < -80 && filtersApplied && !_sheetExpanded) {
-      setState(() => _sheetExpanded = true);
-    } else if (velocity > 80 && _sheetExpanded) {
-      setState(() => _sheetExpanded = false);
-    }
-  }
-
-  Widget _buildBottomSheet(BuildContext context, {required bool expanded}) {
-    final ui = AppUiColors.of(context);
-    // When filters from the sheet are applied, mirror the Filter results screen:
-    // list every matching station under a "Results" heading. Otherwise fall back
-    // to the distance-capped "Nearby Stations" list.
+  Widget _bottomSheet({required bool expanded}) {
     final filtersApplied = !context.read<MapCubit>().currentFilters.isEmpty;
-    final allStations = filtersApplied
-        ? _locations
-        : _locations
-            .where((s) => s.distance <= _nearbyStationsMaxDistanceKm)
-            .toList();
-    final types = _distinctConnectorTypes(allStations);
-    // Ignore any stale selections for types not present in the current data.
-    final activeTypes = _selectedTypes.where(types.contains).toSet();
-    final nearbyStations = _applyChipFilters(allStations, activeTypes);
-    final hasActiveFilters = _availableNowSelected || activeTypes.isNotEmpty;
-
-    // Header (handle + title/clear + chips) doubles as the drag target that
-    // expands/collapses the sheet. Kept off the list so list scrolling is
-    // unaffected.
-    final header = GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onVerticalDragEnd: (d) =>
+    return HomeBottomSheetWidget(
+      expanded: expanded,
+      filtersApplied: filtersApplied,
+      locations: _locations,
+      availableNowSelected: _availableNowSelected,
+      selectedTypes: _selectedTypes,
+      onClearFilters: _clearFilters,
+      onToggleAvailableNow: () =>
+          setState(() => _availableNowSelected = !_availableNowSelected),
+      onToggleType: _toggleType,
+      onHeaderDragEnd: (d) =>
           _onSheetDragEnd(d, filtersApplied: filtersApplied),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Align(
-            child: Container(
-              height: 3.h,
-              width: 66.w,
-              decoration: BoxDecoration(
-                color: ui.textSecondary.withValues(alpha: 0.65),
-                borderRadius: BorderRadius.circular(10.r),
-              ),
-            ),
-          ),
-          12.verticalSpace,
-          Row(
-            children: [
-              Expanded(
-                child: AppText(
-                  filtersApplied ? 'Results' : 'Nearby Stations',
-                  color: ui.textPrimary,
-                  fontSize: FontSizes.font24Sp,
-                  fontWeight: FontWeights.weight600,
-                ),
-              ),
-              // Only shown while filters are active; tapping resets the map.
-              if (filtersApplied)
-                GestureDetector(
-                  onTap: _clearFilters,
-                  behavior: HitTestBehavior.opaque,
-                  child: AppText(
-                    'Clear Filter',
-                    color: AppColors.removeColor,
-                    fontSize: FontSizes.font14Sp,
-                    fontWeight: FontWeights.weight600,
-                  ),
-                ),
-            ],
-          ),
-          10.verticalSpace,
-          _buildFilterChips(context, types),
-          12.verticalSpace,
-        ],
-      ),
-    );
-
-    final Widget listArea;
-    if (nearbyStations.isEmpty) {
-      final message = Padding(
-        padding: EdgeInsets.symmetric(vertical: 12.h),
-        child: AppText(
-          hasActiveFilters
-              ? 'No stations match the selected filters'
-              : (filtersApplied
-                  ? 'No stations match your filters'
-                  : 'No stations available'),
-          color: ui.textSecondary,
-          fontSize: FontSizes.font12Sp,
-          fontWeight: FontWeights.weight500,
-        ),
-      );
-      listArea = expanded
-          ? Expanded(child: Align(alignment: Alignment.topLeft, child: message))
-          : message;
-    } else if (expanded) {
-      // Full-screen: a vertical, scrollable list of full-width cards.
-      listArea = Expanded(
-        child: ListView.separated(
-          padding: EdgeInsets.only(bottom: 12.h),
-          itemCount: nearbyStations.length,
-          separatorBuilder: (_, __) => 10.verticalSpace,
-          itemBuilder: (context, index) =>
-              _stationCard(context, nearbyStations[index]),
-        ),
-      );
-    } else {
-      // Compact: a single horizontal row of fixed-width cards.
-      listArea = SizedBox(
-        height: 158.h,
-        child: ListView.separated(
-          scrollDirection: Axis.horizontal,
-          itemCount: nearbyStations.length,
-          separatorBuilder: (_, __) => 8.horizontalSpace,
-          itemBuilder: (context, index) {
-            final station = nearbyStations[index];
-            return SizedBox(
-              width: 280.w,
-              child: _stationCard(context, station, isHorizontal: true),
-            );
-          },
-        ),
-      );
-    }
-
-    return Container(
-      padding: AppUtils.homeBottomSheetPadding,
-      decoration: BoxDecoration(
-        color: ui.cardBackground,
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(22.r),
-          topRight: Radius.circular(22.r),
-        ),
-        border: Border.all(color: ui.borderSubtle),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: expanded ? MainAxisSize.max : MainAxisSize.min,
-        children: [
-          header,
-          listArea,
-        ],
-      ),
-    );
-  }
-
-  Marker _toMarker(HubcoLocationEntity station, BitmapDescriptor? icon) {
-    return Marker(
-      markerId: MarkerId(station.id.toString()),
-      position: LatLng(station.latitude, station.longitude),
-      icon: icon ?? BitmapDescriptor.defaultMarker,
-      // Pin tip (not bitmap bottom — the glow pads it) points at the station.
-      anchor: const Offset(0.5, _stationPinTipFraction),
-      infoWindow: InfoWindow(title: station.name),
-      onTap: () => context.push('/station-detail', extra: station),
-    );
-  }
-
-  /// Horizontally-scrollable chip row: an "Available Now" toggle plus one chip
-  /// per connector [types] value from the API. Tapping a chip filters the
-  /// Nearby Stations list.
-  Widget _buildFilterChips(BuildContext context, List<String> types) {
-    final chips = <Widget>[
-      _chip(
-        context,
-        'Available Now',
-        isActive: _availableNowSelected,
-        onTap: () =>
-            setState(() => _availableNowSelected = !_availableNowSelected),
-      ),
-      // for (final type in types)
-      //   _chip(
-      //     context,
-      //     type,
-      //     isActive: _selectedTypes.contains(type),
-      //     onTap: () => setState(() {
-      //       if (_selectedTypes.contains(type)) {
-      //         _selectedTypes.remove(type);
-      //       } else {
-      //         _selectedTypes.add(type);
-      //       }
-      //     }),
-      //   ),
-    ];
-
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: [
-          for (var i = 0; i < chips.length; i++) ...[
-            if (i > 0) 8.horizontalSpace,
-            chips[i],
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _chip(
-    BuildContext context,
-    String text, {
-    bool isActive = false,
-    VoidCallback? onTap,
-  }) {
-    final ui = AppUiColors.of(context);
-    final chip = AnimatedContainer(
-      duration: const Duration(milliseconds: 160),
-      padding: AppUtils.homeFilterChipPadding,
-      decoration: BoxDecoration(
-        color: isActive
-            ? ui.brandPrimary.withValues(alpha: 0.12)
-            : ui.innerCardBg,
-        borderRadius: BorderRadius.circular(20.r),
-        border: Border.all(
-          color: isActive ? ui.brandPrimary : ui.borderSubtle,
-        ),
-      ),
-      child: AppText(
-        text,
-        color: ui.textPrimary.withValues(alpha: 0.8),
-        fontSize: FontSizes.font14Sp,
-        fontWeight: isActive ? FontWeights.weight600 : FontWeights.weight400,
-      ),
-    );
-
-    if (onTap == null) return chip;
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: chip,
-    );
-  }
-
-  String _stationDistanceLabel(HubcoLocationEntity station) {
-    return AppHelpers.formatDistanceKm(station.distance);
-  }
-
-  /// Card title from the API `area`/`city`, e.g. `HGL – F11, Islamabad`.
-  /// Empty when neither is provided (the card then falls back to the name).
-  String _stationLocationLabel(HubcoLocationEntity station) {
-    final parts = [station.area, station.city].where((s) => s.isNotEmpty);
-    if (parts.isEmpty) return '';
-    return 'HGL – ${parts.join(', ')}';
-  }
-
-  String _stationAvailabilityLabel(HubcoLocationEntity station) {
-    final total = station.numberOfConnectors;
-    if (total <= 0) return '—';
-    return '${station.availableConnectors}/$total Available';
-  }
-
-  /// Peak power(s) formatted like `60 kW` (joins multiple with `/`). Empty when
-  /// the API sent no `power` values.
-  String _stationPowerLabel(HubcoLocationEntity station) {
-    if (station.powerOutputs.isEmpty) return '';
-    final parts = station.powerOutputs.map((p) =>
-        p == p.roundToDouble() ? p.toStringAsFixed(0) : p.toStringAsFixed(1));
-    return '${parts.join('/')} kW';
-  }
-
-  String _stationPriceLabel(HubcoLocationEntity station) {
-    if (station.prices.isEmpty) return '—';
-
-    final price = station.prices.first;
-    final amount = price.price == price.price.roundToDouble()
-        ? price.price.toStringAsFixed(0)
-        : price.price.toStringAsFixed(2);
-    final currency = price.currency.trim();
-    final mode = price.pricingMode.trim().toLowerCase();
-
-    final buffer = StringBuffer();
-    if (currency.isNotEmpty) {
-      buffer.write(currency == 'PKR' ? 'Rs' : currency);
-      buffer.write(' ');
-    }
-    buffer.write(amount);
-    if (mode == 'kwh') {
-      buffer.write('/kWh');
-    } else if (mode.isNotEmpty) {
-      buffer.write('/');
-      buffer.write(mode.replaceAll('_', ' '));
-    }
-    return buffer.toString();
-  }
-
-  Widget _stationCard(
-    BuildContext context,
-    HubcoLocationEntity station, {
-    bool isHorizontal = false,
-  }) {
-    final ui = AppUiColors.of(context);
-    final locationLabel = _stationLocationLabel(station);
-    return Material(
-      color: AppColors.transparentColor,
-      child: InkWell(
-        onTap: () => context.push('/station-detail', extra: station),
-        borderRadius: BorderRadius.circular(24.r),
-        child: Ink(
-          padding: EdgeInsets.fromLTRB(14.w, 12.h, 14.w, 4.h),
-          decoration: BoxDecoration(
-            color: ui.innerCardBg,
-            borderRadius: BorderRadius.circular(24.r),
-            border: Border.all(color: ui.borderSubtle),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: AppText(
-                      locationLabel.isNotEmpty ? locationLabel : station.name,
-                      color: ui.textPrimary,
-                      fontSize: FontSizes.font14Sp,
-                      fontWeight: FontWeights.weight700,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  8.horizontalSpace,
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
-                    decoration: BoxDecoration(
-                      color: AppColors.whiteColor.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(20.r),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.navigation_rounded,
-                          color: ui.textPrimary,
-                          size: 10.sp,
-                        ),
-                        4.horizontalSpace,
-                        AppText(
-                          _stationDistanceLabel(station),
-                          color: ui.textPrimary,
-                          fontSize: FontSizes.font12Sp,
-                          fontWeight: FontWeights.weight500,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              if (locationLabel.isNotEmpty) ...[
-                5.verticalSpace,
-                AppText(
-                  station.name,
-                  color: ui.textSecondary,
-                  fontSize: FontSizes.font13Sp,
-                  fontWeight: FontWeights.weight500,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-              6.verticalSpace,
-              AppText(
-                _stationAvailabilityLabel(station),
-                color: ui.textSecondary,
-                fontSize: FontSizes.font15Sp,
-                fontWeight: FontWeights.weight500,
-              ),
-              8.verticalSpace,
-              Row(
-                children: [
-                  _StationPlugIconsRow(
-                    color: ui.textSecondary,
-                    powerLabel: _stationPowerLabel(station),
-                  ),
-                  if (isHorizontal) 14.horizontalSpace else const Spacer(),
-                  Flexible(
-                    child: AppText(
-                      _stationPriceLabel(station),
-                      color: ui.textSecondary,
-                      fontSize: FontSizes.font13Sp,
-                      fontWeight: FontWeights.weight400,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  16.horizontalSpace,
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }
 
-enum _ChargingStationMarkerKind {
-  grey,
-  green,
-}
-
-class _StationPlugIconsRow extends StatelessWidget {
-  const _StationPlugIconsRow({required this.color, this.powerLabel = ''});
-
-  final Color color;
-
-  /// Peak power label (e.g. `60 kW`) shown next to the plug icon; hidden empty.
-  final String powerLabel;
-
-  static const _iconSize = 34.0;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // _PlugIcon(assetPath: AppImages.icCcs, color: color),
-        // 2.horizontalSpace,
-        // _PlugIcon(assetPath: AppImages.icCcs1, color: color),
-        // 2.horizontalSpace,
-        _PlugIcon(assetPath: AppImages.icCss2, color: color),
-        if (powerLabel.isNotEmpty) ...[
-          8.horizontalSpace,
-          AppText(
-            powerLabel,
-            color: color,
-            fontSize: FontSizes.font13Sp,
-            fontWeight: FontWeights.weight500,
-          ),
-        ],
-        50.horizontalSpace,
-      ],
-    );
-  }
-}
-
-class _PlugIcon extends StatelessWidget {
-  const _PlugIcon({
-    required this.assetPath,
-    required this.color,
-  });
-
-  final String assetPath;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    final size = _StationPlugIconsRow._iconSize.sp;
-
-    if (assetPath.endsWith('.svg')) {
-      return AppSvgImageView(
-        appImagePath: assetPath,
-        width: size,
-        height: size,
-        fit: BoxFit.contain,
-        color: color,
-      );
-    }
-
-    return AppPngImageView(
-      appImagePath: assetPath,
-      width: size,
-      height: size,
-      fit: BoxFit.contain,
-    );
-  }
-}
+enum _ChargingStationMarkerKind { grey, green }

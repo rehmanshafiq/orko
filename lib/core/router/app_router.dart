@@ -16,7 +16,7 @@ import 'package:orko_hubco/features/booking/presentation/screens/payment_method_
 import 'package:orko_hubco/features/bottom_navigation/presentation/screens/bottom_nav_shell.dart';
 import 'package:orko_hubco/features/map/domain/entities/hubco_location_entity.dart';
 import 'package:orko_hubco/features/charging/presentation/page/charging_station_detail_page.dart';
-import 'package:orko_hubco/features/map/presentation/home_screen.dart';
+import 'package:orko_hubco/features/map/presentation/page/home_page.dart';
 import 'package:orko_hubco/features/map/presentation/filter_screen.dart';
 import 'package:orko_hubco/features/map/domain/entities/station_filters.dart';
 import 'package:orko_hubco/features/map/presentation/cubit/map_cubit.dart';
@@ -39,7 +39,7 @@ import 'package:orko_hubco/features/trip/presentation/page/trip_planner_page.dar
 ///   /login      → LoginScreen
 ///   /register   → RegisterScreen
 ///   /home       → BottomNavShell
-///     ├── /home          → HomeScreen     (tab 0)
+///     ├── /home          → HomePage       (tab 0)
 ///     ├── /account       → ProfileScreen  (tab 1)
 ///     ├── /bookings      → MyBookingsPage (tab 2)
 ///     ├── /trip          → TripPlannerPage (tab 3)
@@ -234,7 +234,7 @@ class AppRouter {
                 name: 'home',
                 builder: (context, state) => BlocProvider(
                   create: (_) => sl<MapCubit>()..loadHubcoLocations(),
-                  child: const HomeScreen(),
+                  child: const HomePage(),
                 ),
               ),
             ],

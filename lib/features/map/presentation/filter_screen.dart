@@ -17,7 +17,7 @@ import 'package:orko_hubco/core/utils/widgets/auth_required_dialog.dart';
 import 'package:orko_hubco/core/utils/widgets/image_view/app_image_view.dart';
 import 'package:orko_hubco/features/map/domain/entities/hubco_location_entity.dart';
 import 'package:orko_hubco/features/map/domain/entities/station_filters.dart';
-import 'package:orko_hubco/features/map/presentation/home_screen.dart';
+import 'package:orko_hubco/features/map/presentation/view/home_mobile_view.dart';
 import 'package:orko_hubco/features/map/presentation/cubit/map_cubit.dart';
 import 'package:orko_hubco/features/map/presentation/cubit/map_state.dart';
 import 'package:orko_hubco/features/map/presentation/widgets/map_filters_bottom_sheet.dart';
@@ -107,7 +107,7 @@ class _FilterScreenState extends State<FilterScreen> {
   /// Tapping a result closes this screen and asks the home map to zoom to the
   /// tapped station's charger marker (the home map data itself is untouched).
   void _focusOnHomeMap(HubcoLocationEntity station) {
-    HomeScreen.focusStationNotifier.value = station;
+    HomeMobileView.focusStationNotifier.value = station;
     context.pop();
   }
 
