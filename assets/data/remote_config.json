@@ -26,6 +26,7 @@
       "charging_station_favourites": "api/v1/charging-station/favourites/",
       "charging_station_search": "api/v1/charging-station/search/",
       "charging_station_popular": "api/v1/charging-station/popular/",
+      "charging_station_reviews": "api/v1/charging-station/reviews/",
       "charger_details": "api/v1/bookings/charger-details/",
       "booking_slots": "api/v1/bookings/slots/",
       "create_booking": "api/v1/bookings/book-charge-session/",

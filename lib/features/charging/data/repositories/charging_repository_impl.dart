@@ -5,6 +5,7 @@ import 'package:orko_hubco/features/charging/data/datasources/remote/charging_re
 import 'package:orko_hubco/features/charging/domain/entities/charger_compatibility_entity.dart';
 import 'package:orko_hubco/features/charging/domain/entities/charging_station_detail_entity.dart';
 import 'package:orko_hubco/features/charging/domain/entities/favourite_station_entity.dart';
+import 'package:orko_hubco/features/charging/domain/entities/station_reviews_entity.dart';
 import 'package:orko_hubco/features/charging/domain/repositories/charging_repository.dart';
 
 class ChargingRepositoryImpl implements ChargingRepository {
@@ -79,6 +80,72 @@ class ChargingRepositoryImpl implements ChargingRepository {
         chargePointId: chargePointId,
       );
       return Right(result);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, StationReviewsEntity>> getReviews(
+    int locationId,
+  ) async {
+    try {
+      final reviews = await remoteDataSource.getReviews(locationId);
+      return Right(reviews);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> addReview({
+    required int locationId,
+    required int rating,
+    required String description,
+  }) async {
+    try {
+      await remoteDataSource.addReview(
+        locationId: locationId,
+        rating: rating,
+        description: description,
+      );
+      return const Right(null);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> updateReview({
+    required int reviewId,
+    required int rating,
+    required String description,
+  }) async {
+    try {
+      await remoteDataSource.updateReview(
+        reviewId: reviewId,
+        rating: rating,
+        description: description,
+      );
+      return const Right(null);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> deleteReview(int reviewId) async {
+    try {
+      await remoteDataSource.deleteReview(reviewId);
+      return const Right(null);
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
     } catch (e) {

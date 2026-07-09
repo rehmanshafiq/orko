@@ -147,6 +147,7 @@ class ApiEndpoints extends Equatable {
     required this.chargingStationFavourites,
     required this.chargingStationSearch,
     required this.chargingStationPopular,
+    required this.chargingStationReviews,
     required this.signUpForm,
     required this.verifyOtp,
     required this.resendOtp,
@@ -200,6 +201,7 @@ class ApiEndpoints extends Equatable {
   final String chargingStationFavourites;
   final String chargingStationSearch;
   final String chargingStationPopular;
+  final String chargingStationReviews;
   final String signUpForm;
   final String verifyOtp;
   final String resendOtp;
@@ -256,6 +258,8 @@ class ApiEndpoints extends Equatable {
           json['charging_station_favourites'] as String? ?? '',
       chargingStationSearch: json['charging_station_search'] as String? ?? '',
       chargingStationPopular: json['charging_station_popular'] as String? ?? '',
+      chargingStationReviews:
+          json['charging_station_reviews'] as String? ?? '',
       signUpForm: json['sign_up_form'] as String? ?? '',
       verifyOtp: json['verify_otp'] as String? ?? '',
       resendOtp: json['resend_otp'] as String? ?? '',
@@ -316,6 +320,7 @@ class ApiEndpoints extends Equatable {
       'charging_station_favourites': chargingStationFavourites,
       'charging_station_search': chargingStationSearch,
       'charging_station_popular': chargingStationPopular,
+      'charging_station_reviews': chargingStationReviews,
       'sign_up_form': signUpForm,
       'verify_otp': verifyOtp,
       'resend_otp': resendOtp,
@@ -371,6 +376,7 @@ class ApiEndpoints extends Equatable {
     String? chargingStationFavourites,
     String? chargingStationSearch,
     String? chargingStationPopular,
+    String? chargingStationReviews,
     String? signUpForm,
     String? verifyOtp,
     String? resendOtp,
@@ -428,6 +434,8 @@ class ApiEndpoints extends Equatable {
           chargingStationSearch ?? this.chargingStationSearch,
       chargingStationPopular:
           chargingStationPopular ?? this.chargingStationPopular,
+      chargingStationReviews:
+          chargingStationReviews ?? this.chargingStationReviews,
       signUpForm: signUpForm ?? this.signUpForm,
       verifyOtp: verifyOtp ?? this.verifyOtp,
       resendOtp: resendOtp ?? this.resendOtp,
@@ -489,6 +497,7 @@ class ApiEndpoints extends Equatable {
     chargingStationFavourites,
     chargingStationSearch,
     chargingStationPopular,
+    chargingStationReviews,
     signUpForm,
     verifyOtp,
     resendOtp,

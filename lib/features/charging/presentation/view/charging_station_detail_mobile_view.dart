@@ -10,14 +10,15 @@ import 'package:orko_hubco/core/utils/widgets/app_text.dart';
 import 'package:orko_hubco/features/charging/presentation/bloc/charging_station_detail_bloc.dart';
 import 'package:orko_hubco/features/charging/presentation/bloc/charging_station_detail_event.dart';
 import 'package:orko_hubco/features/charging/presentation/bloc/charging_station_detail_state.dart';
+import 'package:orko_hubco/features/charging/presentation/cubit/station_reviews_cubit.dart';
 import 'package:orko_hubco/features/charging/presentation/widgets/charging_station_amenities_widget.dart';
 import 'package:orko_hubco/features/charging/presentation/widgets/charging_station_banner_widget.dart';
 import 'package:orko_hubco/features/charging/presentation/widgets/charging_station_bottom_actions_widget.dart';
 import 'package:orko_hubco/features/charging/presentation/widgets/charging_station_glass_button_widget.dart';
 import 'package:orko_hubco/features/charging/presentation/widgets/charging_station_meta_row_widget.dart';
 import 'package:orko_hubco/features/charging/presentation/widgets/charging_station_ports_list_widget.dart';
-import 'package:orko_hubco/features/charging/presentation/widgets/charging_station_reviews_widget.dart';
 import 'package:orko_hubco/features/charging/presentation/widgets/charging_station_section_title_widget.dart';
+import 'package:orko_hubco/features/charging/presentation/widgets/station_reviews_section_widget.dart';
 import 'package:orko_hubco/features/map/domain/entities/hubco_location_entity.dart';
 
 /// Charging hub detail — layout matches product reference (dark theme).
@@ -49,15 +50,23 @@ class ChargingStationDetailMobileView extends StatelessWidget {
       );
     }
 
-    return BlocProvider(
-      create: (_) => sl<ChargingStationDetailBloc>()
-        ..add(
-          ChargingStationDetailRequested(
-            stationId: hub.id.toString(),
-            latitude: hub.latitude,
-            longitude: hub.longitude,
-          ),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (_) => sl<ChargingStationDetailBloc>()
+            ..add(
+              ChargingStationDetailRequested(
+                stationId: hub.id.toString(),
+                latitude: hub.latitude,
+                longitude: hub.longitude,
+              ),
+            ),
         ),
+        // Reviews load in parallel keyed by the station's location id.
+        BlocProvider(
+          create: (_) => sl<StationReviewsCubit>(param1: hub.id)..load(),
+        ),
+      ],
       child: BlocConsumer<ChargingStationDetailBloc, ChargingStationDetailState>(
         listenWhen: (previous, current) =>
             previous.favoriteEventId != current.favoriteEventId &&
@@ -253,17 +262,8 @@ class ChargingStationDetailMobileView extends StatelessWidget {
                                 ),
                                 4.verticalSpace,
                                 const Divider(),
-                                6.verticalSpace,
-                                const ChargingStationSectionTitleWidget(
-                                  title: 'Reviews',
-                                ),
-                                6.verticalSpace,
-                                if (state.reviews.isEmpty)
-                                  _EmptyText(text: 'No reviews yet')
-                                else
-                                  ChargingStationReviewsWidget(
-                                    reviews: state.reviews,
-                                  ),
+                                10.verticalSpace,
+                                const StationReviewsSectionWidget(),
                                 50.verticalSpace,
                               ],
                             ),

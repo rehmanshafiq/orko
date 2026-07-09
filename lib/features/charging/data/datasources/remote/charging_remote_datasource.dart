@@ -6,6 +6,7 @@ import 'package:orko_hubco/core/network/api_client.dart';
 import 'package:orko_hubco/features/charging/data/models/charger_compatibility_model.dart';
 import 'package:orko_hubco/features/charging/data/models/charging_station_detail_model.dart';
 import 'package:orko_hubco/features/charging/data/models/favourite_station_model.dart';
+import 'package:orko_hubco/features/charging/data/models/station_reviews_model.dart';
 import 'package:orko_hubco/features/remote_config/data/services/remote_config_service.dart';
 
 abstract class ChargingRemoteDataSource {
@@ -36,6 +37,28 @@ abstract class ChargingRemoteDataSource {
     required int csmsVehicleId,
     required String chargePointId,
   });
+
+  /// Fetches reviews + summary for [locationId]
+  /// (`GET api/v1/charging-station/reviews/?location_id=...`).
+  Future<StationReviewsModel> getReviews(int locationId);
+
+  /// Adds a review (`POST api/v1/charging-station/reviews/`).
+  Future<void> addReview({
+    required int locationId,
+    required int rating,
+    required String description,
+  });
+
+  /// Updates the current user's review (`POST` with `review_id`).
+  Future<void> updateReview({
+    required int reviewId,
+    required int rating,
+    required String description,
+  });
+
+  /// Deletes the current user's review
+  /// (`DELETE api/v1/charging-station/reviews/?review_id=...`).
+  Future<void> deleteReview(int reviewId);
 }
 
 class ChargingRemoteDataSourceImpl implements ChargingRemoteDataSource {
@@ -48,6 +71,11 @@ class ChargingRemoteDataSourceImpl implements ChargingRemoteDataSource {
   /// updated yet). Keeps the feature working off the bundled contract.
   static const String _defaultFavouritesPath =
       'api/v1/charging-station/favourites/';
+
+  /// Default reviews path, used when Remote Config omits the
+  /// `charging_station_reviews` key.
+  static const String _defaultReviewsPath =
+      'api/v1/charging-station/reviews/';
 
   @override
   Future<ChargingStationDetailModel> getStationDetail({
@@ -235,6 +263,177 @@ class ChargingRemoteDataSourceImpl implements ChargingRemoteDataSource {
     } catch (e) {
       throw ServerException(message: e.toString(), originalError: e);
     }
+  }
+
+  @override
+  Future<StationReviewsModel> getReviews(int locationId) async {
+    try {
+      final url = _reviewsUrl();
+      log('[Charging] Reviews URL (GET): $url (location_id: $locationId)');
+
+      final response = await apiClient.get(
+        url,
+        queryParameters: {'location_id': locationId},
+      );
+
+      final data = response.data;
+      _throwIfError(response.statusCode, data, 'Failed to load reviews');
+
+      if (data is Map<String, dynamic> && data['body'] is Map) {
+        return StationReviewsModel.fromJson(
+          Map<String, dynamic>.from(data['body'] as Map),
+        );
+      }
+      // A well-formed success with no body → treat as no reviews yet.
+      return const StationReviewsModel();
+    } on ServerException {
+      rethrow;
+    } on DioException catch (e) {
+      throw _dioToServerException(e, 'Failed to load reviews');
+    } catch (e) {
+      throw ServerException(message: e.toString(), originalError: e);
+    }
+  }
+
+  @override
+  Future<void> addReview({
+    required int locationId,
+    required int rating,
+    required String description,
+  }) async {
+    try {
+      final url = _reviewsUrl();
+      log('[Charging] Reviews URL (POST add): $url '
+          '(location_id: $locationId, rating: $rating)');
+
+      final response = await apiClient.post(
+        url,
+        data: {
+          'location_id': locationId,
+          'rating': rating,
+          'description': description,
+        },
+      );
+
+      _throwIfError(response.statusCode, response.data, 'Failed to add review');
+    } on ServerException {
+      rethrow;
+    } on DioException catch (e) {
+      throw _dioToServerException(e, 'Failed to add review');
+    } catch (e) {
+      throw ServerException(message: e.toString(), originalError: e);
+    }
+  }
+
+  @override
+  Future<void> updateReview({
+    required int reviewId,
+    required int rating,
+    required String description,
+  }) async {
+    try {
+      final url = _reviewsUrl();
+      log('[Charging] Reviews URL (POST update): $url '
+          '(review_id: $reviewId, rating: $rating)');
+
+      final response = await apiClient.post(
+        url,
+        data: {
+          'review_id': reviewId,
+          'rating': rating,
+          'description': description,
+        },
+      );
+
+      _throwIfError(
+        response.statusCode,
+        response.data,
+        'Failed to update review',
+      );
+    } on ServerException {
+      rethrow;
+    } on DioException catch (e) {
+      throw _dioToServerException(e, 'Failed to update review');
+    } catch (e) {
+      throw ServerException(message: e.toString(), originalError: e);
+    }
+  }
+
+  @override
+  Future<void> deleteReview(int reviewId) async {
+    try {
+      final url = _reviewsUrl();
+      log('[Charging] Reviews URL (DELETE): $url (review_id: $reviewId)');
+
+      final response = await apiClient.delete(
+        url,
+        queryParameters: {'review_id': reviewId},
+      );
+
+      _throwIfError(
+        response.statusCode,
+        response.data,
+        'Failed to delete review',
+      );
+    } on ServerException {
+      rethrow;
+    } on DioException catch (e) {
+      throw _dioToServerException(e, 'Failed to delete review');
+    } catch (e) {
+      throw ServerException(message: e.toString(), originalError: e);
+    }
+  }
+
+  /// Resolves the reviews endpoint against the QA base URL.
+  String _reviewsUrl() {
+    final config = RemoteConfigService.config;
+    if (config == null) {
+      throw const ServerException(message: 'Remote config not initialized');
+    }
+    final base = ApiClient.baseUrl.endsWith('/')
+        ? ApiClient.baseUrl.substring(0, ApiClient.baseUrl.length - 1)
+        : ApiClient.baseUrl;
+    var path = config.apiConstants.apiEndpoints.chargingStationReviews.trim();
+    if (path.isEmpty) path = _defaultReviewsPath;
+    if (path.startsWith('/')) path = path.substring(1);
+    return '$base/$path';
+  }
+
+  /// Throws a [ServerException] when the request failed. Handles both real HTTP
+  /// error codes and the API's convention of returning `200 OK` with an error
+  /// `status` inside the body (e.g. `{ "status": 422, "message": "..." }`).
+  void _throwIfError(int? httpStatus, dynamic data, String fallback) {
+    final code = httpStatus ?? 0;
+    if (code < 200 || code >= 300) {
+      throw ServerException(
+        message: _messageOf(data, fallback),
+        statusCode: httpStatus,
+      );
+    }
+    if (data is Map<String, dynamic>) {
+      final bodyStatus = data['status'];
+      if (bodyStatus is int && (bodyStatus < 200 || bodyStatus >= 300)) {
+        throw ServerException(
+          message: _messageOf(data, fallback),
+          statusCode: bodyStatus,
+        );
+      }
+    }
+  }
+
+  /// Maps a [DioException] to a [ServerException], surfacing the backend
+  /// message verbatim when present.
+  ServerException _dioToServerException(DioException e, String fallback) {
+    final data = e.response?.data;
+    final message = (data is Map && data['message'] != null)
+        ? data['message'].toString()
+        : (e.message ?? fallback);
+    log('[Charging] Reviews failed (${e.response?.statusCode}): $message');
+    return ServerException(
+      message: message,
+      statusCode: e.response?.statusCode,
+      originalError: e,
+    );
   }
 
   /// Resolves the charger-compatibility endpoint against the QA base URL.
