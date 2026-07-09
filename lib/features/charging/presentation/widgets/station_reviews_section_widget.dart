@@ -254,7 +254,7 @@ class _Body extends StatelessWidget {
           averageRating: state.averageRating,
           totalCount: state.totalCount,
         ),
-        12.verticalSpace,
+        22.verticalSpace,
         _ReviewsList(reviews: state.reviews),
       ],
     );
