@@ -451,7 +451,7 @@ class _HomeMobileViewState extends State<HomeMobileView> {
     final glyph = await _loadChargerGlyphImage();
     if (glyph != null) {
       // Fit the asset inside the pin head, preserving its aspect ratio.
-      const glyphExtent = 16.0;
+      const glyphExtent = 20.0;
       final aspect = glyph.width / glyph.height;
       final glyphWidth = (aspect >= 1 ? glyphExtent : glyphExtent * aspect) * u;
       final glyphHeight = (aspect >= 1 ? glyphExtent / aspect : glyphExtent) * u;
