@@ -600,7 +600,7 @@ class _HomeMobileViewState extends State<HomeMobileView> {
 
   /// Deepest zoom a cluster tap will animate to — street level, where a station
   /// group is fully broken apart.
-  static const double _clusterTapMaxZoom = 18.5;
+  static const double _clusterTapMaxZoom = 15.5;
 
   /// Screen padding (logical px) around the framed stations when a cluster tap
   /// zooms to the group's bounds; keeps edge pins clear of the top bar/sheet.
@@ -639,6 +639,19 @@ class _HomeMobileViewState extends State<HomeMobileView> {
       return;
     }
 
+    // Pairs: `newLatLngBounds` over-zooms past the SDK max when the two pins
+    // are close, which lands the camera off-target with no pins visible until
+    // the user zooms back out. Compute the fitting zoom ourselves and clamp it
+    // to street level, centered exactly between the two stations.
+    if (cluster.items.length == 2) {
+      final center = LatLng((minLat + maxLat) / 2, (minLng + maxLng) / 2);
+      final zoom = _zoomToFitBounds(minLat, maxLat, minLng, maxLng)
+          .clamp(1.0, _clusterTapMaxZoom)
+          .toDouble();
+      await controller.animateCamera(CameraUpdate.newLatLngZoom(center, zoom));
+      return;
+    }
+
     await controller.animateCamera(
       CameraUpdate.newLatLngBounds(
         LatLngBounds(
@@ -647,6 +660,38 @@ class _HomeMobileViewState extends State<HomeMobileView> {
         ),
         _clusterTapBoundsPadding,
       ),
+    );
+  }
+
+  /// Zoom at which the given geographic bounds fit on screen with
+  /// [_clusterTapBoundsPadding] on every side. Uses the same Web Mercator
+  /// world space as the clustering ([_projectToWorld]): at zoom `z` a world
+  /// unit is `2^z` logical pixels, so the fitting zoom per axis is
+  /// `log2(availablePx / worldSpan)`.
+  double _zoomToFitBounds(
+    double minLat,
+    double maxLat,
+    double minLng,
+    double maxLng,
+  ) {
+    final northEast = _projectToWorld(maxLat, maxLng);
+    final southWest = _projectToWorld(minLat, minLng);
+    final worldSpanX = (northEast.dx - southWest.dx).abs();
+    final worldSpanY = (northEast.dy - southWest.dy).abs();
+
+    final screen = MediaQuery.sizeOf(context);
+    final availableW =
+        math.max(1.0, screen.width - 2 * _clusterTapBoundsPadding);
+    final availableH =
+        math.max(1.0, screen.height - 2 * _clusterTapBoundsPadding);
+
+    double zoomFor(double span, double available) => span <= 0
+        ? _clusterTapMaxZoom
+        : math.log(available / span) / math.ln2;
+
+    return math.min(
+      zoomFor(worldSpanX, availableW),
+      zoomFor(worldSpanY, availableH),
     );
   }
 
