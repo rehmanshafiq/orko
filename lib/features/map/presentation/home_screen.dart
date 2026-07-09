@@ -3,7 +3,6 @@ import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:geolocator/geolocator.dart';
@@ -99,17 +98,6 @@ class _HomeScreenState extends State<HomeScreen> {
   final Map<_ChargingStationMarkerKind, BitmapDescriptor> _chargingStationIcons =
       {};
 
-  /// Custom green/grey cluster bubble bitmaps, cached by `${kind}_${count}`.
-  final Map<String, BitmapDescriptor> _clusterIcons = {};
-
-  /// Average fill green sampled from the tinted map pin; keeps cluster bubbles
-  /// visually aligned with individual station markers.
-  Color? _mapGreenIconColor;
-
-  /// Current map zoom, kept in sync via [GoogleMap.onCameraMove]. Drives the
-  /// grid clustering so markers re-cluster as the user zooms in/out.
-  double _currentZoom = 13.8;
-
   /// Zoom used when framing stations on first load.
   static const double _initialZoom = 5.2;
 
@@ -118,14 +106,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   /// Whether the zoom-out control is visible (user has zoomed in past the initial level).
   bool _showZoomOutButton = false;
-
-  /// Grid cell size (logical px) used to group nearby markers into a cluster.
-  static const double _clusterCellSize = 90;
-
-  /// Signature of the last rendered clustering; lets us skip redundant marker
-  /// updates (and the SDK's marker-redraw flicker) when panning doesn't change
-  /// the grouping.
-  String _lastClusterSignature = '';
 
   /// Whether the results sheet is expanded to fill the screen. Only usable when
   /// filters are applied; forced back to false whenever filters are cleared.
@@ -160,8 +140,7 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
-  /// Zoom used when focusing a single station from the filter results screen —
-  /// deep enough that its marker is no longer inside a cluster bubble.
+  /// Zoom used when focusing a single station from the filter results screen.
   static const double _focusStationZoom = 16;
 
   /// Handles a focus request coming from the Filter results screen: animates
@@ -263,7 +242,6 @@ class _HomeScreenState extends State<HomeScreen> {
       zoom: _initialZoom,
     );
     _initialCameraPosition = position;
-    _currentZoom = _initialZoom;
     if (_showZoomOutButton) {
       setState(() => _showZoomOutButton = false);
     }
@@ -273,7 +251,6 @@ class _HomeScreenState extends State<HomeScreen> {
   double get _baselineZoom => _initialCameraPosition?.zoom ?? 13.8;
 
   void _onCameraPositionChanged(double zoom) {
-    _currentZoom = zoom;
     final show = zoom > _baselineZoom + 0.05;
     if (show != _showZoomOutButton) {
       setState(() => _showZoomOutButton = show);
@@ -324,8 +301,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
     _locations = locations;
 
-    // Step 3 ── Build clustered markers. The SDK flashes white here — it's hidden.
-    await _rebuildClusters();
+    // Step 3 ── Build station markers. The SDK flashes white here — it's hidden.
+    await _rebuildMarkers();
     if (!mounted) return;
 
     // Step 4 ── Reapply dark style; the SDK reverted it on redraw.
@@ -345,10 +322,17 @@ class _HomeScreenState extends State<HomeScreen> {
     unawaited(_syncMapMyLocationLayer());
   }
 
-  static const double _chargingStationMarkerSize = 44;
+  /// Logical width/height of the station pin bitmap. Sized so the teardrop pin
+  /// plus its glow halo stay crisp at typical map zoom levels.
+  static const double _chargingStationMarkerSize = 60;
 
-  /// Loads green ([primaryDarkColor]) and grey markers (cached). Stations with
-  /// >2 available ports use green; ≤2 ports use grey.
+  /// Fraction of the bitmap height where the pin tip sits; used as the marker
+  /// anchor so the tip points at the station's exact coordinate.
+  static const double _stationPinTipFraction = 52 / 60;
+
+  /// Standard location pins (green = active, grey = inactive), drawn on a
+  /// canvas with a soft radial glow behind the pin so charging stations stand
+  /// out on the map at a glance. Cached after the first build.
   Future<Map<_ChargingStationMarkerKind, BitmapDescriptor?>>
       _resolveChargingStationIcon() async {
     if (_chargingStationIcons.length == _ChargingStationMarkerKind.values.length) {
@@ -359,390 +343,83 @@ class _HomeScreenState extends State<HomeScreen> {
     }
     if (!mounted) return const {};
 
-    final results = await Future.wait([
-      _loadChargingStationMarkerAsset(
-        AppImages.icChargerMap,
-        _ChargingStationMarkerKind.green,
-        tintColor: AppColors.primaryDarkColor,
-      ),
-      _loadChargingStationMarkerAsset(
-        AppImages.icChargerMap,
-        _ChargingStationMarkerKind.grey,
-        desaturate: true,
-      ),
-    ]);
+    for (final kind in _ChargingStationMarkerKind.values) {
+      final color = kind == _ChargingStationMarkerKind.green
+          ? AppColors.primaryDarkColor
+          : AppColors.greyColor;
+      _chargingStationIcons[kind] = await _buildStationPinBitmap(color: color);
+    }
 
     return {
-      for (final entry in results)
-        if (entry != null) entry.key: entry.value,
+      for (final kind in _ChargingStationMarkerKind.values)
+        kind: _chargingStationIcons[kind],
     };
   }
 
-  /// Google Maps on Android opens assets via the native AssetManager, which can
-  /// miss files under a directory-only pubspec entry. Load through [rootBundle]
-  /// and pass PNG bytes so markers render reliably after a full rebuild.
+  /// Draws a teardrop location pin in [color] (white outline + lightning bolt)
+  /// over a subtle radial glow, and returns it as a [BitmapDescriptor].
   ///
-  /// When [desaturate] is set, the decoded pixels are converted to grey
-  /// (alpha preserved) so the green charger asset can double as the
-  /// "grey"/unavailable marker without a separate file.
-  ///
-  /// When [tintColor] is set, non-transparent pixels are recolored to that
-  /// brand green while preserving alpha and shading from the source asset.
-  Future<MapEntry<_ChargingStationMarkerKind, BitmapDescriptor>?>
-      _loadChargingStationMarkerAsset(
-    String assetPath,
-    _ChargingStationMarkerKind kind, {
-    bool desaturate = false,
-    Color? tintColor,
-  }) async {
-    if (!mounted) return null;
-    try {
-      final dpr = MediaQuery.devicePixelRatioOf(context);
-      final targetWidth =
-          (_chargingStationMarkerSize * dpr).round().clamp(1, 512);
-
-      final data = await rootBundle.load(assetPath);
-      final codec = await ui.instantiateImageCodec(
-        data.buffer.asUint8List(),
-        targetWidth: targetWidth,
-      );
-      final frame = await codec.getNextFrame();
-      final image = frame.image;
-
-      final Uint8List? pngBytes;
-      if (desaturate) {
-        pngBytes = await _desaturatedPngBytes(image);
-      } else if (tintColor != null) {
-        final tinted = await _tintedPngBytes(image, tintColor);
-        pngBytes = tinted.pngBytes;
-        if (kind == _ChargingStationMarkerKind.green && tinted.averageColor != null) {
-          _mapGreenIconColor = tinted.averageColor;
-        }
-      } else {
-        pngBytes = (await image.toByteData(format: ui.ImageByteFormat.png))
-            ?.buffer
-            .asUint8List();
-      }
-      image.dispose();
-
-      if (pngBytes == null) return null;
-
-      final icon = BitmapDescriptor.bytes(
-        pngBytes,
-        width: _chargingStationMarkerSize,
-      );
-      _chargingStationIcons[kind] = icon;
-      return MapEntry(kind, icon);
-    } catch (e, st) {
-      debugPrint('❌ Marker asset $assetPath failed: $e\n$st');
-      return null;
-    }
-  }
-
-  /// Returns PNG bytes of [source] with colors desaturated to grey (per-pixel
-  /// luminance), keeping the original alpha so the marker shape is preserved.
-  Future<Uint8List?> _desaturatedPngBytes(ui.Image source) async {
-    final rawData =
-        await source.toByteData(format: ui.ImageByteFormat.rawRgba);
-    if (rawData == null) return null;
-
-    final pixels = rawData.buffer.asUint8List();
-    for (var i = 0; i < pixels.length; i += 4) {
-      final lum = (0.2126 * pixels[i] +
-              0.7152 * pixels[i + 1] +
-              0.0722 * pixels[i + 2])
-          .round()
-          .clamp(0, 255);
-      pixels[i] = lum;
-      pixels[i + 1] = lum;
-      pixels[i + 2] = lum;
-      // pixels[i + 3] (alpha) left untouched.
-    }
-
-    final completer = Completer<ui.Image>();
-    ui.decodeImageFromPixels(
-      pixels,
-      source.width,
-      source.height,
-      ui.PixelFormat.rgba8888,
-      completer.complete,
-    );
-    final greyImage = await completer.future;
-    final pngData = await greyImage.toByteData(format: ui.ImageByteFormat.png);
-    greyImage.dispose();
-    return pngData?.buffer.asUint8List();
-  }
-
-  /// Returns PNG bytes of [source] recolored to [tint], preserving alpha and
-  /// using each pixel's luminance to keep light/shadow detail in the marker.
-  Future<({Uint8List? pngBytes, Color? averageColor})> _tintedPngBytes(
-    ui.Image source,
-    Color tint,
-  ) async {
-    final rawData =
-        await source.toByteData(format: ui.ImageByteFormat.rawRgba);
-    if (rawData == null) {
-      return (pngBytes: null, averageColor: null);
-    }
-
-    final pixels = rawData.buffer.asUint8List();
-    var redSum = 0;
-    var greenSum = 0;
-    var blueSum = 0;
-    var opaqueCount = 0;
-
-    for (var i = 0; i < pixels.length; i += 4) {
-      final alpha = pixels[i + 3];
-      if (alpha == 0) continue;
-
-      final lum = (0.2126 * pixels[i] +
-              0.7152 * pixels[i + 1] +
-              0.0722 * pixels[i + 2]) /
-          255;
-
-      final red = (tint.red * lum).round().clamp(0, 255);
-      final green = (tint.green * lum).round().clamp(0, 255);
-      final blue = (tint.blue * lum).round().clamp(0, 255);
-
-      pixels[i] = red;
-      pixels[i + 1] = green;
-      pixels[i + 2] = blue;
-
-      if (alpha > 128) {
-        redSum += red;
-        greenSum += green;
-        blueSum += blue;
-        opaqueCount++;
-      }
-    }
-
-    final averageColor = opaqueCount == 0
-        ? null
-        : Color.fromARGB(
-            255,
-            redSum ~/ opaqueCount,
-            greenSum ~/ opaqueCount,
-            blueSum ~/ opaqueCount,
-          );
-
-    final completer = Completer<ui.Image>();
-    ui.decodeImageFromPixels(
-      pixels,
-      source.width,
-      source.height,
-      ui.PixelFormat.rgba8888,
-      completer.complete,
-    );
-    final tintedImage = await completer.future;
-    final pngData = await tintedImage.toByteData(format: ui.ImageByteFormat.png);
-    tintedImage.dispose();
-    return (
-      pngBytes: pngData?.buffer.asUint8List(),
-      averageColor: averageColor,
-    );
-  }
-
-  /// Green marker when the station is active (`status: true`), grey otherwise.
-  _ChargingStationMarkerKind _markerKindFor(HubcoLocationEntity station) {
-    return station.status
-        ? _ChargingStationMarkerKind.green
-        : _ChargingStationMarkerKind.grey;
-  }
-
-  // ── Clustering ──────────────────────────────────────────────────────────
-
-  /// Re-clusters [_locations] for the current zoom and pushes the resulting
-  /// markers to the map. Single-item groups render the normal green/grey
-  /// station marker; multi-item groups render a colored cluster bubble.
-  Future<void> _rebuildClusters() async {
-    if (!mounted) return;
-
-    if (_locations.isEmpty) {
-      _lastClusterSignature = '';
-      setState(() => _markers = const <Marker>{});
-      return;
-    }
-
-    final clusters = _clusterStations(_locations, _currentZoom);
-
-    // Skip work when the grouping is identical to what's already on screen.
-    final signature = (clusters.map((c) => c.id).toList()..sort()).join('|');
-    if (signature == _lastClusterSignature && _markers.isNotEmpty) return;
-
-    final stationIcons = await _resolveChargingStationIcon();
-    if (!mounted) return;
-
-    final markers = <Marker>{};
-
-    for (final cluster in clusters) {
-      if (cluster.items.length == 1) {
-        final station = cluster.items.first;
-        markers.add(_toMarker(station, stationIcons[_markerKindFor(station)]));
-        continue;
-      }
-
-      // Green when the group has at least one active station, grey otherwise.
-      final hasActive = cluster.items.any((s) => s.status);
-      final kind = hasActive
-          ? _ChargingStationMarkerKind.green
-          : _ChargingStationMarkerKind.grey;
-      final icon = await _resolveClusterIcon(kind, cluster.items.length);
-      if (!mounted) return;
-
-      markers.add(
-        Marker(
-          markerId: MarkerId(cluster.id),
-          position: cluster.position,
-          icon: icon,
-          onTap: () => _onClusterTap(cluster),
-        ),
-      );
-    }
-
-    if (!mounted) return;
-    _lastClusterSignature = signature;
-    setState(() => _markers = markers);
-  }
-
-  /// Groups stations whose projected pixel positions (at [zoom]) fall in the
-  /// same grid cell. Uses Web Mercator world coordinates so the result is
-  /// deterministic and cheap (no per-marker screen-coordinate round trips).
-  List<_StationCluster> _clusterStations(
-    List<HubcoLocationEntity> stations,
-    double zoom,
-  ) {
-    final scale = math.pow(2.0, zoom).toDouble();
-    final buckets = <String, List<HubcoLocationEntity>>{};
-
-    for (final station in stations) {
-      final world = _projectToWorld(station.latitude, station.longitude);
-      final px = world.dx * scale;
-      final py = world.dy * scale;
-      final key = '${(px / _clusterCellSize).floor()}'
-          '_${(py / _clusterCellSize).floor()}';
-      (buckets[key] ??= <HubcoLocationEntity>[]).add(station);
-    }
-
-    return buckets.values.map((items) {
-      var lat = 0.0;
-      var lng = 0.0;
-      for (final s in items) {
-        lat += s.latitude;
-        lng += s.longitude;
-      }
-      return _StationCluster(
-        position: LatLng(lat / items.length, lng / items.length),
-        items: items,
-      );
-    }).toList();
-  }
-
-  /// Web Mercator projection into a 256×256 world space (independent of zoom).
-  Offset _projectToWorld(double latitude, double longitude) {
-    const tileSize = 256.0;
-    final siny = math.sin(latitude * math.pi / 180).clamp(-0.9999, 0.9999);
-    final x = tileSize * (0.5 + longitude / 360);
-    final y = tileSize *
-        (0.5 - math.log((1 + siny) / (1 - siny)) / (4 * math.pi));
-    return Offset(x, y);
-  }
-
-  /// Re-clusters whenever the camera stops moving so the grouping reflects the
-  /// new zoom level. No-ops until stations have loaded.
-  void _onCameraIdle() {
-    if (_locations.isEmpty) return;
-    unawaited(_rebuildClusters());
-  }
-
-  /// Deepest zoom a cluster tap will animate to — street level, where a station
-  /// group is fully broken apart.
-  static const double _clusterTapMaxZoom = 18.5;
-
-  /// Zoom added per cluster tap. Sized so that drilling from the initial framing
-  /// ([_initialZoom]) into a location takes ~3 taps instead of the ~7 a small
-  /// step required.
-  static const double _clusterTapZoomStep = 4.5;
-
-  /// Tapping a cluster zooms in to break it apart; the camera-idle callback
-  /// then re-clusters at the new zoom.
-  Future<void> _onClusterTap(_StationCluster cluster) async {
-    final controller = _mapController;
-    if (controller == null) return;
-    final targetZoom =
-        (_currentZoom + _clusterTapZoomStep).clamp(1.0, _clusterTapMaxZoom).toDouble();
-    await controller.animateCamera(
-      CameraUpdate.newLatLngZoom(cluster.position, targetZoom),
-    );
-  }
-
-  /// Returns (and caches) a cluster bubble bitmap for [kind] with [count].
-  Future<BitmapDescriptor> _resolveClusterIcon(
-    _ChargingStationMarkerKind kind,
-    int count,
-  ) async {
-    final key = '${kind.name}_$count';
-    final cached = _clusterIcons[key];
-    if (cached != null) return cached;
-
-    final color = kind == _ChargingStationMarkerKind.green
-        ? (_mapGreenIconColor ?? AppColors.primaryDarkColor)
-        : AppColors.greyColor;
-    final icon = await _buildClusterBitmap(color: color, count: count);
-    _clusterIcons[key] = icon;
-    return icon;
-  }
-
-  static const double _clusterMarkerSize = 54;
-
-  /// Draws a circular cluster bubble (translucent halo + solid center + white
-  /// border) with the station count, and returns it as a [BitmapDescriptor].
-  Future<BitmapDescriptor> _buildClusterBitmap({
-    required Color color,
-    required int count,
-  }) async {
+  /// Geometry lives on a 60×60 logical grid scaled by [u]: glow and pin head
+  /// centered at (30, 24), pin tip at (30, 52) — see [_stationPinTipFraction].
+  Future<BitmapDescriptor> _buildStationPinBitmap({required Color color}) async {
     final dpr = mounted ? MediaQuery.devicePixelRatioOf(context) : 3.0;
-    final size = (_clusterMarkerSize * dpr).clamp(1.0, 256.0).toDouble();
-    final center = Offset(size / 2, size / 2);
-    final radius = size / 2;
+    final size =
+        (_chargingStationMarkerSize * dpr).clamp(1.0, 512.0).toDouble();
+    final u = size / 60;
 
     final recorder = ui.PictureRecorder();
     final canvas = Canvas(recorder);
 
+    final headCenter = Offset(30 * u, 24 * u);
+
+    // Glow halo behind the pin.
     canvas.drawCircle(
-      center,
-      radius,
-      Paint()..color = color.withValues(alpha: 0.25),
+      headCenter,
+      27 * u,
+      Paint()
+        ..shader = ui.Gradient.radial(
+          headCenter,
+          27 * u,
+          [color.withValues(alpha: 0.45), color.withValues(alpha: 0.0)],
+        ),
     );
-    canvas.drawCircle(
-      center,
-      radius * 0.72,
-      Paint()..color = color,
-    );
-    canvas.drawCircle(
-      center,
-      radius * 0.72,
+
+    // Teardrop pin: tip → left edge → arc over the head → right edge → tip.
+    final pin = Path()
+      ..moveTo(30 * u, 52 * u)
+      ..quadraticBezierTo(20 * u, 42 * u, 16.8 * u, 28.8 * u)
+      ..arcTo(
+        Rect.fromCircle(center: headCenter, radius: 14 * u),
+        160 * math.pi / 180,
+        220 * math.pi / 180,
+        false,
+      )
+      ..quadraticBezierTo(40 * u, 42 * u, 30 * u, 52 * u)
+      ..close();
+    canvas.drawPath(pin, Paint()..color = color);
+    canvas.drawPath(
+      pin,
       Paint()
         ..style = PaintingStyle.stroke
-        ..strokeWidth = size * 0.05
+        ..strokeWidth = 2.5 * u
         ..color = AppColors.whiteColor,
     );
 
-    final label = count > 99 ? '99+' : '$count';
-    final textPainter = TextPainter(
-      textDirection: TextDirection.ltr,
-      text: TextSpan(
-        text: label,
-        style: TextStyle(
-          color: AppColors.whiteColor,
-          fontSize: radius * (label.length > 2 ? 0.5 : 0.62),
-          fontWeight: FontWeight.w700,
-        ),
-      ),
-    )..layout();
-    textPainter.paint(
-      canvas,
-      center - Offset(textPainter.width / 2, textPainter.height / 2),
-    );
+    // Lightning bolt in the pin head, keeping the charging identity.
+    const boltPoints = <Offset>[
+      Offset(2.5, -7),
+      Offset(-4.5, 1),
+      Offset(-1, 1),
+      Offset(-2.5, 7),
+      Offset(4.5, -1),
+      Offset(1, -1),
+    ];
+    final bolt = Path()
+      ..addPolygon(
+        [for (final p in boltPoints) headCenter + p * (1.1 * u)],
+        true,
+      );
+    canvas.drawPath(bolt, Paint()..color = AppColors.whiteColor);
 
     final image = await recorder.endRecording().toImage(
           size.round(),
@@ -754,8 +431,38 @@ class _HomeScreenState extends State<HomeScreen> {
     if (bytes == null) return BitmapDescriptor.defaultMarker;
     return BitmapDescriptor.bytes(
       bytes.buffer.asUint8List(),
-      width: _clusterMarkerSize,
+      width: _chargingStationMarkerSize,
     );
+  }
+
+  /// Green marker when the station is active (`status: true`), grey otherwise.
+  _ChargingStationMarkerKind _markerKindFor(HubcoLocationEntity station) {
+    return station.status
+        ? _ChargingStationMarkerKind.green
+        : _ChargingStationMarkerKind.grey;
+  }
+
+  // ── Markers ──────────────────────────────────────────────────────────────
+
+  /// Renders one pin per station in [_locations] — no clustering, so the map
+  /// always shows every charging station individually regardless of zoom.
+  Future<void> _rebuildMarkers() async {
+    if (!mounted) return;
+
+    if (_locations.isEmpty) {
+      setState(() => _markers = const <Marker>{});
+      return;
+    }
+
+    final stationIcons = await _resolveChargingStationIcon();
+    if (!mounted) return;
+
+    setState(() {
+      _markers = {
+        for (final station in _locations)
+          _toMarker(station, stationIcons[_markerKindFor(station)]),
+      };
+    });
   }
 
   /// Centers the map on the device location (same idea as Google Maps’ target button).
@@ -867,7 +574,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     onMapCreated: _onMapCreated,
                     onCameraMove: (position) =>
                         _onCameraPositionChanged(position.zoom),
-                    onCameraIdle: _onCameraIdle,
                     compassEnabled: false,
                     mapToolbarEnabled: false,
                     myLocationButtonEnabled: false,
@@ -1340,6 +1046,8 @@ class _HomeScreenState extends State<HomeScreen> {
       markerId: MarkerId(station.id.toString()),
       position: LatLng(station.latitude, station.longitude),
       icon: icon ?? BitmapDescriptor.defaultMarker,
+      // Pin tip (not bitmap bottom — the glow pads it) points at the station.
+      anchor: const Offset(0.5, _stationPinTipFraction),
       infoWindow: InfoWindow(title: station.name),
       onTap: () => context.push('/station-detail', extra: station),
     );
@@ -1584,20 +1292,6 @@ class _HomeScreenState extends State<HomeScreen> {
 enum _ChargingStationMarkerKind {
   grey,
   green,
-}
-
-/// A group of nearby stations rendered as a single cluster bubble.
-class _StationCluster {
-  _StationCluster({required this.position, required this.items});
-
-  final LatLng position;
-  final List<HubcoLocationEntity> items;
-
-  /// Stable id derived from the cell contents so the SDK can diff markers.
-  String get id {
-    final ids = items.map((s) => s.id).toList()..sort();
-    return 'cluster_${ids.join('_')}';
-  }
 }
 
 class _StationPlugIconsRow extends StatelessWidget {
