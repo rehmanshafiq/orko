@@ -200,6 +200,10 @@ class _RescheduleSheetState extends State<RescheduleSheet> {
                   isEnabled: _selectedSlot != null,
                   buttonHeight: 44.h,
                   cornerRadius: 24.r,
+                  gradientColors: const [
+                    AppColors.primaryDarkColor,
+                    AppColors.primaryDarkButtonColor,
+                  ],
                   fontSize: FontSizes.font15Sp,
                   fontWeight: FontWeights.weight700,
                 ),

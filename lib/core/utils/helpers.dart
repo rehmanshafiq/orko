@@ -32,8 +32,11 @@ class AppHelpers {
         content: Text(message),
         backgroundColor: isError ? AppColors.removeColor : Colors.green.shade700,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        // Extra horizontal inset so it stays clear of both screen edges, and a
+        // larger bottom inset so it floats above the bottom nav bar.
+        margin: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
       ),
     );
   }
