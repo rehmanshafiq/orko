@@ -602,21 +602,51 @@ class _HomeMobileViewState extends State<HomeMobileView> {
   /// group is fully broken apart.
   static const double _clusterTapMaxZoom = 18.5;
 
-  /// Zoom added per cluster tap. Sized so that drilling from the initial framing
-  /// ([_initialZoom]) into a location takes ~3 taps instead of the ~7 a small
-  /// step required.
-  static const double _clusterTapZoomStep = 4.5;
+  /// Screen padding (logical px) around the framed stations when a cluster tap
+  /// zooms to the group's bounds; keeps edge pins clear of the top bar/sheet.
+  static const double _clusterTapBoundsPadding = 72;
 
-  /// Tapping a cluster zooms in to break it apart; the camera-idle callback
-  /// then re-clusters at the new zoom.
+  /// Stations closer together than this (degrees, ~100 m) are treated as one
+  /// spot: bounds-zooming onto them would over-zoom past street level, so the
+  /// camera jumps straight to [_clusterTapMaxZoom] instead.
+  static const double _clusterTapMinSpanDegrees = 0.001;
+
+  /// Tapping a cluster frames the stations it contains, so the camera lands on
+  /// the actual pins (not the cluster centroid); the camera-idle callback then
+  /// re-clusters at the new zoom.
   Future<void> _onClusterTap(_StationCluster cluster) async {
     final controller = _mapController;
     if (controller == null) return;
-    final targetZoom = (_currentZoom + _clusterTapZoomStep)
-        .clamp(1.0, _clusterTapMaxZoom)
-        .toDouble();
+
+    var minLat = double.infinity;
+    var maxLat = double.negativeInfinity;
+    var minLng = double.infinity;
+    var maxLng = double.negativeInfinity;
+    for (final station in cluster.items) {
+      minLat = math.min(minLat, station.latitude);
+      maxLat = math.max(maxLat, station.latitude);
+      minLng = math.min(minLng, station.longitude);
+      maxLng = math.max(maxLng, station.longitude);
+    }
+
+    // All stations effectively at one spot — bounds would over-zoom, so go to
+    // street level directly.
+    if (maxLat - minLat < _clusterTapMinSpanDegrees &&
+        maxLng - minLng < _clusterTapMinSpanDegrees) {
+      await controller.animateCamera(
+        CameraUpdate.newLatLngZoom(cluster.position, _clusterTapMaxZoom),
+      );
+      return;
+    }
+
     await controller.animateCamera(
-      CameraUpdate.newLatLngZoom(cluster.position, targetZoom),
+      CameraUpdate.newLatLngBounds(
+        LatLngBounds(
+          southwest: LatLng(minLat, minLng),
+          northeast: LatLng(maxLat, maxLng),
+        ),
+        _clusterTapBoundsPadding,
+      ),
     );
   }
 
