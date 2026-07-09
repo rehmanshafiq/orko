@@ -133,6 +133,13 @@ class ProfileScreen extends StatelessWidget {
                                     onPressed: isLoggingOut
                                         ? null
                                         : () => _onSignOut(context),
+                                    style: TextButton.styleFrom(
+                                      padding:
+                                          EdgeInsets.symmetric(vertical: 4.h),
+                                      minimumSize: Size.zero,
+                                      tapTargetSize:
+                                          MaterialTapTargetSize.shrinkWrap,
+                                    ),
                                     child: isLoggingOut
                                         ? SizedBox(
                                             height: 18.r,
@@ -302,6 +309,11 @@ class _DeleteAccountButtonState extends State<_DeleteAccountButton> {
             )
           : TextButton.icon(
               onPressed: _onDeleteAccount,
+              style: TextButton.styleFrom(
+                padding: EdgeInsets.symmetric(vertical: 10.h),
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
               icon: Icon(
                 Icons.delete_outline_rounded,
                 color: AppColors.removeColor,
@@ -3149,10 +3161,10 @@ class _AddVehicleDialogState extends State<_AddVehicleDialog> {
       ui: ui,
       label: 'Model',
       hintText: !makeReady
-          ? 'Select vehicle first'
+          ? 'Select Model'
           : loading
               ? 'Loading models...'
-              : (hasModels ? 'Select model' : 'Add a custom model'),
+              : (hasModels ? 'Select Model' : 'Add a custom model'),
       value: _showCustomModelForm ? _kOther : _selectedModelId,
       isLoading: loading,
       enabled: makeReady && !loading,
