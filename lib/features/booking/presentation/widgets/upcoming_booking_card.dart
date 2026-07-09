@@ -123,8 +123,12 @@ class UpcomingBookingCard extends StatelessWidget {
                   ],
                 ),
               ),
-              8.horizontalSpace,
-              _StatusBadge(ui: ui, label: _statusLabel),
+              // Approved bookings don't need a badge — the Scan QR/Modify
+              // actions already imply it. Pending/Cancelled keep theirs.
+              if (!booking.isApproved) ...[
+                8.horizontalSpace,
+                _StatusBadge(ui: ui, label: _statusLabel),
+              ],
             ],
           ),
           16.verticalSpace,
@@ -159,35 +163,12 @@ class UpcomingBookingCard extends StatelessWidget {
               ),
             ],
           ),
-          14.verticalSpace,
-          Container(
-            width: double.infinity,
-            padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 14.h),
-            decoration: BoxDecoration(
-              color: Colors.transparent,
-              borderRadius: BorderRadius.circular(12.r),
-              border: Border.all(
-                color: ui.isLight ? ui.iconContainerOutline : ui.brandPrimary,
-                width: 1.5,
-              ),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                AppText(
-                  'Estimated Cost',
-                  color: ui.textPrimary,
-                  fontSize: FontSizes.font14Sp,
-                  fontWeight: FontWeights.weight500,
-                ),
-                AppText(
-                  _costLabel,
-                  color: ui.textPrimary,
-                  fontSize: FontSizes.font16Sp,
-                  fontWeight: FontWeights.weight700,
-                ),
-              ],
-            ),
+          12.verticalSpace,
+          AppText(
+            'Estimated Cost: $_costLabel',
+            color: ui.textPrimary,
+            fontSize: FontSizes.font14Sp,
+            fontWeight: FontWeights.weight700,
           ),
           // Scan QR (approved only).
           if (showScanQr) ...[
@@ -234,7 +215,7 @@ class UpcomingBookingCard extends StatelessWidget {
                         onPress: onModify,
                         buttonHeight: 38.h,
                         cornerRadius: 12.r,
-                        strokeColor: ui.iconContainerOutline,
+                        strokeColor: AppColors.greyColor,
                         buttonColor: ui.cardBackground,
                         textColor: ui.textPrimary,
                         fontSize: FontSizes.font14Sp,
