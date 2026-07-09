@@ -7,7 +7,6 @@ import 'package:orko_hubco/core/di/injection_container.dart';
 import 'package:orko_hubco/core/utils/app_ui.dart';
 import 'package:orko_hubco/core/utils/helpers.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
-import 'package:orko_hubco/core/utils/widgets/primary_button_widget.dart';
 import 'package:orko_hubco/features/trip/domain/entities/saved_trip_entity.dart';
 import 'package:orko_hubco/features/trip/domain/entities/trip_stop_entity.dart';
 import 'package:orko_hubco/features/trip/domain/usecases/delete_saved_trip_usecase.dart';
@@ -116,17 +115,6 @@ class _SavedTripDetailViewState extends State<SavedTripDetailView> {
       _didChange = true;
       _load();
     }
-  }
-
-  /// Re-books this journey: opens the trip planner so the user can plan and
-  /// book the same route again.
-  void _onRebook() {
-    if (_trip == null || _deleting) return;
-    // Navigator.of(context).push(
-    //   MaterialPageRoute(
-    //     builder: (_) => const TripPlannerMobileView(),
-    //   ),
-    // );
   }
 
   Future<bool?> _confirmDelete() {
@@ -283,22 +271,6 @@ class _SavedTripDetailViewState extends State<SavedTripDetailView> {
               ),
             if (!trip.isFeasible) 12.verticalSpace,
             _summary(ui, trip),
-            16.verticalSpace,
-            // Re-Book: recreate this exact journey (same stops) in one tap.
-            PrimaryButtonWidget(
-              text: 'Re-Book Trip',
-              leadingIcon: Icons.refresh_rounded,
-              onPress: _deleting ? null : _onRebook,
-              isEnabled: !_deleting,
-              gradientColors: const [
-                AppColors.primaryDarkColor,
-                AppColors.primaryDarkButtonColor,
-              ],
-              textColor: AppColors.whiteColor,
-              fontWeight: FontWeights.weight700,
-              fontSize: FontSizes.font14Sp,
-              cornerRadius: 24.r,
-            ),
             16.verticalSpace,
             AppText(
               'Charging Stops',
