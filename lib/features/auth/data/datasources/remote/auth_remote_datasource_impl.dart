@@ -186,6 +186,12 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
             : 'Sign up failed',
         statusCode: response.statusCode,
       );
+    } on DioException catch (e) {
+      throw ServerException(
+        message: _dioMessage(e, fallback: 'Sign up failed'),
+        statusCode: e.response?.statusCode,
+        originalError: e,
+      );
     } catch (e) {
       if (e is ServerException) rethrow;
       throw ServerException(message: e.toString(), originalError: e);
