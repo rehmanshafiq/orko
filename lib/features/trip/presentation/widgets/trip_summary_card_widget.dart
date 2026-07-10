@@ -48,7 +48,7 @@ class TripSummaryCardWidget extends StatelessWidget {
                 value: plan == null ? '—' : '${plan!.distanceKm.round()} km',
               ),
             ),
-            _SummarySectionDivider(color: ui.borderSubtle),
+            // _SummarySectionDivider(color: ui.borderSubtle),
             Expanded(
               child: TripSummaryMetricWidget(
                 icon: Icons.schedule_rounded,
@@ -56,7 +56,7 @@ class TripSummaryCardWidget extends StatelessWidget {
                 value: plan == null ? '—' : _formatTotalTime(plan!.duration),
               ),
             ),
-            _SummarySectionDivider(color: ui.borderSubtle),
+            // _SummarySectionDivider(color: ui.borderSubtle),
             Expanded(
               child: TripSummaryMetricWidget(
                 icon: Icons.payments_outlined,

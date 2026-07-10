@@ -184,16 +184,16 @@ class _SavedTripDetailViewState extends State<SavedTripDetailView> {
         actions: [
           // Edit + Delete are only actionable once a trip has loaded, and are
           // hidden while a delete is in flight.
-          if (_status == _Status.success && !_deleting)
-            TextButton(
-              onPressed: _onEdit,
-              child: AppText(
-                'Edit',
-                color: ui.brandPrimary,
-                fontSize: FontSizes.font14Sp,
-                fontWeight: FontWeights.weight700,
-              ),
-            ),
+          // if (_status == _Status.success && !_deleting)
+          //   TextButton(
+          //     onPressed: _onEdit,
+          //     child: AppText(
+          //       'Edit',
+          //       color: ui.brandPrimary,
+          //       fontSize: FontSizes.font14Sp,
+          //       fontWeight: FontWeights.weight700,
+          //     ),
+          //   ),
           if (_status == _Status.success)
             _deleting
                 ? Padding(

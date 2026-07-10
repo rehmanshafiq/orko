@@ -239,6 +239,12 @@ class PushNotificationService {
           importance: Importance.high,
           priority: Priority.high,
           icon: 'ic_notification',
+          // BigText style so expanding the notification reveals the full body
+          // instead of Android's default two-line truncation.
+          styleInformation: BigTextStyleInformation(
+            notification.body ?? '',
+            contentTitle: notification.title,
+          ),
         ),
         iOS: const DarwinNotificationDetails(),
       ),
