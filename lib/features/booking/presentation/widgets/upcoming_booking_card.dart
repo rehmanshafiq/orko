@@ -172,10 +172,10 @@ class UpcomingBookingCard extends StatelessWidget {
             fontSize: FontSizes.font14Sp,
             fontWeight: FontWeights.weight700,
           ),
-          // Scan QR (approved only).
+          // Scan QR (approved only) — grey rounded pill per design.
           if (showScanQr) ...[
             16.verticalSpace,
-            _OutlinedActionButton(
+            _GreyPillButton(
               ui: ui,
               label: 'Scan QR Code',
               leadingIcon: Icons.qr_code_scanner_rounded,
@@ -235,11 +235,9 @@ class UpcomingBookingCard extends StatelessWidget {
   }
 }
 
-/// Outlined action button: no fill, grey outline at rest, and a brand-green
-/// outline while the button is selected (pressed/focused/hovered). Used for
-/// both "Modify" and "Scan QR Code".
-class _OutlinedActionButton extends StatelessWidget {
-  const _OutlinedActionButton({
+/// Filled grey rounded pill button — used for "Scan QR Code".
+class _GreyPillButton extends StatelessWidget {
+  const _GreyPillButton({
     required this.ui,
     required this.label,
     required this.onPressed,
@@ -257,8 +255,70 @@ class _OutlinedActionButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       height: 38.h,
-      child: OutlinedButton(
+      child: TextButton(
         onPressed: isEnabled ? onPressed : null,
+        style: ButtonStyle(
+          backgroundColor: WidgetStatePropertyAll(
+            ui.isLight
+                ? AppColors.shimmerGreyColor
+                : AppColors.whiteColor.withValues(alpha: 0.08),
+          ),
+          shape: WidgetStatePropertyAll(
+            RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(19.r),
+            ),
+          ),
+          overlayColor: WidgetStatePropertyAll(
+            ui.textPrimary.withValues(alpha: 0.06),
+          ),
+          padding: WidgetStatePropertyAll(
+            EdgeInsets.symmetric(horizontal: 12.w),
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            if (leadingIcon != null) ...[
+              Icon(leadingIcon, color: ui.textPrimary, size: 18.sp),
+              8.horizontalSpace,
+            ],
+            Flexible(
+              child: AppText(
+                label,
+                color: ui.textPrimary,
+                fontSize: FontSizes.font14Sp,
+                fontWeight: FontWeights.weight700,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Outlined action button: no fill, grey outline at rest, and a brand-green
+/// outline while the button is selected (pressed/focused/hovered). Used for
+/// "Modify".
+class _OutlinedActionButton extends StatelessWidget {
+  const _OutlinedActionButton({
+    required this.ui,
+    required this.label,
+    required this.onPressed,
+  });
+
+  final AppUiColors ui;
+  final String label;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 38.h,
+      child: OutlinedButton(
+        onPressed: onPressed,
         style: ButtonStyle(
           backgroundColor:
               const WidgetStatePropertyAll(AppColors.transparentColor),
@@ -285,24 +345,14 @@ class _OutlinedActionButton extends StatelessWidget {
             EdgeInsets.symmetric(horizontal: 12.w),
           ),
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            if (leadingIcon != null) ...[
-              Icon(leadingIcon, color: ui.textPrimary, size: 18.sp),
-              8.horizontalSpace,
-            ],
-            Flexible(
-              child: AppText(
-                label,
-                color: ui.textPrimary,
-                fontSize: FontSizes.font14Sp,
-                fontWeight: FontWeights.weight700,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ],
+        child: AppText(
+          label,
+          textAlign: TextAlign.center,
+          color: ui.textPrimary,
+          fontSize: FontSizes.font14Sp,
+          fontWeight: FontWeights.weight700,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
       ),
     );

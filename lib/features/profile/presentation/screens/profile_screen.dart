@@ -3173,9 +3173,7 @@ class _AddVehicleDialogState extends State<_AddVehicleDialog> {
           DropdownMenuItem<int>(
             value: model.id,
             child: AppText(
-              model.connectorType != null && model.connectorType!.isNotEmpty
-                  ? '${model.name} · ${model.connectorType}'
-                  : model.name,
+              model.name,
               color: ui.textPrimary,
               fontSize: FontSizes.font14Sp,
               fontWeight: FontWeights.weight500,
