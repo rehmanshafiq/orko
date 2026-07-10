@@ -229,11 +229,14 @@ class ChargingStationDetailBloc
     if (openMinutes == null && closeMinutes == null) return 'Not available';
 
     if (openMinutes != null && closeMinutes != null) {
-      if (openMinutes == closeMinutes) return '24 hours';
+      if (openMinutes == closeMinutes) return '24 Hours';
+
+      // 12:00 AM - 11:59 PM covers the whole day; show it as 24 Hours.
+      if (openMinutes == 0 && closeMinutes == 24 * 60 - 1) return '24 Hours';
 
       var durationMinutes = closeMinutes - openMinutes;
       if (durationMinutes <= 0) durationMinutes += 24 * 60;
-      if (durationMinutes >= 24 * 60) return '24 hours';
+      if (durationMinutes >= 24 * 60) return '24 Hours';
 
       return '${_formatTimeAmPm(openMinutes)} to ${_formatTimeAmPm(closeMinutes)}';
     }
