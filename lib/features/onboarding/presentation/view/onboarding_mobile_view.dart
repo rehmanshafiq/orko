@@ -157,7 +157,7 @@ class _OnboardingMobileViewState extends State<OnboardingMobileView>
                               count: state.items.length,
                               activeIndex: state.currentIndex,
                             ),
-                            24.verticalSpace,
+                            44.verticalSpace,
                             PrimaryButtonWidget(
                               text: state.isLastPage
                                   ? 'Create Account'
@@ -184,7 +184,7 @@ class _OnboardingMobileViewState extends State<OnboardingMobileView>
                               child: AppText(
                                 'Skip',
                                 color: AppColors.whiteColor
-                                    .withValues(alpha: 0.7),
+                                    .withValues(alpha: 0.6),
                                 fontSize: FontSizes.font16Sp,
                                 fontWeight: FontWeights.weight500,
                               ),
@@ -323,7 +323,7 @@ class _PageIndicator extends StatelessWidget {
   Widget build(BuildContext context) {
     final ui = AppUiColors.of(context);
     return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.start,
       children: List.generate(count, (index) {
         final isActive = index == activeIndex;
         return AnimatedContainer(
