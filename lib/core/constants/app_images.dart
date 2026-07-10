@@ -6,6 +6,10 @@ class AppImages {
   static final String onboarding1 = '${imagePath}onboarding_1.png';
   static final String onboarding2 = '${imagePath}onboarding_2.png';
   static final String onboarding3 = '${imagePath}onboarding_3.png';
+  /// Full-screen onboarding backgrounds (EV charging at night).
+  static final String onboardingLocateCharger = '${imagePath}locate_charger.png';
+  static final String onboardingBookSession = '${imagePath}book_session.png';
+  static final String onboardingPaySecurely = '${imagePath}pay_securely.png';
   static final String icChargingStation = '${imagePath}ic_charging_station.png';
   static final String icChargingStationMarker =
       '${imagePath}ic_charging_station_marker.png';

@@ -4,7 +4,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/utils/app_routing/app_navigations.dart';
-import 'package:orko_hubco/core/utils/app_ui.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
 import 'package:orko_hubco/core/utils/widgets/image_view/app_image_view.dart';
 import 'package:orko_hubco/core/utils/widgets/primary_button_widget.dart';
@@ -70,143 +69,136 @@ class _OnboardingMobileViewState extends State<OnboardingMobileView>
     await context.read<OnboardingCubit>().complete();
   }
 
+  void _onPrimaryPressed(BuildContext context, OnboardingState state) {
+    if (state.isLastPage) {
+      _onSkipOrGetStarted(context);
+    } else {
+      _pageController.nextPage(
+        duration: const Duration(milliseconds: 350),
+        curve: Curves.easeOutCubic,
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final ui = AppUiColors.of(context);
-
     return Scaffold(
-      backgroundColor: ui.scaffoldBackground,
-      body: SafeArea(
-        child: BlocConsumer<OnboardingCubit, OnboardingState>(
-          listener: (context, state) {
-            if (state.errorMessage != null && state.errorMessage!.isNotEmpty) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: AppText(
-                    state.errorMessage!,
-                    color: AppColors.whiteColor,
-                  ),
-                ),
-              );
-            }
-
-            if (state.isCompleted) {
-              AppNavigations.navigateToRegister(context);
-            }
-          },
-          builder: (context, state) {
-            if (state.isLoading && state.items.isEmpty) {
-              return const Center(child: CircularProgressIndicator());
-            }
-
-            if (state.items.isEmpty) {
-              return Center(
-                child: AppText(
-                  'No onboarding data found',
-                  color: ui.textMuted,
-                ),
-              );
-            }
-
-            return FadeTransition(
-              opacity: _entryFade,
-              child: SlideTransition(
-                position: _entrySlide,
-                child: Padding(
-                  padding: AppUtils.horizontal20Padding,
-                  child: Column(
-                    children: [
-                      Align(
-                        alignment: Alignment.topRight,
-                        child: TextButton(
-                          onPressed:
-                              state.isCompleting
-                                  ? null
-                                  : () => _onSkipOrGetStarted(context),
-                          child: AppText(
-                            'Skip',
-                            color: ui.textPrimary,
-                            fontSize: FontSizes.font16Sp,
-                            fontWeight: FontWeights.weight500,
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        child: PageView.builder(
-                          controller: _pageController,
-                          itemCount: state.items.length,
-                          onPageChanged:
-                              context.read<OnboardingCubit>().setCurrentIndex,
-                          itemBuilder: (context, index) {
-                            final item = state.items[index];
-                            return AnimatedBuilder(
-                              animation: _pageController,
-                              builder: (context, _) {
-                                final delta =
-                                    _pageOffset(
-                                          state.currentIndex.toDouble(),
-                                        ) -
-                                        index;
-                                return _OnboardingSlide(
-                                  item: item,
-                                  delta: delta,
-                                  textColor: ui.textPrimary,
-                                  descriptionColor: ui.textMuted,
-                                );
-                              },
-                            );
-                          },
-                        ),
-                      ),
-                      12.verticalSpace,
-                      _PageIndicator(
-                        count: state.items.length,
-                        activeIndex: state.currentIndex,
-                      ),
-                      18.verticalSpace,
-                      AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 250),
-                        switchInCurve: Curves.easeOut,
-                        switchOutCurve: Curves.easeIn,
-                        transitionBuilder: (child, animation) => FadeTransition(
-                          opacity: animation,
-                          child: ScaleTransition(
-                            scale: Tween<double>(begin: 0.97, end: 1).animate(animation),
-                            child: child,
-                          ),
-                        ),
-                        child: state.isLastPage
-                            ? PrimaryButtonWidget(
-                                key: const ValueKey('get-started'),
-                                text: 'Get Started',
-                                // buttonHeight: 38.h,
-                                gradientColors: const [
-                                  AppColors.primaryDarkColor,
-                                  AppColors.primaryDarkButtonColor,
-                                ],
-                                cornerRadius: 24.r,
-                                textColor: AppColors.whiteColor,
-                                fontSize: FontSizes.font16Sp,
-                                fontWeight: FontWeights.weight600,
-                                isEnabled: !state.isCompleting,
-                                onPress:
-                                    state.isCompleting
-                                        ? null
-                                        : () => _onSkipOrGetStarted(context),
-                              )
-                            : SizedBox(
-                                key: const ValueKey('button-spacer'),
-                                height: 38.h,
-                              ),
-                      ),
-                      12.verticalSpace,
-                    ],
-                  ),
+      backgroundColor: AppColors.blackColor,
+      body: BlocConsumer<OnboardingCubit, OnboardingState>(
+        listener: (context, state) {
+          if (state.errorMessage != null && state.errorMessage!.isNotEmpty) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: AppText(
+                  state.errorMessage!,
+                  color: AppColors.whiteColor,
                 ),
               ),
             );
-          },
-        ),
+          }
+
+          if (state.isCompleted) {
+            AppNavigations.navigateToRegister(context);
+          }
+        },
+        builder: (context, state) {
+          if (state.isLoading && state.items.isEmpty) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (state.items.isEmpty) {
+            return Center(
+              child: AppText(
+                'No onboarding data found',
+                color: AppColors.whiteColor,
+              ),
+            );
+          }
+
+          return Stack(
+            children: [
+              // Full-bleed background image per slide (edge to edge, behind
+              // the status bar) with a swipe-linked parallax drift.
+              Positioned.fill(
+                child: PageView.builder(
+                  controller: _pageController,
+                  itemCount: state.items.length,
+                  onPageChanged:
+                      context.read<OnboardingCubit>().setCurrentIndex,
+                  itemBuilder: (context, index) {
+                    final item = state.items[index];
+                    return AnimatedBuilder(
+                      animation: _pageController,
+                      builder: (context, _) {
+                        final delta =
+                            _pageOffset(state.currentIndex.toDouble()) - index;
+                        return _OnboardingSlide(item: item, delta: delta);
+                      },
+                    );
+                  },
+                ),
+              ),
+
+              // Bottom controls: indicator + primary button + skip.
+              Align(
+                alignment: Alignment.bottomCenter,
+                child: SafeArea(
+                  top: false,
+                  child: FadeTransition(
+                    opacity: _entryFade,
+                    child: SlideTransition(
+                      position: _entrySlide,
+                      child: Padding(
+                        padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 24.h),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            _PageIndicator(
+                              count: state.items.length,
+                              activeIndex: state.currentIndex,
+                            ),
+                            24.verticalSpace,
+                            PrimaryButtonWidget(
+                              text: state.isLastPage
+                                  ? 'Create Account'
+                                  : 'Next',
+                              buttonHeight: 54.h,
+                              gradientColors: const [
+                                AppColors.primaryDarkColor,
+                                AppColors.primaryDarkButtonColor,
+                              ],
+                              cornerRadius: 28.r,
+                              textColor: AppColors.whiteColor,
+                              fontSize: FontSizes.font16Sp,
+                              fontWeight: FontWeights.weight600,
+                              isEnabled: !state.isCompleting,
+                              onPress: state.isCompleting
+                                  ? null
+                                  : () => _onPrimaryPressed(context, state),
+                            ),
+                            4.verticalSpace,
+                            TextButton(
+                              onPressed: state.isCompleting
+                                  ? null
+                                  : () => _onSkipOrGetStarted(context),
+                              child: AppText(
+                                'Skip',
+                                color: AppColors.whiteColor
+                                    .withValues(alpha: 0.7),
+                                fontSize: FontSizes.font16Sp,
+                                fontWeight: FontWeights.weight500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -216,8 +208,6 @@ class _OnboardingSlide extends StatelessWidget {
   const _OnboardingSlide({
     required this.item,
     required this.delta,
-    required this.textColor,
-    required this.descriptionColor,
   });
 
   final OnboardingItemEntity item;
@@ -225,70 +215,93 @@ class _OnboardingSlide extends StatelessWidget {
   /// Distance of this slide from the centered page (0 = centered, ±1 = one
   /// page away). Drives the swipe-linked parallax and stagger.
   final double delta;
-  final Color textColor;
-  final Color descriptionColor;
 
   @override
   Widget build(BuildContext context) {
     final t = delta.abs().clamp(0.0, 1.0);
     final contentOpacity = (1 - t).clamp(0.0, 1.0);
 
-    // Image drifts at a slower rate than the swipe (parallax) and eases back.
-    final imageDx = -delta * 24;
-    final imageScale = 1 - 0.04 * t;
+    // Image drifts at a slower rate than the swipe (parallax).
+    final imageDx = -delta * 40;
 
-    return Column(
+    return Stack(
+      fit: StackFit.expand,
       children: [
-        Flexible(
-          child: Opacity(
-            opacity: (1 - t * 0.2).clamp(0.0, 1.0),
-            child: Transform.translate(
-              offset: Offset(imageDx, 0),
-              child: Transform.scale(
-                scale: imageScale,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(24.r),
-                  child: AspectRatio(
-                    aspectRatio: 3 / 4,
-                    child: AppPngImageView(
-                      appImagePath: item.imagePath,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                      imageAlignment: Alignment.center,
-                    ),
+        // Background photo.
+        Transform.translate(
+          offset: Offset(imageDx, 0),
+          child: Transform.scale(
+            scale: 1.06,
+            child: AppPngImageView(
+              appImagePath: item.imagePath,
+              width: double.infinity,
+              height: double.infinity,
+              fit: BoxFit.cover,
+              imageAlignment: Alignment.center,
+            ),
+          ),
+        ),
+
+        // Scrim to keep the headline legible over the photo.
+        const DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.center,
+              end: Alignment.bottomCenter,
+              colors: [
+                AppColors.transparentColor,
+                AppColors.blackColor,
+              ],
+            ),
+          ),
+        ),
+
+        // Headline + description, sitting above the bottom controls.
+        Align(
+          alignment: Alignment.bottomLeft,
+          child: SafeArea(
+            top: false,
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(24.w, 0, 24.w, 200.h),
+              child: Opacity(
+                opacity: contentOpacity,
+                child: Transform.translate(
+                  offset: Offset(0, t * 20),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text.rich(
+                        TextSpan(
+                          text: item.title,
+                          style: TextStyle(
+                            color: AppColors.whiteColor,
+                            fontFamily: AppFonts.lexend,
+                            fontSize: FontSizes.font30Sp,
+                            fontWeight: FontWeights.weight400,
+                            height: 1.15,
+                          ),
+                          children: [
+                            TextSpan(
+                              text: item.titleHighlight,
+                              style: TextStyle(
+                                fontWeight: FontWeights.weight700,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      12.verticalSpace,
+                      AppText(
+                        item.description,
+                        color: AppColors.whiteColor.withValues(alpha: 0.7),
+                        fontSize: FontSizes.font16Sp,
+                        fontWeight: FontWeights.weight400,
+                      ),
+                    ],
                   ),
                 ),
               ),
-            ),
-          ),
-        ),
-        28.verticalSpace,
-        // Title rises into place as the slide settles.
-        Opacity(
-          opacity: contentOpacity,
-          child: Transform.translate(
-            offset: Offset(0, t * 16),
-            child: AppText(
-              item.title,
-              textAlign: TextAlign.center,
-              color: textColor,
-              fontSize: FontSizes.font30Sp,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-        14.verticalSpace,
-        // Description follows the title with a larger offset → staggered feel.
-        Opacity(
-          opacity: contentOpacity,
-          child: Transform.translate(
-            offset: Offset(0, t * 24),
-            child: AppText(
-              item.description,
-              textAlign: TextAlign.center,
-              color: descriptionColor,
-              fontSize: FontSizes.font16Sp,
-              fontWeight: FontWeights.weight400,
             ),
           ),
         ),
@@ -323,7 +336,7 @@ class _PageIndicator extends StatelessWidget {
             borderRadius: BorderRadius.circular(4),
             color: isActive
                 ? ui.brandPrimary
-                : ui.textSecondary.withValues(alpha: 0.45),
+                : AppColors.whiteColor.withValues(alpha: 0.35),
           ),
         );
       }),
