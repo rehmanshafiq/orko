@@ -340,7 +340,7 @@ class _HomeMobileViewState extends State<HomeMobileView> {
 
   /// Logical width/height of the station pin bitmap. Sized so the teardrop pin
   /// plus its glow halo stay crisp at typical map zoom levels.
-  static const double _chargingStationMarkerSize = 60;
+  static const double _chargingStationMarkerSize = 52;
 
   /// Fraction of the bitmap height where the pin tip sits; used as the marker
   /// anchor so the tip points at the station's exact coordinate.
@@ -398,8 +398,8 @@ class _HomeMobileViewState extends State<HomeMobileView> {
     }
   }
 
-  /// Draws a teardrop location pin in [color] (white outline + white charger
-  /// icon) over a subtle radial glow, and returns it as a [BitmapDescriptor].
+  /// Draws a teardrop location pin in [color] (with a white charger icon)
+  /// over a subtle radial glow, and returns it as a [BitmapDescriptor].
   ///
   /// Geometry lives on a 60×60 logical grid scaled by [u]: glow and pin head
   /// centered at (30, 24), pin tip at (30, 52) — see [_stationPinTipFraction].
@@ -439,13 +439,6 @@ class _HomeMobileViewState extends State<HomeMobileView> {
       ..quadraticBezierTo(40 * u, 42 * u, 30 * u, 52 * u)
       ..close();
     canvas.drawPath(pin, Paint()..color = color);
-    canvas.drawPath(
-      pin,
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 2.5 * u
-        ..color = AppColors.whiteColor,
-    );
 
     // White charger icon in the pin head, keeping the charging identity.
     final glyph = await _loadChargerGlyphImage();
