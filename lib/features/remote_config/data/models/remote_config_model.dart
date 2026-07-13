@@ -161,6 +161,8 @@ class ApiEndpoints extends Equatable {
     required this.editUserProfile,
     required this.uploadUserPicture,
     required this.deleteUserPicture,
+    required this.changeEmail,
+    required this.changeEmailVerify,
     required this.chargerDetails,
     required this.bookingSlots,
     required this.createBooking,
@@ -193,6 +195,8 @@ class ApiEndpoints extends Equatable {
     required this.notificationsMarkAllRead,
     required this.notificationsPreferences,
     required this.notificationsDeviceToken,
+    required this.cvpSupportTicket,
+    required this.cvpSupportTicketCategories,
   });
 
   final String chargingStationMap;
@@ -215,6 +219,8 @@ class ApiEndpoints extends Equatable {
   final String editUserProfile;
   final String uploadUserPicture;
   final String deleteUserPicture;
+  final String changeEmail;
+  final String changeEmailVerify;
   final String chargerDetails;
   final String bookingSlots;
   final String createBooking;
@@ -247,6 +253,8 @@ class ApiEndpoints extends Equatable {
   final String notificationsMarkAllRead;
   final String notificationsPreferences;
   final String notificationsDeviceToken;
+  final String cvpSupportTicket;
+  final String cvpSupportTicketCategories;
 
   factory ApiEndpoints.fromJson(Map<String, dynamic> json) {
     return ApiEndpoints(
@@ -273,6 +281,16 @@ class ApiEndpoints extends Equatable {
       editUserProfile: json['edit_user_profile'] as String? ?? '',
       uploadUserPicture: json['upload_user_picture'] as String? ?? '',
       deleteUserPicture: json['delete_user_picture'] as String? ?? '',
+      // Newly-added endpoints default to their known paths so the feature works
+      // even before the Firebase Remote Config console is updated with them.
+      changeEmail: _nonEmpty(
+        json['change_email'] as String?,
+        'api/v1/core/user-profile/change-email',
+      ),
+      changeEmailVerify: _nonEmpty(
+        json['change_email_verify'] as String?,
+        'api/v1/core/user-profile/change-email/verify',
+      ),
       chargerDetails: json['charger_details'] as String? ?? '',
       bookingSlots: json['booking_slots'] as String? ?? '',
       createBooking: json['create_booking'] as String? ?? '',
@@ -309,7 +327,21 @@ class ApiEndpoints extends Equatable {
           json['notifications_preferences'] as String? ?? '',
       notificationsDeviceToken:
           json['notifications_device_token'] as String? ?? '',
+      cvpSupportTicket: _nonEmpty(
+        json['cvp_support_ticket'] as String?,
+        'api/v1/cvp/cvp-support-ticket/',
+      ),
+      cvpSupportTicketCategories: _nonEmpty(
+        json['cvp_support_ticket_categories'] as String?,
+        'api/v1/cvp/cvp-support-ticket/categories/',
+      ),
     );
+  }
+
+  /// Returns [value] when it's a non-empty string, otherwise [fallback]. Used to
+  /// keep newly-added endpoints working before Remote Config carries them.
+  static String _nonEmpty(String? value, String fallback) {
+    return (value == null || value.trim().isEmpty) ? fallback : value;
   }
 
   Map<String, dynamic> toJson() {
@@ -334,6 +366,8 @@ class ApiEndpoints extends Equatable {
       'edit_user_profile': editUserProfile,
       'upload_user_picture': uploadUserPicture,
       'delete_user_picture': deleteUserPicture,
+      'change_email': changeEmail,
+      'change_email_verify': changeEmailVerify,
       'charger_details': chargerDetails,
       'booking_slots': bookingSlots,
       'create_booking': createBooking,
@@ -366,6 +400,8 @@ class ApiEndpoints extends Equatable {
       'notifications_mark_all_read': notificationsMarkAllRead,
       'notifications_preferences': notificationsPreferences,
       'notifications_device_token': notificationsDeviceToken,
+      'cvp_support_ticket': cvpSupportTicket,
+      'cvp_support_ticket_categories': cvpSupportTicketCategories,
     };
   }
 
@@ -390,6 +426,8 @@ class ApiEndpoints extends Equatable {
     String? editUserProfile,
     String? uploadUserPicture,
     String? deleteUserPicture,
+    String? changeEmail,
+    String? changeEmailVerify,
     String? chargerDetails,
     String? bookingSlots,
     String? createBooking,
@@ -422,6 +460,8 @@ class ApiEndpoints extends Equatable {
     String? notificationsMarkAllRead,
     String? notificationsPreferences,
     String? notificationsDeviceToken,
+    String? cvpSupportTicket,
+    String? cvpSupportTicketCategories,
   }) {
     return ApiEndpoints(
       chargingStationMap: chargingStationMap ?? this.chargingStationMap,
@@ -449,6 +489,8 @@ class ApiEndpoints extends Equatable {
       editUserProfile: editUserProfile ?? this.editUserProfile,
       uploadUserPicture: uploadUserPicture ?? this.uploadUserPicture,
       deleteUserPicture: deleteUserPicture ?? this.deleteUserPicture,
+      changeEmail: changeEmail ?? this.changeEmail,
+      changeEmailVerify: changeEmailVerify ?? this.changeEmailVerify,
       chargerDetails: chargerDetails ?? this.chargerDetails,
       bookingSlots: bookingSlots ?? this.bookingSlots,
       createBooking: createBooking ?? this.createBooking,
@@ -486,6 +528,9 @@ class ApiEndpoints extends Equatable {
           notificationsPreferences ?? this.notificationsPreferences,
       notificationsDeviceToken:
           notificationsDeviceToken ?? this.notificationsDeviceToken,
+      cvpSupportTicket: cvpSupportTicket ?? this.cvpSupportTicket,
+      cvpSupportTicketCategories:
+          cvpSupportTicketCategories ?? this.cvpSupportTicketCategories,
     );
   }
 
@@ -511,6 +556,8 @@ class ApiEndpoints extends Equatable {
     editUserProfile,
     uploadUserPicture,
     deleteUserPicture,
+    changeEmail,
+    changeEmailVerify,
     chargerDetails,
     bookingSlots,
     createBooking,
@@ -543,5 +590,7 @@ class ApiEndpoints extends Equatable {
     notificationsMarkAllRead,
     notificationsPreferences,
     notificationsDeviceToken,
+    cvpSupportTicket,
+    cvpSupportTicketCategories,
   ];
 }

@@ -86,6 +86,15 @@ abstract class AuthRepository {
     Map<String, dynamic> data,
   );
 
+  /// Step 1 of the email-change flow: requests an OTP be sent to [newEmail]
+  /// via the `change_email` endpoint. Returns the issued `otp_id`.
+  Future<Either<Failure, int>> requestEmailChange(String newEmail);
+
+  /// Step 2 of the email-change flow: verifies [otp] via the
+  /// `change_email_verify` endpoint, then refreshes the cached user. Returns
+  /// the up-to-date [UserEntity] with the new email.
+  Future<Either<Failure, UserEntity>> verifyEmailChange(String otp);
+
   /// Uploads a new profile picture via the `upload_user_picture` endpoint,
   /// then re-fetches the user (`get_user`) and refreshes the cached user.
   /// Returns the up-to-date [UserEntity].

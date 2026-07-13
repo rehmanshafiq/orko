@@ -99,6 +99,21 @@ abstract class AuthRemoteDataSource {
   /// `phone_number`). Throws [ServerException] on failure.
   Future<void> editUserProfile(Map<String, dynamic> data);
 
+  /// Step 1 of the email-change flow — `change_email` endpoint (authenticated).
+  ///
+  /// Sends `{ "email": <newEmail> }`; on success the backend emails an OTP to
+  /// the new address and returns the issued `otp_id`. Throws [ServerException]
+  /// (422 when the email is missing, unchanged, or already registered).
+  Future<int> requestEmailChange({required String email});
+
+  /// Step 2 of the email-change flow — `change_email_verify` endpoint
+  /// (authenticated).
+  ///
+  /// Sends `{ "otp": <otp> }`; on success the email is updated and the fresh
+  /// [UserModel] is returned. Throws [ServerException] (422 when the OTP is
+  /// wrong or expired). The OTP is single-use.
+  Future<UserModel> verifyEmailChange({required String otp});
+
   /// Uploads a new profile picture via the `upload_user_picture` endpoint.
   ///
   /// [imagePath] is the absolute path of the picked image file, sent as

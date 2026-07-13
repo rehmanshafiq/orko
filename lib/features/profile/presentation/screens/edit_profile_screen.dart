@@ -8,7 +8,9 @@ import 'package:orko_hubco/core/utils/app_ui.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
 import 'package:orko_hubco/core/utils/widgets/primary_button_widget.dart';
 import 'package:orko_hubco/features/auth/data/models/user_model.dart';
+import 'package:orko_hubco/features/auth/domain/entities/user_entity.dart';
 import 'package:orko_hubco/features/auth/domain/usecases/edit_user_profile_usecase.dart';
+import 'package:orko_hubco/features/profile/presentation/screens/change_email_screen.dart';
 
 /// Edit-profile form. Prefills from the cached [user], submits the
 /// `edit_user_profile` API, and pops `true` on success (after which the cached
@@ -69,6 +71,22 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _emailController.dispose();
     _phoneController.dispose();
     super.dispose();
+  }
+
+  /// Opens the OTP-based email-change flow. On success the screen returns the
+  /// refreshed user (its cached copy is already updated), so we just reflect
+  /// the new email in the read-only field.
+  Future<void> _onChangeEmail() async {
+    FocusScope.of(context).unfocus();
+    final updated = await Navigator.of(context).push<UserEntity>(
+      MaterialPageRoute<UserEntity>(
+        builder: (_) => ChangeEmailScreen(
+          currentEmail: _emailController.text.trim(),
+        ),
+      ),
+    );
+    if (!mounted || updated == null) return;
+    setState(() => _emailController.text = updated.email);
   }
 
   Future<void> _save() async {
@@ -149,10 +167,23 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   16.verticalSpace,
                   _LabeledField(
                     ui: ui,
-                    label: 'Email (cannot be changed)',
+                    label: 'Email',
                     controller: _emailController,
                     hintText: 'Your email',
                     readOnly: true,
+                    suffix: GestureDetector(
+                      onTap: _saving ? null : _onChangeEmail,
+                      behavior: HitTestBehavior.opaque,
+                      child: Padding(
+                        padding: EdgeInsets.only(right: 12.w),
+                        child: AppText(
+                          'Change',
+                          color: ui.brandPrimary,
+                          fontSize: FontSizes.font12Sp,
+                          fontWeight: FontWeights.weight700,
+                        ),
+                      ),
+                    ),
                   ),
                   16.verticalSpace,
                   _LabeledField(
@@ -235,6 +266,7 @@ class _LabeledField extends StatelessWidget {
     this.inputFormatters,
     this.readOnly = false,
     this.prefixText,
+    this.suffix,
   });
 
   final AppUiColors ui;
@@ -251,6 +283,9 @@ class _LabeledField extends StatelessWidget {
 
   /// Fixed, non-editable text shown before the input (e.g. the dial code).
   final String? prefixText;
+
+  /// Optional trailing widget inside the field (e.g. the email "Change" action).
+  final Widget? suffix;
 
   @override
   Widget build(BuildContext context) {
@@ -286,6 +321,8 @@ class _LabeledField extends StatelessWidget {
                 ? ui.inputFill.withValues(alpha: 0.5)
                 : ui.inputFill,
             isDense: true,
+            suffixIcon: suffix,
+            suffixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
             prefixText: prefixText,
             prefixStyle: TextStyle(
               color: ui.textPrimary,

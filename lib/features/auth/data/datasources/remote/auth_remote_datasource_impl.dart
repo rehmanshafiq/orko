@@ -593,6 +593,106 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   }
 
   @override
+  Future<int> requestEmailChange({required String email}) async {
+    try {
+      final config = RemoteConfigService.config;
+      if (config == null) {
+        throw const ServerException(message: 'Remote config not initialized');
+      }
+
+      final endpoint = config.apiConstants.apiEndpoints.changeEmail;
+      if (endpoint.trim().isEmpty) {
+        throw const ServerException(
+          message: 'Changing your email is not available right now',
+        );
+      }
+
+      final url = _buildUrl(ApiClient.baseUrl, endpoint);
+      log('[Auth] Change-email URL: $url');
+
+      final response = await apiClient.post(url, data: {'email': email});
+
+      final data = response.data;
+      if (response.statusCode == 200 && data is Map<String, dynamic>) {
+        final body = data['body'];
+        final otpId = body is Map ? body['otp_id'] : null;
+        final parsed = otpId is num
+            ? otpId.toInt()
+            : int.tryParse(otpId?.toString() ?? '');
+        // The OTP id is informational; a 200 means the code was sent.
+        return parsed ?? 0;
+      }
+
+      throw ServerException(
+        message: (data is Map<String, dynamic> && data['message'] != null)
+            ? data['message'].toString()
+            : 'Could not send the verification code',
+        statusCode: response.statusCode,
+      );
+    } on DioException catch (e) {
+      throw ServerException(
+        message: _dioMessage(e, fallback: 'Could not send the verification code'),
+        statusCode: e.response?.statusCode,
+        originalError: e,
+      );
+    } catch (e) {
+      if (e is ServerException) rethrow;
+      throw ServerException(message: e.toString(), originalError: e);
+    }
+  }
+
+  @override
+  Future<UserModel> verifyEmailChange({required String otp}) async {
+    try {
+      final config = RemoteConfigService.config;
+      if (config == null) {
+        throw const ServerException(message: 'Remote config not initialized');
+      }
+
+      final endpoint = config.apiConstants.apiEndpoints.changeEmailVerify;
+      if (endpoint.trim().isEmpty) {
+        throw const ServerException(
+          message: 'Changing your email is not available right now',
+        );
+      }
+
+      final url = _buildUrl(ApiClient.baseUrl, endpoint);
+      log('[Auth] Change-email-verify URL: $url');
+
+      final response = await apiClient.post(url, data: {'otp': otp});
+
+      final data = response.data;
+      if (response.statusCode == 200 && data is Map<String, dynamic>) {
+        final body = data['body'];
+        // The updated profile may sit at `body.user` (like get_user) or be the
+        // body itself — accept either shape.
+        final user = body is Map
+            ? (body['user'] is Map ? body['user'] : body)
+            : null;
+        if (user is Map) {
+          return UserModel.fromJson(Map<String, dynamic>.from(user));
+        }
+      }
+
+      throw ServerException(
+        message: (data is Map<String, dynamic> && data['message'] != null)
+            ? data['message'].toString()
+            : 'Could not verify the code',
+        statusCode: response.statusCode,
+      );
+    } on DioException catch (e) {
+      throw ServerException(
+        message: _dioMessage(e, fallback: 'Could not verify the code'),
+        statusCode: e.response?.statusCode,
+        originalError: e,
+      );
+    } catch (e) {
+      if (e is ServerException) rethrow;
+      throw ServerException(message: e.toString(), originalError: e);
+    }
+  }
+
+  @override
   Future<void> uploadUserPicture(String imagePath) async {
     try {
       final config = RemoteConfigService.config;

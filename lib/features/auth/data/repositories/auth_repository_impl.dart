@@ -354,6 +354,49 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<Either<Failure, int>> requestEmailChange(String newEmail) async {
+    if (!await networkInfo.isConnected) {
+      return const Left(NetworkFailure());
+    }
+    try {
+      final otpId = await remoteDataSource.requestEmailChange(email: newEmail);
+      return Right(otpId);
+    } on ServerException catch (e) {
+      if (e.statusCode == 401) {
+        return const Left(UnauthorizedFailure());
+      }
+      return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
+    } on UnauthorizedException catch (e) {
+      return Left(UnauthorizedFailure(message: e.message));
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, UserEntity>> verifyEmailChange(String otp) async {
+    if (!await networkInfo.isConnected) {
+      return const Left(NetworkFailure());
+    }
+    try {
+      // The verify response already carries the updated profile; cache it so
+      // the app's cached user reflects the new email immediately.
+      final user = await remoteDataSource.verifyEmailChange(otp: otp);
+      await localDataSource.cacheUser(user);
+      return Right(user);
+    } on ServerException catch (e) {
+      if (e.statusCode == 401) {
+        return const Left(UnauthorizedFailure());
+      }
+      return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
+    } on UnauthorizedException catch (e) {
+      return Left(UnauthorizedFailure(message: e.message));
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
+    }
+  }
+
+  @override
   Future<Either<Failure, UserEntity>> uploadUserPicture(
     String imagePath,
   ) async {

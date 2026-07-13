@@ -51,7 +51,7 @@ class ApiClient {
   /// Falls back to [ApiConstants.baseUrl] before Remote Config has resolved.
   static String get baseUrl {
     final config = RemoteConfigService.config;
-  final resolved = config?.apiConstants.baseUrlLive;
+  final resolved = config?.apiConstants.baseUrlQa;
     return (resolved == null || resolved.trim().isEmpty)
         ? ApiConstants.baseUrl
         : resolved;

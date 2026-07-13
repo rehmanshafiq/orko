@@ -15,6 +15,7 @@ import 'package:orko_hubco/features/onboarding/di/onboarding_injection.dart';
 import 'package:orko_hubco/features/profile/di/profile_injection.dart';
 import 'package:orko_hubco/features/remote_config/di/remote_config_injection.dart';
 import 'package:orko_hubco/features/search/di/search_injection.dart';
+import 'package:orko_hubco/features/support/di/support_injection.dart';
 import 'package:orko_hubco/features/trip/di/trip_injection.dart';
 import 'package:orko_hubco/features/vehicle/di/vehicle_injection.dart';
 
@@ -51,6 +52,7 @@ Future<void> initDependencies() async {
   initProfileDependencies();
   initRemoteConfigDependencies();
   initSearchDependencies();
+  initSupportDependencies();
   initVehicleDependencies();
   initTripDependencies();
 }

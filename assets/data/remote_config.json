@@ -20,6 +20,8 @@
       "edit_user_profile": "api/v1/core/user-profile",
       "upload_user_picture": "api/v1/core/user-profile/image",
       "delete_user_picture": "api/v1/core/user-profile/image",
+      "change_email": "api/v1/core/user-profile/change-email",
+      "change_email_verify": "api/v1/core/user-profile/change-email/verify",
       "charging_station_map": "api/v1/charging-station/nearest?",
       "charging_station_filter_options": "api/v1/charging-station/filter-options/",
       "charging_station_detail": "api/v1/charging-station/",
@@ -58,7 +60,9 @@
       "notifications_unread_count": "api/v1/notifications/unread-count/",
       "notifications_mark_all_read": "api/v1/notifications/mark-all-read/",
       "notifications_preferences": "api/v1/notifications/preferences/",
-      "notifications_device_token": "api/v1/notifications/device-token/"
+      "notifications_device_token": "api/v1/notifications/device-token/",
+      "cvp_support_ticket": "api/v1/cvp/cvp-support-ticket/",
+      "cvp_support_ticket_categories": "api/v1/cvp/cvp-support-ticket/categories/"
     }
   }
 }
