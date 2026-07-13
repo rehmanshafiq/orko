@@ -603,18 +603,68 @@ class _HomeMobileViewState extends State<HomeMobileView> {
       (buckets[key] ??= <HubcoLocationEntity>[]).add(station);
     }
 
-    return buckets.values.map((items) {
-      var lat = 0.0;
-      var lng = 0.0;
-      for (final s in items) {
-        lat += s.latitude;
-        lng += s.longitude;
+    final clusters = buckets.values.map(_clusterFromItems).toList();
+    return _mergeOverlappingClusters(clusters, zoom);
+  }
+
+  _StationCluster _clusterFromItems(List<HubcoLocationEntity> items) {
+    var lat = 0.0;
+    var lng = 0.0;
+    for (final s in items) {
+      lat += s.latitude;
+      lng += s.longitude;
+    }
+    return _StationCluster(
+      position: LatLng(lat / items.length, lng / items.length),
+      items: items,
+    );
+  }
+
+  /// Minimum on-screen distance (logical px) between two markers before they
+  /// are fused into one cluster — just over the pin/bubble bitmap sizes.
+  static const double _clusterMergeDistancePx = 64;
+
+  /// Grid bucketing can place two groups in *adjacent* cells yet only a few
+  /// px apart on screen, drawing a station pin on top of a cluster bubble.
+  /// Repeatedly merges any pair of groups closer than
+  /// [_clusterMergeDistancePx] at [zoom] until every marker has clear space.
+  List<_StationCluster> _mergeOverlappingClusters(
+    List<_StationCluster> clusters,
+    double zoom,
+  ) {
+    final scale = math.pow(2.0, zoom).toDouble();
+    const minSepSq = _clusterMergeDistancePx * _clusterMergeDistancePx;
+
+    final current = List.of(clusters);
+    var changed = true;
+    while (changed) {
+      changed = false;
+      merging:
+      for (var i = 0; i < current.length; i++) {
+        final a = _projectToWorld(
+          current[i].position.latitude,
+          current[i].position.longitude,
+        );
+        for (var j = i + 1; j < current.length; j++) {
+          final b = _projectToWorld(
+            current[j].position.latitude,
+            current[j].position.longitude,
+          );
+          final dx = (a.dx - b.dx) * scale;
+          final dy = (a.dy - b.dy) * scale;
+          if (dx * dx + dy * dy < minSepSq) {
+            final mergedItems = [...current[i].items, ...current[j].items];
+            current
+              ..removeAt(j)
+              ..removeAt(i)
+              ..add(_clusterFromItems(mergedItems));
+            changed = true;
+            break merging;
+          }
+        }
       }
-      return _StationCluster(
-        position: LatLng(lat / items.length, lng / items.length),
-        items: items,
-      );
-    }).toList();
+    }
+    return current;
   }
 
   /// Unclustered stations that share (almost) the same coordinates would paint
