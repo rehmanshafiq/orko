@@ -43,7 +43,17 @@ class HomeMobileView extends StatefulWidget {
 }
 
 class _HomeMobileViewState extends State<HomeMobileView> {
-  static const LatLng _center = LatLng(24.8607, 67.0011);
+  /// Pakistan framing for the first map view: the whole country, centered.
+  /// (Centering the first station instead pushed the country into a screen
+  /// corner and showed mostly the Arabian Sea.)
+  static const LatLng _pakistanCenter = LatLng(30.3753, 69.3451);
+  static const double _pakistanSouthLat = 23.6;
+  static const double _pakistanNorthLat = 37.1;
+  static const double _pakistanWestLng = 60.87;
+  static const double _pakistanEastLng = 77.84;
+
+  /// Country-wide zoom used before the overlay-aware fit can be computed.
+  static const double _pakistanFallbackZoom = 4.8;
   static const String _darkMapStyle = '''
 [
   {"elementType":"geometry","stylers":[{"color":"#141825"}]},
@@ -101,7 +111,7 @@ class _HomeMobileViewState extends State<HomeMobileView> {
 
   /// Current map zoom, kept in sync via [GoogleMap.onCameraMove]. Drives the
   /// grid clustering so markers re-cluster as the user zooms in/out.
-  double _currentZoom = 13.8;
+  double _currentZoom = _pakistanFallbackZoom;
 
   /// Grid cell size (logical px) used to group nearby markers into a cluster.
   static const double _clusterCellSize = 90;
@@ -110,9 +120,6 @@ class _HomeMobileViewState extends State<HomeMobileView> {
   /// updates (and the SDK's marker-redraw flicker) when panning doesn't change
   /// the grouping.
   String _lastClusterSignature = '';
-
-  /// Zoom used when framing stations on first load.
-  static const double _initialZoom = 5.2;
 
   /// Camera position after the map first frames loaded stations; restored by zoom out.
   CameraPosition? _initialCameraPosition;
@@ -244,26 +251,32 @@ class _HomeMobileViewState extends State<HomeMobileView> {
     unawaited(_syncMapMyLocationLayer());
   }
 
-  /// Animates the camera to frame the loaded stations. Safe to call from either
-  /// [_onMapCreated] or [_onLocationsLoaded]; it no-ops until both the map
-  /// controller and at least one location are available.
+  /// Animates the camera to the first-launch view: the whole of Pakistan,
+  /// centered in the visible map band. Safe to call from either
+  /// [_onMapCreated] or [_onLocationsLoaded]; it no-ops until the map
+  /// controller exists.
   Future<void> _moveCameraToLocations() async {
     final controller = _mapController;
-    if (controller == null || _locations.isEmpty) return;
-    final first = _locations.first;
-    final position = CameraPosition(
-      target: LatLng(first.latitude, first.longitude),
-      zoom: _initialZoom,
-    );
+    if (controller == null || !mounted) return;
+    // Fit the country's bounds to this screen; the fallback only matters if
+    // layout hasn't happened yet.
+    final zoom = _zoomToFitBounds(
+      _pakistanSouthLat,
+      _pakistanNorthLat,
+      _pakistanWestLng,
+      _pakistanEastLng,
+    ).clamp(3.5, 7.0).toDouble();
+    final position = CameraPosition(target: _pakistanCenter, zoom: zoom);
     _initialCameraPosition = position;
-    _currentZoom = _initialZoom;
+    _currentZoom = zoom;
     if (_showZoomOutButton) {
       setState(() => _showZoomOutButton = false);
     }
     await controller.animateCamera(CameraUpdate.newCameraPosition(position));
   }
 
-  double get _baselineZoom => _initialCameraPosition?.zoom ?? 13.8;
+  double get _baselineZoom =>
+      _initialCameraPosition?.zoom ?? _pakistanFallbackZoom;
 
   void _onCameraPositionChanged(double zoom) {
     _currentZoom = zoom;
@@ -965,7 +978,10 @@ class _HomeMobileViewState extends State<HomeMobileView> {
     if (controller == null || !mounted) return;
 
     final position = _initialCameraPosition ??
-        const CameraPosition(target: _center, zoom: 13.8);
+        const CameraPosition(
+          target: _pakistanCenter,
+          zoom: _pakistanFallbackZoom,
+        );
 
     await controller.animateCamera(CameraUpdate.newCameraPosition(position));
   }
@@ -1053,9 +1069,11 @@ class _HomeMobileViewState extends State<HomeMobileView> {
                   opacity: _mapReady ? 1.0 : 0.0,
                   duration: const Duration(milliseconds: 150),
                   child: GoogleMap(
+                    // Pakistan is on screen from the very first frame, even
+                    // before stations load.
                     initialCameraPosition: const CameraPosition(
-                      target: _center,
-                      zoom: 13.8,
+                      target: _pakistanCenter,
+                      zoom: _pakistanFallbackZoom,
                     ),
                     onMapCreated: _onMapCreated,
                     onCameraMove: (position) =>
