@@ -1231,7 +1231,7 @@ class _ProfileTabBody extends StatelessWidget {
       children: [
         _StatsGrid(),
         14.verticalSpace,
-        const _HistorySection(),
+        // const _HistorySection(),
         // _AchievementsCard(),
         // 14.verticalSpace,
         // _PersonalInfoCard(profile: profile),
