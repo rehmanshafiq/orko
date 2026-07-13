@@ -35,6 +35,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   bool _saving = false;
 
+  /// True once the email has been changed via the OTP flow. Even if the user
+  /// backs out without tapping "Save Changes", the profile view must refresh
+  /// (the cached user was already updated), so we pop `true` on exit.
+  bool _emailChanged = false;
+
   @override
   void initState() {
     super.initState();
@@ -86,7 +91,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       ),
     );
     if (!mounted || updated == null) return;
-    setState(() => _emailController.text = updated.email);
+    setState(() {
+      _emailController.text = updated.email;
+      _emailChanged = true;
+    });
   }
 
   Future<void> _save() async {
@@ -126,7 +134,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final ui = AppUiColors.of(context);
-    return Scaffold(
+    return PopScope(
+      // Intercept back so we can return whether anything changed. "Save Changes"
+      // still pops `true` explicitly (bypassing this); this covers the case
+      // where only the email was changed and the user backs out.
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        Navigator.of(context).pop(_emailChanged);
+      },
+      child: Scaffold(
       backgroundColor: ui.scaffoldBackground,
       appBar: AppBar(
         backgroundColor: ui.scaffoldBackground,
@@ -248,6 +265,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             ),
           ),
         ),
+      ),
       ),
     );
   }
