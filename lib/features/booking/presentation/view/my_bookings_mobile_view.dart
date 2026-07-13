@@ -373,7 +373,7 @@ Future<void> _confirmCancel(
       title: const Text('Cancel booking?'),
       content: Text(
         'Are you sure you want to cancel your booking at '
-        '${booking.displayName} on ${booking.date} at ${booking.startTime}?',
+        '${booking.displayName} on ${booking.displayDate} at ${booking.startTime}?',
       ),
       actions: [
         TextButton(
@@ -829,11 +829,11 @@ class _HistoryTab extends StatelessWidget {
   }
 }
 
-/// Formats a `yyyy-MM-dd HH:mm:ss` timestamp into `MMM d, yyyy · h:mm a`,
+/// Formats a `yyyy-MM-dd HH:mm:ss` timestamp into `dd/MM/yyyy · h:mm a`,
 /// falling back to the raw string (or a placeholder) when it can't be parsed.
 String _formatStartedAt(String? raw) {
   if (raw == null || raw.isEmpty) return 'Date unavailable';
   final parsed = DateTime.tryParse(raw.replaceFirst(' ', 'T'));
   if (parsed == null) return raw;
-  return DateFormat('MMM d, yyyy · h:mm a').format(parsed);
+  return DateFormat('dd/MM/yyyy · h:mm a').format(parsed);
 }

@@ -57,11 +57,23 @@ class StationResultEntity extends Equatable {
   final List<String> powerRatings;
 
   /// Human-readable power label for the card, e.g. `'60 kWh'` (or
-  /// `'60, 120 kWh'` for multiple). Empty when no rating is available.
+  /// `'60, 120 kWh'` for multiple). Redundant decimals are dropped so the
+  /// API's `60.0` reads as `60`. Empty when no rating is available.
   String get powerLabel {
-    final values = powerRatings.map((e) => e.trim()).where((e) => e.isNotEmpty);
+    final values = powerRatings
+        .map((e) => _trimDecimals(e.trim()))
+        .where((e) => e.isNotEmpty);
     if (values.isEmpty) return '';
     return '${values.join(', ')} kWh';
+  }
+
+  /// Drops trailing-zero decimals from numeric tokens (`60.0` → `60`,
+  /// `62.5` preserved). Kept local so this domain entity stays Flutter-free.
+  static String _trimDecimals(String raw) {
+    return raw.replaceAllMapped(RegExp(r'\d+\.\d+'), (match) {
+      var number = match[0]!.replaceFirst(RegExp(r'0+$'), '');
+      return number.replaceFirst(RegExp(r'\.$'), '');
+    });
   }
 
   /// Connector kinds from `connector_types`, e.g. `['CCS2', 'CHAdeMO']`

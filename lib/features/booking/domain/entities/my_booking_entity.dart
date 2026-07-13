@@ -92,6 +92,15 @@ class MyBookingEntity extends Equatable {
   String get displayName =>
       stationName.isNotEmpty ? stationName : locationName;
 
+  /// [date] (API `yyyy-MM-dd`) rendered as `dd/MM/yyyy`; falls back to the
+  /// raw string when it can't be parsed.
+  String get displayDate {
+    final parsed = DateTime.tryParse(date);
+    if (parsed == null) return date;
+    return '${parsed.day.toString().padLeft(2, '0')}/'
+        '${parsed.month.toString().padLeft(2, '0')}/${parsed.year}';
+  }
+
   @override
   List<Object?> get props => [
         id,

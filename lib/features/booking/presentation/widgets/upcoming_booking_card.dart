@@ -43,7 +43,7 @@ class UpcomingBookingCard extends StatelessWidget {
     if (info == null) return 'Charging slot';
     final parts = <String>[
       if (info.connectorType.isNotEmpty) info.connectorType,
-      if (info.power.isNotEmpty) info.power,
+      if (info.power.isNotEmpty) AppHelpers.formatPower(info.power),
       if (info.powerType.isNotEmpty) info.powerType.toUpperCase(),
     ];
     return parts.isEmpty ? 'Charging slot' : parts.join(' · ');
@@ -144,7 +144,7 @@ class UpcomingBookingCard extends StatelessWidget {
               6.horizontalSpace,
               Expanded(
                 child: AppText(
-                  booking.date,
+                  booking.displayDate,
                   color: ui.textSecondary,
                   fontSize: FontSizes.font13Sp,
                   fontWeight: FontWeights.weight400,

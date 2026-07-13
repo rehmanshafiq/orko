@@ -14,6 +14,13 @@ import 'package:orko_hubco/features/vehicle/presentation/cubit/vehicle_state.dar
 /// Sentinel dropdown value for the "Other (add custom)" option.
 const int _kOther = -1;
 
+/// Connector types offered in the custom-model form.
+const List<String> _kConnectorTypes = ['CCS2', 'CHAdeMO', 'GB/T'];
+
+/// The only connector type the network currently supports. Selecting any
+/// other type surfaces an "unsupported" error and blocks model creation.
+const String _kSupportedConnectorType = 'CCS2';
+
 /// Add-vehicle dialog. Make/model dropdowns are populated from the vehicle
 /// APIs; submitting calls `add-vehicle` and refreshes the user's vehicle list.
 class AddVehicleDialog extends StatefulWidget {
@@ -31,12 +38,14 @@ class _AddVehicleDialogState extends State<AddVehicleDialog> {
   final TextEditingController _customMakeController = TextEditingController();
   final TextEditingController _customModelNameController =
       TextEditingController();
-  final TextEditingController _connectorController = TextEditingController();
   final TextEditingController _batteryController = TextEditingController();
   final TextEditingController _mileageController = TextEditingController();
 
   int? _selectedMakeId;
   int? _selectedModelId;
+
+  /// Connector type chosen in the custom-model form (null until picked).
+  String? _selectedConnectorType;
 
   /// Whether the inline "add custom make/model" forms are showing (i.e. the
   /// user picked "Other" and hasn't created it yet).
@@ -59,7 +68,6 @@ class _AddVehicleDialogState extends State<AddVehicleDialog> {
     _rfidController.dispose();
     _customMakeController.dispose();
     _customModelNameController.dispose();
-    _connectorController.dispose();
     _batteryController.dispose();
     _mileageController.dispose();
     super.dispose();
@@ -135,15 +143,23 @@ class _AddVehicleDialogState extends State<AddVehicleDialog> {
       return;
     }
     final name = _customModelNameController.text.trim();
-    final connector = _connectorController.text.trim();
+    final connector = _selectedConnectorType;
     final battery = double.tryParse(_batteryController.text.trim());
     final mileage = int.tryParse(_mileageController.text.trim());
     if (name.isEmpty) {
       showErrorSnackBar(context, 'Enter a model name.');
       return;
     }
-    if (connector.isEmpty) {
-      showErrorSnackBar(context, 'Enter the connector type (e.g. CCS).');
+    if (connector == null) {
+      showErrorSnackBar(context, 'Select a connector type.');
+      return;
+    }
+    if (connector != _kSupportedConnectorType) {
+      showErrorSnackBar(
+        context,
+        '$connector is not supported. Only $_kSupportedConnectorType '
+        'connectors can be added.',
+      );
       return;
     }
     if (battery == null || battery <= 0) {
@@ -298,7 +314,10 @@ class _AddVehicleDialogState extends State<AddVehicleDialog> {
                       10.verticalSpace,
                       _CustomModelForm(
                         nameController: _customModelNameController,
-                        connectorController: _connectorController,
+                        selectedConnectorType: _selectedConnectorType,
+                        onConnectorSelected: (type) => setState(
+                          () => _selectedConnectorType = type,
+                        ),
                         batteryController: _batteryController,
                         mileageController: _mileageController,
                         isCreating: state.isCreatingModel,
@@ -553,7 +572,8 @@ class _CustomMakeForm extends StatelessWidget {
 class _CustomModelForm extends StatelessWidget {
   const _CustomModelForm({
     required this.nameController,
-    required this.connectorController,
+    required this.selectedConnectorType,
+    required this.onConnectorSelected,
     required this.batteryController,
     required this.mileageController,
     required this.isCreating,
@@ -561,7 +581,8 @@ class _CustomModelForm extends StatelessWidget {
   });
 
   final TextEditingController nameController;
-  final TextEditingController connectorController;
+  final String? selectedConnectorType;
+  final ValueChanged<String> onConnectorSelected;
   final TextEditingController batteryController;
   final TextEditingController mileageController;
   final bool isCreating;
@@ -587,11 +608,9 @@ class _CustomModelForm extends StatelessWidget {
             capitalization: TextCapitalization.words,
           ),
           12.verticalSpace,
-          _LabeledTextField(
-            label: 'Connector Type',
-            controller: connectorController,
-            hint: 'e.g. CCS',
-            capitalization: TextCapitalization.characters,
+          _ConnectorTypeSelector(
+            selected: selectedConnectorType,
+            onSelected: onConnectorSelected,
           ),
           12.verticalSpace,
           Row(
@@ -630,6 +649,117 @@ class _CustomModelForm extends StatelessWidget {
             onTap: onSubmit,
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Connector-type picker for the custom-model form: [_kConnectorTypes] as
+/// selectable pill buttons. Only [_kSupportedConnectorType] is accepted, so
+/// picking any other type shows an inline "unsupported" message (creation is
+/// also blocked in [_AddVehicleDialogState._onCreateCustomModel]).
+class _ConnectorTypeSelector extends StatelessWidget {
+  const _ConnectorTypeSelector({
+    required this.selected,
+    required this.onSelected,
+  });
+
+  final String? selected;
+  final ValueChanged<String> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final ui = AppUiColors.of(context);
+    final unsupportedSelected =
+        selected != null && selected != _kSupportedConnectorType;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        AppText(
+          'Connector Type',
+          color: ui.textPrimary,
+          fontSize: FontSizes.font12Sp,
+          fontWeight: FontWeights.weight600,
+        ),
+        8.verticalSpace,
+        Wrap(
+          spacing: 10.w,
+          runSpacing: 10.h,
+          children: [
+            for (final type in _kConnectorTypes)
+              _ConnectorChip(
+                ui: ui,
+                label: type,
+                selected: selected == type,
+                onTap: () => onSelected(type),
+              ),
+          ],
+        ),
+        if (unsupportedSelected) ...[
+          8.verticalSpace,
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                Icons.error_outline_rounded,
+                color: AppColors.redColor,
+                size: 14.r,
+              ),
+              6.horizontalSpace,
+              Expanded(
+                child: AppText(
+                  '$selected is not supported. Only '
+                  '$_kSupportedConnectorType connectors can be added.',
+                  color: AppColors.redColor,
+                  fontSize: FontSizes.font11Sp,
+                  fontWeight: FontWeights.weight400,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+/// A single selectable connector-type pill.
+class _ConnectorChip extends StatelessWidget {
+  const _ConnectorChip({
+    required this.ui,
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final AppUiColors ui;
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        curve: Curves.easeOut,
+        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
+        decoration: BoxDecoration(
+          color: ui.cardBackground,
+          borderRadius: BorderRadius.circular(22.r),
+          border: Border.all(
+            color: selected ? ui.brandPrimary : ui.borderSubtle,
+            width: selected ? 1.5 : 1,
+          ),
+        ),
+        child: AppText(
+          label,
+          color: selected ? ui.brandPrimary : ui.textPrimary,
+          fontSize: FontSizes.font13Sp,
+          fontWeight: selected ? FontWeights.weight700 : FontWeights.weight500,
+        ),
       ),
     );
   }

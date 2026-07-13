@@ -212,7 +212,7 @@ class _NotificationPreferencesBody extends StatelessWidget {
               _DividerLine(ui: ui),
               _NotificationRow(
                 title: 'App Updates',
-                subtitle: 'New features and improvements',
+                subtitle: 'New features',
                 value: prefs.appUpdates,
                 onChanged: handlerFor(NotificationPreferenceKey.appUpdates),
               ),

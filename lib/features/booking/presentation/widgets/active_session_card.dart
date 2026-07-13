@@ -172,14 +172,14 @@ class ActiveSessionCard extends StatelessWidget {
     return null;
   }
 
-  /// `2026-05-05 19:33:32` → `MMM d, yyyy · h:mm a`, falling back to the raw
+  /// `2026-05-05 19:33:32` → `dd/MM/yyyy · h:mm a`, falling back to the raw
   /// string (or null) when it can't be parsed.
   String? get _startedAtLabel {
     final raw = session.startedAt;
     if (raw == null || raw.isEmpty) return null;
     final parsed = DateTime.tryParse(raw.replaceFirst(' ', 'T'));
     if (parsed == null) return raw;
-    return DateFormat('MMM d, yyyy · h:mm a').format(parsed);
+    return DateFormat('dd/MM/yyyy · h:mm a').format(parsed);
   }
 
   /// Drops a trailing `.0` so `0.45` stays but `12.0` shows as `12`.

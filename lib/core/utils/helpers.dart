@@ -63,4 +63,20 @@ class AppHelpers {
     if (km < 1) return '${(km * 1000).round()} m';
     return '${km.toStringAsFixed(1)} km';
   }
+
+  /// Matches a decimal number so its trailing zeros can be trimmed.
+  static final RegExp _decimalNumber = RegExp(r'\d+\.\d+');
+
+  /// Tidies power/rating strings by dropping redundant decimals from any
+  /// numeric token, so the API's `60.0 kW` reads as `60 kW` while `62.5 kW`
+  /// is preserved. Also handles multi-value strings like `60.0/120.0`.
+  static String formatPower(String raw) {
+    if (raw.isEmpty) return raw;
+    return raw.replaceAllMapped(_decimalNumber, (match) {
+      var number = match[0]!;
+      number = number.replaceFirst(RegExp(r'0+$'), ''); // trim trailing zeros
+      number = number.replaceFirst(RegExp(r'\.$'), ''); // drop dangling dot
+      return number;
+    });
+  }
 }

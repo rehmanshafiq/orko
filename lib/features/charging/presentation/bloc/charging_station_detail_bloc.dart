@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:orko_hubco/core/usecase/usecase.dart';
+import 'package:orko_hubco/core/utils/helpers.dart';
 import 'package:orko_hubco/features/charging/domain/entities/charging_station_detail_entity.dart';
 import 'package:orko_hubco/features/charging/domain/usecases/add_favourite_station_usecase.dart';
 import 'package:orko_hubco/features/charging/domain/usecases/get_charging_station_detail_usecase.dart';
@@ -179,7 +180,7 @@ class ChargingStationDetailBloc
 
   String _portLabel(ConnectorEntity connector) {
     final type = connector.connectorType.trim();
-    final power = connector.power.trim();
+    final power = AppHelpers.formatPower(connector.power.trim());
     final parts = <String>[
       if (type.isNotEmpty) type,
       if (power.isNotEmpty) '$power kW',
