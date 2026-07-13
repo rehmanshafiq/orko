@@ -664,9 +664,57 @@ class _HomeMobileViewState extends State<HomeMobileView> {
   /// into individual charger pins.
   static const double _clusterTapMaxZoom = 16;
 
-  /// Screen padding (logical px) around the framed stations when a cluster tap
-  /// zooms to the group's bounds; keeps edge pins clear of the top bar/sheet.
-  static const double _clusterTapBoundsPadding = 72;
+  /// Extra padding (logical px) around the framed stations when a cluster tap
+  /// zooms to the group's bounds, inside the already-padded visible map area.
+  static const double _clusterTapBoundsPadding = 40;
+
+  /// Height (logical px) of the search-bar row overlaying the map top,
+  /// excluding the safe-area inset.
+  static const double _mapTopOverlayHeight = 88;
+
+  /// Fallback for the collapsed bottom-sheet height when it can't be measured.
+  static const double _bottomSheetFallbackFraction = 0.32;
+
+  /// Measures the collapsed "Nearby Stations" sheet so the map viewport
+  /// padding can keep camera targets clear of it.
+  final GlobalKey _sheetKey = GlobalKey();
+
+  /// Viewport padding matching the UI overlays (search bar / bottom sheet),
+  /// fed to [GoogleMap.padding]. With it set, the SDK itself centers every
+  /// camera operation — cluster-tap bounds fitting, zooming, my-location —
+  /// inside the visible band between the overlays, on both platforms. Without
+  /// it, cluster taps framed pins against the full screen and they landed
+  /// underneath the search bar and the sheet, invisible to the user.
+  EdgeInsets _mapPadding = EdgeInsets.zero;
+
+  /// Screen areas covered by UI chrome: the search bar on top and the
+  /// "Nearby Stations" sheet at the bottom.
+  ({double topInset, double bottomInset}) _mapOverlayInsets() {
+    final screen = MediaQuery.sizeOf(context);
+    final topInset = MediaQuery.paddingOf(context).top + _mapTopOverlayHeight;
+    final sheetBox = _sheetKey.currentContext?.findRenderObject();
+    final bottomInset = sheetBox is RenderBox && sheetBox.hasSize
+        ? sheetBox.size.height
+        : screen.height * _bottomSheetFallbackFraction;
+    return (topInset: topInset, bottomInset: bottomInset);
+  }
+
+  /// Re-measures the overlays after layout and updates [_mapPadding] when it
+  /// drifts by more than a pixel (the guard prevents setState loops).
+  void _syncMapPadding() {
+    if (!mounted) return;
+    final insets = _mapOverlayInsets();
+    if ((insets.topInset - _mapPadding.top).abs() < 1 &&
+        (insets.bottomInset - _mapPadding.bottom).abs() < 1) {
+      return;
+    }
+    setState(() {
+      _mapPadding = EdgeInsets.only(
+        top: insets.topInset,
+        bottom: insets.bottomInset,
+      );
+    });
+  }
 
   /// Stations closer together than this (degrees, ~100 m) are treated as one
   /// spot: bounds-zooming onto them would over-zoom past street level, so the
@@ -693,38 +741,49 @@ class _HomeMobileViewState extends State<HomeMobileView> {
 
     final center = LatLng((minLat + maxLat) / 2, (minLng + maxLng) / 2);
 
-    // Compute the fitting zoom ourselves for every group size:
-    // `newLatLngBounds` over-zooms past the SDK max when the pins are close,
-    // which lands the camera off-target with no pins visible until the user
-    // zooms back out.
-    final targetZoom = (maxLat - minLat < _clusterTapMinSpanDegrees &&
+    // Estimated zoom that fits the group in the visible map band; used to
+    // pick the camera update and to re-cluster without waiting for idle.
+    final fitZoom = (maxLat - minLat < _clusterTapMinSpanDegrees &&
             maxLng - minLng < _clusterTapMinSpanDegrees)
-        // All stations effectively at one spot — bounds would over-zoom, so
-        // jump straight past the break-apart cutoff.
         ? _clusterTapMaxZoom
         : _zoomToFitBounds(minLat, maxLat, minLng, maxLng);
 
-    // Always zoom in by at least one level so the tap visibly drills down,
-    // and never past street level.
-    final zoom = math.min(
-      math.max(targetZoom, _currentZoom + 1.0),
-      _clusterTapMaxZoom,
-    );
+    if (fitZoom >= _clusterTapMaxZoom) {
+      // Tight group: bounds fitting would over-zoom past street level, so
+      // jump straight to the max tap zoom. [GoogleMap.padding] keeps the
+      // group centered in the visible band.
+      await controller.animateCamera(
+        CameraUpdate.newLatLngZoom(center, _clusterTapMaxZoom),
+      );
+      _onCameraPositionChanged(_clusterTapMaxZoom);
+    } else {
+      // Spread group: let the SDK fit the bounds natively — it honours
+      // [GoogleMap.padding], so every framed pin lands between the search
+      // bar and the bottom sheet instead of underneath them.
+      await controller.animateCamera(
+        CameraUpdate.newLatLngBounds(
+          LatLngBounds(
+            southwest: LatLng(minLat, minLng),
+            northeast: LatLng(maxLat, maxLng),
+          ),
+          _clusterTapBoundsPadding,
+        ),
+      );
+      _onCameraPositionChanged(math.max(fitZoom, _currentZoom + 1.0));
+    }
 
-    await controller.animateCamera(CameraUpdate.newLatLngZoom(center, zoom));
-
-    // Re-cluster for the target zoom right away instead of waiting for the
+    // Re-cluster for the estimated zoom right away instead of waiting for the
     // camera-idle callback, which can be skipped after programmatic moves —
-    // the previous cause of "tap zooms but the bubble never breaks apart".
-    _onCameraPositionChanged(zoom);
+    // a past cause of "tap zooms but the bubble never breaks apart". The idle
+    // callback still runs afterwards with the exact zoom as a backstop.
     await _rebuildClusters();
   }
 
-  /// Zoom at which the given geographic bounds fit on screen with
-  /// [_clusterTapBoundsPadding] on every side. Uses the same Web Mercator
-  /// world space as the clustering ([_projectToWorld]): at zoom `z` a world
-  /// unit is `2^z` logical pixels, so the fitting zoom per axis is
-  /// `log2(availablePx / worldSpan)`.
+  /// Zoom at which the given geographic bounds fit inside the *visible* map
+  /// band (screen minus top bar and bottom sheet — see [_mapOverlayInsets]).
+  /// Uses the same Web Mercator world space as the clustering
+  /// ([_projectToWorld]): at zoom `z` a world unit is `2^z` logical pixels,
+  /// so the fitting zoom per axis is `log2(availablePx / worldSpan)`.
   double _zoomToFitBounds(
     double minLat,
     double maxLat,
@@ -737,10 +796,16 @@ class _HomeMobileViewState extends State<HomeMobileView> {
     final worldSpanY = (northEast.dy - southWest.dy).abs();
 
     final screen = MediaQuery.sizeOf(context);
+    final insets = _mapOverlayInsets();
     final availableW =
         math.max(1.0, screen.width - 2 * _clusterTapBoundsPadding);
-    final availableH =
-        math.max(1.0, screen.height - 2 * _clusterTapBoundsPadding);
+    final availableH = math.max(
+      1.0,
+      screen.height -
+          insets.topInset -
+          insets.bottomInset -
+          2 * _clusterTapBoundsPadding,
+    );
 
     double zoomFor(double span, double available) => span <= 0
         ? _clusterTapMaxZoom
@@ -956,6 +1021,10 @@ class _HomeMobileViewState extends State<HomeMobileView> {
   @override
   Widget build(BuildContext context) {
     final ui = AppUiColors.of(context);
+    // Keep the map's viewport padding in sync with the rendered overlays
+    // (sheet height can change with content); the sync method no-ops when
+    // nothing moved, so this cannot loop.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _syncMapPadding());
     return Scaffold(
       backgroundColor: ui.scaffoldBackground,
       body: BlocListener<AuthCubit, AuthState>(
@@ -998,6 +1067,7 @@ class _HomeMobileViewState extends State<HomeMobileView> {
                     myLocationEnabled: _mapMyLocationEnabled,
                     zoomControlsEnabled: false,
                     buildingsEnabled: true,
+                    padding: _mapPadding,
                     markers: _markers,
                   ),
                 ),
@@ -1084,6 +1154,9 @@ class _HomeMobileViewState extends State<HomeMobileView> {
   Widget _bottomSheet({required bool expanded}) {
     final filtersApplied = !context.read<MapCubit>().currentFilters.isEmpty;
     return HomeBottomSheetWidget(
+      // Measured by cluster taps to keep framed pins clear of the sheet; only
+      // the collapsed sheet overlays the map.
+      key: expanded ? null : _sheetKey,
       expanded: expanded,
       filtersApplied: filtersApplied,
       locations: _locations,
