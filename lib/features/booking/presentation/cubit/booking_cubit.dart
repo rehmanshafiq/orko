@@ -22,8 +22,9 @@ class BookingCubit extends Cubit<BookingState> {
   // by the backend (start + 30 min), so it must NOT be sent.
   final CreateBookingHglUseCase _createBookingUseCase;
 
-  static const int minDuration = 1;
-  static const int maxDuration = 8;
+  /// The API books 30-min slots and supports at most 2 consecutive slots
+  /// (a 1-hour booking) reserved atomically on one connector.
+  static const int maxSlotsPerBooking = 2;
 
   /// How many days to surface in the date strip (today + following days).
   static const int _dateOptionCount = 7;
@@ -164,18 +165,68 @@ class BookingCubit extends Cubit<BookingState> {
     loadSlots();
   }
 
-  /// Selects (or toggles off) an available slot.
+  /// Selects/deselects an available 30-min slot, allowing up to
+  /// [maxSlotsPerBooking] *consecutive* slots (the API only books adjacent
+  /// slots on one connector).
+  ///
+  /// Rules:
+  /// * tap a selected slot → it's removed from the selection;
+  /// * tap a slot adjacent to the current selection (and room remains) → added;
+  /// * anything else (non-adjacent, or selection already full) → the selection
+  ///   restarts from the tapped slot.
   void selectSlot(BookingSlotEntity slot) {
     if (!slot.isAvailable) return;
-    final isSame = state.selectedSlot?.startTime == slot.startTime;
-    if (isSame) {
-      emit(state.copyWith(clearSelectedSlot: true, clearSubmitError: true));
+
+    final current = List<BookingSlotEntity>.from(state.selectedSlots);
+    final alreadyIndex =
+        current.indexWhere((s) => s.startTime == slot.startTime);
+
+    List<BookingSlotEntity> next;
+    if (alreadyIndex >= 0) {
+      // Toggle off just that slot; whatever remains is still valid.
+      current.removeAt(alreadyIndex);
+      next = current;
+    } else if (current.isEmpty) {
+      next = [slot];
+    } else if (current.length < maxSlotsPerBooking &&
+        _isAdjacentToSelection(current, slot)) {
+      next = [...current, slot]
+        ..sort((a, b) => _minutes(a.startTime).compareTo(_minutes(b.startTime)));
     } else {
-      emit(state.copyWith(selectedSlot: slot, clearSubmitError: true));
+      // Non-consecutive tap or selection already full → start over from here.
+      next = [slot];
     }
+
+    emit(state.copyWith(selectedSlots: next, clearSubmitError: true));
   }
 
-  /// Creates the booking for the selected slot via the primary endpoint.
+  /// True when [slot] directly precedes or follows the selected block.
+  bool _isAdjacentToSelection(
+    List<BookingSlotEntity> selection,
+    BookingSlotEntity slot,
+  ) {
+    final first = selection.first;
+    final last = selection.last;
+    final slotStart = _minutes(slot.startTime);
+    final slotEnd = _minutes(slot.endTime);
+    if (slotStart < 0 || slotEnd < 0) return false;
+    return slotStart == _minutes(last.endTime) ||
+        slotEnd == _minutes(first.startTime);
+  }
+
+  /// Parses `HH:mm` to minutes-since-midnight; -1 when unparseable (never
+  /// matches an adjacency check).
+  static int _minutes(String time) {
+    final parts = time.split(':');
+    if (parts.length < 2) return -1;
+    final h = int.tryParse(parts[0].trim());
+    final m = int.tryParse(parts[1].trim());
+    if (h == null || m == null) return -1;
+    return h * 60 + m;
+  }
+
+  /// Creates the booking for the selected slot(s) via the primary endpoint.
+  /// `start_time` is the first slot's start; `no_of_slots` covers the rest.
   /// Returns `true` on success so the view can navigate.
   Future<bool> submitBooking() async {
     final slot = state.selectedSlot;
@@ -197,6 +248,7 @@ class BookingCubit extends Cubit<BookingState> {
         startTime: slot.startTime,
         location: locationId,
         vehicleId: state.vehicleId,
+        noOfSlots: state.noOfSlots,
       ),
     );
 
@@ -229,17 +281,5 @@ class BookingCubit extends Cubit<BookingState> {
     final port = state.ports.where((p) => p.id == portId);
     if (port.isEmpty || !port.first.isAvailable) return;
     emit(state.copyWith(selectedPortId: portId));
-  }
-
-  // ── Cosmetic-only selector (no effect on the booking payload) ───────────
-
-  void increaseDuration() {
-    if (state.durationHours >= maxDuration) return;
-    emit(state.copyWith(durationHours: state.durationHours + 1));
-  }
-
-  void decreaseDuration() {
-    if (state.durationHours <= minDuration) return;
-    emit(state.copyWith(durationHours: state.durationHours - 1));
   }
 }

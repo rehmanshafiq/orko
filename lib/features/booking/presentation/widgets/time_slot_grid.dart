@@ -6,19 +6,20 @@ import 'package:orko_hubco/features/booking/presentation/models/slot_style.dart'
 import 'package:orko_hubco/features/booking/presentation/widgets/slot_chip.dart';
 
 /// Renders the slots returned by the API. Unavailable slots are greyed out
-/// (non-interactive); the selected slot is highlighted.
+/// (non-interactive); selected slots are highlighted. Supports multi-select
+/// via [selectedStartTimes] (e.g. two consecutive slots for a 1-hour booking).
 class TimeSlotGrid extends StatelessWidget {
   const TimeSlotGrid({
     super.key,
     required this.ui,
     required this.slots,
-    required this.selectedStartTime,
+    required this.selectedStartTimes,
     required this.onSlotTap,
   });
 
   final AppUiColors ui;
   final List<BookingSlotEntity> slots;
-  final String? selectedStartTime;
+  final Set<String> selectedStartTimes;
   final void Function(BookingSlotEntity slot) onSlotTap;
 
   @override
@@ -44,7 +45,7 @@ class TimeSlotGrid extends StatelessWidget {
           itemBuilder: (context, index) {
             final slot = slots[index];
             final isSelected = slot.isAvailable &&
-                selectedStartTime == slot.startTime;
+                selectedStartTimes.contains(slot.startTime);
             return SlotChip(
               ui: ui,
               time: slot.startTime,

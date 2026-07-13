@@ -15,7 +15,6 @@ import 'package:orko_hubco/features/booking/presentation/cubit/booking_state.dar
 import 'package:orko_hubco/features/booking/presentation/pages/booking_success_page.dart';
 import 'package:orko_hubco/features/booking/presentation/widgets/charger_port_selector.dart';
 import 'package:orko_hubco/features/booking/presentation/widgets/date_selector.dart';
-import 'package:orko_hubco/features/booking/presentation/widgets/duration_selector.dart';
 import 'package:orko_hubco/features/booking/presentation/widgets/station_info_card.dart';
 import 'package:orko_hubco/features/booking/presentation/widgets/summary_bottom_card.dart';
 import 'package:orko_hubco/features/booking/presentation/widgets/time_slot_grid.dart';
@@ -80,14 +79,15 @@ class BookSlotMobileView extends StatelessWidget {
                   final cubit = context.read<BookingCubit>();
                   final screenW = MediaQuery.sizeOf(context).width;
                   final buttonW = screenW - 32.w - 24.w;
-                  // Estimated energy uses a flat ~10 kWh/hour assumption; cost
-                  // is driven by the selected connector's per-kWh tariff.
+                  // Estimated energy uses a flat ~10 kWh/hour assumption (5 kWh
+                  // per 30-min slot); cost is driven by the selected
+                  // connector's per-kWh tariff.
                   final selectedPrice = state.selectedPort?.price;
                   final pricePerKwh = selectedPrice?.price ?? 0;
                   final currency = (selectedPrice?.currency.isNotEmpty ?? false)
                       ? selectedPrice!.currency
                       : 'PKR';
-                  final kwhNote = 10 * state.durationHours;
+                  final kwhNote = 5 * state.noOfSlots;
                   final estimated = pricePerKwh * kwhNote;
                   final hasPrice = selectedPrice != null && pricePerKwh > 0;
 
@@ -142,21 +142,20 @@ class BookSlotMobileView extends StatelessWidget {
                           fontSize: FontSizes.font14Sp,
                           fontWeight: FontWeights.weight700,
                         ),
+                        4.verticalSpace,
+                        AppText(
+                          'Each slot is 30 min — select 2 consecutive slots '
+                          'for a 1-hour booking.',
+                          color: ui.textSecondary,
+                          fontSize: FontSizes.font11Sp,
+                          fontWeight: FontWeights.weight400,
+                        ),
                         12.verticalSpace,
                         _SlotsSection(ui: ui, state: state, cubit: cubit),
-                        20.verticalSpace,
-                        DurationSelector(
-                          ui: ui,
-                          durationHours: state.durationHours,
-                          minDurationHours: BookingCubit.minDuration,
-                          maxDurationHours: BookingCubit.maxDuration,
-                          onDecrease: cubit.decreaseDuration,
-                          onIncrease: cubit.increaseDuration,
-                        ),
                         18.verticalSpace,
                         SummaryBottomCard(
                           ui: ui,
-                          durationHours: state.durationHours,
+                          durationLabel: _durationLabel(state.bookingMinutes),
                           estimatedCost: estimated,
                           estimatedKwh: kwhNote,
                           currency: currency,
@@ -209,7 +208,7 @@ class BookSlotMobileView extends StatelessWidget {
           BookedStationsSession.markBooked(bookedLocationId);
         }
         final pricePerKwh = state.selectedPort?.price?.price ?? 0;
-        final amount = (pricePerKwh * 10 * state.durationHours).round();
+        final amount = (pricePerKwh * 5 * state.noOfSlots).round();
         context.push(
           '/booking-success',
           extra: BookingSuccessArgs(
@@ -244,10 +243,11 @@ class BookSlotMobileView extends StatelessWidget {
 
   /// Builds the slot label, e.g. `April 18 · 14:00 – 15:00`.
   ///
-  /// Prefers the confirmed booking, but falls back to the slot/date the user
-  /// selected on this screen whenever the create response omits those fields.
-  /// The create-booking model parses missing values as empty strings (not
-  /// null), so empties are treated as missing here.
+  /// Prefers the confirmed booking, but falls back to the slots/date the user
+  /// selected on this screen whenever the create response omits those fields
+  /// (the create-booking model parses missing values as empty strings). The
+  /// fallback end time is the last selected slot's end, covering both 30-min
+  /// and 1-hour (two consecutive slots) bookings.
   String _slotLabel(BookingState state) {
     final booking = state.createdBooking;
 
@@ -260,11 +260,7 @@ class BookSlotMobileView extends StatelessWidget {
     if (start.isEmpty) start = state.selectedSlot?.startTime ?? '';
 
     var end = (booking?.endTime ?? '').trim();
-    if (end.isEmpty) {
-      end = state.selectedSlot != null && state.durationHours <= 1
-          ? state.selectedSlot!.endTime
-          : _addHours(start, state.durationHours);
-    }
+    if (end.isEmpty) end = state.lastSelectedSlot?.endTime ?? '';
 
     final dateLabel = date != null ? DateFormat('MMMM d').format(date) : '';
     final timeLabel = [start, end].where((t) => t.isNotEmpty).join(' – ');
@@ -272,18 +268,14 @@ class BookSlotMobileView extends StatelessWidget {
     return [dateLabel, timeLabel].where((p) => p.isNotEmpty).join(' · ');
   }
 
-  /// Adds [hours] to an `HH:mm` time string, wrapping past midnight. Returns an
-  /// empty string when [time] can't be parsed.
-  String _addHours(String time, int hours) {
-    final parts = time.split(':');
-    if (parts.length < 2) return '';
-    final h = int.tryParse(parts[0]);
-    final m = int.tryParse(parts[1]);
-    if (h == null || m == null) return '';
-    final total = (h * 60 + m + hours * 60) % (24 * 60);
-    final endH = (total ~/ 60).toString().padLeft(2, '0');
-    final endM = (total % 60).toString().padLeft(2, '0');
-    return '$endH:$endM';
+  /// `30 min` / `1 hour` label for the booked duration.
+  static String _durationLabel(int minutes) {
+    if (minutes < 60) return '$minutes min';
+    final hours = minutes / 60;
+    final whole = hours.truncate();
+    return hours == whole
+        ? '$whole hour${whole == 1 ? '' : 's'}'
+        : '${hours.toStringAsFixed(1)} hours';
   }
 }
 
@@ -401,7 +393,9 @@ class _SlotsSection extends StatelessWidget {
         return TimeSlotGrid(
           ui: ui,
           slots: availableSlots,
-          selectedStartTime: state.selectedSlot?.startTime,
+          selectedStartTimes: {
+            for (final s in state.selectedSlots) s.startTime,
+          },
           onSlotTap: cubit.selectSlot,
         );
     }

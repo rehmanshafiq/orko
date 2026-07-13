@@ -10,7 +10,7 @@ class SummaryBottomCard extends StatelessWidget {
   const SummaryBottomCard({
     super.key,
     required this.ui,
-    required this.durationHours,
+    required this.durationLabel,
     required this.estimatedCost,
     required this.estimatedKwh,
     required this.buttonWidth,
@@ -22,7 +22,9 @@ class SummaryBottomCard extends StatelessWidget {
   });
 
   final AppUiColors ui;
-  final int durationHours;
+
+  /// Human-readable booked duration, e.g. `30 min` or `1 hour`.
+  final String durationLabel;
   final double estimatedCost;
   final int estimatedKwh;
   final double buttonWidth;
@@ -46,9 +48,8 @@ class SummaryBottomCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hours = '$durationHours hour${durationHours == 1 ? '' : 's'}';
     final detail = hasPrice
-        ? '$currency ${_money(estimatedCost)} for $hours '
+        ? '$currency ${_money(estimatedCost)} for $durationLabel '
             '($estimatedKwh kWh @ $currency ${_money(pricePerKwh)}/kWh)'
         : 'Select an available connector to see pricing.';
 

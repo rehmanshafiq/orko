@@ -30,12 +30,14 @@ abstract class BookingRepository {
   });
 
   /// `POST /bookings/book-charge-session/` — HGL simplified endpoint.
-  /// `end_time` is auto-calculated (start + 30 min); status is `approved`.
+  /// `end_time` is auto-calculated (start + 30 × [noOfSlots] min); status is
+  /// `approved`. [noOfSlots] is 1 (30 min) or 2 (1 hour, consecutive slots).
   Future<Either<Failure, BookingEntity>> createBookingHgl({
     required String bookingDate,
     required String startTime,
     required int location,
     int? vehicleId,
+    int noOfSlots,
   });
 
   /// `GET /bookings/my-charging-sessions/` — approved + cancelled bookings.

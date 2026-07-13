@@ -240,7 +240,9 @@ class _RescheduleSheetState extends State<RescheduleSheet> {
         return TimeSlotGrid(
           ui: ui,
           slots: _slots,
-          selectedStartTime: _selectedSlot?.startTime,
+          selectedStartTimes: {
+            if (_selectedSlot != null) _selectedSlot!.startTime,
+          },
           onSlotTap: _selectSlot,
         );
     }

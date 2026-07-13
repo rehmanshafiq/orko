@@ -26,6 +26,7 @@ abstract class BookingRemoteDataSource {
     required String startTime,
     required int location,
     int? vehicleId,
+    int noOfSlots,
   });
 
   Future<List<MyBookingModel>> getMyBookings();

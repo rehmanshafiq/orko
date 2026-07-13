@@ -104,6 +104,7 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
     required String startTime,
     required int location,
     int? vehicleId,
+    int noOfSlots = 1,
   }) async {
     return _guard('create-booking-hgl', () async {
       final url = _endpointUrl(
@@ -119,6 +120,8 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
           'start_time': startTime,
           'location': location,
           if (vehicleId != null) 'vehicle_id': vehicleId,
+          // 1 = 30 min (server default), 2 = 1 hour on consecutive slots.
+          if (noOfSlots > 1) 'no_of_slots': noOfSlots,
         },
       );
       return _bookingFromResponse(response, fallback: 'Booking failed');

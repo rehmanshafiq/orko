@@ -17,6 +17,7 @@ class CreateBookingHglUseCase
       startTime: params.startTime,
       location: params.location,
       vehicleId: params.vehicleId,
+      noOfSlots: params.noOfSlots,
     );
   }
 }
@@ -27,6 +28,7 @@ class CreateBookingHglParams {
     required this.startTime,
     required this.location,
     this.vehicleId,
+    this.noOfSlots = 1,
   });
 
   final String bookingDate;
@@ -35,4 +37,8 @@ class CreateBookingHglParams {
 
   /// User vehicle resolved by the compatibility gate; sent as `vehicle_id`.
   final int? vehicleId;
+
+  /// Number of consecutive 30-min slots (1 or 2). [startTime] is the start of
+  /// the first slot; the backend reserves the following slot too when 2.
+  final int noOfSlots;
 }

@@ -59,6 +59,7 @@ class BookingRepositoryImpl implements BookingRepository {
     required String startTime,
     required int location,
     int? vehicleId,
+    int noOfSlots = 1,
   }) {
     return _run(
       () => remoteDataSource.createBookingHgl(
@@ -66,6 +67,7 @@ class BookingRepositoryImpl implements BookingRepository {
         startTime: startTime,
         location: location,
         vehicleId: vehicleId,
+        noOfSlots: noOfSlots,
       ),
     );
   }

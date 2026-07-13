@@ -27,11 +27,10 @@ class BookingState extends Equatable {
     this.slotsStatus = SlotsStatus.initial,
     this.slots = const [],
     this.slotsError,
-    this.selectedSlot,
+    this.selectedSlots = const [],
     this.submitStatus = BookingSubmitStatus.idle,
     this.submitError,
     this.createdBooking,
-    this.durationHours = 1,
   });
 
   /// Charging location id required by every booking call. Null when the screen
@@ -63,15 +62,27 @@ class BookingState extends Equatable {
   final List<BookingSlotEntity> slots;
   final String? slotsError;
 
-  /// The slot the user tapped (always an available one).
-  final BookingSlotEntity? selectedSlot;
+  /// The slots the user tapped, kept sorted by start time. Up to 2 consecutive
+  /// 30-min slots (2 = a 1-hour booking); the API only supports adjacent slots.
+  final List<BookingSlotEntity> selectedSlots;
 
   final BookingSubmitStatus submitStatus;
   final String? submitError;
   final BookingEntity? createdBooking;
 
-  // Cosmetic-only selector (not part of the booking contract).
-  final int durationHours;
+  /// First selected slot — the booking's `start_time` source.
+  BookingSlotEntity? get selectedSlot =>
+      selectedSlots.isEmpty ? null : selectedSlots.first;
+
+  /// Last selected slot — supplies the display end time.
+  BookingSlotEntity? get lastSelectedSlot =>
+      selectedSlots.isEmpty ? null : selectedSlots.last;
+
+  /// `no_of_slots` for the booking request (1 or 2).
+  int get noOfSlots => selectedSlots.isEmpty ? 1 : selectedSlots.length;
+
+  /// Total booked duration in minutes (each slot is 30 min).
+  int get bookingMinutes => 30 * noOfSlots;
 
   /// The currently highlighted connector, if any.
   ChargerPortEntity? get selectedPort {
@@ -94,7 +105,7 @@ class BookingState extends Equatable {
   bool get isSubmitting => submitStatus == BookingSubmitStatus.submitting;
 
   bool get canContinue =>
-      selectedSlot != null && locationId != null && !isSubmitting;
+      selectedSlots.isNotEmpty && locationId != null && !isSubmitting;
 
   BookingState copyWith({
     int? locationId,
@@ -113,13 +124,12 @@ class BookingState extends Equatable {
     List<BookingSlotEntity>? slots,
     String? slotsError,
     bool clearSlotsError = false,
-    BookingSlotEntity? selectedSlot,
+    List<BookingSlotEntity>? selectedSlots,
     bool clearSelectedSlot = false,
     BookingSubmitStatus? submitStatus,
     String? submitError,
     bool clearSubmitError = false,
     BookingEntity? createdBooking,
-    int? durationHours,
   }) {
     return BookingState(
       locationId: locationId ?? this.locationId,
@@ -137,12 +147,11 @@ class BookingState extends Equatable {
       slotsStatus: slotsStatus ?? this.slotsStatus,
       slots: slots ?? this.slots,
       slotsError: clearSlotsError ? null : (slotsError ?? this.slotsError),
-      selectedSlot:
-          clearSelectedSlot ? null : (selectedSlot ?? this.selectedSlot),
+      selectedSlots:
+          clearSelectedSlot ? const [] : (selectedSlots ?? this.selectedSlots),
       submitStatus: submitStatus ?? this.submitStatus,
       submitError: clearSubmitError ? null : (submitError ?? this.submitError),
       createdBooking: createdBooking ?? this.createdBooking,
-      durationHours: durationHours ?? this.durationHours,
     );
   }
 
@@ -161,10 +170,9 @@ class BookingState extends Equatable {
         slotsStatus,
         slots,
         slotsError,
-        selectedSlot,
+        selectedSlots,
         submitStatus,
         submitError,
         createdBooking,
-        durationHours,
       ];
 }
