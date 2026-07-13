@@ -23,12 +23,8 @@ import 'package:orko_hubco/features/map/presentation/cubit/map_cubit.dart';
 import 'package:orko_hubco/features/notifications/presentation/page/notifications_page.dart';
 import 'package:orko_hubco/features/onboarding/presentation/bloc/onboarding_cubit.dart';
 import 'package:orko_hubco/features/onboarding/presentation/page/onboarding_page.dart';
-import 'package:orko_hubco/features/booking/presentation/cubit/my_bookings_cubit.dart';
-import 'package:orko_hubco/features/profile/presentation/cubit/charging_stats_cubit.dart';
-import 'package:orko_hubco/features/profile/presentation/cubit/profile_cubit.dart';
 import 'package:orko_hubco/features/charging/presentation/page/charging_status_page.dart';
-import 'package:orko_hubco/features/profile/presentation/screens/profile_screen.dart';
-import 'package:orko_hubco/features/vehicle/presentation/cubit/vehicle_cubit.dart';
+import 'package:orko_hubco/features/profile/presentation/page/profile_page.dart';
 import 'package:orko_hubco/features/search/presentation/page/search_page.dart';
 import 'package:orko_hubco/features/splash/presentation/page/splash_page.dart';
 import 'package:orko_hubco/features/trip/presentation/page/trip_planner_page.dart';
@@ -40,7 +36,7 @@ import 'package:orko_hubco/features/trip/presentation/page/trip_planner_page.dar
 ///   /register   → RegisterScreen
 ///   /home       → BottomNavShell
 ///     ├── /home          → HomePage       (tab 0)
-///     ├── /account       → ProfileScreen  (tab 1)
+///     ├── /account       → ProfilePage  (tab 1)
 ///     ├── /bookings      → MyBookingsPage (tab 2)
 ///     ├── /trip          → TripPlannerPage (tab 3)
 ///     └── /profile       → ChargingStatusPage (tab 4)
@@ -250,24 +246,8 @@ class AppRouter {
                 // Profile sub-tab — see BottomNavShell.accountRefreshTick.
                 builder: (context, state) => ValueListenableBuilder<int>(
                   valueListenable: BottomNavShell.accountRefreshTick,
-                  builder: (context, tick, _) => MultiBlocProvider(
+                  builder: (context, tick, _) => ProfilePage(
                     key: ValueKey<int>(tick),
-                    providers: [
-                      BlocProvider(
-                        create: (_) => sl<ProfileCubit>()..loadProfile(),
-                      ),
-                      BlocProvider(create: (_) => sl<VehicleCubit>()),
-                      BlocProvider(
-                        create: (_) => sl<ChargingStatsCubit>()..load(),
-                      ),
-                      // Backs the Charging History list on the Profile tab —
-                      // reuses the same charge-session-history source as the
-                      // My Bookings → History tab.
-                      BlocProvider(
-                        create: (_) => sl<MyBookingsCubit>()..loadHistory(),
-                      ),
-                    ],
-                    child: const ProfileScreen(),
                   ),
                 ),
               ),
