@@ -208,6 +208,10 @@ class _TripPlannerMobileViewState extends State<TripPlannerMobileView> {
           final bloc = context.read<TripPlannerBloc>();
           final ui = AppUiColors.of(context);
 
+          // No enroute chargers were found (or the trip is infeasible with the
+          // available ones) — hide the Suggested Stops and Trip Summary sections.
+          final hasStops = state.currentPlan?.stops.isNotEmpty ?? false;
+
           if (!state.iconsLoaded) {
             context.read<TripPlannerBloc>().add(
                   TripPlannerLoadMarkerIcons(
@@ -489,48 +493,47 @@ class _TripPlannerMobileViewState extends State<TripPlannerMobileView> {
                         station: state.currentPlan!.stops[index],
                       ),
                     ),
-                    16.verticalSpace,
-                    // Rebuilds when a booking succeeds anywhere in the session
-                    // so already-booked stops show "Booked" on return here.
-                    ValueListenableBuilder<Set<int>>(
-                      valueListenable: BookedStationsSession.ids,
-                      builder: (context, bookedIds, _) =>
-                          TripChargingStopsSectionWidget(
+                    // Suggested Stops + Trip Summary only make sense when the
+                    // plan actually has charging stops along the route.
+                    if (hasStops) ...[
+                      16.verticalSpace,
+                      // Rebuilds when a booking succeeds anywhere in the session
+                      // so already-booked stops show "Booked" on return here.
+                      ValueListenableBuilder<Set<int>>(
+                        valueListenable: BookedStationsSession.ids,
+                        builder: (context, bookedIds, _) =>
+                            TripChargingStopsSectionWidget(
+                          plan: state.currentPlan,
+                          currentBatteryPercent: state.currentBatteryPercent,
+                          targetArrivalBatteryPercent:
+                              state.targetArrivalBatteryPercent,
+                          expandedChargingStopIndex:
+                              state.expandedChargingStopIndex,
+                          bookedStationIds: bookedIds,
+                          onToggleChargingStop: (index) => context
+                              .read<TripPlannerBloc>()
+                              .add(TripPlannerChargingStopExpanded(index)),
+                          onViewDetails: (index) =>
+                              bloc.openChargingStationDetails(
+                            context,
+                            station: state.currentPlan!.stops[index],
+                          ),
+                          onPreBook: (index) => bloc.openPreBook(
+                            context,
+                            station: state.currentPlan!.stops[index],
+                          ),
+                          formatPkr: bloc.formatPkr,
+                        ),
+                      ),
+                      16.verticalSpace,
+                      const TripSectionTitleWidget(text: 'Trip Summary'),
+                      8.verticalSpace,
+                      TripSummaryCardWidget(
                         plan: state.currentPlan,
-                        currentBatteryPercent: state.currentBatteryPercent,
-                        targetArrivalBatteryPercent:
-                            state.targetArrivalBatteryPercent,
-                        expandedChargingStopIndex:
-                            state.expandedChargingStopIndex,
-                        bookedStationIds: bookedIds,
-                        onToggleChargingStop: (index) => context
-                            .read<TripPlannerBloc>()
-                            .add(TripPlannerChargingStopExpanded(index)),
-                        onViewDetails: (index) =>
-                            bloc.openChargingStationDetails(
-                          context,
-                          station: state.currentPlan!.stops[index],
-                        ),
-                        onPreBook: (index) => bloc.openPreBook(
-                          context,
-                          station: state.currentPlan!.stops[index],
-                        ),
+                        formatDuration: bloc.formatDuration,
                         formatPkr: bloc.formatPkr,
                       ),
-                    ),
-                    16.verticalSpace,
-                    // TripRouteSuggestionCardWidget(
-                    //   fastestPlan: state.routePlans[0],
-                    //   economicalPlan: state.routePlans[1],
-                    // ),
-                    // 22.verticalSpace,
-                    const TripSectionTitleWidget(text: 'Trip Summary'),
-                    8.verticalSpace,
-                    TripSummaryCardWidget(
-                      plan: state.currentPlan,
-                      formatDuration: bloc.formatDuration,
-                      formatPkr: bloc.formatPkr,
-                    ),
+                    ],
                     16.verticalSpace,
                     PrimaryButtonWidget(
                       text: state.isEditMode
