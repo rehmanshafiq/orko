@@ -443,8 +443,9 @@ class _HomeMobileViewState extends State<HomeMobileView> {
     // White charger icon in the pin head, keeping the charging identity.
     final glyph = await _loadChargerGlyphImage();
     if (glyph != null) {
-      // Fit the asset inside the pin head, preserving its aspect ratio.
-      const glyphExtent = 20.0;
+      // Fit the asset inside the pin head (28u across), preserving its aspect
+      // ratio; sized close to the head's edge so the charger reads clearly.
+      const glyphExtent = 28.0;
       final aspect = glyph.width / glyph.height;
       final glyphWidth = (aspect >= 1 ? glyphExtent : glyphExtent * aspect) * u;
       final glyphHeight = (aspect >= 1 ? glyphExtent / aspect : glyphExtent) * u;
@@ -501,9 +502,16 @@ class _HomeMobileViewState extends State<HomeMobileView> {
     }
 
     final clusters = _clusterStations(_locations, _currentZoom);
+    final fannedPositions = _fanOutOverlappingStations(clusters, _currentZoom);
 
     // Skip work when the grouping is identical to what's already on screen.
-    final signature = (clusters.map((c) => c.id).toList()..sort()).join('|');
+    // Fanned-out pins are spaced in screen px, so their geographic offsets
+    // depend on zoom — include a zoom bucket while any exist so they keep
+    // sensible spacing as the user zooms.
+    final signature = [
+      (clusters.map((c) => c.id).toList()..sort()).join('|'),
+      if (fannedPositions.isNotEmpty) 'fan@${(_currentZoom * 2).round()}',
+    ].join('#');
     if (signature == _lastClusterSignature && _markers.isNotEmpty) return;
 
     final stationIcons = await _resolveChargingStationIcon();
@@ -514,7 +522,13 @@ class _HomeMobileViewState extends State<HomeMobileView> {
     for (final cluster in clusters) {
       if (cluster.items.length == 1) {
         final station = cluster.items.first;
-        markers.add(_toMarker(station, stationIcons[_markerKindFor(station)]));
+        markers.add(
+          _toMarker(
+            station,
+            stationIcons[_markerKindFor(station)],
+            position: fannedPositions[station.id],
+          ),
+        );
         continue;
       }
 
@@ -541,6 +555,12 @@ class _HomeMobileViewState extends State<HomeMobileView> {
     setState(() => _markers = markers);
   }
 
+  /// Zoom at (and past) which clustering is disabled entirely, so every
+  /// charger renders as its own pin. Without this cutoff, stations within one
+  /// grid cell (~300 m at street zoom) stay fused into a bubble forever and a
+  /// cluster tap appears to do nothing.
+  static const double _clusterBreakApartZoom = 14.5;
+
   /// Groups stations whose projected pixel positions (at [zoom]) fall in the
   /// same grid cell. Uses Web Mercator world coordinates so the result is
   /// deterministic and cheap (no per-marker screen-coordinate round trips).
@@ -548,6 +568,16 @@ class _HomeMobileViewState extends State<HomeMobileView> {
     List<HubcoLocationEntity> stations,
     double zoom,
   ) {
+    if (zoom >= _clusterBreakApartZoom) {
+      return [
+        for (final station in stations)
+          _StationCluster(
+            position: LatLng(station.latitude, station.longitude),
+            items: [station],
+          ),
+      ];
+    }
+
     final scale = math.pow(2.0, zoom).toDouble();
     final buckets = <String, List<HubcoLocationEntity>>{};
 
@@ -574,6 +604,44 @@ class _HomeMobileViewState extends State<HomeMobileView> {
     }).toList();
   }
 
+  /// Unclustered stations that share (almost) the same coordinates would paint
+  /// exactly on top of each other, leaving only the topmost pin visible and
+  /// tappable — so a broken-apart cluster of co-located chargers would still
+  /// look like a single location. Fans each such group out in a small ring
+  /// around the shared spot, spaced in screen px for the given [zoom].
+  /// Returns adjusted positions keyed by station id.
+  Map<int, LatLng> _fanOutOverlappingStations(
+    List<_StationCluster> clusters,
+    double zoom,
+  ) {
+    final groups = <String, List<HubcoLocationEntity>>{};
+    for (final cluster in clusters) {
+      if (cluster.items.length != 1) continue;
+      final s = cluster.items.first;
+      // ~11 m buckets: stations closer than that read as one spot on screen.
+      final key = '${s.latitude.toStringAsFixed(4)}'
+          '_${s.longitude.toStringAsFixed(4)}';
+      (groups[key] ??= <HubcoLocationEntity>[]).add(s);
+    }
+
+    final fanned = <int, LatLng>{};
+    // Ring radius of ~22 logical px keeps the 52 px pins readably separated.
+    final ringRadiusDegrees = 22 * 360 / (256 * math.pow(2.0, zoom));
+    for (final group in groups.values) {
+      if (group.length < 2) continue;
+      for (var i = 0; i < group.length; i++) {
+        final s = group[i];
+        final angle = 2 * math.pi * i / group.length;
+        final latRad = s.latitude * math.pi / 180;
+        fanned[s.id] = LatLng(
+          s.latitude + ringRadiusDegrees * math.cos(angle),
+          s.longitude + ringRadiusDegrees * math.sin(angle) / math.cos(latRad),
+        );
+      }
+    }
+    return fanned;
+  }
+
   /// Web Mercator projection into a 256×256 world space (independent of zoom).
   Offset _projectToWorld(double latitude, double longitude) {
     const tileSize = 256.0;
@@ -591,9 +659,10 @@ class _HomeMobileViewState extends State<HomeMobileView> {
     unawaited(_rebuildClusters());
   }
 
-  /// Deepest zoom a cluster tap will animate to — street level, where a station
-  /// group is fully broken apart.
-  static const double _clusterTapMaxZoom = 15.5;
+  /// Deepest zoom a cluster tap will animate to — past
+  /// [_clusterBreakApartZoom], so the tapped group is guaranteed to split
+  /// into individual charger pins.
+  static const double _clusterTapMaxZoom = 16;
 
   /// Screen padding (logical px) around the framed stations when a cluster tap
   /// zooms to the group's bounds; keeps edge pins clear of the top bar/sheet.
@@ -622,38 +691,33 @@ class _HomeMobileViewState extends State<HomeMobileView> {
       maxLng = math.max(maxLng, station.longitude);
     }
 
-    // All stations effectively at one spot — bounds would over-zoom, so go to
-    // street level directly.
-    if (maxLat - minLat < _clusterTapMinSpanDegrees &&
-        maxLng - minLng < _clusterTapMinSpanDegrees) {
-      await controller.animateCamera(
-        CameraUpdate.newLatLngZoom(cluster.position, _clusterTapMaxZoom),
-      );
-      return;
-    }
+    final center = LatLng((minLat + maxLat) / 2, (minLng + maxLng) / 2);
 
-    // Pairs: `newLatLngBounds` over-zooms past the SDK max when the two pins
-    // are close, which lands the camera off-target with no pins visible until
-    // the user zooms back out. Compute the fitting zoom ourselves and clamp it
-    // to street level, centered exactly between the two stations.
-    if (cluster.items.length == 2) {
-      final center = LatLng((minLat + maxLat) / 2, (minLng + maxLng) / 2);
-      final zoom = _zoomToFitBounds(minLat, maxLat, minLng, maxLng)
-          .clamp(1.0, _clusterTapMaxZoom)
-          .toDouble();
-      await controller.animateCamera(CameraUpdate.newLatLngZoom(center, zoom));
-      return;
-    }
+    // Compute the fitting zoom ourselves for every group size:
+    // `newLatLngBounds` over-zooms past the SDK max when the pins are close,
+    // which lands the camera off-target with no pins visible until the user
+    // zooms back out.
+    final targetZoom = (maxLat - minLat < _clusterTapMinSpanDegrees &&
+            maxLng - minLng < _clusterTapMinSpanDegrees)
+        // All stations effectively at one spot — bounds would over-zoom, so
+        // jump straight past the break-apart cutoff.
+        ? _clusterTapMaxZoom
+        : _zoomToFitBounds(minLat, maxLat, minLng, maxLng);
 
-    await controller.animateCamera(
-      CameraUpdate.newLatLngBounds(
-        LatLngBounds(
-          southwest: LatLng(minLat, minLng),
-          northeast: LatLng(maxLat, maxLng),
-        ),
-        _clusterTapBoundsPadding,
-      ),
+    // Always zoom in by at least one level so the tap visibly drills down,
+    // and never past street level.
+    final zoom = math.min(
+      math.max(targetZoom, _currentZoom + 1.0),
+      _clusterTapMaxZoom,
     );
+
+    await controller.animateCamera(CameraUpdate.newLatLngZoom(center, zoom));
+
+    // Re-cluster for the target zoom right away instead of waiting for the
+    // camera-idle callback, which can be skipped after programmatic moves —
+    // the previous cause of "tap zooms but the bubble never breaks apart".
+    _onCameraPositionChanged(zoom);
+    await _rebuildClusters();
   }
 
   /// Zoom at which the given geographic bounds fit on screen with
@@ -841,10 +905,15 @@ class _HomeMobileViewState extends State<HomeMobileView> {
     await controller.animateCamera(CameraUpdate.newCameraPosition(position));
   }
 
-  Marker _toMarker(HubcoLocationEntity station, BitmapDescriptor? icon) {
+  Marker _toMarker(
+    HubcoLocationEntity station,
+    BitmapDescriptor? icon, {
+    LatLng? position,
+  }) {
     return Marker(
       markerId: MarkerId(station.id.toString()),
-      position: LatLng(station.latitude, station.longitude),
+      // [position] carries the fanned-out spot for co-located stations.
+      position: position ?? LatLng(station.latitude, station.longitude),
       icon: icon ?? BitmapDescriptor.defaultMarker,
       // Pin tip (not bitmap bottom — the glow pads it) points at the station.
       anchor: const Offset(0.5, _stationPinTipFraction),
