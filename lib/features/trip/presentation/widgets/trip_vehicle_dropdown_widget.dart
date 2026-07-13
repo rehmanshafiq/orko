@@ -283,11 +283,17 @@ class _TripVehicleDropdownWidgetState extends State<TripVehicleDropdownWidget> {
       return [_menuMessage(ui, width, 'No vehicles — add one in your profile')];
     }
     return [
-      for (final v in _vehicles)
+      for (var i = 0; i < _vehicles.length; i++) ...[
+        if (i > 0)
+          Divider(
+            height: 1,
+            thickness: 1,
+            color: ui.brandPrimary,
+          ),
         MenuItemButton(
-          onPressed: _isComplete(v)
+          onPressed: _isComplete(_vehicles[i])
               ? () {
-                  setState(() => _selectedId = v.id);
+                  setState(() => _selectedId = _vehicles[i].id);
                   _lastSelection = _selected;
                   widget.onVehicleSelected?.call(_selected);
                 }
@@ -295,8 +301,12 @@ class _TripVehicleDropdownWidgetState extends State<TripVehicleDropdownWidget> {
           child: SizedBox(
             width: width,
             child: AppText(
-              _isComplete(v) ? _label(v) : '${_label(v)} · incomplete data',
-              color: _isComplete(v) ? ui.textPrimary : AppColors.hintColor,
+              _isComplete(_vehicles[i])
+                  ? _label(_vehicles[i])
+                  : '${_label(_vehicles[i])} · incomplete data',
+              color: _isComplete(_vehicles[i])
+                  ? ui.textPrimary
+                  : AppColors.hintColor,
               fontSize: FontSizes.font12Sp,
               fontWeight: FontWeights.weight500,
               maxLines: 1,
@@ -304,6 +314,7 @@ class _TripVehicleDropdownWidgetState extends State<TripVehicleDropdownWidget> {
             ),
           ),
         ),
+      ],
     ];
   }
 

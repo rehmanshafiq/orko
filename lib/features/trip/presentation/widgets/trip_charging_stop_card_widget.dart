@@ -137,14 +137,15 @@ class TripChargingStopCardWidget extends StatelessWidget {
               ),
               Expanded(
                 child: TripChargingStopMetricWidget(
-                  label: 'Time',
+                  label: 'Est. Charging Time',
                   value: '${info.minutes} min',
                   valueColor: ui.textPrimary,
                 ),
               ),
+              20.horizontalSpace,
               Expanded(
                 child: TripChargingStopMetricWidget(
-                  label: 'Cost',
+                  label: 'Est. Cost',
                   value: formatPkr(info.costPkr),
                   valueColor: ui.textPrimary,
                 ),

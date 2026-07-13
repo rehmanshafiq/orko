@@ -37,35 +37,49 @@ class TripSummaryCardWidget extends StatelessWidget {
       decoration: const BoxDecoration(
         color: AppColors.transparentColor,
       ),
-      child: IntrinsicHeight(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Expanded(
-              child: TripSummaryMetricWidget(
-                icon: Icons.add_location_alt_outlined,
-                label: 'Total Distance:',
-                value: plan == null ? '—' : '${plan!.distanceKm.round()} km',
-              ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(
+                  child: TripSummaryMetricWidget(
+                    icon: Icons.add_location_alt_outlined,
+                    label: 'Total Distance:',
+                    value:
+                        plan == null ? '—' : '${plan!.distanceKm.round()} km',
+                  ),
+                ),
+                // _SummarySectionDivider(color: ui.borderSubtle),
+                Expanded(
+                  child: TripSummaryMetricWidget(
+                    icon: Icons.schedule_rounded,
+                    label: 'Total Time:',
+                    value:
+                        plan == null ? '—' : _formatTotalTime(plan!.duration),
+                  ),
+                ),
+                // _SummarySectionDivider(color: ui.borderSubtle),
+                Expanded(
+                  child: TripSummaryMetricWidget(
+                    icon: Icons.payments_outlined,
+                    label: 'Total Charging Cost:',
+                    value:
+                        plan == null ? '—' : _formatChargingCost(plan!.costPkr),
+                  ),
+                ),
+              ],
             ),
-            // _SummarySectionDivider(color: ui.borderSubtle),
-            Expanded(
-              child: TripSummaryMetricWidget(
-                icon: Icons.schedule_rounded,
-                label: 'Total Time:',
-                value: plan == null ? '—' : _formatTotalTime(plan!.duration),
-              ),
-            ),
-            // _SummarySectionDivider(color: ui.borderSubtle),
-            Expanded(
-              child: TripSummaryMetricWidget(
-                icon: Icons.payments_outlined,
-                label: 'Total Charging Cost:',
-                value: plan == null ? '—' : _formatChargingCost(plan!.costPkr),
-              ),
-            ),
-          ],
-        ),
+          ),
+          14.verticalSpace,
+          TripSummaryMetricWidget(
+            icon: Icons.ev_station_outlined,
+            label: 'Charging Stops:',
+            value: plan == null ? '—' : '${plan!.stops.length}',
+          ),
+        ],
       ),
     );
   }

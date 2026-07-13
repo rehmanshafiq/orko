@@ -324,7 +324,7 @@ class _PlaceSearchSheetState extends State<_PlaceSearchSheet> {
             10.horizontalSpace,
             AppText(
               _locating ? 'Getting your location…' : 'Use my current location',
-              color: ui.brandPrimary,
+              color: ui.textPrimary,
               fontSize: FontSizes.font14Sp,
               fontWeight: FontWeights.weight600,
             ),
