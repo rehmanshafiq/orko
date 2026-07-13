@@ -99,6 +99,7 @@ class BookingRepositoryImpl implements BookingRepository {
     required String bookingDate,
     required String startTime,
     required int location,
+    int noOfSlots = 1,
   }) {
     return _run(
       () => remoteDataSource.rescheduleBooking(
@@ -106,6 +107,7 @@ class BookingRepositoryImpl implements BookingRepository {
         bookingDate: bookingDate,
         startTime: startTime,
         location: location,
+        noOfSlots: noOfSlots,
       ),
     );
   }

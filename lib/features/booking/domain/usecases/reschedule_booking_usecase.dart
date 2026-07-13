@@ -16,6 +16,7 @@ class RescheduleBookingUseCase
       bookingDate: params.bookingDate,
       startTime: params.startTime,
       location: params.location,
+      noOfSlots: params.noOfSlots,
     );
   }
 }
@@ -26,10 +27,15 @@ class RescheduleBookingParams {
     required this.bookingDate,
     required this.startTime,
     required this.location,
+    this.noOfSlots = 1,
   });
 
   final int bookingId;
   final String bookingDate;
   final String startTime;
   final int location;
+
+  /// Number of consecutive 30-min slots (1 or 2). [startTime] is the start of
+  /// the first slot; the backend reserves the following slot too when 2.
+  final int noOfSlots;
 }

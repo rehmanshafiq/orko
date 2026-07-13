@@ -42,6 +42,7 @@ abstract class BookingRemoteDataSource {
     required String bookingDate,
     required String startTime,
     required int location,
+    int noOfSlots,
   });
 
   Future<VerifyQrModel> verifyQr({

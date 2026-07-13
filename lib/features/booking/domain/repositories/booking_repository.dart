@@ -54,12 +54,15 @@ abstract class BookingRepository {
   Future<Either<Failure, String>> cancelBooking({required int bookingId});
 
   /// `POST /bookings/reschedule-booking/` — creates a new linked booking.
-  /// `end_time` is auto-derived by the backend and must NOT be sent.
+  /// `end_time` is auto-derived by the backend (start + 30 × [noOfSlots] min)
+  /// and must NOT be sent. [noOfSlots] is 1 (30 min) or 2 (1 hour, consecutive
+  /// slots) — a 1-slot booking can be rescheduled into a 2-slot one and back.
   Future<Either<Failure, BookingEntity>> rescheduleBooking({
     required int bookingId,
     required String bookingDate,
     required String startTime,
     required int location,
+    int noOfSlots,
   });
 
   /// `POST /bookings/verify-qr/` — verifies a scanned charger QR (charge point

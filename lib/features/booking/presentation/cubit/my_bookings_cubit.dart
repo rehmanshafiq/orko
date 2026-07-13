@@ -240,12 +240,14 @@ class MyBookingsCubit extends Cubit<MyBookingsState> {
     return result;
   }
 
-  /// Reschedules a booking to a new date/slot, then refreshes the list.
+  /// Reschedules a booking to a new date/slot(s), then refreshes the list.
+  /// [noOfSlots] is 1 (30 min) or 2 (1 hour on consecutive slots).
   Future<BookingActionResult> rescheduleBooking({
     required int bookingId,
     required int locationId,
     required String bookingDate,
     required String startTime,
+    int noOfSlots = 1,
   }) async {
     if (state.actionBookingId != null) {
       return (success: false, message: 'Please wait for the current action.');
@@ -258,6 +260,7 @@ class MyBookingsCubit extends Cubit<MyBookingsState> {
         bookingDate: bookingDate,
         startTime: startTime,
         location: locationId,
+        noOfSlots: noOfSlots,
       ),
     );
 

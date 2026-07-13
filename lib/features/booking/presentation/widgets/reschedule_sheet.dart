@@ -12,18 +12,23 @@ import 'package:orko_hubco/features/booking/domain/usecases/get_booking_slots_us
 import 'package:orko_hubco/features/booking/presentation/widgets/date_selector.dart';
 import 'package:orko_hubco/features/booking/presentation/widgets/time_slot_grid.dart';
 
-/// New date/slot chosen in the reschedule sheet.
+/// New date/slot(s) chosen in the reschedule sheet.
 class RescheduleResult {
   const RescheduleResult({
     required this.date,
     required this.startTime,
+    this.noOfSlots = 1,
   });
 
   /// `YYYY-MM-DD`.
   final String date;
 
-  /// `HH:mm`. end_time is auto-derived by the backend, so it isn't carried.
+  /// `HH:mm` — start of the first slot. end_time is auto-derived by the
+  /// backend (start + 30 × [noOfSlots] min), so it isn't carried.
   final String startTime;
+
+  /// Number of consecutive 30-min slots (1 or 2).
+  final int noOfSlots;
 }
 
 /// Bottom sheet that lets the user pick a new date + available slot for a
@@ -54,6 +59,11 @@ class RescheduleSheet extends StatefulWidget {
 
 class _RescheduleSheetState extends State<RescheduleSheet> {
   static const int _dateOptionCount = 7;
+
+  /// The API books 30-min slots and supports at most 2 consecutive slots
+  /// (a 1-hour booking).
+  static const int _maxSlotsPerBooking = 2;
+
   static final DateFormat _apiDate = DateFormat('yyyy-MM-dd');
 
   final GetBookingSlotsUseCase _getSlots = sl<GetBookingSlotsUseCase>();
@@ -64,7 +74,9 @@ class _RescheduleSheetState extends State<RescheduleSheet> {
   _Status _status = _Status.loading;
   String? _error;
   List<BookingSlotEntity> _slots = const [];
-  BookingSlotEntity? _selectedSlot;
+
+  /// Selected slots, kept sorted by start time (up to 2 consecutive).
+  List<BookingSlotEntity> _selectedSlots = const [];
 
   @override
   void initState() {
@@ -82,7 +94,7 @@ class _RescheduleSheetState extends State<RescheduleSheet> {
     setState(() {
       _status = _Status.loading;
       _error = null;
-      _selectedSlot = null;
+      _selectedSlots = const [];
     });
 
     final result = await _getSlots(
@@ -112,11 +124,52 @@ class _RescheduleSheetState extends State<RescheduleSheet> {
     _loadSlots();
   }
 
+  /// Same consecutive-slot selection rules as the booking screen: tap toggles
+  /// a slot off; an adjacent tap extends the block up to [_maxSlotsPerBooking];
+  /// any other tap restarts the selection from the tapped slot.
   void _selectSlot(BookingSlotEntity slot) {
-    setState(() {
-      _selectedSlot =
-          _selectedSlot?.startTime == slot.startTime ? null : slot;
-    });
+    final current = List<BookingSlotEntity>.from(_selectedSlots);
+    final alreadyIndex =
+        current.indexWhere((s) => s.startTime == slot.startTime);
+
+    List<BookingSlotEntity> next;
+    if (alreadyIndex >= 0) {
+      current.removeAt(alreadyIndex);
+      next = current;
+    } else if (current.isEmpty) {
+      next = [slot];
+    } else if (current.length < _maxSlotsPerBooking &&
+        _isAdjacentToSelection(current, slot)) {
+      next = [...current, slot]
+        ..sort(
+            (a, b) => _minutes(a.startTime).compareTo(_minutes(b.startTime)));
+    } else {
+      next = [slot];
+    }
+
+    setState(() => _selectedSlots = next);
+  }
+
+  /// True when [slot] directly precedes or follows the selected block.
+  bool _isAdjacentToSelection(
+    List<BookingSlotEntity> selection,
+    BookingSlotEntity slot,
+  ) {
+    final slotStart = _minutes(slot.startTime);
+    final slotEnd = _minutes(slot.endTime);
+    if (slotStart < 0 || slotEnd < 0) return false;
+    return slotStart == _minutes(selection.last.endTime) ||
+        slotEnd == _minutes(selection.first.startTime);
+  }
+
+  /// Parses `HH:mm` to minutes-since-midnight; -1 when unparseable.
+  static int _minutes(String time) {
+    final parts = time.split(':');
+    if (parts.length < 2) return -1;
+    final h = int.tryParse(parts[0].trim());
+    final m = int.tryParse(parts[1].trim());
+    if (h == null || m == null) return -1;
+    return h * 60 + m;
   }
 
   @override
@@ -183,21 +236,30 @@ class _RescheduleSheetState extends State<RescheduleSheet> {
                   fontSize: FontSizes.font14Sp,
                   fontWeight: FontWeights.weight700,
                 ),
+                4.verticalSpace,
+                AppText(
+                  'Each slot is 30 min — select 2 consecutive slots for a '
+                  '1-hour booking.',
+                  color: ui.textSecondary,
+                  fontSize: FontSizes.font11Sp,
+                  fontWeight: FontWeights.weight400,
+                ),
                 12.verticalSpace,
                 Flexible(child: SingleChildScrollView(child: _buildSlots(ui))),
                 16.verticalSpace,
                 PrimaryButtonWidget(
                   text: 'Confirm Reschedule',
-                  onPress: _selectedSlot == null
+                  onPress: _selectedSlots.isEmpty
                       ? null
                       : () => Navigator.of(context).pop(
                             RescheduleResult(
                               date: _apiDate
                                   .format(_dateOptions[_selectedDateIndex]),
-                              startTime: _selectedSlot!.startTime,
+                              startTime: _selectedSlots.first.startTime,
+                              noOfSlots: _selectedSlots.length,
                             ),
                           ),
-                  isEnabled: _selectedSlot != null,
+                  isEnabled: _selectedSlots.isNotEmpty,
                   buttonHeight: 44.h,
                   cornerRadius: 24.r,
                   gradientColors: const [
@@ -241,7 +303,7 @@ class _RescheduleSheetState extends State<RescheduleSheet> {
           ui: ui,
           slots: _slots,
           selectedStartTimes: {
-            if (_selectedSlot != null) _selectedSlot!.startTime,
+            for (final s in _selectedSlots) s.startTime,
           },
           onSlotTap: _selectSlot,
         );

@@ -224,6 +224,7 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
     required String bookingDate,
     required String startTime,
     required int location,
+    int noOfSlots = 1,
   }) async {
     return _guard('reschedule-booking', () async {
       final url = _endpointUrl(
@@ -232,8 +233,8 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
       );
       log('[Booking] Reschedule URL: $url (booking_id: $bookingId)');
 
-      // end_time is auto-derived by the backend (start + 30 min). Sending it
-      // triggers a server-side failure, so it must NOT be included.
+      // end_time is auto-derived by the backend (start + 30 × no_of_slots min).
+      // Sending it triggers a server-side failure, so it must NOT be included.
       final response = await apiClient.post(
         url,
         data: {
@@ -241,6 +242,8 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
           'booking_date': bookingDate,
           'start_time': startTime,
           'location': location,
+          // 1 = 30 min (server default), 2 = 1 hour on consecutive slots.
+          if (noOfSlots > 1) 'no_of_slots': noOfSlots,
         },
       );
       return _bookingFromResponse(response, fallback: 'Rescheduling failed');

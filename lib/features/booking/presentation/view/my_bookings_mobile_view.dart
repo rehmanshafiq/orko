@@ -407,6 +407,7 @@ Future<void> _openReschedule(
     locationId: booking.locationId,
     bookingDate: selection.date,
     startTime: selection.startTime,
+    noOfSlots: selection.noOfSlots,
   );
   if (!context.mounted) return;
   AppHelpers.showSnackBar(context, result.message, isError: !result.success);
