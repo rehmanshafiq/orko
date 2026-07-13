@@ -32,9 +32,7 @@ class NotificationTileWidget extends StatelessWidget {
         child: Ink(
           padding: AppUtils.vertical10Horizontal12Padding,
           decoration: BoxDecoration(
-            color: unread
-                ? ui.brandPrimary.withValues(alpha: ui.isLight ? 0.06 : 0.12)
-                : ui.searchBackground,
+            color: ui.searchBackground,
             borderRadius: BorderRadius.circular(14.r),
             border: Border.all(
               color: unread
