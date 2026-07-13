@@ -10,6 +10,7 @@ import 'package:orko_hubco/core/theme/theme_cubit.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
 import 'package:orko_hubco/core/utils/widgets/primary_button_widget.dart';
 import 'package:orko_hubco/features/notifications/presentation/page/notification_preferences_page.dart';
+import 'package:orko_hubco/features/profile/presentation/page/help_support_page.dart';
 import 'package:orko_hubco/features/profile/presentation/utils/profile_actions.dart';
 import 'package:orko_hubco/features/profile/presentation/widgets/section_card.dart';
 
@@ -73,7 +74,11 @@ class SettingsTabBody extends StatelessWidget {
               AccountTile(
                 icon: Icons.help_outline_rounded,
                 label: 'Help & Support',
-                onTap: _showComingSoon,
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const HelpSupportPage(),
+                  ),
+                ),
               ),
             ],
           ),
