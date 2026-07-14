@@ -36,6 +36,10 @@ class BottomNavShell extends StatelessWidget {
       body: navigationShell,
       bottomNavigationBar: SafeArea(
         top: false,
+        // Use viewPadding instead of padding so the bottom inset survives even
+        // when something (keyboard, ancestor) consumes MediaQuery.padding,
+        // keeping the bar clear of the system navigation / home indicator.
+        maintainBottomViewPadding: true,
         child: Padding(
           padding: AppUtils.bottomNavOuterPadding,
           child: CustomPaint(
