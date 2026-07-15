@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/utils/app_ui.dart';
 import 'package:orko_hubco/features/booking/presentation/widgets/booking_details_card.dart';
+import 'package:orko_hubco/features/bottom_navigation/presentation/screens/bottom_nav_shell.dart';
 import 'package:orko_hubco/features/booking/presentation/widgets/confirmation_header.dart';
 import 'package:orko_hubco/features/booking/presentation/widgets/download_receipt_button.dart';
 import 'package:orko_hubco/features/booking/presentation/widgets/info_banner.dart';
@@ -34,6 +35,14 @@ class BookingSuccessMobileView extends StatelessWidget {
   /// booking pages from the stack.
   String get _closeDestination => fromTrip ? '/trip' : '/home';
 
+  /// Closes the success screen. The booking just created a notification
+  /// server-side, so bump the map tick — the home screen listens to it and
+  /// re-fetches the unread badge count.
+  void _close(BuildContext context) {
+    BottomNavShell.mapRefreshTick.value++;
+    context.go(_closeDestination);
+  }
+
   @override
   Widget build(BuildContext context) {
     final ui = AppUiColors.of(context);
@@ -44,7 +53,7 @@ class BookingSuccessMobileView extends StatelessWidget {
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
-        context.go(_closeDestination);
+        _close(context);
       },
       child: Scaffold(
         backgroundColor: ui.scaffoldBackground,
@@ -56,7 +65,7 @@ class BookingSuccessMobileView extends StatelessWidget {
                 child: Align(
                   alignment: Alignment.centerRight,
                   child: IconButton(
-                    onPressed: () => context.go(_closeDestination),
+                    onPressed: () => _close(context),
                     icon: Icon(
                       Icons.close_rounded,
                       color: ui.textSecondary,
