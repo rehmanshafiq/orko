@@ -192,6 +192,19 @@ class PushNotificationService {
     }
   }
 
+  /// Re-registers the FCM token under the newly active session. Call after a
+  /// successful login / OTP verification: [initialize] only runs once per app
+  /// launch, so a logout→login within the same run would otherwise leave the
+  /// new session without a device token until the next cold start. Best-effort.
+  Future<void> registerTokenForSession() async {
+    try {
+      final token = await refreshToken();
+      await _maybeRegisterToken(token);
+    } catch (e) {
+      log('[Push] post-login token sync failed: $e');
+    }
+  }
+
   /// Clears the device token on the backend (`DELETE device-token/`). Call on
   /// logout *before* the session token is cleared. Best-effort.
   Future<void> unregisterTokenFromBackend() async {

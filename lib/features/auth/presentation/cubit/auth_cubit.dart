@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:orko_hubco/core/services/google_auth_service.dart';
 import 'package:orko_hubco/core/services/push_notification_service.dart';
@@ -61,7 +63,12 @@ class AuthCubit extends Cubit<AuthState> {
 
     result.fold(
       (failure) => emit(AuthError(failure.message)),
-      (loginResult) => emit(AuthAuthenticated(loginResult.user)),
+      (loginResult) {
+        // Claim this device for the new session; the marker was cleared on the
+        // last logout, so this re-registers the FCM token server-side.
+        unawaited(_pushNotificationService.registerTokenForSession());
+        emit(AuthAuthenticated(loginResult.user));
+      },
     );
   }
 
@@ -93,7 +100,10 @@ class AuthCubit extends Cubit<AuthState> {
 
     result.fold(
       (failure) => emit(AuthError(failure.message)),
-      (loginResult) => emit(AuthAuthenticated(loginResult.user)),
+      (loginResult) {
+        unawaited(_pushNotificationService.registerTokenForSession());
+        emit(AuthAuthenticated(loginResult.user));
+      },
     );
   }
 
@@ -136,7 +146,10 @@ class AuthCubit extends Cubit<AuthState> {
 
     result.fold(
       (failure) => emit(AuthError(failure.message)),
-      (_) => emit(const OtpVerified()),
+      (_) {
+        unawaited(_pushNotificationService.registerTokenForSession());
+        emit(const OtpVerified());
+      },
     );
   }
 
@@ -166,7 +179,12 @@ class AuthCubit extends Cubit<AuthState> {
     final result = await _logoutUseCase(const NoParams());
 
     result.fold(
-      (failure) => emit(AuthError(failure.message)),
+      (failure) {
+        // Logout failed — the user stays signed in, but the device token was
+        // already deleted server-side above. Restore it so pushes keep working.
+        unawaited(_pushNotificationService.registerTokenForSession());
+        emit(AuthError(failure.message));
+      },
       (_) => emit(const AuthUnauthenticated()),
     );
   }
