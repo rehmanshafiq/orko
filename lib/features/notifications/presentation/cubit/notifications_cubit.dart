@@ -217,6 +217,9 @@ class NotificationsCubit extends Cubit<NotificationsState> {
           hasMore: false,
           clearing: false,
         ));
+        // Best-effort: also reset the server-side unread count so badges
+        // elsewhere don't keep showing stale unread notifications.
+        _markAllRead(const NoParams());
         return true;
       },
     );
