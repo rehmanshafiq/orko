@@ -17,6 +17,7 @@ import 'package:orko_hubco/core/utils/app_storage/app_storage.dart';
 import 'package:orko_hubco/core/utils/app_ui.dart';
 import 'package:orko_hubco/core/utils/helpers.dart';
 import 'package:orko_hubco/core/utils/widgets/auth_required_dialog.dart';
+import 'package:orko_hubco/features/bottom_navigation/presentation/screens/bottom_nav_shell.dart';
 import 'package:orko_hubco/features/notifications/domain/usecases/get_unread_count_usecase.dart';
 import 'package:orko_hubco/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:orko_hubco/features/auth/presentation/cubit/auth_state.dart';
@@ -150,10 +151,13 @@ class _HomeMobileViewState extends State<HomeMobileView> {
       (_) => _refreshUnreadCount(),
     );
     HomeMobileView.focusStationNotifier.addListener(_onFocusStationRequested);
+    // Refresh the badge every time the Map tab is tapped in the bottom nav.
+    BottomNavShell.mapRefreshTick.addListener(_refreshUnreadCount);
   }
 
   @override
   void dispose() {
+    BottomNavShell.mapRefreshTick.removeListener(_refreshUnreadCount);
     HomeMobileView.focusStationNotifier.removeListener(_onFocusStationRequested);
     _unreadPollTimer?.cancel();
     _mapController?.dispose();

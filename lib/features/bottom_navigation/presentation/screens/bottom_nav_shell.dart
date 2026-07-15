@@ -12,6 +12,9 @@ class BottomNavShell extends StatelessWidget {
 
   const BottomNavShell({super.key, required this.navigationShell});
 
+  /// Branch index of the Map (home) tab.
+  static const int mapBranchIndex = 0;
+
   /// Branch index of the Bookings tab.
   static const int bookingsBranchIndex = 2;
 
@@ -27,6 +30,10 @@ class BottomNavShell extends StatelessWidget {
   /// always lands on the Profile sub-tab instead of Vehicles/Settings the user
   /// last left selected.
   static final ValueNotifier<int> accountRefreshTick = ValueNotifier<int>(0);
+
+  /// Bumped every time the Map tab is tapped. The map screen listens and
+  /// refreshes the notification unread count (without rebuilding the map).
+  static final ValueNotifier<int> mapRefreshTick = ValueNotifier<int>(0);
 
   @override
   Widget build(BuildContext context) {
@@ -100,6 +107,10 @@ class BottomNavShell extends StatelessWidget {
     // Always rebuild Profile so it reopens on the Profile sub-tab.
     if (index == accountBranchIndex) {
       accountRefreshTick.value++;
+    }
+    // Refresh the notification unread count whenever Map is tapped.
+    if (index == mapBranchIndex) {
+      mapRefreshTick.value++;
     }
     navigationShell.goBranch(
       index,
