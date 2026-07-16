@@ -10,6 +10,9 @@ android/local.properties
 build/
 ios/Flutter/Flutter.podspec
 ios/Flutter/Generated.xcconfig
+ios/Flutter/Debug.xcconfig
+ios/Flutter/Release.xcconfig
+ios/Flutter/Profile.xcconfig
 ios/.symlinks/
 ios/Pods/
 ios/Runner.xcworkspace/
