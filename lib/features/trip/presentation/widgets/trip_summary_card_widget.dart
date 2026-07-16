@@ -31,7 +31,6 @@ class TripSummaryCardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ui = AppUiColors.of(context);
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 14.h),
       decoration: const BoxDecoration(
@@ -74,28 +73,40 @@ class TripSummaryCardWidget extends StatelessWidget {
             ),
           ),
           14.verticalSpace,
-          TripSummaryMetricWidget(
-            icon: Icons.ev_station_outlined,
-            label: 'Charging Stops:',
-            value: plan == null ? '—' : '${plan!.stops.length}',
+          IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(
+                  child: TripSummaryMetricWidget(
+                    icon: Icons.ev_station_outlined,
+                    label: 'Charging Stops:',
+                    value: plan == null ? '—' : '${plan!.stops.length}',
+                  ),
+                ),
+                Expanded(
+                  child: TripSummaryMetricWidget(
+                    icon: Icons.savings_outlined,
+                    label: 'Fuel Savings:',
+                    value: plan?.petrolCostSavings == null
+                        ? '—'
+                        : _formatChargingCost(plan!.petrolCostSavings!.round()),
+                  ),
+                ),
+                Expanded(
+                  child: TripSummaryMetricWidget(
+                    icon: Icons.eco_outlined,
+                    label: 'CO₂ Reduced:',
+                    value: plan?.co2ReducedKg == null
+                        ? '—'
+                        : '${plan!.co2ReducedKg!.toStringAsFixed(1)} kg',
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
-    );
-  }
-}
-
-class _SummarySectionDivider extends StatelessWidget {
-  const _SummarySectionDivider({required this.color});
-
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 1,
-      margin: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
-      color: color,
     );
   }
 }

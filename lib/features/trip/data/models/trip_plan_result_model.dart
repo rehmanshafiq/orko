@@ -1,4 +1,5 @@
 import 'package:orko_hubco/features/trip/data/models/trip_json.dart';
+import 'package:orko_hubco/features/trip/data/models/trip_savings_model.dart';
 import 'package:orko_hubco/features/trip/data/models/trip_stop_model.dart';
 import 'package:orko_hubco/features/trip/domain/entities/trip_plan_entity.dart';
 import 'package:orko_hubco/features/vehicle/data/models/user_vehicle_model.dart';
@@ -22,6 +23,7 @@ class TripPlanResultModel extends TripPlanEntity {
     required super.stops,
     super.vehicle,
     super.batteryCapacityKwh,
+    super.savings,
     super.message,
   });
 
@@ -31,6 +33,7 @@ class TripPlanResultModel extends TripPlanEntity {
   }) {
     final rawVehicle = json['vehicle'];
     final rawStops = json['stops'];
+    final rawSavings = json['savings'];
     return TripPlanResultModel(
       vehicle: rawVehicle is Map
           ? UserVehicleModel.fromJson(Map<String, dynamic>.from(rawVehicle))
@@ -53,6 +56,9 @@ class TripPlanResultModel extends TripPlanEntity {
                   TripStopModel.fromPlanJson(Map<String, dynamic>.from(e)))
               .toList(growable: false)
           : const [],
+      savings: rawSavings is Map
+          ? TripSavingsModel.fromJson(Map<String, dynamic>.from(rawSavings))
+          : null,
       message: message,
     );
   }

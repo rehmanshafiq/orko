@@ -557,6 +557,8 @@ class TripPlannerBloc extends Bloc<TripPlannerEvent, TripPlannerState> {
       duration: Duration(minutes: totalMinutes),
       costPkr: plan.totalCost.round(),
       co2SavedKg: (plan.totalDistanceKm * 0.12).round(),
+      petrolCostSavings: plan.savings?.petrolCostSavings,
+      co2ReducedKg: plan.savings?.co2ReducedKg,
     );
   }
 

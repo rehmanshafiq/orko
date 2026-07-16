@@ -549,21 +549,6 @@ class _TripPlannerMobileViewState extends State<TripPlannerMobileView> {
                         station: state.currentPlan!.stops[index],
                       ),
                     ),
-                    12.verticalSpace,
-                    // Opens Google Maps with the whole trip as one journey —
-                    // every suggested stop mapped as a waypoint on the route.
-                    PrimaryButtonWidget(
-                      text: 'Start Journey',
-                      onPress: () => _onStartJourney(context, state),
-                      gradientColors: const [
-                        AppColors.primaryDarkColor,
-                        AppColors.primaryDarkButtonColor,
-                      ],
-                      textColor: AppColors.whiteColor,
-                      fontWeight: FontWeights.weight700,
-                      fontSize: FontSizes.font14Sp,
-                      cornerRadius: 24.r,
-                    ),
                     // Suggested Stops + Trip Summary only make sense when the
                     // plan actually has charging stops along the route.
                     if (hasStops) ...[
@@ -640,6 +625,21 @@ class _TripPlannerMobileViewState extends State<TripPlannerMobileView> {
                                   : const TripPlannerSaveTripRequested(),
                             );
                       },
+                      gradientColors: const [
+                        AppColors.primaryDarkColor,
+                        AppColors.primaryDarkButtonColor,
+                      ],
+                      textColor: AppColors.whiteColor,
+                      fontWeight: FontWeights.weight700,
+                      fontSize: FontSizes.font14Sp,
+                      cornerRadius: 24.r,
+                    ),
+                    12.verticalSpace,
+                    // Opens Google Maps with the whole trip as one journey —
+                    // every suggested stop mapped as a waypoint on the route.
+                    PrimaryButtonWidget(
+                      text: 'Start Journey',
+                      onPress: () => _onStartJourney(context, state),
                       gradientColors: const [
                         AppColors.primaryDarkColor,
                         AppColors.primaryDarkButtonColor,

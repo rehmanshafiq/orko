@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:orko_hubco/features/trip/domain/entities/trip_savings_entity.dart';
 import 'package:orko_hubco/features/trip/domain/entities/trip_stop_entity.dart';
 import 'package:orko_hubco/features/vehicle/domain/entities/user_vehicle_entity.dart';
 
@@ -22,6 +23,7 @@ class TripPlanEntity extends Equatable {
     required this.stops,
     this.vehicle,
     this.batteryCapacityKwh,
+    this.savings,
     this.message,
   });
 
@@ -38,6 +40,9 @@ class TripPlanEntity extends Equatable {
   final String currency;
   final int numberOfStops;
   final List<TripStopEntity> stops;
+
+  /// Fuel-cost and CO₂ savings for the trip; null when the API omits it.
+  final TripSavingsEntity? savings;
 
   /// Warning text when [feasible] is `false`.
   final String? message;
@@ -57,6 +62,7 @@ class TripPlanEntity extends Equatable {
         currency,
         numberOfStops,
         stops,
+        savings,
         message,
       ];
 }
