@@ -129,7 +129,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         child: AppText(
                           'Forgot Password?',
-                          color: ui.brandPrimary,
+                          color: ui.textMuted,
                           fontSize: FontSizes.font12Sp,
                           fontWeight: FontWeights.weight500,
                         ),
@@ -203,22 +203,22 @@ class _LoginScreenState extends State<LoginScreen> {
           appImagePath: ui.isLight ? AppImages.hubcoLogoLight : AppImages.hubcoLogo,
           width: logoWidth,
         ),
-        20.verticalSpace,
-        AppText(
-          'Welcome Back',
-          textAlign: TextAlign.center,
-          color: ui.textPrimary,
-          fontSize: FontSizes.font28Sp,
-          fontWeight: FontWeights.weight600,
-        ),
-        2.verticalSpace,
-        AppText(
-          'Sign in to continue charging.',
-          textAlign: TextAlign.center,
-          color: ui.textMuted,
-          fontSize: FontSizes.font12Sp,
-          fontWeight: FontWeights.weight400,
-        ),
+        // 20.verticalSpace,
+        // AppText(
+        //   'Welcome Back',
+        //   textAlign: TextAlign.center,
+        //   color: ui.textPrimary,
+        //   fontSize: FontSizes.font28Sp,
+        //   fontWeight: FontWeights.weight600,
+        // ),
+        // 2.verticalSpace,
+        // AppText(
+        //   'Sign in to continue charging.',
+        //   textAlign: TextAlign.center,
+        //   color: ui.textMuted,
+        //   fontSize: FontSizes.font12Sp,
+        //   fontWeight: FontWeights.weight400,
+        // ),
       ],
     );
   }

@@ -41,6 +41,7 @@ class ChargingStatusState extends Equatable {
     this.error,
     this.sliderValue = 0.80,
     this.distanceKm = 0,
+    this.now,
   });
 
   /// Backwards-compatible alias kept for callers that constructed the old
@@ -60,6 +61,12 @@ class ChargingStatusState extends Equatable {
 
   /// Distance from nearby-stations API, in kilometers.
   final double distanceKm;
+
+  /// Wall-clock "now" advanced once a second by the cubit's ticker while a
+  /// booking countdown is showing. Keeping it in state (rather than calling
+  /// DateTime.now() in getters) makes the countdown rebuild exactly once per
+  /// tick and keeps the state pure/testable.
+  final DateTime? now;
 
   bool get isLoading => status == ChargingStatusViewStatus.loading;
   bool get isFailure => status == ChargingStatusViewStatus.failure;
@@ -101,6 +108,25 @@ class ChargingStatusState extends Equatable {
     if (left == null || left.isEmpty) return 'Estimating time to full…';
     return 'Est. Full Charge in $left';
   }
+
+  /// Whether the live session carries a booked slot to count down against.
+  bool get hasBookingCountdown =>
+      hasActiveSession && session?.bookingEndDateTime != null;
+
+  /// Live `HH:MM:SS` countdown of the booked slot (ticks via [now]). Empty
+  /// when no booking is attached.
+  String get bookingTimeLeftLabel {
+    if (!hasBookingCountdown) return '';
+    final remaining =
+        session!.bookingTimeRemaining(now ?? DateTime.now());
+    if (remaining == null) return '';
+    return _formatDuration(remaining);
+  }
+
+  /// True once the booked slot has fully elapsed.
+  bool get isBookingSlotOver =>
+      hasBookingCountdown &&
+      session!.bookingTimeRemaining(now ?? DateTime.now()) == Duration.zero;
 
   String get stationInfoText => 'Station Info - $stationHeadline';
 
@@ -148,6 +174,15 @@ class ChargingStatusState extends Equatable {
         icon: Icons.payments_outlined,
       ),
     ];
+  }
+
+  /// [Duration] → `HH:MM:SS` (e.g. 2h 45m 13s → `02:45:13`).
+  static String _formatDuration(Duration duration) {
+    String two(int n) => n.toString().padLeft(2, '0');
+    final hours = duration.inHours;
+    final minutes = duration.inMinutes % 60;
+    final seconds = duration.inSeconds % 60;
+    return '${two(hours)}:${two(minutes)}:${two(seconds)}';
   }
 
   /// Drops a trailing `.0` so `1.7` stays but `60.0` shows as `60`.
@@ -203,6 +238,7 @@ class ChargingStatusState extends Equatable {
     bool clearError = false,
     double? sliderValue,
     double? distanceKm,
+    DateTime? now,
   }) {
     return ChargingStatusState(
       status: status ?? this.status,
@@ -210,6 +246,7 @@ class ChargingStatusState extends Equatable {
       error: clearError ? null : (error ?? this.error),
       sliderValue: sliderValue ?? this.sliderValue,
       distanceKm: distanceKm ?? this.distanceKm,
+      now: now ?? this.now,
     );
   }
 
@@ -220,5 +257,6 @@ class ChargingStatusState extends Equatable {
         error,
         sliderValue,
         distanceKm,
+        now,
       ];
 }

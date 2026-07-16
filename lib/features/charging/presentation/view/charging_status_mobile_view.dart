@@ -134,6 +134,7 @@ class _ChargingStatusMobileViewState extends State<ChargingStatusMobileView>
                   _ChargingSessionTargetCard(
                     ui: ui,
                     estimatedTimeLabel: state.estimatedTimeLabel,
+                    bookingTimeLeftLabel: state.bookingTimeLeftLabel,
                     sliderValue: state.sliderValue,
                     targetPercentLabel: state.targetPercentLabel,
                     onSliderChanged: cubit.updateProgress,
@@ -179,6 +180,7 @@ class _ChargingSessionTargetCard extends StatelessWidget {
   const _ChargingSessionTargetCard({
     required this.ui,
     required this.estimatedTimeLabel,
+    required this.bookingTimeLeftLabel,
     required this.sliderValue,
     required this.targetPercentLabel,
     required this.onSliderChanged,
@@ -186,6 +188,9 @@ class _ChargingSessionTargetCard extends StatelessWidget {
 
   final AppUiColors ui;
   final String estimatedTimeLabel;
+
+  /// Live `HH:MM:SS` countdown of the booked slot; empty hides the row.
+  final String bookingTimeLeftLabel;
   final double sliderValue;
   final String targetPercentLabel;
   final ValueChanged<double> onSliderChanged;
@@ -215,6 +220,22 @@ class _ChargingSessionTargetCard extends StatelessWidget {
             fontSize: FontSizes.font18Sp,
             fontWeight: FontWeights.weight600,
           ),
+          if (bookingTimeLeftLabel.isNotEmpty) ...[
+            8.verticalSpace,
+            AppText(
+              'Booked Slot Time Left',
+              color: ui.textMuted,
+              fontSize: FontSizes.font13Sp,
+              fontWeight: FontWeights.weight500,
+            ),
+            4.verticalSpace,
+            AppText(
+              bookingTimeLeftLabel,
+              color: ui.brandPrimary,
+              fontSize: FontSizes.font18Sp,
+              fontWeight: FontWeights.weight600,
+            ),
+          ],
           8.verticalSpace,
           // AppText(
           //   targetPercentLabel,

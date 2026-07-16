@@ -32,6 +32,9 @@ class LiveSessionEntity extends Equatable {
     this.pricingMode,
     this.currency,
     this.price,
+    this.bookingDate,
+    this.bookingStartTime,
+    this.bookingEndTime,
   });
 
   /// No live session — the empty/idle state.
@@ -93,6 +96,13 @@ class LiveSessionEntity extends Equatable {
   final String? currency;
   final double? price;
 
+  /// The booked slot backing this session, from the nested `booking` object:
+  /// [bookingDate] as `yyyy-MM-dd`, times as `HH:mm:ss`. Null when the
+  /// payload carries no booking.
+  final String? bookingDate;
+  final String? bookingStartTime;
+  final String? bookingEndTime;
+
   /// Best label for the session title, with a sensible fallback.
   String get displayName => (locationName != null && locationName!.trim().isNotEmpty)
       ? locationName!.trim()
@@ -127,6 +137,53 @@ class LiveSessionEntity extends Equatable {
     final amount =
         price == price!.roundToDouble() ? price!.toInt().toString() : '$price';
     return '$unit $amount$mode'.trim();
+  }
+
+  /// Booked slot start as a local [DateTime], or null when the booking (or
+  /// either part of it) is missing/unparseable.
+  DateTime? get bookingStartDateTime =>
+      _combineDateAndTime(bookingDate, bookingStartTime);
+
+  /// Booked slot end as a local [DateTime]. A slot that ends at or before its
+  /// start is treated as crossing midnight and rolls to the next day.
+  DateTime? get bookingEndDateTime {
+    final end = _combineDateAndTime(bookingDate, bookingEndTime);
+    final start = bookingStartDateTime;
+    if (end == null) return null;
+    if (start != null && !end.isAfter(start)) {
+      return end.add(const Duration(days: 1));
+    }
+    return end;
+  }
+
+  /// Full booked slot length (end − start), or null when either end is
+  /// unavailable.
+  Duration? get bookingSlotDuration {
+    final start = bookingStartDateTime;
+    final end = bookingEndDateTime;
+    if (start == null || end == null) return null;
+    return end.difference(start);
+  }
+
+  /// Time left in the booked slot as of [now]: counts down to the slot end,
+  /// never exceeds the full slot length (before the slot starts it reports
+  /// the whole slot), and bottoms out at zero once the slot is over. Null
+  /// when no booking is attached.
+  Duration? bookingTimeRemaining(DateTime now) {
+    final end = bookingEndDateTime;
+    if (end == null) return null;
+    var remaining = end.difference(now);
+    final slot = bookingSlotDuration;
+    if (slot != null && remaining > slot) remaining = slot;
+    return remaining.isNegative ? Duration.zero : remaining;
+  }
+
+  /// `yyyy-MM-dd` + `HH:mm:ss` → local [DateTime], null when unparseable.
+  static DateTime? _combineDateAndTime(String? date, String? time) {
+    final d = date?.trim();
+    final t = time?.trim();
+    if (d == null || d.isEmpty || t == null || t.isEmpty) return null;
+    return DateTime.tryParse('$d $t');
   }
 
   /// `HH:mm:ss` (24h) → `h:mm a` (e.g. `00:00:00` → `12:00 AM`), leaving
@@ -167,5 +224,8 @@ class LiveSessionEntity extends Equatable {
         pricingMode,
         currency,
         price,
+        bookingDate,
+        bookingStartTime,
+        bookingEndTime,
       ];
 }

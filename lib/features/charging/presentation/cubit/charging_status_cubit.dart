@@ -28,6 +28,7 @@ class ChargingStatusCubit extends Cubit<ChargingStatusState> {
   static const Duration _pollInterval = Duration(seconds: 10);
 
   Timer? _timer;
+  Timer? _countdownTimer;
   bool _inFlight = false;
 
   /// Kicks off the first load (with a spinner) and starts the poll loop.
@@ -36,6 +37,7 @@ class ChargingStatusCubit extends Cubit<ChargingStatusState> {
     if (_timer != null) return;
     _fetch(showSpinner: true);
     _startTimer();
+    _startCountdownTimer();
   }
 
   void _startTimer() {
@@ -43,19 +45,35 @@ class ChargingStatusCubit extends Cubit<ChargingStatusState> {
     _timer = Timer.periodic(_pollInterval, (_) => _fetch());
   }
 
+  /// Drives the booked-slot countdown: advances `state.now` once a second so
+  /// the remaining-slot label ticks live. Emits only while a booking countdown
+  /// is actually showing, so sessions without a booking rebuild nothing.
+  void _startCountdownTimer() {
+    _countdownTimer?.cancel();
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (isClosed) return;
+      if (!state.hasBookingCountdown) return;
+      emit(state.copyWith(now: DateTime.now()));
+    });
+  }
+
   /// Pauses polling while the screen is not visible (e.g. app backgrounded),
   /// to avoid draining battery/data on a screen the user can't see.
   void pause() {
     _timer?.cancel();
     _timer = null;
+    _countdownTimer?.cancel();
+    _countdownTimer = null;
   }
 
   /// Resumes polling after a [pause]: refresh once immediately, then resume the
-  /// interval. No-op if already running.
+  /// interval. No-op if already running. The countdown recomputes from the
+  /// wall clock on each tick, so time spent paused is reflected instantly.
   void resume() {
     if (_timer != null) return;
     _fetch();
     _startTimer();
+    _startCountdownTimer();
   }
 
   /// Manual retry from the failure state, with a spinner.
@@ -104,6 +122,9 @@ class ChargingStatusCubit extends Cubit<ChargingStatusState> {
           status: ChargingStatusViewStatus.success,
           session: session,
           clearError: true,
+          // Seed the countdown clock so the very first frame shows the right
+          // remaining time instead of waiting for the first 1s tick.
+          now: DateTime.now(),
         )),
       );
     } finally {
@@ -119,6 +140,8 @@ class ChargingStatusCubit extends Cubit<ChargingStatusState> {
   Future<void> close() {
     _timer?.cancel();
     _timer = null;
+    _countdownTimer?.cancel();
+    _countdownTimer = null;
     return super.close();
   }
 }

@@ -28,13 +28,17 @@ class LiveSessionModel extends LiveSessionEntity {
     super.pricingMode,
     super.currency,
     super.price,
+    super.bookingDate,
+    super.bookingStartTime,
+    super.bookingEndTime,
   });
 
   factory LiveSessionModel.fromJson(Map<String, dynamic> json) {
-    // Both `operating_hours` and `pricing` are nested objects that may be
-    // absent or null in leaner payloads — read them defensively.
+    // `operating_hours`, `pricing`, and `booking` are nested objects that may
+    // be absent or null in leaner payloads — read them defensively.
     final operatingHours = _asMapOrNull(json['operating_hours']);
     final pricing = _asMapOrNull(json['pricing']);
+    final booking = _asMapOrNull(json['booking']);
 
     return LiveSessionModel(
       active: json['active'] == true,
@@ -61,6 +65,9 @@ class LiveSessionModel extends LiveSessionEntity {
       pricingMode: _asStringOrNull(pricing?['pricing_mode']),
       currency: _asStringOrNull(pricing?['currency']),
       price: _asDoubleOrNull(pricing?['price']),
+      bookingDate: _asStringOrNull(booking?['booking_date']),
+      bookingStartTime: _asStringOrNull(booking?['start_time']),
+      bookingEndTime: _asStringOrNull(booking?['end_time']),
     );
   }
 
