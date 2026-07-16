@@ -56,7 +56,7 @@ class TripSummaryCardWidget extends StatelessWidget {
                 Expanded(
                   child: TripSummaryMetricWidget(
                     icon: Icons.schedule_rounded,
-                    label: 'Total Time:',
+                    label: 'Total Est. Time:',
                     value:
                         plan == null ? '—' : _formatTotalTime(plan!.duration),
                   ),
@@ -65,7 +65,7 @@ class TripSummaryCardWidget extends StatelessWidget {
                 Expanded(
                   child: TripSummaryMetricWidget(
                     icon: Icons.payments_outlined,
-                    label: 'Total Charging Cost:',
+                    label: 'Total Est. Cost:',
                     value:
                         plan == null ? '—' : _formatChargingCost(plan!.costPkr),
                   ),

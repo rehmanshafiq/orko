@@ -19,6 +19,7 @@ class TripChargingStopCardWidget extends StatelessWidget {
     required this.onToggleExpanded,
     required this.onViewDetails,
     required this.onPreBook,
+    required this.onNavigate,
     required this.formatPkr,
     this.booked = false,
     super.key,
@@ -31,6 +32,9 @@ class TripChargingStopCardWidget extends StatelessWidget {
   final VoidCallback onToggleExpanded;
   final VoidCallback onViewDetails;
   final VoidCallback onPreBook;
+
+  /// Opens the user's preferred maps app with directions to this station.
+  final VoidCallback onNavigate;
   final String Function(int) formatPkr;
 
   /// True when the user already booked this station in this session — the
@@ -229,6 +233,21 @@ class TripChargingStopCardWidget extends StatelessWidget {
                   ),
                 ),
               ],
+            ),
+            8.verticalSpace,
+            // Opens the user's preferred maps app with directions to this stop.
+            // Stays enabled for booked stops — you still need to get there.
+            PrimaryButtonWidget(
+              text: 'Navigate',
+              onPress: onNavigate,
+              buttonWidth: double.infinity,
+              buttonHeight: 38.h,
+              cornerRadius: 8.r,
+              buttonColor: ui.cardBackground,
+              strokeColor: ui.inputBorder,
+              textColor: ui.textPrimary,
+              fontSize: FontSizes.font10Sp,
+              fontWeight: FontWeights.weight600,
             ),
           ],
         ],

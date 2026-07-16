@@ -17,6 +17,7 @@ class TripChargingStopsSectionWidget extends StatelessWidget {
     required this.onToggleChargingStop,
     required this.onViewDetails,
     required this.onPreBook,
+    required this.onNavigate,
     required this.formatPkr,
     this.bookedStationIds = const <int>{},
     super.key,
@@ -29,6 +30,9 @@ class TripChargingStopsSectionWidget extends StatelessWidget {
   final ValueChanged<int> onToggleChargingStop;
   final ValueChanged<int> onViewDetails;
   final ValueChanged<int> onPreBook;
+
+  /// Opens the user's preferred maps app with directions to the stop at index.
+  final ValueChanged<int> onNavigate;
   final String Function(int) formatPkr;
 
   /// Station ids booked this session — their stop cards show "Booked".
@@ -68,6 +72,7 @@ class TripChargingStopsSectionWidget extends StatelessWidget {
                         onToggleExpanded: () => onToggleChargingStop(i),
                         onViewDetails: () => onViewDetails(i),
                         onPreBook: () => onPreBook(i),
+                        onNavigate: () => onNavigate(i),
                         formatPkr: formatPkr,
                         booked: bookedStationIds.contains(plan!.stops[i].id),
                       ),

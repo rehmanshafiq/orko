@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
+import 'package:orko_hubco/core/utils/app_functions.dart';
 import 'package:orko_hubco/core/utils/app_storage/app_storage.dart';
 import 'package:orko_hubco/core/utils/app_ui.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
@@ -124,6 +125,61 @@ class _TripPlannerMobileViewState extends State<TripPlannerMobileView> {
     }
 
     return null;
+  }
+
+  /// Launches Google Maps with the planned journey as a single route:
+  /// start → every suggested charging stop (in sequence, by lat/lng) →
+  /// destination, so the user can start navigating the whole trip.
+  Future<void> _onStartJourney(
+    BuildContext context,
+    TripPlannerState state,
+  ) async {
+    final plan = state.currentPlan;
+    if (plan == null) return;
+    try {
+      await AppFunctions.openGoogleMapsJourney(
+        originLatitude: plan.start.latitude,
+        originLongitude: plan.start.longitude,
+        destinationLatitude: plan.end.latitude,
+        destinationLongitude: plan.end.longitude,
+        stops: plan.stops
+            .map((s) => (latitude: s.latitude, longitude: s.longitude))
+            .toList(),
+      );
+    } catch (_) {
+      if (context.mounted) {
+        _showValidationError(
+          context,
+          'Could not open Google Maps. Please make sure it is installed.',
+        );
+      }
+    }
+  }
+
+  /// Opens the user's preferred maps app with directions to the suggested
+  /// charging stop at [index] (by the station's lat/lng).
+  Future<void> _onNavigateToStop(
+    BuildContext context,
+    TripPlannerState state,
+    int index,
+  ) async {
+    final stops = state.currentPlan?.stops;
+    if (stops == null || index >= stops.length) return;
+    final station = stops[index];
+    try {
+      await AppFunctions.openPreferredMapsDirections(
+        latitude: station.latitude,
+        longitude: station.longitude,
+        label: station.name,
+      );
+    } catch (_) {
+      if (context.mounted) {
+        _showValidationError(
+          context,
+          'Could not open a maps app for directions.',
+        );
+      }
+    }
   }
 
   /// Surfaces a validation message as a floating snackbar.
@@ -493,6 +549,21 @@ class _TripPlannerMobileViewState extends State<TripPlannerMobileView> {
                         station: state.currentPlan!.stops[index],
                       ),
                     ),
+                    12.verticalSpace,
+                    // Opens Google Maps with the whole trip as one journey —
+                    // every suggested stop mapped as a waypoint on the route.
+                    PrimaryButtonWidget(
+                      text: 'Start Journey',
+                      onPress: () => _onStartJourney(context, state),
+                      gradientColors: const [
+                        AppColors.primaryDarkColor,
+                        AppColors.primaryDarkButtonColor,
+                      ],
+                      textColor: AppColors.whiteColor,
+                      fontWeight: FontWeights.weight700,
+                      fontSize: FontSizes.font14Sp,
+                      cornerRadius: 24.r,
+                    ),
                     // Suggested Stops + Trip Summary only make sense when the
                     // plan actually has charging stops along the route.
                     if (hasStops) ...[
@@ -522,6 +593,8 @@ class _TripPlannerMobileViewState extends State<TripPlannerMobileView> {
                             context,
                             station: state.currentPlan!.stops[index],
                           ),
+                          onNavigate: (index) =>
+                              _onNavigateToStop(context, state, index),
                           formatPkr: bloc.formatPkr,
                         ),
                       ),

@@ -16,6 +16,7 @@ class TripChargingStopsTimelineWidget extends StatelessWidget {
     required this.onToggleChargingStop,
     required this.onViewDetails,
     required this.onPreBook,
+    required this.onNavigate,
     required this.formatPkr,
     super.key,
   });
@@ -28,6 +29,9 @@ class TripChargingStopsTimelineWidget extends StatelessWidget {
   final ValueChanged<int> onToggleChargingStop;
   final ValueChanged<int> onViewDetails;
   final VoidCallback onPreBook;
+
+  /// Opens the user's preferred maps app with directions to the stop at index.
+  final ValueChanged<int> onNavigate;
   final String Function(int) formatPkr;
 
   @override
@@ -168,6 +172,7 @@ class TripChargingStopsTimelineWidget extends StatelessWidget {
                     onToggleExpanded: () => onToggleChargingStop(i),
                     onViewDetails: () => onViewDetails(i),
                     onPreBook: onPreBook,
+                    onNavigate: () => onNavigate(i),
                     formatPkr: formatPkr,
                   ),
                 ),
