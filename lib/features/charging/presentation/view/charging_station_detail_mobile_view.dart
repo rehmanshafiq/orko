@@ -136,7 +136,9 @@ class ChargingStationDetailMobileView extends StatelessWidget {
                             StretchMode.zoomBackground,
                             StretchMode.blurBackground,
                           ],
-                          background: const ChargingStationBannerWidget(),
+                          background: ChargingStationBannerWidget(
+                            bannerImage: state.bannerImage,
+                          ),
                         ),
                       ),
                       if (state.isLoading && !state.isSuccess)
@@ -277,6 +279,7 @@ class ChargingStationDetailMobileView extends StatelessWidget {
                   latitude: state.latitude ?? hub.latitude,
                   longitude: state.longitude ?? hub.longitude,
                   isEnabled: state.isSuccess,
+                  isClosed: state.isClosed,
                   chargePointId: state.chargePointId,
                 ),
               ],

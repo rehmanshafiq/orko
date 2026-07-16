@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/utils/app_functions.dart';
@@ -17,6 +18,7 @@ class ChargingStationBottomActionsWidget extends StatelessWidget {
     required this.latitude,
     required this.longitude,
     this.isEnabled = true,
+    this.isClosed = false,
     this.chargePointId,
   });
 
@@ -24,6 +26,10 @@ class ChargingStationBottomActionsWidget extends StatelessWidget {
   final double latitude;
   final double longitude;
   final bool isEnabled;
+
+  /// True when the station is closed (`is_closed` API key) — tapping Book Slot
+  /// shows a "Coming soon" toast instead of proceeding to booking.
+  final bool isClosed;
 
   /// The station's `charge_point_id`, used to verify vehicle compatibility
   /// before navigating to booking.
@@ -103,6 +109,14 @@ class ChargingStationBottomActionsWidget extends StatelessWidget {
   /// Authenticated users go through the compatibility gate, which only proceeds
   /// to booking when their vehicle is compatible with this charger.
   void _onBookSlot(BuildContext context) {
+    if (isClosed) {
+      Fluttertoast.showToast(
+        msg: 'Coming soon',
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+      );
+      return;
+    }
     if (AppStorage.isGuest) {
       AuthRequiredDialog.show(context);
       return;

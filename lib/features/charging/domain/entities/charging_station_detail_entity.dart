@@ -19,11 +19,20 @@ class ChargingStationDetailEntity extends Equatable {
     required this.totalReviews,
     required this.reviews,
     this.addressGuide,
+    this.isClosed = false,
+    this.bannerImage,
   });
 
   final String locationId;
   final String name;
   final bool status;
+
+  /// True when the station is closed — booking is disabled (`is_closed` key).
+  final bool isClosed;
+
+  /// Station banner image URL, null when the backend omits it
+  /// (`banner_image` key).
+  final String? bannerImage;
   final String address;
   final String? addressGuide;
   final String contactNumber;
@@ -61,6 +70,8 @@ class ChargingStationDetailEntity extends Equatable {
         locationId,
         name,
         status,
+        isClosed,
+        bannerImage,
         address,
         addressGuide,
         contactNumber,

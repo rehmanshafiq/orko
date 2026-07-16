@@ -29,6 +29,8 @@ class ChargingStationDetailState extends Equatable {
     this.latitude,
     this.longitude,
     this.chargePointId,
+    this.isClosed = false,
+    this.bannerImage,
   });
 
   final ChargingDetailStatus status;
@@ -73,6 +75,14 @@ class ChargingStationDetailState extends Equatable {
   /// compatibility check before booking. Null when the API omits it.
   final String? chargePointId;
 
+  /// True when the station is closed (`is_closed` API key) — booking shows a
+  /// "Coming soon" toast instead of proceeding.
+  final bool isClosed;
+
+  /// Station banner image URL (`banner_image` API key). Null when the backend
+  /// omits it, in which case the bundled asset is shown.
+  final String? bannerImage;
+
   bool get isLoading => status == ChargingDetailStatus.loading;
   bool get isFailure => status == ChargingDetailStatus.failure;
   bool get isSuccess => status == ChargingDetailStatus.success;
@@ -100,6 +110,8 @@ class ChargingStationDetailState extends Equatable {
     double? latitude,
     double? longitude,
     String? chargePointId,
+    bool? isClosed,
+    String? bannerImage,
   }) {
     return ChargingStationDetailState(
       status: status ?? this.status,
@@ -124,6 +136,8 @@ class ChargingStationDetailState extends Equatable {
       latitude: latitude ?? this.latitude,
       longitude: longitude ?? this.longitude,
       chargePointId: chargePointId ?? this.chargePointId,
+      isClosed: isClosed ?? this.isClosed,
+      bannerImage: bannerImage ?? this.bannerImage,
     );
   }
 
@@ -151,5 +165,7 @@ class ChargingStationDetailState extends Equatable {
         latitude,
         longitude,
         chargePointId,
+        isClosed,
+        bannerImage,
       ];
 }

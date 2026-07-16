@@ -21,6 +21,8 @@ class ChargingStationDetailModel extends ChargingStationDetailEntity {
     required super.totalReviews,
     required super.reviews,
     super.addressGuide,
+    super.isClosed,
+    super.bannerImage,
   });
 
   factory ChargingStationDetailModel.fromJson(Map<String, dynamic> json) {
@@ -31,6 +33,8 @@ class ChargingStationDetailModel extends ChargingStationDetailEntity {
       locationId: (json['location_id'] ?? '').toString(),
       name: (json['name'] ?? '').toString(),
       status: json['status'] == true,
+      isClosed: json['is_closed'] == true,
+      bannerImage: _asNullableUrl(json['banner_image']),
       address: (json['address'] ?? '').toString(),
       addressGuide: json['address_guide']?.toString(),
       contactNumber: (json['contact_number'] ?? '').toString(),
@@ -135,6 +139,13 @@ class ChargingStationDetailModel extends ChargingStationDetailEntity {
   }
 
   // ── Safe coercion helpers ───────────────────────────────────────────────
+
+  /// Null when the value is absent or blank, so callers can fall back to the
+  /// bundled asset.
+  static String? _asNullableUrl(dynamic value) {
+    final url = value?.toString().trim() ?? '';
+    return url.isEmpty ? null : url;
+  }
 
   static Map<String, dynamic> _asMap(dynamic value) =>
       value is Map ? Map<String, dynamic>.from(value) : <String, dynamic>{};

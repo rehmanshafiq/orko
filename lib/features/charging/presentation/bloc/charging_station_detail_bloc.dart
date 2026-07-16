@@ -84,6 +84,8 @@ class ChargingStationDetailBloc
       longitude: detail.longitude,
       locationId: locationId,
       chargePointId: detail.primaryChargePointId,
+      isClosed: detail.isClosed,
+      bannerImage: detail.bannerImage,
     ));
 
     // Resolve the favourite state in the background. A failure here must not
