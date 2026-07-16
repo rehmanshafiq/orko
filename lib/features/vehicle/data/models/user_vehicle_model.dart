@@ -14,6 +14,7 @@ class UserVehicleModel extends UserVehicleEntity {
     super.batteryCapacity,
     super.efficiency,
     super.range,
+    super.vehicleTech,
     super.totalCharges,
     super.totalEnergyCharged,
   });
@@ -21,6 +22,7 @@ class UserVehicleModel extends UserVehicleEntity {
   factory UserVehicleModel.fromJson(Map<String, dynamic> json) {
     final rawModelImage = json['model_image']?.toString();
     final rawRegistration = json['registration_no']?.toString();
+    final rawVehicleTech = json['vehicle_tech']?.toString();
     return UserVehicleModel(
       id: _asInt(json['id']),
       makeName: (json['make_name'] ?? '').toString(),
@@ -37,6 +39,9 @@ class UserVehicleModel extends UserVehicleEntity {
       batteryCapacity: _asDoubleOrNull(json['battery_capacity']),
       efficiency: _asDoubleOrNull(json['efficiency']),
       range: _asDoubleOrNull(json['range']),
+      vehicleTech: (rawVehicleTech == null || rawVehicleTech.trim().isEmpty)
+          ? null
+          : rawVehicleTech.trim(),
       totalCharges: _asInt(json['total_charges']),
       totalEnergyCharged: _asDoubleOrNull(json['total_energy_charged']) ?? 0,
     );

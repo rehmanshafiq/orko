@@ -77,11 +77,15 @@ class HistoryBooking {
     required this.durationLabel,
     required this.statusLabel,
     required this.isInProgress,
+    this.isWalkIn = false,
     this.energyKwh,
     this.amount,
   });
 
   final String stationName;
+
+  /// True when the session had no booking — surfaced as a "Walk-in" label.
+  final bool isWalkIn;
 
   /// Formatted "started at" timestamp, or a placeholder when unavailable.
   final String dateTimeLabel;

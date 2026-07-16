@@ -11,6 +11,7 @@ class ChargeSessionHistoryEntity extends Equatable {
     required this.id,
     required this.locationName,
     required this.status,
+    this.bookingId,
     this.startedAt,
     this.completedAt,
     this.duration,
@@ -22,6 +23,10 @@ class ChargeSessionHistoryEntity extends Equatable {
 
   final int id;
   final String locationName;
+
+  /// `booking_id` of the reservation this session belongs to. Null when the
+  /// user charged without a booking — a walk-in session (see [isWalkIn]).
+  final int? bookingId;
 
   /// Raw status string, e.g. `In-Progress`, `Completed`.
   final String status;
@@ -45,6 +50,9 @@ class ChargeSessionHistoryEntity extends Equatable {
   bool get isInProgress => _normalizedStatus == 'inprogress';
   bool get isCompleted => _normalizedStatus == 'completed';
 
+  /// A walk-in session has no associated booking (charged without reserving).
+  bool get isWalkIn => bookingId == null;
+
   /// Best label for the row title — the location, with a sensible fallback.
   String get displayName =>
       locationName.trim().isNotEmpty ? locationName.trim() : 'Charging Session';
@@ -54,6 +62,7 @@ class ChargeSessionHistoryEntity extends Equatable {
         id,
         locationName,
         status,
+        bookingId,
         startedAt,
         completedAt,
         duration,

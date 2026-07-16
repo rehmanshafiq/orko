@@ -15,6 +15,7 @@ class UserVehicleEntity extends Equatable {
     this.batteryCapacity,
     this.efficiency,
     this.range,
+    this.vehicleTech,
     this.totalCharges = 0,
     this.totalEnergyCharged = 0,
   });
@@ -25,6 +26,10 @@ class UserVehicleEntity extends Equatable {
   final String modelName;
   final String year;
   final String connectorType;
+
+  /// `vehicle_tech` — powertrain type, e.g. `BEV`, `PHEV`, `HEV`. Null/empty
+  /// when the API omits it. Use [isPhev] rather than comparing raw strings.
+  final String? vehicleTech;
 
   /// `registration_no` — vehicle registration/plate number, when available.
   final String? registrationNo;
@@ -44,6 +49,10 @@ class UserVehicleEntity extends Equatable {
     return joined.isEmpty ? 'Vehicle #$id' : joined;
   }
 
+  /// True when this is a Plug-in Hybrid (PHEV). Case/whitespace-insensitive so a
+  /// value like `" phev "` still matches.
+  bool get isPhev => (vehicleTech ?? '').trim().toUpperCase() == 'PHEV';
+
   @override
   List<Object?> get props => [
         id,
@@ -56,6 +65,7 @@ class UserVehicleEntity extends Equatable {
         batteryCapacity,
         efficiency,
         range,
+        vehicleTech,
         totalCharges,
         totalEnergyCharged,
       ];

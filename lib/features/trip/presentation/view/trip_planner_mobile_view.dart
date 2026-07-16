@@ -21,6 +21,7 @@ import 'package:orko_hubco/features/trip/presentation/widgets/trip_ev_details_ca
 import 'package:orko_hubco/features/trip/presentation/widgets/trip_header_widget.dart';
 import 'package:orko_hubco/features/trip/presentation/widgets/place_search_sheet.dart';
 import 'package:orko_hubco/features/trip/presentation/widgets/trip_location_field_widget.dart';
+import 'package:orko_hubco/features/trip/presentation/widgets/phev_notice_dialog.dart';
 import 'package:orko_hubco/features/trip/presentation/widgets/trip_map_card_widget.dart';
 import 'package:orko_hubco/features/trip/presentation/widgets/trip_section_title_widget.dart';
 import 'package:orko_hubco/features/trip/presentation/widgets/trip_summary_card_widget.dart';
@@ -64,11 +65,15 @@ class _TripPlannerMobileViewState extends State<TripPlannerMobileView> {
   }
 
   /// Runs guest + form validation, then dispatches the plan-trip request.
-  void _onPlanTrip(
+  ///
+  /// PHEV (Plug-in Hybrid) vehicles first get an informational popup — shown on
+  /// every Plan Trip tap — because the plan only accounts for electric range;
+  /// planning proceeds only if the user chooses to continue.
+  Future<void> _onPlanTrip(
     BuildContext context,
     TripPlannerBloc bloc,
     TripPlannerState state,
-  ) {
+  ) async {
     // Already in flight — ignore repeat taps.
     if (state.planLoading) return;
 
@@ -86,6 +91,12 @@ class _TripPlannerMobileViewState extends State<TripPlannerMobileView> {
     if (error != null) {
       _showValidationError(context, error);
       return;
+    }
+
+    // PHEV notice — validation above guarantees a selected vehicle here.
+    if (state.selectedVehicle?.isPhev ?? false) {
+      final proceed = await PhevNoticeDialog.show(context);
+      if (!proceed || !context.mounted) return;
     }
 
     FocusScope.of(context).unfocus();

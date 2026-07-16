@@ -102,6 +102,10 @@ class HistoryBookingCard extends StatelessWidget {
                     ),
                   ],
                 ),
+                if (booking.isWalkIn) ...[
+                  8.verticalSpace,
+                  _WalkInBadge(ui: ui),
+                ],
               ],
             ),
           ),
@@ -131,6 +135,31 @@ class HistoryBookingCard extends StatelessWidget {
   String _trim(double value) {
     if (value == value.roundToDouble()) return value.toInt().toString();
     return value.toString();
+  }
+}
+
+/// Small pill marking a session that had no booking (charged as a walk-in).
+class _WalkInBadge extends StatelessWidget {
+  const _WalkInBadge({required this.ui});
+
+  final AppUiColors ui;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
+      decoration: BoxDecoration(
+        color: ui.brandSecondary.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(20.r),
+        border: Border.all(width: 1.w, color: ui.brandSecondary),
+      ),
+      child: AppText(
+        'Walk-in',
+        color: ui.brandSecondary,
+        fontSize: FontSizes.font10Sp,
+        fontWeight: FontWeights.weight600,
+      ),
+    );
   }
 }
 

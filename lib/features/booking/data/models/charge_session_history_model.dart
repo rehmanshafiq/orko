@@ -9,6 +9,7 @@ class ChargeSessionHistoryModel extends ChargeSessionHistoryEntity {
     required super.id,
     required super.locationName,
     required super.status,
+    super.bookingId,
     super.startedAt,
     super.completedAt,
     super.duration,
@@ -23,6 +24,7 @@ class ChargeSessionHistoryModel extends ChargeSessionHistoryEntity {
       id: _asInt(json['id']),
       locationName: (json['location_name'] ?? '').toString(),
       status: (json['status'] ?? '').toString(),
+      bookingId: _asIntOrNull(json['booking_id']),
       startedAt: _asStringOrNull(json['started_at']),
       completedAt: _asStringOrNull(json['completed_at']),
       duration: _asStringOrNull(json['duration']),
@@ -37,6 +39,14 @@ class ChargeSessionHistoryModel extends ChargeSessionHistoryEntity {
     if (value is num) return value.toInt();
     if (value is String) return int.tryParse(value) ?? 0;
     return 0;
+  }
+
+  /// Null when the key is absent/null/empty — the signal for a walk-in session.
+  static int? _asIntOrNull(dynamic value) {
+    if (value == null) return null;
+    if (value is num) return value.toInt();
+    if (value is String) return int.tryParse(value.trim());
+    return null;
   }
 
   static String? _asStringOrNull(dynamic value) {

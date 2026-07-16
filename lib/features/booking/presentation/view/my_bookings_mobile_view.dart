@@ -824,6 +824,7 @@ class _HistoryTab extends StatelessWidget {
           : (s.isInProgress ? 'In progress' : '—'),
       statusLabel: s.status.isNotEmpty ? s.status : 'Unknown',
       isInProgress: s.isInProgress,
+      isWalkIn: s.isWalkIn,
       energyKwh: s.energyConsumed,
       amount: s.totalCost,
     );
