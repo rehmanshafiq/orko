@@ -258,11 +258,9 @@ class _PaymentButtons extends StatelessWidget {
             onPress: () => _onPayAtStation(context),
             buttonHeight: 42.h,
             cornerRadius: 24.r,
-            gradientColors: const [
-              AppColors.primaryDarkColor,
-              AppColors.primaryDarkButtonColor,
-            ],
-            textColor: AppColors.whiteColor,
+            strokeColor: ui.textMuted,
+            buttonColor: AppColors.transparentColor,
+            textColor: ui.textPrimary,
             fontSize: FontSizes.font14Sp,
             fontWeight: FontWeights.weight600,
           ),
@@ -274,7 +272,7 @@ class _PaymentButtons extends StatelessWidget {
             onPress: _onPayInApp,
             buttonHeight: 42.h,
             cornerRadius: 24.r,
-            strokeColor: ui.brandPrimary,
+            strokeColor: ui.textMuted,
             buttonColor: AppColors.transparentColor,
             textColor: ui.textPrimary,
             fontSize: FontSizes.font14Sp,
@@ -485,7 +483,7 @@ class _StatCard extends StatelessWidget {
   }
 }
 
-/// Cost breakdown: energy + tax rows, divider, then the total amount.
+/// Cost breakdown: the session's energy cost.
 class _AmountCard extends StatelessWidget {
   const _AmountCard({required this.ui, required this.detail});
 
@@ -504,28 +502,6 @@ class _AmountCard extends StatelessWidget {
       child: Column(
         children: [
           _row('Energy Cost', detail.energyCost),
-          8.verticalSpace,
-          _row('Tax', detail.taxCost),
-          12.verticalSpace,
-          Divider(height: 1, color: ui.dividerLine),
-          12.verticalSpace,
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              AppText(
-                'Total Amount',
-                color: ui.textPrimary,
-                fontSize: FontSizes.font15Sp,
-                fontWeight: FontWeights.weight700,
-              ),
-              AppText(
-                _formatAmount(detail.totalCost),
-                color: ui.brandPrimary,
-                fontSize: FontSizes.font18Sp,
-                fontWeight: FontWeights.weight700,
-              ),
-            ],
-          ),
         ],
       ),
     );
@@ -537,7 +513,7 @@ class _AmountCard extends StatelessWidget {
       children: [
         AppText(
           label,
-          color: ui.textSecondary,
+          color: ui.textPrimary,
           fontSize: FontSizes.font13Sp,
           fontWeight: FontWeights.weight500,
         ),
