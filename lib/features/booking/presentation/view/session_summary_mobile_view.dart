@@ -238,8 +238,11 @@ class _SummaryBody extends StatelessWidget {
   }
 }
 
+/// How the user wants to settle at the station, picked from the bottom sheet.
+enum _StationPaymentMethod { cash, credit }
+
 /// Payment choice for the finished session: in-app (not live yet — shows a
-/// "Coming soon" toast) or at the station.
+/// "Coming soon" toast) or at the station (opens a cash/credit picker).
 class _PaymentButtons extends StatelessWidget {
   const _PaymentButtons({required this.ui});
 
@@ -252,7 +255,7 @@ class _PaymentButtons extends StatelessWidget {
         Expanded(
           child: PrimaryButtonWidget(
             text: 'Pay at Station',
-            onPress: _onPayAtStation,
+            onPress: () => _onPayAtStation(context),
             buttonHeight: 42.h,
             cornerRadius: 24.r,
             gradientColors: const [
@@ -291,11 +294,107 @@ class _PaymentButtons extends StatelessWidget {
     );
   }
 
-  void _onPayAtStation() {
+  /// Lets the user pick how they'll settle at the station, then confirms the
+  /// choice with a toast. Dismissing the sheet without picking does nothing.
+  Future<void> _onPayAtStation(BuildContext context) async {
+    final method = await showModalBottomSheet<_StationPaymentMethod>(
+      context: context,
+      backgroundColor: ui.cardBackground,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+      ),
+      builder: (sheetContext) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              12.verticalSpace,
+              Container(
+                width: 40.w,
+                height: 4.h,
+                decoration: BoxDecoration(
+                  color: ui.borderSubtle,
+                  borderRadius: BorderRadius.circular(2.r),
+                ),
+              ),
+              12.verticalSpace,
+              AppText(
+                'Pay at Station',
+                color: ui.textPrimary,
+                fontSize: FontSizes.font16Sp,
+                fontWeight: FontWeights.weight700,
+              ),
+              4.verticalSpace,
+              AppText(
+                'How would you like to pay?',
+                color: ui.textSecondary,
+                fontSize: FontSizes.font13Sp,
+                fontWeight: FontWeights.weight500,
+              ),
+              8.verticalSpace,
+              _PaymentMethodTile(
+                ui: ui,
+                icon: Icons.payments_outlined,
+                label: 'Cash',
+                onTap: () => Navigator.of(sheetContext)
+                    .pop(_StationPaymentMethod.cash),
+              ),
+              _PaymentMethodTile(
+                ui: ui,
+                icon: Icons.credit_card_rounded,
+                label: 'Credit',
+                onTap: () => Navigator.of(sheetContext)
+                    .pop(_StationPaymentMethod.credit),
+              ),
+              8.verticalSpace,
+            ],
+          ),
+        );
+      },
+    );
+    if (method == null) return;
+
     Fluttertoast.showToast(
-      msg: 'Please pay at the station counter',
+      msg: method == _StationPaymentMethod.cash
+          ? 'Please pay in cash at the station counter'
+          : 'Please pay by credit card at the station counter',
       toastLength: Toast.LENGTH_SHORT,
       gravity: ToastGravity.BOTTOM,
+    );
+  }
+}
+
+/// One tappable row of the pay-at-station sheet (icon + label).
+class _PaymentMethodTile extends StatelessWidget {
+  const _PaymentMethodTile({
+    required this.ui,
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  final AppUiColors ui;
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      onTap: onTap,
+      leading: Icon(icon, color: ui.brandPrimary, size: 22.sp),
+      title: AppText(
+        label,
+        color: ui.textPrimary,
+        fontSize: FontSizes.font15Sp,
+        fontWeight: FontWeights.weight600,
+      ),
+      trailing: Icon(
+        Icons.chevron_right_rounded,
+        color: ui.textSecondary,
+        size: 22.sp,
+      ),
+      contentPadding: EdgeInsets.symmetric(horizontal: 20.w),
     );
   }
 }
