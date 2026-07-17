@@ -17,22 +17,26 @@ class MetricsGridWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        for (var i = 0; i < metrics.length; i++) ...[
-          if (i > 0) 8.horizontalSpace,
-          Expanded(
-            child: MetricCardWidget(
-              label: metrics[i].label,
-              value: metrics[i].value,
-              unit: metrics[i].unit,
-              icon: metrics[i].icon,
-              ui: ui,
+    // IntrinsicHeight bounds the row's height (it's an unbounded ListView
+    // child) so the stretched cards can lay out and stay equal-height.
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          for (var i = 0; i < metrics.length; i++) ...[
+            if (i > 0) 8.horizontalSpace,
+            Expanded(
+              child: MetricCardWidget(
+                label: metrics[i].label,
+                value: metrics[i].value,
+                unit: metrics[i].unit,
+                icon: metrics[i].icon,
+                ui: ui,
+              ),
             ),
-          ),
+          ],
         ],
-      ],
+      ),
     );
   }
 }

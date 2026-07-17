@@ -32,6 +32,7 @@ class MetricCardWidget extends StatelessWidget {
         border: Border.all(color: ui.borderSubtle),
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
