@@ -135,7 +135,7 @@ class UpcomingBookingCard extends StatelessWidget {
                   ui: ui,
                   label: _statusLabel,
                   outlineColor: booking.isNoShow
-                      ? AppColors.noShowBadgeOutlineColor
+                      ? ui.isLight ? AppColors.slotBusyYellowColor : AppColors.noShowBadgeOutlineColor
                       : null,
                 ),
               ],
