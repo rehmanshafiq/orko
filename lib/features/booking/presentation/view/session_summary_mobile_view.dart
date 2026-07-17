@@ -251,8 +251,8 @@ class _PaymentButtons extends StatelessWidget {
       children: [
         Expanded(
           child: PrimaryButtonWidget(
-            text: 'Pay in App',
-            onPress: _onPayInApp,
+            text: 'Pay at Station',
+            onPress: _onPayAtStation,
             buttonHeight: 42.h,
             cornerRadius: 24.r,
             gradientColors: const [
@@ -267,13 +267,13 @@ class _PaymentButtons extends StatelessWidget {
         12.horizontalSpace,
         Expanded(
           child: PrimaryButtonWidget(
-            text: 'Pay at Station',
-            onPress: _onPayAtStation,
+            text: 'Pay in App',
+            onPress: _onPayInApp,
             buttonHeight: 42.h,
             cornerRadius: 24.r,
             strokeColor: ui.brandPrimary,
             buttonColor: AppColors.transparentColor,
-            textColor: ui.brandPrimary,
+            textColor: ui.textPrimary,
             fontSize: FontSizes.font14Sp,
             fontWeight: FontWeights.weight600,
           ),
