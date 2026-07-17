@@ -5,6 +5,7 @@ import 'package:orko_hubco/core/usecase/usecase.dart';
 import 'package:orko_hubco/core/utils/app_storage/app_storage.dart';
 import 'package:orko_hubco/features/booking/domain/entities/live_session_entity.dart';
 import 'package:orko_hubco/features/booking/domain/usecases/get_live_session_usecase.dart';
+import 'package:orko_hubco/features/booking/presentation/utils/live_session_completion.dart';
 import 'package:orko_hubco/features/charging/presentation/cubit/charging_status_state.dart';
 
 /// Drives the live charging-status screen.
@@ -118,14 +119,21 @@ class ChargingStatusCubit extends Cubit<ChargingStatusState> {
             ));
           }
         },
-        (session) => emit(state.copyWith(
-          status: ChargingStatusViewStatus.success,
-          session: session,
-          clearError: true,
-          // Seed the countdown clock so the very first frame shows the right
-          // remaining time instead of waiting for the first 1s tick.
-          now: DateTime.now(),
-        )),
+        (session) {
+          // Persist the running session's id / detect that a previously-seen
+          // session (this launch or an earlier, killed one) has finished.
+          final completedId = LiveSessionCompletion.register(session);
+          emit(state.copyWith(
+            status: ChargingStatusViewStatus.success,
+            session: session,
+            clearError: true,
+            // Seed the countdown clock so the very first frame shows the right
+            // remaining time instead of waiting for the first 1s tick.
+            now: DateTime.now(),
+            completedSessionId: completedId,
+            clearCompletedSessionId: completedId == null,
+          ));
+        },
       );
     } finally {
       _inFlight = false;
@@ -134,6 +142,15 @@ class ChargingStatusCubit extends Cubit<ChargingStatusState> {
 
   void updateProgress(double value) {
     emit(state.copyWith(sliderValue: value.clamp(0.0, 1.0)));
+  }
+
+  /// Clears the one-shot [ChargingStatusState.completedSessionId] once the
+  /// view has reacted to it. If the summary couldn't be shown (e.g. this tab
+  /// was hidden inside the bottom-nav shell), the next poll re-detects the
+  /// pending id and fires the listener again.
+  void consumeSessionCompletion() {
+    if (isClosed || state.completedSessionId == null) return;
+    emit(state.copyWith(clearCompletedSessionId: true));
   }
 
   @override

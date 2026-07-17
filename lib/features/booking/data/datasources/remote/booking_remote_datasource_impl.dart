@@ -6,6 +6,7 @@ import 'package:orko_hubco/core/network/api_client.dart';
 import 'package:orko_hubco/features/booking/data/datasources/remote/booking_remote_datasource.dart';
 import 'package:orko_hubco/features/booking/data/models/booking_model.dart';
 import 'package:orko_hubco/features/booking/data/models/booking_slot_model.dart';
+import 'package:orko_hubco/features/booking/data/models/charge_session_detail_model.dart';
 import 'package:orko_hubco/features/booking/data/models/charge_session_history_model.dart';
 import 'package:orko_hubco/features/booking/data/models/charger_details_model.dart';
 import 'package:orko_hubco/features/booking/data/models/live_session_model.dart';
@@ -193,6 +194,32 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
       // A well-formed success must carry the `{active: ...}` object; anything
       // else means no session is running.
       return const LiveSessionModel(active: false);
+    });
+  }
+
+  @override
+  Future<ChargeSessionDetailModel> getChargeSessionDetails({
+    required int sessionId,
+  }) async {
+    return _guard('charge-session-details', () async {
+      final url = _endpointUrl(
+        (e) => e.chargeSessionDetails,
+        unavailableMessage: 'Session details are not available right now',
+      );
+      log('[Booking] Charge session details URL: $url (id: $sessionId)');
+
+      final response = await apiClient.get(
+        url,
+        queryParameters: {'id': sessionId},
+      );
+
+      final body = _bodyOf(response, fallback: 'Failed to load session details');
+      if (body is Map && body.isNotEmpty) {
+        return ChargeSessionDetailModel.fromJson(
+          Map<String, dynamic>.from(body),
+        );
+      }
+      throw const ServerException(message: 'Failed to load session details');
     });
   }
 

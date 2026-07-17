@@ -37,4 +37,25 @@ class AppStorage {
   static Future<void> setFcmTokenRegistered(String token) {
     return _storage.write(StorageConstants.fcmTokenRegistered, token);
   }
+
+  /// Id of the charging session last seen active on `live-session/`, or null
+  /// when none is pending. Non-null after the app kills/relaunches mid-session,
+  /// which is what lets the post-session summary appear on the next visit to
+  /// the bookings or charging screens.
+  static int? get activeChargeSessionId {
+    final value = _storage.read(StorageConstants.activeChargeSessionId);
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    if (value is String) return int.tryParse(value);
+    return null;
+  }
+
+  static Future<void> setActiveChargeSessionId(int sessionId) {
+    return _storage.write(StorageConstants.activeChargeSessionId, sessionId);
+  }
+
+  /// Called once the session summary has been shown and dismissed.
+  static Future<void> clearActiveChargeSessionId() {
+    return _storage.remove(StorageConstants.activeChargeSessionId);
+  }
 }

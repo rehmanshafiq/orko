@@ -21,6 +21,7 @@ class MyBookingsState extends Equatable {
     this.liveStatus = MyBookingsStatus.initial,
     this.liveError,
     this.liveSession,
+    this.completedSessionId,
   });
 
   final MyBookingsStatus status;
@@ -44,6 +45,11 @@ class MyBookingsState extends Equatable {
   final MyBookingsStatus liveStatus;
   final String? liveError;
   final LiveSessionEntity? liveSession;
+
+  /// One-shot signal: id of a charging session that just finished (or finished
+  /// while the app was killed) and whose summary should be shown. The view
+  /// consumes it via MyBookingsCubit.consumeSessionCompletion().
+  final int? completedSessionId;
 
   /// Upcoming → Approved sub-tab (`booking_status: approved`).
   List<MyBookingEntity> get upcomingApproved =>
@@ -82,6 +88,8 @@ class MyBookingsState extends Equatable {
     String? liveError,
     bool clearLiveError = false,
     LiveSessionEntity? liveSession,
+    int? completedSessionId,
+    bool clearCompletedSessionId = false,
   }) {
     return MyBookingsState(
       status: status ?? this.status,
@@ -99,6 +107,9 @@ class MyBookingsState extends Equatable {
       liveStatus: liveStatus ?? this.liveStatus,
       liveError: clearLiveError ? null : (liveError ?? this.liveError),
       liveSession: liveSession ?? this.liveSession,
+      completedSessionId: clearCompletedSessionId
+          ? null
+          : (completedSessionId ?? this.completedSessionId),
     );
   }
 
@@ -116,5 +127,6 @@ class MyBookingsState extends Equatable {
         liveStatus,
         liveError,
         liveSession,
+        completedSessionId,
       ];
 }

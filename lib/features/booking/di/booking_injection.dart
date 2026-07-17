@@ -7,6 +7,7 @@ import 'package:orko_hubco/features/booking/domain/usecases/cancel_booking_useca
 import 'package:orko_hubco/features/booking/domain/usecases/create_booking_hgl_usecase.dart';
 import 'package:orko_hubco/features/booking/domain/usecases/create_booking_usecase.dart';
 import 'package:orko_hubco/features/booking/domain/usecases/get_booking_slots_usecase.dart';
+import 'package:orko_hubco/features/booking/domain/usecases/get_charge_session_details_usecase.dart';
 import 'package:orko_hubco/features/booking/domain/usecases/get_charge_session_history_usecase.dart';
 import 'package:orko_hubco/features/booking/domain/usecases/get_charger_details_usecase.dart';
 import 'package:orko_hubco/features/booking/domain/usecases/get_live_session_usecase.dart';
@@ -15,6 +16,7 @@ import 'package:orko_hubco/features/booking/domain/usecases/reschedule_booking_u
 import 'package:orko_hubco/features/booking/domain/usecases/verify_qr_usecase.dart';
 import 'package:orko_hubco/features/booking/presentation/cubit/booking_cubit.dart';
 import 'package:orko_hubco/features/booking/presentation/cubit/my_bookings_cubit.dart';
+import 'package:orko_hubco/features/booking/presentation/cubit/session_summary_cubit.dart';
 
 void initBookingDependencies() {
   // Data source
@@ -34,6 +36,7 @@ void initBookingDependencies() {
   sl.registerLazySingleton(() => CreateBookingHglUseCase(sl()));
   sl.registerLazySingleton(() => GetMyBookingsUseCase(sl()));
   sl.registerLazySingleton(() => GetChargeSessionHistoryUseCase(sl()));
+  sl.registerLazySingleton(() => GetChargeSessionDetailsUseCase(sl()));
   sl.registerLazySingleton(() => GetLiveSessionUseCase(sl()));
   sl.registerLazySingleton(() => CancelBookingUseCase(sl()));
   sl.registerLazySingleton(() => RescheduleBookingUseCase(sl()));
@@ -47,6 +50,15 @@ void initBookingDependencies() {
       getChargerDetailsUseCase: sl(),
       getSlotsUseCase: sl(),
       createBookingUseCase: sl<CreateBookingHglUseCase>(),
+    ),
+  );
+
+  // Post-session summary cubit — one instance per finished session (keyed by
+  // the session id captured from the live-session poll).
+  sl.registerFactoryParam<SessionSummaryCubit, int, void>(
+    (sessionId, _) => SessionSummaryCubit(
+      sessionId: sessionId,
+      getChargeSessionDetailsUseCase: sl(),
     ),
   );
 

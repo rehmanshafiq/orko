@@ -2,6 +2,7 @@ import 'package:orko_hubco/core/error/failures.dart';
 import 'package:orko_hubco/core/usecase/usecase.dart';
 import 'package:orko_hubco/features/booking/domain/entities/booking_entity.dart';
 import 'package:orko_hubco/features/booking/domain/entities/booking_slot_entity.dart';
+import 'package:orko_hubco/features/booking/domain/entities/charge_session_detail_entity.dart';
 import 'package:orko_hubco/features/booking/domain/entities/charge_session_history_entity.dart';
 import 'package:orko_hubco/features/booking/domain/entities/charger_details_entity.dart';
 import 'package:orko_hubco/features/booking/domain/entities/live_session_entity.dart';
@@ -49,6 +50,12 @@ abstract class BookingRepository {
 
   /// `GET /bookings/live-session/` — the user's currently-running session, if any.
   Future<Either<Failure, LiveSessionEntity>> getLiveSession();
+
+  /// `GET /bookings/charge-session-details/?id=<sessionId>` — full details of
+  /// one of the user's sessions, including graph data and CO2 savings.
+  Future<Either<Failure, ChargeSessionDetailEntity>> getChargeSessionDetails({
+    required int sessionId,
+  });
 
   /// `POST /bookings/cancel-booking/` — returns the success message.
   Future<Either<Failure, String>> cancelBooking({required int bookingId});

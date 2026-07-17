@@ -23,4 +23,9 @@ class StorageConstants {
   /// The FCM token most recently registered with the backend (dedupes the
   /// `device-token` upsert so we don't re-POST an unchanged token).
   static const String fcmTokenRegistered = 'fcm_token_registered';
+
+  /// Id of the charging session last seen active on the live-session endpoint.
+  /// Persisted so the post-session summary can still be shown when the session
+  /// ends while the app is killed; cleared once the summary is dismissed.
+  static const String activeChargeSessionId = 'active_charge_session_id';
 }

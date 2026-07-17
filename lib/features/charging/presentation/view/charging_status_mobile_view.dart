@@ -6,6 +6,7 @@ import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/utils/app_ui.dart';
 import 'package:orko_hubco/core/utils/helpers.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
+import 'package:orko_hubco/features/booking/presentation/pages/session_summary_page.dart';
 import 'package:orko_hubco/features/charging/presentation/cubit/charging_status_cubit.dart';
 import 'package:orko_hubco/features/charging/presentation/cubit/charging_status_state.dart';
 import 'package:orko_hubco/features/charging/presentation/widgets/charging_gauge_widget.dart';
@@ -63,6 +64,25 @@ class _ChargingStatusMobileViewState extends State<ChargingStatusMobileView>
     }
   }
 
+  /// Shows the post-session summary once the session we were watching ends,
+  /// then pops this (now stale) screen when it was pushed from My Bookings.
+  ///
+  /// The one-shot flag is consumed first so the next 10s poll re-triggers this
+  /// if the summary couldn't be shown right now — this screen also lives as a
+  /// hidden-but-alive bottom-nav tab, where TickerMode is false and pushing a
+  /// screen over an invisible tab would be wrong.
+  Future<void> _handleSessionCompleted(int sessionId) async {
+    _cubit.consumeSessionCompletion();
+    if (!mounted || !TickerMode.valuesOf(context).enabled) return;
+
+    await SessionSummaryPage.show(context, sessionId: sessionId);
+    if (!mounted) return;
+    // Pushed from My Bookings: return there (the session is over, so this
+    // screen has nothing live to show). As a bottom-nav tab root this is a
+    // no-op and the screen simply shows its idle state.
+    Navigator.of(context).maybePop();
+  }
+
   @override
   Widget build(BuildContext context) {
     final ui = AppUiColors.of(context);
@@ -85,7 +105,13 @@ class _ChargingStatusMobileViewState extends State<ChargingStatusMobileView>
                     ],
             ),
           ),
-          child: BlocBuilder<ChargingStatusCubit, ChargingStatusState>(
+          child: BlocConsumer<ChargingStatusCubit, ChargingStatusState>(
+            // The live session we were watching has finished — show its summary.
+            listenWhen: (previous, current) =>
+                current.completedSessionId != null &&
+                previous.completedSessionId != current.completedSessionId,
+            listener: (context, state) =>
+                _handleSessionCompleted(state.completedSessionId!),
             builder: (context, state) {
               final cubit = context.read<ChargingStatusCubit>();
               return ListView(

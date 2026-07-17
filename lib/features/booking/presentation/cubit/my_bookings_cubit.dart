@@ -12,6 +12,7 @@ import 'package:orko_hubco/features/booking/domain/entities/verify_qr_result_ent
 import 'package:orko_hubco/core/error/failures.dart';
 import 'package:orko_hubco/features/booking/presentation/cubit/my_bookings_state.dart';
 import 'package:orko_hubco/features/booking/presentation/models/booking_session_model.dart';
+import 'package:orko_hubco/features/booking/presentation/utils/live_session_completion.dart';
 
 /// Outcome of a cancel/reschedule action, surfaced to the view for snackbars.
 typedef BookingActionResult = ({bool success, String message});
@@ -99,14 +100,29 @@ class MyBookingsCubit extends Cubit<MyBookingsState> {
           liveError: failure.message,
         ),
       ),
-      (session) => emit(
-        state.copyWith(
-          liveStatus: MyBookingsStatus.success,
-          liveSession: session,
-          clearLiveError: true,
-        ),
-      ),
+      (session) {
+        // Persist the running session's id / detect that a previously-seen
+        // session (this launch or an earlier, killed one) has finished.
+        final completedId = LiveSessionCompletion.register(session);
+        emit(
+          state.copyWith(
+            liveStatus: MyBookingsStatus.success,
+            liveSession: session,
+            clearLiveError: true,
+            completedSessionId: completedId,
+            clearCompletedSessionId: completedId == null,
+          ),
+        );
+      },
     );
+  }
+
+  /// Clears the one-shot [MyBookingsState.completedSessionId] once the view
+  /// has reacted to it, so re-detection on a later load can fire the listener
+  /// again if the summary couldn't be shown this time.
+  void consumeSessionCompletion() {
+    if (state.completedSessionId == null) return;
+    emit(state.copyWith(clearCompletedSessionId: true));
   }
 
   /// Loads (or reloads) the user's charging-session history.

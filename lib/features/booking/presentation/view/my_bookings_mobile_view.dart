@@ -20,6 +20,7 @@ import 'package:orko_hubco/features/booking/presentation/widgets/active_session_
 import 'package:orko_hubco/features/booking/presentation/widgets/booking_empty_state.dart';
 import 'package:orko_hubco/features/booking/presentation/widgets/bookings_tab_selector.dart';
 import 'package:orko_hubco/features/booking/presentation/widgets/history_booking_card.dart';
+import 'package:orko_hubco/features/booking/presentation/pages/session_summary_page.dart';
 import 'package:orko_hubco/features/booking/presentation/widgets/reschedule_sheet.dart';
 import 'package:orko_hubco/features/booking/presentation/widgets/upcoming_booking_card.dart';
 import 'package:orko_hubco/features/charging/presentation/page/charging_status_page.dart';
@@ -33,7 +34,13 @@ class MyBookingsMobileView extends StatelessWidget {
     return Scaffold(
       backgroundColor: ui.scaffoldBackground,
       body: SafeArea(
-        child: BlocBuilder<MyBookingsCubit, MyBookingsState>(
+        child: BlocConsumer<MyBookingsCubit, MyBookingsState>(
+          // A live session we were tracking has finished — show its summary.
+          listenWhen: (previous, current) =>
+              current.completedSessionId != null &&
+              previous.completedSessionId != current.completedSessionId,
+          listener: (context, state) =>
+              _handleSessionCompleted(context, state.completedSessionId!),
           builder: (context, state) {
             final cubit = context.read<MyBookingsCubit>();
             return Column(
@@ -611,12 +618,35 @@ _ChargerQr? _normalizeChargerQr(dynamic chargePoint, dynamic connector) {
   return (chargePointId: cp, connectorId: conn);
 }
 
+/// Shows the post-session summary for [sessionId], then refreshes the Active
+/// tab so the ended session disappears from it.
+///
+/// The one-shot flag is consumed first so a later live-session load can
+/// re-trigger this if the summary couldn't be shown right now (this screen
+/// lives inside the bottom-nav shell, where hidden tabs stay alive — TickerMode
+/// is false for them, and we skip pushing a screen over an invisible tab).
+Future<void> _handleSessionCompleted(
+  BuildContext context,
+  int sessionId,
+) async {
+  final cubit = context.read<MyBookingsCubit>();
+  cubit.consumeSessionCompletion();
+  if (!TickerMode.valuesOf(context).enabled) return;
+
+  await SessionSummaryPage.show(context, sessionId: sessionId);
+  cubit.loadLiveSession(showSpinner: false);
+}
+
 /// Opens the full live charging-status screen, which polls the live-session
 /// endpoint on its own. It builds its own cubit, so it's safe to push directly.
-void _openLiveChargingSession(BuildContext context) {
-  Navigator.of(context).push(
+/// On return, the live session is silently refreshed — the session may have
+/// ended (or had its summary shown) while the user was on that screen.
+Future<void> _openLiveChargingSession(BuildContext context) async {
+  final cubit = context.read<MyBookingsCubit>();
+  await Navigator.of(context).push(
     MaterialPageRoute(builder: (_) => const ChargingStatusPage()),
   );
+  cubit.loadLiveSession(showSpinner: false);
 }
 
 class _ActiveTab extends StatelessWidget {

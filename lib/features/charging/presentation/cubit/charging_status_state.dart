@@ -42,6 +42,7 @@ class ChargingStatusState extends Equatable {
     this.sliderValue = 0.80,
     this.distanceKm = 0,
     this.now,
+    this.completedSessionId,
   });
 
   /// Backwards-compatible alias kept for callers that constructed the old
@@ -67,6 +68,11 @@ class ChargingStatusState extends Equatable {
   /// DateTime.now() in getters) makes the countdown rebuild exactly once per
   /// tick and keeps the state pure/testable.
   final DateTime? now;
+
+  /// One-shot signal: id of a charging session that just finished (or finished
+  /// while the app was killed) and whose summary should be shown. The view
+  /// consumes it via ChargingStatusCubit.consumeSessionCompletion().
+  final int? completedSessionId;
 
   bool get isLoading => status == ChargingStatusViewStatus.loading;
   bool get isFailure => status == ChargingStatusViewStatus.failure;
@@ -239,6 +245,8 @@ class ChargingStatusState extends Equatable {
     double? sliderValue,
     double? distanceKm,
     DateTime? now,
+    int? completedSessionId,
+    bool clearCompletedSessionId = false,
   }) {
     return ChargingStatusState(
       status: status ?? this.status,
@@ -247,6 +255,9 @@ class ChargingStatusState extends Equatable {
       sliderValue: sliderValue ?? this.sliderValue,
       distanceKm: distanceKm ?? this.distanceKm,
       now: now ?? this.now,
+      completedSessionId: clearCompletedSessionId
+          ? null
+          : (completedSessionId ?? this.completedSessionId),
     );
   }
 
@@ -258,5 +269,6 @@ class ChargingStatusState extends Equatable {
         sliderValue,
         distanceKm,
         now,
+        completedSessionId,
       ];
 }
