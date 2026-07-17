@@ -648,17 +648,39 @@ class _TripPlannerMobileViewState extends State<TripPlannerMobileView> {
                     12.verticalSpace,
                     // Opens Google Maps with the whole trip as one journey —
                     // every suggested stop mapped as a waypoint on the route.
-                    PrimaryButtonWidget(
-                      text: 'Start Journey',
-                      onPress: () => _onStartJourney(context, state),
-                      gradientColors: const [
-                        AppColors.primaryDarkColor,
-                        AppColors.primaryDarkButtonColor,
-                      ],
-                      textColor: AppColors.whiteColor,
-                      fontWeight: FontWeights.weight700,
-                      fontSize: FontSizes.font14Sp,
-                      cornerRadius: 24.r,
+                    // Outlined style matches the Directions button on the
+                    // charging station detail screen.
+                    SizedBox(
+                      height: 38.h,
+                      width: double.infinity,
+                      child: OutlinedButton(
+                        onPressed: () => _onStartJourney(context, state),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: ui.textPrimary,
+                          side: BorderSide(
+                            color: ui.textPrimary.withValues(alpha: 0.85),
+                          ),
+                          padding: EdgeInsets.symmetric(horizontal: 12.w),
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(32.r),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.navigation_rounded, size: 18.r),
+                            8.horizontalSpace,
+                            AppText(
+                              'Start Journey',
+                              color: ui.textPrimary,
+                              fontSize: FontSizes.font14Sp,
+                              fontWeight: FontWeights.weight600,
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                     22.verticalSpace,
                   ],
