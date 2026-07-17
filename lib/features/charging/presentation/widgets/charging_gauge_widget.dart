@@ -20,6 +20,14 @@ class ChargingGaugeWidget extends StatelessWidget {
   final String statusLabel;
   final AppUiColors ui;
 
+  /// Whether the label ends in a `%` sign (rendered smaller, separately).
+  bool get _hasPercentSign => percentLabel.trimRight().endsWith('%');
+
+  /// The numeric part of [percentLabel] without a trailing `%`.
+  String get _percentNumber => _hasPercentSign
+      ? percentLabel.trimRight().substring(0, percentLabel.trimRight().length - 1)
+      : percentLabel;
+
   @override
   Widget build(BuildContext context) {
     final p = progress.clamp(0.0, 1.0);
@@ -55,24 +63,56 @@ class ChargingGaugeWidget extends StatelessWidget {
             animation: false,
             center: Column(
               mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                AppText(
-                  percentLabel,
-                  color: ui.textPrimary,
-                  fontSize: FontSizes.font44Sp,
-                  fontWeight: FontWeight.bold,
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  textBaseline: TextBaseline.alphabetic,
+                  children: [
+                    10.horizontalSpace,
+                    AppText(
+                      _percentNumber,
+                      color: ui.textPrimary,
+                      fontSize: FontSizes.font46Sp,
+                      fontWeight: FontWeight.bold,
+                      height: 1,
+                    ),
+                    2.horizontalSpace,
+                    if (_hasPercentSign)
+                      Padding(
+                        padding: EdgeInsets.only(bottom: 6.h),
+                        child: AppText(
+                          '%',
+                          color: ui.textPrimary,
+                          fontSize: FontSizes.font22Sp,
+                          fontWeight: FontWeight.bold,
+                          height: 1,
+                        ),
+                      ),
+                  ],
                 ),
-                AppText(
-                  statusLabel,
-                  color: ui.textSecondary,
-                  fontSize: FontSizes.font16Sp,
-                  fontWeight: FontWeights.weight400,
-                ),
-                8.verticalSpace,
-                Icon(
-                  Icons.bolt_rounded,
-                  color: ui.textMuted,
-                  size: 40.sp,
+                4.verticalSpace,
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.bolt_rounded,
+                      color: ui.textMuted,
+                      size: 24.sp,
+                    ),
+                    // 4.horizontalSpace,
+                    AppText(
+                      statusLabel,
+                      color: ui.textSecondary,
+                      fontSize: FontSizes.font20Sp,
+                      fontWeight: FontWeights.weight400,
+                    ),
+                    6.horizontalSpace,
+                  ],
                 ),
               ],
             ),
