@@ -40,7 +40,6 @@ dependencies:
   flutter_screenutil: ^5.9.3
   go_router: ^17.0.1
   dio: ^5.9.0
-  graphql: ^5.2.3
   responsive_builder: ^0.7.1
   firebase_remote_config: ^6.1.0
   get_it: ^8.2.0
@@ -51,10 +50,8 @@ dependencies:
   flutter_svg_provider: ^1.0.7
   cached_network_image: ^3.4.1
   carousel_slider: ^5.1.1
-  video_player: ^2.9.2
   fluttertoast: ^9.0.0
   flutter_launcher_icons: ^0.14.4
-  shimmer: ^3.0.0
   collection: ^1.19.1
   flutter_typeahead: ^5.2.0
   connectivity_plus: ^6.0.5
@@ -62,8 +59,6 @@ dependencies:
   package_info_plus: ^9.0.0
   firebase_analytics: ^12.1.0
   flutter_slidable: ^4.0.3
-  amplitude_flutter: ^4.0.0
-  klaviyo_flutter: ^0.2.0
   uuid: ^4.5.1
   intl: ^0.20.2
   flutter_inappwebview: ^6.1.5
