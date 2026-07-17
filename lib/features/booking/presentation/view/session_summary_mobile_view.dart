@@ -202,6 +202,11 @@ class _SummaryBody extends StatelessWidget {
             onPress: () => Navigator.of(context).maybePop(),
             buttonHeight: 44.h,
             cornerRadius: 24.r,
+            gradientColors: const [
+              AppColors.primaryDarkColor,
+              AppColors.primaryDarkButtonColor,
+            ],
+            textColor: AppColors.whiteColor,
             fontSize: FontSizes.font15Sp,
             fontWeight: FontWeights.weight700,
           ),
@@ -250,6 +255,11 @@ class _PaymentButtons extends StatelessWidget {
             onPress: _onPayInApp,
             buttonHeight: 42.h,
             cornerRadius: 24.r,
+            gradientColors: const [
+              AppColors.primaryDarkColor,
+              AppColors.primaryDarkButtonColor,
+            ],
+            textColor: AppColors.whiteColor,
             fontSize: FontSizes.font14Sp,
             fontWeight: FontWeights.weight600,
           ),
