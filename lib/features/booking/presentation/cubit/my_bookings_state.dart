@@ -55,9 +55,12 @@ class MyBookingsState extends Equatable {
   List<MyBookingEntity> get upcomingApproved =>
       bookings.where((b) => b.isApproved).toList(growable: false);
 
-  /// Upcoming → Cancelled sub-tab (`booking_status: cancelled`).
+  /// Upcoming → Cancelled sub-tab: cancelled bookings plus no-shows
+  /// (`booking_status: cancelled | no_show`) — both are bookings that won't
+  /// happen, so they share the sub-tab. The card's status badge tells them
+  /// apart.
   List<MyBookingEntity> get upcomingCancelled =>
-      bookings.where((b) => b.isCancelled).toList(growable: false);
+      bookings.where((b) => b.isCancelled || b.isNoShow).toList(growable: false);
 
   /// The list backing the currently selected Upcoming sub-tab.
   List<MyBookingEntity> get upcomingForFilter {

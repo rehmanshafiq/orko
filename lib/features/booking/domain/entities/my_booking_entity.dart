@@ -88,6 +88,9 @@ class MyBookingEntity extends Equatable {
   bool get isPendingApproval =>
       bookingStatus.toLowerCase() == 'pending_approval';
 
+  /// The user never showed up for the booked slot (`booking_status: no_show`).
+  bool get isNoShow => bookingStatus.toLowerCase() == 'no_show';
+
   /// Hubco locations have a null `station_name`; fall back to `location_name`.
   String get displayName =>
       stationName.isNotEmpty ? stationName : locationName;

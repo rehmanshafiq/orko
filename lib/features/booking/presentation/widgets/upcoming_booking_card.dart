@@ -126,10 +126,18 @@ class UpcomingBookingCard extends StatelessWidget {
                 ),
               ),
               // Approved bookings don't need a badge — the Scan QR/Modify
-              // actions already imply it. Pending/Cancelled keep theirs.
+              // actions already imply it. Pending/Cancelled/No Show keep
+              // theirs; no-shows get a yellow outline to stand out from
+              // cancelled ones.
               if (!booking.isApproved) ...[
                 8.horizontalSpace,
-                _StatusBadge(ui: ui, label: _statusLabel),
+                _StatusBadge(
+                  ui: ui,
+                  label: _statusLabel,
+                  outlineColor: booking.isNoShow
+                      ? AppColors.noShowBadgeOutlineColor
+                      : null,
+                ),
               ],
             ],
           ),
@@ -360,10 +368,13 @@ class _OutlinedActionButton extends StatelessWidget {
 }
 
 class _StatusBadge extends StatelessWidget {
-  const _StatusBadge({required this.ui, required this.label});
+  const _StatusBadge({required this.ui, required this.label, this.outlineColor});
 
   final AppUiColors ui;
   final String label;
+
+  /// Overrides the default brand-green outline (e.g. yellow for No Show).
+  final Color? outlineColor;
 
   @override
   Widget build(BuildContext context) {
@@ -372,7 +383,7 @@ class _StatusBadge extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.transparentColor,
         borderRadius: BorderRadius.circular(20.r),
-        border: Border.all(color: ui.brandPrimary),
+        border: Border.all(color: outlineColor ?? ui.brandPrimary),
       ),
       child: AppText(
         label,
