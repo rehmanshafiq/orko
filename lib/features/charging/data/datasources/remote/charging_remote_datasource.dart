@@ -126,8 +126,11 @@ class ChargingRemoteDataSourceImpl implements ChargingRemoteDataSource {
             : 'Failed to load station detail',
         statusCode: response.statusCode,
       );
+    } on ServerException {
+      rethrow;
+    } on DioException catch (e) {
+      throw _dioToServerException(e, 'Failed to load station detail');
     } catch (e) {
-      if (e is ServerException) rethrow;
       throw ServerException(message: e.toString(), originalError: e);
     }
   }
@@ -159,8 +162,11 @@ class ChargingRemoteDataSourceImpl implements ChargingRemoteDataSource {
         message: _messageOf(data, 'Failed to load favourites'),
         statusCode: response.statusCode,
       );
+    } on ServerException {
+      rethrow;
+    } on DioException catch (e) {
+      throw _dioToServerException(e, 'Failed to load favourites');
     } catch (e) {
-      if (e is ServerException) rethrow;
       throw ServerException(message: e.toString(), originalError: e);
     }
   }
@@ -183,8 +189,11 @@ class ChargingRemoteDataSourceImpl implements ChargingRemoteDataSource {
         message: _messageOf(response.data, 'Failed to add favourite'),
         statusCode: response.statusCode,
       );
+    } on ServerException {
+      rethrow;
+    } on DioException catch (e) {
+      throw _dioToServerException(e, 'Failed to add favourite');
     } catch (e) {
-      if (e is ServerException) rethrow;
       throw ServerException(message: e.toString(), originalError: e);
     }
   }
@@ -207,8 +216,11 @@ class ChargingRemoteDataSourceImpl implements ChargingRemoteDataSource {
         message: _messageOf(response.data, 'Failed to remove favourite'),
         statusCode: response.statusCode,
       );
+    } on ServerException {
+      rethrow;
+    } on DioException catch (e) {
+      throw _dioToServerException(e, 'Failed to remove favourite');
     } catch (e) {
-      if (e is ServerException) rethrow;
       throw ServerException(message: e.toString(), originalError: e);
     }
   }
@@ -251,16 +263,7 @@ class ChargingRemoteDataSourceImpl implements ChargingRemoteDataSource {
     } on DioException catch (e) {
       // 422 → "Vehicle not found." / "Charge station not found.";
       // 400 → validation errors. Surface the backend message verbatim.
-      final data = e.response?.data;
-      final message = (data is Map && data['message'] != null)
-          ? data['message'].toString()
-          : (e.message ?? 'Could not check charger compatibility');
-      log('[Charging] Compatibility failed (${e.response?.statusCode}): $message');
-      throw ServerException(
-        message: message,
-        statusCode: e.response?.statusCode,
-        originalError: e,
-      );
+      throw _dioToServerException(e, 'Could not check charger compatibility');
     } catch (e) {
       throw ServerException(message: e.toString(), originalError: e);
     }
@@ -422,14 +425,27 @@ class ChargingRemoteDataSourceImpl implements ChargingRemoteDataSource {
     }
   }
 
-  /// Maps a [DioException] to a [ServerException], surfacing the backend
-  /// message verbatim when present.
+  /// Maps a [DioException] to a [ServerException] with a user-readable
+  /// message: connectivity issues → "No internet connection", timeouts →
+  /// retry hint, otherwise the backend message verbatim when present.
   ServerException _dioToServerException(DioException e, String fallback) {
-    final data = e.response?.data;
-    final message = (data is Map && data['message'] != null)
-        ? data['message'].toString()
-        : (e.message ?? fallback);
-    log('[Charging] Reviews failed (${e.response?.statusCode}): $message');
+    final String message;
+    if (e.type == DioExceptionType.connectionError ||
+        e.error is SocketException) {
+      message = 'No internet connection. '
+          'Please check your network and try again.';
+    } else if (e.type == DioExceptionType.connectionTimeout ||
+        e.type == DioExceptionType.sendTimeout ||
+        e.type == DioExceptionType.receiveTimeout) {
+      message = 'The request timed out. Please try again.';
+    } else {
+      final data = e.response?.data;
+      message = (data is Map && data['message'] != null)
+          ? data['message'].toString()
+          : fallback;
+    }
+    log('[Charging] Request failed '
+        '(${e.response?.statusCode ?? e.type}): ${e.message}');
     return ServerException(
       message: message,
       statusCode: e.response?.statusCode,

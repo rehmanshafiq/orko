@@ -319,6 +319,21 @@ class _ErrorView extends StatelessWidget {
   final String stationName;
   final VoidCallback onRetry;
 
+  /// Never show raw exception text (DioException/SocketException dumps) —
+  /// map it to a user-readable message instead.
+  String get _displayMessage {
+    if (message.isEmpty) return 'Something went wrong. Please try again.';
+    final looksLikeRawError = message.contains('DioException') ||
+        message.contains('SocketException') ||
+        message.contains('Failed host lookup') ||
+        message.contains('Connection refused');
+    if (looksLikeRawError) {
+      return 'No internet connection. '
+          'Please check your network and try again.';
+    }
+    return message;
+  }
+
   @override
   Widget build(BuildContext context) {
     final ui = AppUiColors.of(context);
@@ -342,7 +357,7 @@ class _ErrorView extends StatelessWidget {
           ),
           6.verticalSpace,
           AppText(
-            message.isNotEmpty ? message : 'Something went wrong',
+            _displayMessage,
             color: ui.textSecondary,
             fontSize: FontSizes.font12Sp,
             fontWeight: FontWeights.weight400,
