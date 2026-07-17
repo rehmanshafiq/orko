@@ -147,7 +147,6 @@ class ChargingStatusState extends Equatable {
 
   List<ChargingMetricDisplay> get metrics {
     final energy = session?.energyDeliveredKwh;
-    final speed = session?.chargingSpeedKw;
     final time = session?.sessionTime?.trim();
     final cost = session?.currentCost;
     final currency = session?.currency ?? 'PKR';
@@ -158,12 +157,6 @@ class ChargingStatusState extends Equatable {
         value: energy != null ? _trimDouble(energy) : '—',
         unit: energy != null ? 'kWh' : '',
         icon: Icons.battery_4_bar_rounded,
-      ),
-      ChargingMetricDisplay(
-        label: 'Charging Speed',
-        value: speed != null ? _trimDouble(speed) : '—',
-        unit: speed != null ? 'kW' : '',
-        icon: Icons.bolt_rounded,
       ),
       ChargingMetricDisplay(
         label: 'Session Time',

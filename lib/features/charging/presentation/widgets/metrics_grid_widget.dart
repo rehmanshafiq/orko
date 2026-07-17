@@ -4,6 +4,7 @@ import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/features/charging/presentation/cubit/charging_status_state.dart';
 import 'package:orko_hubco/features/charging/presentation/widgets/metric_card_widget.dart';
 
+/// All session metrics side by side in a single row.
 class MetricsGridWidget extends StatelessWidget {
   const MetricsGridWidget({
     super.key,
@@ -16,56 +17,21 @@ class MetricsGridWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final m = metrics;
-    return Column(
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: MetricCardWidget(
-                label: m[0].label,
-                value: m[0].value,
-                unit: m[0].unit,
-                icon: m[0].icon,
-                ui: ui,
-              ),
+        for (var i = 0; i < metrics.length; i++) ...[
+          if (i > 0) 8.horizontalSpace,
+          Expanded(
+            child: MetricCardWidget(
+              label: metrics[i].label,
+              value: metrics[i].value,
+              unit: metrics[i].unit,
+              icon: metrics[i].icon,
+              ui: ui,
             ),
-            8.horizontalSpace,
-            Expanded(
-              child: MetricCardWidget(
-                label: m[1].label,
-                value: m[1].value,
-                unit: m[1].unit,
-                icon: m[1].icon,
-                ui: ui,
-              ),
-            ),
-          ],
-        ),
-        8.verticalSpace,
-        Row(
-          children: [
-            Expanded(
-              child: MetricCardWidget(
-                label: m[2].label,
-                value: m[2].value,
-                unit: m[2].unit,
-                icon: m[2].icon,
-                ui: ui,
-              ),
-            ),
-            8.horizontalSpace,
-            Expanded(
-              child: MetricCardWidget(
-                label: m[3].label,
-                value: m[3].value,
-                unit: m[3].unit,
-                icon: m[3].icon,
-                ui: ui,
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ],
     );
   }

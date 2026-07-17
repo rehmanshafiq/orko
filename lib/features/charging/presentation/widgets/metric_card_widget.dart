@@ -23,6 +23,7 @@ class MetricCardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Compact vertical layout — three of these share one row.
     return Container(
       padding: AppUtils.horizontal8Vertical8Padding,
       decoration: BoxDecoration(
@@ -30,51 +31,46 @@ class MetricCardWidget extends StatelessWidget {
         borderRadius: BorderRadius.circular(8.r),
         border: Border.all(color: ui.borderSubtle),
       ),
-      child: Row(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          SizedBox(
-            width: 28.w,
-            height: 30.w,
-            child: Center(
-              child: Icon(
-                icon,
-                size: 19.sp,
-                color: ui.isLight ? ui.brandPrimary : AppColors.whiteColor,
-              ),
-            ),
+          Icon(
+            icon,
+            size: 18.sp,
+            color: ui.isLight ? ui.brandPrimary : AppColors.whiteColor,
           ),
-          8.horizontalSpace,
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          6.verticalSpace,
+          AppText(
+            label,
+            textAlign: TextAlign.center,
+            color: ui.textMuted,
+            fontSize: FontSizes.font11Sp,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          4.verticalSpace,
+          // Long values (e.g. costs) scale down instead of overflowing.
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 AppText(
-                  label,
-                  color: ui.textMuted,
-                  fontSize: FontSizes.font12Sp,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                  value,
+                  color: ui.textPrimary,
+                  fontSize: FontSizes.font15Sp,
+                  fontWeight: FontWeights.weight700,
                 ),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    AppText(
-                      value,
-                      color: ui.textPrimary,
-                      fontSize: FontSizes.font19Sp,
-                      fontWeight: FontWeights.weight700,
-                    ),
-                    if (unit.isNotEmpty) ...[
-                      4.horizontalSpace,
-                      AppText(
-                        unit,
-                        color: ui.textSecondary,
-                        fontSize: FontSizes.font15Sp,
-                        fontWeight: FontWeights.weight600,
-                      ),
-                    ],
-                  ],
-                ),
+                if (unit.isNotEmpty) ...[
+                  3.horizontalSpace,
+                  AppText(
+                    unit,
+                    color: ui.textSecondary,
+                    fontSize: FontSizes.font12Sp,
+                    fontWeight: FontWeights.weight600,
+                  ),
+                ],
               ],
             ),
           ),
