@@ -7,6 +7,7 @@ import 'package:orko_hubco/core/utils/app_ui.dart';
 import 'package:orko_hubco/core/utils/helpers.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
 import 'package:orko_hubco/features/booking/presentation/pages/session_summary_page.dart';
+import 'package:orko_hubco/features/booking/presentation/widgets/live_badge.dart';
 import 'package:orko_hubco/features/charging/presentation/cubit/charging_status_cubit.dart';
 import 'package:orko_hubco/features/charging/presentation/cubit/charging_status_state.dart';
 import 'package:orko_hubco/features/charging/presentation/widgets/charging_gauge_widget.dart';
@@ -15,7 +16,20 @@ import 'package:orko_hubco/features/charging/presentation/widgets/metrics_grid_w
 import 'package:orko_hubco/features/charging/presentation/widgets/station_info_widget.dart';
 
 class ChargingStatusMobileView extends StatefulWidget {
-  const ChargingStatusMobileView({super.key});
+  const ChargingStatusMobileView({
+    super.key,
+    this.embedded = false,
+    this.onSessionEnded,
+  });
+
+  /// True when this view is inlined inside another screen (the My Bookings
+  /// Active tab) rather than pushed as its own route: the Scaffold/SafeArea
+  /// and back arrow are dropped, and a LIVE badge is shown top-right instead.
+  final bool embedded;
+
+  /// Embedded mode only: called after the post-session summary is dismissed,
+  /// so the host screen can refresh its own live-session state.
+  final VoidCallback? onSessionEnded;
 
   @override
   State<ChargingStatusMobileView> createState() =>
@@ -77,6 +91,12 @@ class _ChargingStatusMobileViewState extends State<ChargingStatusMobileView>
 
     await SessionSummaryPage.show(context, sessionId: sessionId);
     if (!mounted) return;
+    // Embedded in the My Bookings Active tab: stay put and let the host
+    // refresh its live-session state (which swaps in its empty state).
+    if (widget.embedded) {
+      widget.onSessionEnded?.call();
+      return;
+    }
     // Pushed from My Bookings: return there (the session is over, so this
     // screen has nothing live to show). As a bottom-nav tab root this is a
     // no-op and the screen simply shows its idle state.
@@ -86,10 +106,7 @@ class _ChargingStatusMobileViewState extends State<ChargingStatusMobileView>
   @override
   Widget build(BuildContext context) {
     final ui = AppUiColors.of(context);
-    return Scaffold(
-      backgroundColor: ui.scaffoldBackground,
-      body: SafeArea(
-        child: Container(
+    final content = Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topCenter,
@@ -120,31 +137,38 @@ class _ChargingStatusMobileViewState extends State<ChargingStatusMobileView>
                   8.verticalSpace,
                   Row(
                     children: [
-                      GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onTap: () => Navigator.maybePop(context),
-                        child: Padding(
-                          padding: EdgeInsets.all(6.r),
-                          child: Icon(
-                            Icons.arrow_back_ios_new_rounded,
-                            color: ui.textMuted,
-                            size: 20.sp,
+                      // Embedded in the Active tab there's no back to go to and
+                      // no headline — just the LIVE badge pinned top-right.
+                      if (widget.embedded) ...[
+                        const Spacer(),
+                        const LiveBadge(),
+                      ] else ...[
+                        GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () => Navigator.maybePop(context),
+                          child: Padding(
+                            padding: EdgeInsets.all(6.r),
+                            child: Icon(
+                              Icons.arrow_back_ios_new_rounded,
+                              color: ui.textMuted,
+                              size: 20.sp,
+                            ),
                           ),
                         ),
-                      ),
-                      Expanded(
-                        child: AppText(
-                          state.stationHeadline,
-                          textAlign: TextAlign.center,
-                          color: ui.textMuted,
-                          fontSize: FontSizes.font16Sp,
-                          fontWeight: FontWeights.weight400,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
+                        Expanded(
+                          child: AppText(
+                            state.stationHeadline,
+                            textAlign: TextAlign.center,
+                            color: ui.textMuted,
+                            fontSize: FontSizes.font16Sp,
+                            fontWeight: FontWeights.weight400,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
-                      ),
-                      // Balances the back icon so the headline stays centered.
-                      SizedBox(width: 20.sp + 12.r),
+                        // Balances the back icon so the headline stays centered.
+                        SizedBox(width: 20.sp + 12.r),
+                      ],
                     ],
                   ),
                   26.verticalSpace,
@@ -166,13 +190,13 @@ class _ChargingStatusMobileViewState extends State<ChargingStatusMobileView>
                     onSliderChanged: cubit.updateProgress,
                   ),
                   12.verticalSpace,
-                  StationInfoWidget(
-                    infoText: state.stationInfoText,
-                    ui: ui,
-                    operatingHours: state.operatingHoursText,
-                    pricing: state.priceText,
-                    contact: state.contactText,
-                  ),
+                  // StationInfoWidget(
+                  //   infoText: state.stationInfoText,
+                  //   ui: ui,
+                  //   operatingHours: state.operatingHoursText,
+                  //   pricing: state.priceText,
+                  //   contact: state.contactText,
+                  // ),
                   // if (state.distanceKm > 0) ...[
                   //   8.verticalSpace,
                   //   Align(
@@ -196,8 +220,15 @@ class _ChargingStatusMobileViewState extends State<ChargingStatusMobileView>
               );
             },
           ),
-        ),
-      ),
+        );
+
+    // Embedded in the My Bookings Active tab — the host owns the
+    // Scaffold/SafeArea.
+    if (widget.embedded) return content;
+
+    return Scaffold(
+      backgroundColor: ui.scaffoldBackground,
+      body: SafeArea(child: content),
     );
   }
 }
@@ -240,18 +271,18 @@ class _ChargingSessionTargetCard extends StatelessWidget {
       ),
       child: Column(
         children: [
-          AppText(
-            estimatedTimeLabel,
-            color: ui.brandPrimary,
-            fontSize: FontSizes.font18Sp,
-            fontWeight: FontWeights.weight600,
-          ),
+          // AppText(
+          //   estimatedTimeLabel,
+          //   color: ui.brandPrimary,
+          //   fontSize: FontSizes.font18Sp,
+          //   fontWeight: FontWeights.weight600,
+          // ),
           if (bookingTimeLeftLabel.isNotEmpty) ...[
-            8.verticalSpace,
+            // 4.verticalSpace,
             AppText(
-              'Booked Slot Time Left',
+              'Remaining Booked Slot Time',
               color: ui.textMuted,
-              fontSize: FontSizes.font13Sp,
+              fontSize: FontSizes.font15Sp,
               fontWeight: FontWeights.weight500,
             ),
             4.verticalSpace,
@@ -262,7 +293,7 @@ class _ChargingSessionTargetCard extends StatelessWidget {
               fontWeight: FontWeights.weight600,
             ),
           ],
-          8.verticalSpace,
+          // 8.verticalSpace,
           // AppText(
           //   targetPercentLabel,
           //   color: ui.textSecondaryWhite,

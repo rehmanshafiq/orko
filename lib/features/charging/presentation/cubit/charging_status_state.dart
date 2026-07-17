@@ -154,7 +154,7 @@ class ChargingStatusState extends Equatable {
 
     return [
       ChargingMetricDisplay(
-        label: 'Energy Delivered',
+        label: 'Energy',
         value: energy != null ? _trimDouble(energy) : '—',
         unit: energy != null ? 'kWh' : '',
         icon: Icons.battery_4_bar_rounded,

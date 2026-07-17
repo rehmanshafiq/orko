@@ -7,6 +7,7 @@ import 'package:orko_hubco/core/utils/app_ui.dart';
 import 'package:orko_hubco/core/utils/helpers.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
 import 'package:orko_hubco/features/booking/domain/entities/live_session_entity.dart';
+import 'package:orko_hubco/features/booking/presentation/widgets/live_badge.dart';
 
 /// Card shown under the "Active" tab when a charging session is running, built
 /// from `GET api/v1/bookings/live-session/`.
@@ -77,7 +78,7 @@ class ActiveSessionCard extends StatelessWidget {
                 ),
               ),
               8.horizontalSpace,
-              const _LiveBadge(),
+              const LiveBadge(),
             ],
           ),
           if (_elapsedLabel != null) ...[
@@ -195,38 +196,3 @@ class _Metric {
   final String value;
 }
 
-class _LiveBadge extends StatelessWidget {
-  const _LiveBadge();
-
-  @override
-  Widget build(BuildContext context) {
-    final ui = AppUiColors.of(context);
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20.r),
-        border: Border.all(width: 1.w, color: ui.brandPrimary),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            height: 7.r,
-            width: 7.r,
-            decoration: BoxDecoration(
-              color: ui.brandPrimary,
-              shape: BoxShape.circle,
-            ),
-          ),
-          6.horizontalSpace,
-          AppText(
-            'LIVE',
-            color: ui.brandPrimary,
-            fontSize: FontSizes.font11Sp,
-            fontWeight: FontWeights.weight700,
-          ),
-        ],
-      ),
-    );
-  }
-}

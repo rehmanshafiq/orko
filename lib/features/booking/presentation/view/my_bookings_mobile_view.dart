@@ -6,6 +6,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
+import 'package:orko_hubco/core/di/injection_container.dart';
 import 'package:orko_hubco/core/services/barcode_scanner_service.dart';
 import 'package:orko_hubco/core/utils/helpers.dart';
 import 'package:orko_hubco/core/utils/app_ui.dart';
@@ -16,14 +17,14 @@ import 'package:orko_hubco/features/booking/domain/entities/my_booking_entity.da
 import 'package:orko_hubco/features/booking/presentation/cubit/my_bookings_cubit.dart';
 import 'package:orko_hubco/features/booking/presentation/cubit/my_bookings_state.dart';
 import 'package:orko_hubco/features/booking/presentation/models/booking_session_model.dart';
-import 'package:orko_hubco/features/booking/presentation/widgets/active_session_card.dart';
 import 'package:orko_hubco/features/booking/presentation/widgets/booking_empty_state.dart';
 import 'package:orko_hubco/features/booking/presentation/widgets/bookings_tab_selector.dart';
 import 'package:orko_hubco/features/booking/presentation/widgets/history_booking_card.dart';
 import 'package:orko_hubco/features/booking/presentation/pages/session_summary_page.dart';
 import 'package:orko_hubco/features/booking/presentation/widgets/reschedule_sheet.dart';
 import 'package:orko_hubco/features/booking/presentation/widgets/upcoming_booking_card.dart';
-import 'package:orko_hubco/features/charging/presentation/page/charging_status_page.dart';
+import 'package:orko_hubco/features/charging/presentation/cubit/charging_status_cubit.dart';
+import 'package:orko_hubco/features/charging/presentation/view/charging_status_mobile_view.dart';
 
 class MyBookingsMobileView extends StatelessWidget {
   const MyBookingsMobileView({super.key});
@@ -637,18 +638,6 @@ Future<void> _handleSessionCompleted(
   cubit.loadLiveSession(showSpinner: false);
 }
 
-/// Opens the full live charging-status screen, which polls the live-session
-/// endpoint on its own. It builds its own cubit, so it's safe to push directly.
-/// On return, the live session is silently refreshed — the session may have
-/// ended (or had its summary shown) while the user was on that screen.
-Future<void> _openLiveChargingSession(BuildContext context) async {
-  final cubit = context.read<MyBookingsCubit>();
-  await Navigator.of(context).push(
-    MaterialPageRoute(builder: (_) => const ChargingStatusPage()),
-  );
-  cubit.loadLiveSession(showSpinner: false);
-}
-
 class _ActiveTab extends StatelessWidget {
   const _ActiveTab({
     required this.ui,
@@ -713,43 +702,37 @@ class _ActiveTab extends StatelessWidget {
     final session = state.liveSession;
     final hasActiveSession = session != null && session.active;
 
+    // A session is running: show the live charging-status content inline
+    // (gauge, metrics, station info — same as the charging status screen,
+    // with a LIVE badge top-right). It gets its own cubit, which polls the
+    // live-session endpoint on its own; when the session ends we refresh the
+    // bookings copy so this tab flips back to the empty state.
+    if (hasActiveSession) {
+      return BlocProvider(
+        create: (_) => sl<ChargingStatusCubit>()..start(),
+        child: ChargingStatusMobileView(
+          embedded: true,
+          onSessionEnded: () => cubit.loadLiveSession(showSpinner: false),
+        ),
+      );
+    }
+
     return RefreshIndicator(
       color: ui.brandPrimary,
       onRefresh: () => cubit.loadLiveSession(showSpinner: false),
-      child: hasActiveSession
-          ? ListView(
-              padding: AppUtils.horizontal16Padding,
-              children: [
-                ActiveSessionCard(ui: ui, session: session),
-                16.verticalSpace,
-                PrimaryButtonWidget(
-                  text: 'Live Charging Session',
-                  onPress: () => _openLiveChargingSession(context),
-                  buttonHeight: 40.h,
-                  cornerRadius: 24.r,
-                  gradientColors: const [
-                    AppColors.primaryDarkColor,
-                    AppColors.primaryDarkButtonColor,
-                  ],
-                  textColor: AppColors.whiteColor,
-                  fontSize: FontSizes.font14Sp,
-                  fontWeight: FontWeights.weight600,
-                ),
-              ],
-            )
-          : ListView(
-              padding: AppUtils.horizontal16Padding,
-              children: [
-                BookingEmptyState(
-                  ui: ui,
-                  icon: Icons.bolt,
-                  title: 'No Active Sessions',
-                  subtitle: "You don't have any active charging sessions",
-                  accentColor: ui.brandPrimary,
-                  iconOutlined: true,
-                ),
-              ],
-            ),
+      child: ListView(
+        padding: AppUtils.horizontal16Padding,
+        children: [
+          BookingEmptyState(
+            ui: ui,
+            icon: Icons.bolt,
+            title: 'No Active Sessions',
+            subtitle: "You don't have any active charging sessions",
+            accentColor: ui.brandPrimary,
+            iconOutlined: true,
+          ),
+        ],
+      ),
     );
   }
 }
