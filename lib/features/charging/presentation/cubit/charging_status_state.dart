@@ -80,6 +80,10 @@ class ChargingStatusState extends Equatable {
   /// True only when the backend reports a running session.
   bool get hasActiveSession => session != null && session!.active;
 
+  /// True when the running session is a walk-in (no backing booking), so the
+  /// view can badge it. Only meaningful while a session is active.
+  bool get isWalkinSession => hasActiveSession && session!.isWalkinSession;
+
   ChargingSessionStatus get sessionStatus =>
       hasActiveSession ? ChargingSessionStatus.charging : ChargingSessionStatus.idle;
 
@@ -114,6 +118,13 @@ class ChargingStatusState extends Equatable {
     if (left == null || left.isEmpty) return 'Estimating time to full…';
     return 'Est. Full Charge in $left';
   }
+
+  /// Whether the live session carries a backing booking at all (walk-in
+  /// sessions carry none). Drives whether the booked-slot card is shown.
+  bool get hasBooking =>
+      session?.bookingDate != null ||
+      session?.bookingStartTime != null ||
+      session?.bookingEndTime != null;
 
   /// Whether the live session carries a booked slot to count down against.
   bool get hasBookingCountdown =>

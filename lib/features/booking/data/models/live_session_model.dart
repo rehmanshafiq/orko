@@ -6,6 +6,7 @@ import 'package:orko_hubco/features/booking/domain/entities/live_session_entity.
 class LiveSessionModel extends LiveSessionEntity {
   const LiveSessionModel({
     required super.active,
+    super.isWalkinSession,
     super.sessionId,
     super.locationName,
     super.startedAt,
@@ -42,6 +43,7 @@ class LiveSessionModel extends LiveSessionEntity {
 
     return LiveSessionModel(
       active: json['active'] == true,
+      isWalkinSession: _asBool(json['is_walkin_session']),
       sessionId: _asIntOrNull(json['session_id']),
       locationName: _asStringOrNull(json['location_name']),
       startedAt: _asStringOrNull(json['started_at']),
@@ -74,6 +76,19 @@ class LiveSessionModel extends LiveSessionEntity {
   static Map<String, dynamic>? _asMapOrNull(dynamic value) {
     if (value is Map) return Map<String, dynamic>.from(value);
     return null;
+  }
+
+  /// Coerces the backend's `is_walkin_session` flag to a bool, tolerating a
+  /// real bool, `1`/`0`, or `"true"`/`"false"` strings. Anything else (or a
+  /// missing key) is treated as false.
+  static bool _asBool(dynamic value) {
+    if (value is bool) return value;
+    if (value is num) return value != 0;
+    if (value is String) {
+      final str = value.trim().toLowerCase();
+      return str == 'true' || str == '1';
+    }
+    return false;
   }
 
   static int? _asIntOrNull(dynamic value) {

@@ -8,6 +8,7 @@ import 'package:orko_hubco/core/utils/helpers.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
 import 'package:orko_hubco/features/booking/presentation/pages/session_summary_page.dart';
 import 'package:orko_hubco/features/booking/presentation/widgets/live_badge.dart';
+import 'package:orko_hubco/features/booking/presentation/widgets/walkin_badge.dart';
 import 'package:orko_hubco/features/charging/presentation/cubit/charging_status_cubit.dart';
 import 'package:orko_hubco/features/charging/presentation/cubit/charging_status_state.dart';
 import 'package:orko_hubco/features/charging/presentation/widgets/charging_gauge_widget.dart';
@@ -138,8 +139,10 @@ class _ChargingStatusMobileViewState extends State<ChargingStatusMobileView>
                   Row(
                     children: [
                       // Embedded in the Active tab there's no back to go to and
-                      // no headline — just the LIVE badge pinned top-right.
+                      // no headline — the LIVE badge is pinned top-right, with
+                      // the Walk-in badge (when applicable) top-left.
                       if (widget.embedded) ...[
+                        if (state.isWalkinSession) const WalkinBadge(),
                         const Spacer(),
                         const LiveBadge(),
                       ] else ...[
@@ -155,6 +158,12 @@ class _ChargingStatusMobileViewState extends State<ChargingStatusMobileView>
                             ),
                           ),
                         ),
+                        // Walk-in sessions get a badge just after the back arrow
+                        // (top-left) so they're distinguishable from booked ones.
+                        if (state.isWalkinSession) ...[
+                          6.horizontalSpace,
+                          const WalkinBadge(),
+                        ],
                         Expanded(
                           child: AppText(
                             state.stationHeadline,
@@ -180,15 +189,19 @@ class _ChargingStatusMobileViewState extends State<ChargingStatusMobileView>
                   ),
                   36.verticalSpace,
                   MetricsGridWidget(metrics: state.metrics, ui: ui),
-                  12.verticalSpace,
-                  _ChargingSessionTargetCard(
-                    ui: ui,
-                    estimatedTimeLabel: state.estimatedTimeLabel,
-                    bookingTimeLeftLabel: state.bookingTimeLeftLabel,
-                    sliderValue: state.sliderValue,
-                    targetPercentLabel: state.targetPercentLabel,
-                    onSliderChanged: cubit.updateProgress,
-                  ),
+                  // No backing booking (e.g. walk-in sessions) → no booked-slot
+                  // card to show.
+                  if (state.hasBooking) ...[
+                    12.verticalSpace,
+                    _ChargingSessionTargetCard(
+                      ui: ui,
+                      estimatedTimeLabel: state.estimatedTimeLabel,
+                      bookingTimeLeftLabel: state.bookingTimeLeftLabel,
+                      sliderValue: state.sliderValue,
+                      targetPercentLabel: state.targetPercentLabel,
+                      onSliderChanged: cubit.updateProgress,
+                    ),
+                  ],
                   12.verticalSpace,
                   // StationInfoWidget(
                   //   infoText: state.stationInfoText,
@@ -210,7 +223,7 @@ class _ChargingStatusMobileViewState extends State<ChargingStatusMobileView>
                   //     ),
                   //   ),
                   // ],
-                  10.verticalSpace,
+                  // 10.verticalSpace,
                   // ChargingActionButtonsWidget(
                   //   onStopCharging: cubit.stopCharging,
                   //   onEmergencyStop: cubit.emergencyStop,

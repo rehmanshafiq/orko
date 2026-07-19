@@ -170,8 +170,8 @@ class _TabContent extends StatelessWidget {
       case BookingTab.active:
         return _emptyList(
           icon: Icons.bolt,
-          title: 'No Active Sessions',
-          subtitle: "You don't have any active charging sessions",
+          title: 'No Live Sessions',
+          subtitle: "You don't have any live charging sessions",
         );
       case BookingTab.upcoming:
         return _UpcomingTab(ui: ui, state: state, cubit: cubit);
@@ -726,8 +726,8 @@ class _ActiveTab extends StatelessWidget {
           BookingEmptyState(
             ui: ui,
             icon: Icons.bolt,
-            title: 'No Active Sessions',
-            subtitle: "You don't have any active charging sessions",
+            title: 'No Live Sessions',
+            subtitle: "You don't have any live charging sessions",
             accentColor: ui.brandPrimary,
             iconOutlined: true,
           ),

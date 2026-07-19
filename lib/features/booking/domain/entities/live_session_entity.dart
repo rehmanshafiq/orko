@@ -10,6 +10,7 @@ import 'package:intl/intl.dart';
 class LiveSessionEntity extends Equatable {
   const LiveSessionEntity({
     required this.active,
+    this.isWalkinSession = false,
     this.sessionId,
     this.locationName,
     this.startedAt,
@@ -42,6 +43,12 @@ class LiveSessionEntity extends Equatable {
 
   /// Whether a charging session is currently running.
   final bool active;
+
+  /// True when this is a walk-in charging session started without a booking
+  /// (the backend maps it to the user via `oem_customer`). Walk-in sessions
+  /// carry no `booking` object and no `time_left`, so the booked-slot countdown
+  /// stays hidden. Defaults to false for older payloads that omit the flag.
+  final bool isWalkinSession;
 
   final int? sessionId;
   final String? locationName;
@@ -202,6 +209,7 @@ class LiveSessionEntity extends Equatable {
   @override
   List<Object?> get props => [
         active,
+        isWalkinSession,
         sessionId,
         locationName,
         startedAt,

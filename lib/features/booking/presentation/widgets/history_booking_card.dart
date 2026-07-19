@@ -149,13 +149,13 @@ class _WalkInBadge extends StatelessWidget {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
       decoration: BoxDecoration(
-        color: ui.brandSecondary.withValues(alpha: 0.12),
+        // color: ui.brandSecondary.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(20.r),
-        border: Border.all(width: 1.w, color: ui.brandSecondary),
+        border: Border.all(width: 1.w, color: ui.textMuted),
       ),
       child: AppText(
         'Walk-in',
-        color: ui.brandSecondary,
+        color: ui.textMuted,
         fontSize: FontSizes.font10Sp,
         fontWeight: FontWeights.weight600,
       ),
