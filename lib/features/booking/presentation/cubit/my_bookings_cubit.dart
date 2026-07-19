@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:orko_hubco/core/usecase/usecase.dart';
 import 'package:orko_hubco/core/utils/app_storage/app_storage.dart';
@@ -40,6 +42,37 @@ class MyBookingsCubit extends Cubit<MyBookingsState> {
   final RescheduleBookingUseCase _rescheduleBookingUseCase;
   final VerifyQrUseCase _verifyQrUseCase;
 
+  /// Polls the live-session endpoint while the Active (Live) tab is on screen,
+  /// so a session that starts (e.g. a walk-in) shows up within one interval
+  /// even when the tab was sitting on the empty state.
+  static const Duration _livePollInterval = Duration(seconds: 10);
+  Timer? _liveTimer;
+
+  /// Guards against overlapping live-session requests (a slow request must not
+  /// let the next tick pile a second one on top of it).
+  bool _liveInFlight = false;
+
+  /// Starts (or keeps) the 10s live-session poll loop. Fires an immediate
+  /// refresh — with a spinner only on the first load — then ticks silently.
+  /// Safe to call repeatedly: it won't stack timers.
+  void startLiveSessionPolling() {
+    if (_liveTimer != null) return;
+    loadLiveSession(
+      showSpinner: state.liveStatus != MyBookingsStatus.success,
+    );
+    _liveTimer = Timer.periodic(
+      _livePollInterval,
+      (_) => loadLiveSession(showSpinner: false),
+    );
+  }
+
+  /// Stops the live-session poll loop (tab left, screen backgrounded, or the
+  /// cubit is closing).
+  void stopLiveSessionPolling() {
+    _liveTimer?.cancel();
+    _liveTimer = null;
+  }
+
   /// Switches the Approved/Cancelled sub-tab within the Upcoming tab. Both lists
   /// are derived from the already-loaded my-bookings data, so no refetch needed.
   void selectUpcomingFilter(UpcomingFilter filter) {
@@ -53,12 +86,13 @@ class MyBookingsCubit extends Cubit<MyBookingsState> {
     if (tab == BookingTab.upcoming) {
       loadBookings(showSpinner: false);
     }
-    // Fetch the live session whenever Active is opened — with a spinner on the
-    // first visit, silently on refreshes.
+    // Poll the live session for as long as the Active tab is open — with a
+    // spinner on the first visit, silently on refreshes. Any other tab stops
+    // the loop.
     if (tab == BookingTab.active) {
-      loadLiveSession(
-        showSpinner: state.liveStatus != MyBookingsStatus.success,
-      );
+      startLiveSessionPolling();
+    } else {
+      stopLiveSessionPolling();
     }
     // Load charging history the first time History is opened, and refresh it
     // silently on subsequent visits.
@@ -83,6 +117,11 @@ class MyBookingsCubit extends Cubit<MyBookingsState> {
       return;
     }
 
+    // Don't let a slow request overlap with the next poll tick (or a manual
+    // refresh landing on top of a poll already in flight).
+    if (_liveInFlight) return;
+    _liveInFlight = true;
+
     if (showSpinner) {
       emit(state.copyWith(
         liveStatus: MyBookingsStatus.loading,
@@ -90,31 +129,42 @@ class MyBookingsCubit extends Cubit<MyBookingsState> {
       ));
     }
 
-    final result = await _getLiveSessionUseCase(const NoParams());
+    try {
+      final result = await _getLiveSessionUseCase(const NoParams());
 
-    if (isClosed) return;
-    result.fold(
-      (failure) => emit(
-        state.copyWith(
-          liveStatus: MyBookingsStatus.failure,
-          liveError: failure.message,
-        ),
-      ),
-      (session) {
-        // Persist the running session's id / detect that a previously-seen
-        // session (this launch or an earlier, killed one) has finished.
-        final completedId = LiveSessionCompletion.register(session);
-        emit(
-          state.copyWith(
-            liveStatus: MyBookingsStatus.success,
-            liveSession: session,
-            clearLiveError: true,
-            completedSessionId: completedId,
-            clearCompletedSessionId: completedId == null,
-          ),
-        );
-      },
-    );
+      if (isClosed) return;
+      result.fold(
+        (failure) {
+          // A background poll that fails shouldn't blow away good data the user
+          // is already looking at — only surface a failure when we have nothing
+          // to show yet.
+          if (state.liveStatus != MyBookingsStatus.success) {
+            emit(
+              state.copyWith(
+                liveStatus: MyBookingsStatus.failure,
+                liveError: failure.message,
+              ),
+            );
+          }
+        },
+        (session) {
+          // Persist the running session's id / detect that a previously-seen
+          // session (this launch or an earlier, killed one) has finished.
+          final completedId = LiveSessionCompletion.register(session);
+          emit(
+            state.copyWith(
+              liveStatus: MyBookingsStatus.success,
+              liveSession: session,
+              clearLiveError: true,
+              completedSessionId: completedId,
+              clearCompletedSessionId: completedId == null,
+            ),
+          );
+        },
+      );
+    } finally {
+      _liveInFlight = false;
+    }
   }
 
   /// Clears the one-shot [MyBookingsState.completedSessionId] once the view
@@ -292,5 +342,11 @@ class MyBookingsCubit extends Cubit<MyBookingsState> {
         return (success: true, message: 'Booking rescheduled.');
       },
     );
+  }
+
+  @override
+  Future<void> close() {
+    stopLiveSessionPolling();
+    return super.close();
   }
 }

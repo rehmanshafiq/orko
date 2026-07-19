@@ -26,8 +26,54 @@ import 'package:orko_hubco/features/booking/presentation/widgets/upcoming_bookin
 import 'package:orko_hubco/features/charging/presentation/cubit/charging_status_cubit.dart';
 import 'package:orko_hubco/features/charging/presentation/view/charging_status_mobile_view.dart';
 
-class MyBookingsMobileView extends StatelessWidget {
+class MyBookingsMobileView extends StatefulWidget {
   const MyBookingsMobileView({super.key});
+
+  @override
+  State<MyBookingsMobileView> createState() => _MyBookingsMobileViewState();
+}
+
+class _MyBookingsMobileViewState extends State<MyBookingsMobileView>
+    with WidgetsBindingObserver {
+  /// Captured once so it's safe to use in [dispose], where the cubit can no
+  /// longer be looked up via context.
+  late final MyBookingsCubit _cubit;
+
+  @override
+  void initState() {
+    super.initState();
+    _cubit = context.read<MyBookingsCubit>();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    // Leaving the screen: stop the live-session poll loop so no further
+    // requests fire once the view is gone (the cubit also stops it on close).
+    _cubit.stopLiveSessionPolling();
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  /// Pause the live-session poll when the app leaves the foreground; resume it
+  /// on return, but only while the Active (Live) tab is the one on screen.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState lifecycleState) {
+    if (!mounted) return;
+    switch (lifecycleState) {
+      case AppLifecycleState.resumed:
+        if (_cubit.state.selectedTab == BookingTab.active) {
+          _cubit.startLiveSessionPolling();
+        }
+        break;
+      case AppLifecycleState.inactive:
+      case AppLifecycleState.paused:
+      case AppLifecycleState.hidden:
+      case AppLifecycleState.detached:
+        _cubit.stopLiveSessionPolling();
+        break;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
