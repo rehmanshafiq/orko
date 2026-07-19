@@ -5,7 +5,7 @@ extension BookingTabX on BookingTab {
   String get label {
     switch (this) {
       case BookingTab.active:
-        return 'Active';
+        return 'Live';
       case BookingTab.upcoming:
         return 'Upcoming';
       case BookingTab.history:
