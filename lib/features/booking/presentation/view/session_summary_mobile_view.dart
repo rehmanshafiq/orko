@@ -193,24 +193,24 @@ class _SummaryBody extends StatelessWidget {
             ],
           ),
         ),
-        Padding(
-          padding: AppUtils.horizontal16Padding.add(
-            EdgeInsets.only(bottom: 12.h, top: 8.h),
-          ),
-          child: PrimaryButtonWidget(
-            text: 'Done',
-            onPress: () => Navigator.of(context).maybePop(),
-            buttonHeight: 44.h,
-            cornerRadius: 24.r,
-            gradientColors: const [
-              AppColors.primaryDarkColor,
-              AppColors.primaryDarkButtonColor,
-            ],
-            textColor: AppColors.whiteColor,
-            fontSize: FontSizes.font15Sp,
-            fontWeight: FontWeights.weight700,
-          ),
-        ),
+        // Padding(
+        //   padding: AppUtils.horizontal16Padding.add(
+        //     EdgeInsets.only(bottom: 12.h, top: 8.h),
+        //   ),
+        //   child: PrimaryButtonWidget(
+        //     text: 'Done',
+        //     onPress: () => Navigator.of(context).maybePop(),
+        //     buttonHeight: 44.h,
+        //     cornerRadius: 24.r,
+        //     gradientColors: const [
+        //       AppColors.primaryDarkColor,
+        //       AppColors.primaryDarkButtonColor,
+        //     ],
+        //     textColor: AppColors.whiteColor,
+        //     fontSize: FontSizes.font15Sp,
+        //     fontWeight: FontWeights.weight700,
+        //   ),
+        // ),
       ],
     );
   }

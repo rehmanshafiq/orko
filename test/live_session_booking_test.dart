@@ -73,10 +73,17 @@ void main() {
       );
     });
 
-    test('caps at the full slot length before the slot starts', () {
+    test('ticks down to the slot end when the session starts early', () {
+      // Session goes live at 12:00, an hour before the 13:00 booked start.
+      // The countdown must reflect the real time left to the slot end (4h) and
+      // keep ticking — it must NOT freeze at the full 3h slot length.
       expect(
         model.bookingTimeRemaining(DateTime(2026, 7, 16, 12)),
-        const Duration(hours: 3),
+        const Duration(hours: 4),
+      );
+      expect(
+        model.bookingTimeRemaining(DateTime(2026, 7, 16, 12, 0, 1)),
+        const Duration(hours: 3, minutes: 59, seconds: 59),
       );
     });
 

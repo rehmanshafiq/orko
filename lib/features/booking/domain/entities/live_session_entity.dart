@@ -172,16 +172,20 @@ class LiveSessionEntity extends Equatable {
     return end.difference(start);
   }
 
-  /// Time left in the booked slot as of [now]: counts down to the slot end,
-  /// never exceeds the full slot length (before the slot starts it reports
-  /// the whole slot), and bottoms out at zero once the slot is over. Null
-  /// when no booking is attached.
+  /// Time left in the booked slot as of [now]: counts down to the slot end and
+  /// bottoms out at zero once the slot is over. Null when no booking is
+  /// attached.
+  ///
+  /// When the live session starts *before* the booked slot begins, the
+  /// remaining time is legitimately larger than the slot length — we do NOT
+  /// clamp it to the slot, otherwise the countdown would freeze at the full
+  /// slot value until the booked start time arrives (the timer would appear
+  /// stuck). Leaving it uncapped lets the timer tick down the moment the
+  /// session goes live.
   Duration? bookingTimeRemaining(DateTime now) {
     final end = bookingEndDateTime;
     if (end == null) return null;
-    var remaining = end.difference(now);
-    final slot = bookingSlotDuration;
-    if (slot != null && remaining > slot) remaining = slot;
+    final remaining = end.difference(now);
     return remaining.isNegative ? Duration.zero : remaining;
   }
 
