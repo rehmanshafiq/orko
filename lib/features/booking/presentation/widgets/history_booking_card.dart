@@ -183,12 +183,16 @@ class _StatusBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(20.r),
         border: Border.all(width: 1.w, color: accent),
       ),
-      child: AppText(
-        label,
-        textAlign: TextAlign.center,
-        color: ui.textSecondary,
-        fontSize: FontSizes.font11Sp,
-        fontWeight: FontWeights.weight600,
+      child: Padding(
+        // Cancelled badge gets a touch of bottom padding to sit centered.
+        padding: EdgeInsets.only(bottom: isCancelled ? 4.h : 0),
+        child: AppText(
+          label,
+          textAlign: TextAlign.center,
+          color: ui.textSecondary,
+          fontSize: FontSizes.font11Sp,
+          fontWeight: FontWeights.weight600,
+        ),
       ),
     );
   }
