@@ -12,10 +12,14 @@ class HistoryBookingCard extends StatelessWidget {
     super.key,
     required this.ui,
     required this.booking,
+    this.onTap,
   });
 
   final AppUiColors ui;
   final HistoryBooking booking;
+
+  /// Tapping the card opens the session summary for this row.
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +29,10 @@ class HistoryBookingCard extends StatelessWidget {
         ? AppHelpers.formatCurrency(booking.amount!)
         : '—';
 
-    return Container(
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Container(
       width: double.infinity,
       padding: AppUtils.all18Padding,
       decoration: BoxDecoration(
@@ -127,6 +134,7 @@ class HistoryBookingCard extends StatelessWidget {
             ],
           ),
         ],
+      ),
       ),
     );
   }

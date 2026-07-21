@@ -17,7 +17,11 @@ import 'package:orko_hubco/features/booking/presentation/cubit/session_summary_s
 /// session duration, and the amount charged. Every figure renders defensively
 /// ('—' fallbacks) since the backend substitutes "N/A" while data is missing.
 class SessionSummaryMobileView extends StatelessWidget {
-  const SessionSummaryMobileView({super.key});
+  const SessionSummaryMobileView({super.key, this.showPaymentButtons = true});
+
+  /// Whether the pay-at-station / pay-in-app buttons are shown. Hidden when the
+  /// summary is opened from the History tab (a past session — nothing to pay).
+  final bool showPaymentButtons;
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +46,11 @@ class SessionSummaryMobileView extends StatelessWidget {
             if (state.isFailure || state.detail == null) {
               return _FailureBody(ui: ui, error: state.error);
             }
-            return _SummaryBody(ui: ui, detail: state.detail!);
+            return _SummaryBody(
+              ui: ui,
+              detail: state.detail!,
+              showPaymentButtons: showPaymentButtons,
+            );
           },
         ),
       ),
@@ -100,10 +108,15 @@ class _FailureBody extends StatelessWidget {
 }
 
 class _SummaryBody extends StatelessWidget {
-  const _SummaryBody({required this.ui, required this.detail});
+  const _SummaryBody({
+    required this.ui,
+    required this.detail,
+    required this.showPaymentButtons,
+  });
 
   final AppUiColors ui;
   final ChargeSessionDetailEntity detail;
+  final bool showPaymentButtons;
 
   @override
   Widget build(BuildContext context) {
@@ -151,8 +164,10 @@ class _SummaryBody extends StatelessWidget {
                 fontSize: FontSizes.font13Sp,
                 fontWeight: FontWeights.weight500,
               ),
-              16.verticalSpace,
-              _PaymentButtons(ui: ui),
+              if (showPaymentButtons) ...[
+                16.verticalSpace,
+                _PaymentButtons(ui: ui),
+              ],
               20.verticalSpace,
               _StatCard(
                 ui: ui,
@@ -340,7 +355,7 @@ class _PaymentButtons extends StatelessWidget {
               _PaymentMethodTile(
                 ui: ui,
                 icon: Icons.credit_card_rounded,
-                label: 'Credit',
+                label: 'Credit/Debit Card',
                 onTap: () => Navigator.of(sheetContext)
                     .pop(_StationPaymentMethod.credit),
               ),

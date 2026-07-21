@@ -866,10 +866,18 @@ class _HistoryTab extends StatelessWidget {
               padding: AppUtils.horizontal16Padding,
               itemCount: sessions.length,
               separatorBuilder: (_, __) => 14.verticalSpace,
-              itemBuilder: (context, index) => HistoryBookingCard(
-                ui: ui,
-                booking: _toHistory(sessions[index]),
-              ),
+              itemBuilder: (context, index) {
+                final session = sessions[index];
+                return HistoryBookingCard(
+                  ui: ui,
+                  booking: _toHistory(session),
+                  onTap: () => SessionSummaryPage.show(
+                    context,
+                    sessionId: session.id,
+                    showPaymentButtons: false,
+                  ),
+                );
+              },
             ),
     );
   }

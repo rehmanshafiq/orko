@@ -9,9 +9,16 @@ import 'package:orko_hubco/features/booking/presentation/view/session_summary_mo
 /// Post-session summary shown once a live charging session finishes: energy
 /// dispensed, CO2 offset, session duration, and the amount charged.
 class SessionSummaryPage extends StatelessWidget {
-  const SessionSummaryPage({super.key, required this.sessionId});
+  const SessionSummaryPage({
+    super.key,
+    required this.sessionId,
+    this.showPaymentButtons = true,
+  });
 
   final int sessionId;
+
+  /// Forwarded to the view — hidden when opened from the History tab.
+  final bool showPaymentButtons;
 
   /// Latched while a summary route is on screen, so the bookings Active tab
   /// and the charging-status screen (which can both detect the same session
@@ -25,13 +32,17 @@ class SessionSummaryPage extends StatelessWidget {
   static Future<void> show(
     BuildContext context, {
     required int sessionId,
+    bool showPaymentButtons = true,
   }) async {
     if (_isShowing) return;
     _isShowing = true;
     try {
       await Navigator.of(context, rootNavigator: true).push(
         MaterialPageRoute(
-          builder: (_) => SessionSummaryPage(sessionId: sessionId),
+          builder: (_) => SessionSummaryPage(
+            sessionId: sessionId,
+            showPaymentButtons: showPaymentButtons,
+          ),
         ),
       );
     } finally {
@@ -47,8 +58,10 @@ class SessionSummaryPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => sl<SessionSummaryCubit>(param1: sessionId)..load(),
-      child: const ResponsiveView(
-        mobile: SessionSummaryMobileView(),
+      child: ResponsiveView(
+        mobile: SessionSummaryMobileView(
+          showPaymentButtons: showPaymentButtons,
+        ),
       ),
     );
   }
