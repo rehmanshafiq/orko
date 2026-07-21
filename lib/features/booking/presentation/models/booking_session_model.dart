@@ -78,6 +78,8 @@ class HistoryBooking {
     required this.statusLabel,
     required this.isInProgress,
     this.isWalkIn = false,
+    this.isCancelled = false,
+    this.isNoShow = false,
     this.energyKwh,
     this.amount,
   });
@@ -86,6 +88,13 @@ class HistoryBooking {
 
   /// True when the session had no booking — surfaced as a "Walk-in" label.
   final bool isWalkIn;
+
+  /// True for a cancelled booking — its status badge uses the remove/error
+  /// accent instead of the default.
+  final bool isCancelled;
+
+  /// True for a no-show booking — its status badge uses the yellow accent.
+  final bool isNoShow;
 
   /// Formatted "started at" timestamp, or a placeholder when unavailable.
   final String dateTimeLabel;

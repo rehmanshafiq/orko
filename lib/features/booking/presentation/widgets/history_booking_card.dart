@@ -93,6 +93,8 @@ class HistoryBookingCard extends StatelessWidget {
               _StatusBadge(
                 label: booking.statusLabel,
                 isInProgress: booking.isInProgress,
+                isCancelled: booking.isCancelled,
+                isNoShow: booking.isNoShow,
               ),
             ],
           ),
@@ -150,17 +152,31 @@ class _SessionTypeBadge extends StatelessWidget {
 }
 
 class _StatusBadge extends StatelessWidget {
-  const _StatusBadge({required this.label, required this.isInProgress});
+  const _StatusBadge({
+    required this.label,
+    required this.isInProgress,
+    this.isCancelled = false,
+    this.isNoShow = false,
+  });
 
   final String label;
   final bool isInProgress;
+  final bool isCancelled;
+  final bool isNoShow;
 
   @override
   Widget build(BuildContext context) {
     final ui = AppUiColors.of(context);
-    // In-progress sessions get the brand-primary accent; completed/other use
-    // the secondary accent, matching the rest of the booking UI.
-    final accent = isInProgress ? ui.brandPrimary : ui.brandSecondary;
+    // Cancelled bookings use the remove/error accent; no-shows get the yellow
+    // accent; in-progress sessions get brand-primary; completed/other use the
+    // secondary accent.
+    final accent = isCancelled
+        ? AppColors.removeColor
+        : isNoShow
+            ? (ui.isLight
+                ? AppColors.slotBusyYellowColor
+                : AppColors.noShowBadgeOutlineColor)
+            : (isInProgress ? ui.brandPrimary : ui.brandSecondary);
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 5.h),
       decoration: BoxDecoration(
@@ -169,6 +185,7 @@ class _StatusBadge extends StatelessWidget {
       ),
       child: AppText(
         label,
+        textAlign: TextAlign.center,
         color: ui.textSecondary,
         fontSize: FontSizes.font11Sp,
         fontWeight: FontWeights.weight600,

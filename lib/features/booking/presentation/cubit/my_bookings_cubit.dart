@@ -95,11 +95,13 @@ class MyBookingsCubit extends Cubit<MyBookingsState> {
       stopLiveSessionPolling();
     }
     // Load charging history the first time History is opened, and refresh it
-    // silently on subsequent visits.
+    // silently on subsequent visits. Also refresh the bookings list, since the
+    // History tab now shows cancelled / no-show bookings alongside sessions.
     if (tab == BookingTab.history) {
       loadHistory(
         showSpinner: state.historyStatus != MyBookingsStatus.success,
       );
+      loadBookings(showSpinner: false);
     }
   }
 

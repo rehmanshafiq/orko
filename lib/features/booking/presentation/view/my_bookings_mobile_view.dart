@@ -260,158 +260,47 @@ class _UpcomingTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final filter = state.upcomingFilter;
-    final bookings = state.upcomingForFilter;
+    // Only approved bookings live in the Upcoming tab now; cancelled and
+    // no-show bookings moved to History.
+    final bookings = state.upcomingApproved;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Padding(
-          padding: AppUtils.horizontal16Padding,
-          child: _UpcomingFilterSelector(
+    if (bookings.isEmpty) {
+      return ListView(
+        // Keep it scrollable so pull-to-refresh works when empty.
+        padding: AppUtils.horizontal16Padding,
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [
+          BookingEmptyState(
             ui: ui,
-            selected: filter,
-            onSelected: cubit.selectUpcomingFilter,
+            icon: Icons.event_available_outlined,
+            title: 'No Upcoming Bookings',
+            subtitle: "You don't have any upcoming reservations",
+            accentColor: ui.brandPrimary,
+            iconOutlined: true,
           ),
-        ),
-        14.verticalSpace,
-        Expanded(
-          child: bookings.isEmpty
-              ? ListView(
-                  // Keep it scrollable so pull-to-refresh works when empty.
-                  padding: AppUtils.horizontal16Padding,
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  children: [
-                    BookingEmptyState(
-                      ui: ui,
-                      icon: _emptyIcon(filter),
-                      title: _emptyTitle(filter),
-                      subtitle: _emptySubtitle(filter),
-                      accentColor: ui.brandPrimary,
-                      iconOutlined: true,
-                    ),
-                  ],
-                )
-              : ListView.separated(
-                  padding: AppUtils.horizontal16Padding,
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  itemCount: bookings.length,
-                  separatorBuilder: (_, __) => 14.verticalSpace,
-                  itemBuilder: (context, index) {
-                    final booking = bookings[index];
-                    // Scan/Modify only apply to approved bookings. Pending ones
-                    // can still be cancelled (gated by canCancel); cancelled
-                    // ones are read-only.
-                    final isApproved = booking.isApproved;
-                    return UpcomingBookingCard(
-                      ui: ui,
-                      booking: booking,
-                      isProcessing: state.isActionInProgress(booking.id),
-                      showScanQr: isApproved,
-                      showModify: isApproved,
-                      onModify: () => _openReschedule(context, cubit, booking),
-                      onCancel: () => _confirmCancel(context, cubit, booking),
-                      onScanQr: () => _scanBookingQrCode(context, booking),
-                    );
-                  },
-                ),
-        ),
-      ],
-    );
-  }
-
-  IconData _emptyIcon(UpcomingFilter filter) {
-    switch (filter) {
-      case UpcomingFilter.approved:
-        // Calendar with a check mark inside — mirrors the cancelled
-        // calendar-with-a-cross icon.
-        return Icons.event_available_outlined;
-      case UpcomingFilter.cancelled:
-        return Icons.event_busy_outlined;
+        ],
+      );
     }
-  }
 
-  String _emptyTitle(UpcomingFilter filter) {
-    switch (filter) {
-      case UpcomingFilter.approved:
-        return 'No Upcoming Bookings';
-      case UpcomingFilter.cancelled:
-        return 'No Cancelled Bookings';
-    }
-  }
-
-  String _emptySubtitle(UpcomingFilter filter) {
-    switch (filter) {
-      case UpcomingFilter.approved:
-        return "You don't have any upcoming reservations";
-      case UpcomingFilter.cancelled:
-        return "You don't have any cancelled bookings";
-    }
-  }
-}
-
-/// Pill segmented control switching the Approved/Cancelled sub-tabs.
-class _UpcomingFilterSelector extends StatelessWidget {
-  const _UpcomingFilterSelector({
-    required this.ui,
-    required this.selected,
-    required this.onSelected,
-  });
-
-  final AppUiColors ui;
-  final UpcomingFilter selected;
-  final ValueChanged<UpcomingFilter> onSelected;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.all(4.r),
-      decoration: BoxDecoration(
-        color: ui.isLight
-            ? AppColors.shimmerGreyColor
-            : AppColors.whiteColor.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(14.r),
-      ),
-      child: Row(
-        children: UpcomingFilter.values.map((f) {
-          final isSelected = f == selected;
-          return Expanded(
-            child: GestureDetector(
-              onTap: () => onSelected(f),
-              behavior: HitTestBehavior.opaque,
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                curve: Curves.easeOut,
-                padding: EdgeInsets.symmetric(vertical: 9.h),
-                decoration: BoxDecoration(
-                  color: isSelected
-                      ? ui.cardBackground
-                      : AppColors.transparentColor,
-                  borderRadius: BorderRadius.circular(10.r),
-                  boxShadow: isSelected
-                      ? [
-                          BoxShadow(
-                            color: AppColors.blackColor.withValues(alpha: 0.06),
-                            blurRadius: 6,
-                            offset: const Offset(0, 2),
-                          ),
-                        ]
-                      : null,
-                ),
-                child: AppText(
-                  f.label,
-                  textAlign: TextAlign.center,
-                  color: isSelected ? ui.textPrimary : ui.textSecondary,
-                  fontSize: FontSizes.font13Sp,
-                  fontWeight: isSelected
-                      ? FontWeights.weight700
-                      : FontWeights.weight500,
-                ),
-              ),
-            ),
-          );
-        }).toList(),
-      ),
+    return ListView.separated(
+      padding: AppUtils.horizontal16Padding,
+      physics: const AlwaysScrollableScrollPhysics(),
+      itemCount: bookings.length,
+      separatorBuilder: (_, __) => 14.verticalSpace,
+      itemBuilder: (context, index) {
+        final booking = bookings[index];
+        // All rows here are approved, so Scan/Modify always apply.
+        return UpcomingBookingCard(
+          ui: ui,
+          booking: booking,
+          isProcessing: state.isActionInProgress(booking.id),
+          showScanQr: true,
+          showModify: true,
+          onModify: () => _openReschedule(context, cubit, booking),
+          onCancel: () => _confirmCancel(context, cubit, booking),
+          onScanQr: () => _scanBookingQrCode(context, booking),
+        );
+      },
     );
   }
 }
@@ -844,11 +733,27 @@ class _HistoryTab extends StatelessWidget {
       );
     }
 
-    final sessions = state.historySessions;
+    // History = actual charging sessions plus the bookings that never
+    // happened (cancelled / no-show), which moved here from the Upcoming tab.
+    final items = <_HistoryItem>[
+      for (final s in state.historySessions)
+        _HistoryItem(
+          booking: _sessionToHistory(s),
+          // Only real sessions have a summary to open.
+          onTap: () => SessionSummaryPage.show(
+            context,
+            sessionId: s.id,
+            showPaymentButtons: false,
+          ),
+        ),
+      for (final b in state.upcomingCancelled)
+        _HistoryItem(booking: _bookingToHistory(b)),
+    ];
+
     return RefreshIndicator(
       color: ui.brandPrimary,
       onRefresh: () => cubit.loadHistory(showSpinner: false),
-      child: sessions.isEmpty
+      child: items.isEmpty
           ? ListView(
               padding: AppUtils.horizontal16Padding,
               children: [
@@ -864,25 +769,21 @@ class _HistoryTab extends StatelessWidget {
             )
           : ListView.separated(
               padding: AppUtils.horizontal16Padding,
-              itemCount: sessions.length,
+              itemCount: items.length,
               separatorBuilder: (_, __) => 14.verticalSpace,
               itemBuilder: (context, index) {
-                final session = sessions[index];
+                final item = items[index];
                 return HistoryBookingCard(
                   ui: ui,
-                  booking: _toHistory(session),
-                  onTap: () => SessionSummaryPage.show(
-                    context,
-                    sessionId: session.id,
-                    showPaymentButtons: false,
-                  ),
+                  booking: item.booking,
+                  onTap: item.onTap,
                 );
               },
             ),
     );
   }
 
-  HistoryBooking _toHistory(ChargeSessionHistoryEntity s) {
+  HistoryBooking _sessionToHistory(ChargeSessionHistoryEntity s) {
     return HistoryBooking(
       stationName: s.displayName,
       dateTimeLabel: _formatStartedAt(s.startedAt),
@@ -896,6 +797,34 @@ class _HistoryTab extends StatelessWidget {
       amount: s.totalCost,
     );
   }
+
+  /// Renders a cancelled / no-show booking as a History row. Shows the booked
+  /// slot (start–end) in place of the session start time.
+  HistoryBooking _bookingToHistory(MyBookingEntity b) {
+    final slot = [b.startTime, b.endTime]
+        .where((t) => t.trim().isNotEmpty)
+        .join(' - ');
+    return HistoryBooking(
+      stationName: b.displayName,
+      dateTimeLabel: [b.displayDate, slot].where((p) => p.isNotEmpty).join(' · '),
+      durationLabel: '—',
+      statusLabel: b.isNoShow ? 'No Show' : 'Cancelled',
+      isInProgress: false,
+      isCancelled: b.isCancelled,
+      isNoShow: b.isNoShow,
+      energyKwh: null,
+      amount: b.estimatedCost?.amount,
+    );
+  }
+}
+
+/// A single History-tab row: the card model plus an optional tap handler
+/// (real sessions open their summary; cancelled/no-show bookings don't).
+class _HistoryItem {
+  const _HistoryItem({required this.booking, this.onTap});
+
+  final HistoryBooking booking;
+  final VoidCallback? onTap;
 }
 
 /// Formats a `yyyy-MM-dd HH:mm:ss` timestamp into `dd/MM/yyyy · h:mm a`,
