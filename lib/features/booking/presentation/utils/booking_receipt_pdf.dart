@@ -20,7 +20,7 @@ class BookingReceiptPdf {
     required String bookingRef,
     required String stationName,
     required String slotLabel,
-    required String paymentLabel,
+    String? paymentLabel,
     required int amountPaid,
     DateTime? issuedAt,
   }) async {
@@ -105,7 +105,7 @@ class BookingReceiptPdf {
     required String bookingRef,
     required String stationName,
     required String slotLabel,
-    required String paymentLabel,
+    String? paymentLabel,
     required int amountPaid,
   }) async {
     final bytes = await build(
@@ -167,8 +167,11 @@ class BookingReceiptPdf {
     required String bookingRef,
     required String stationName,
     required String slotLabel,
-    required String paymentLabel,
+    String? paymentLabel,
   }) {
+    // The Payment Method row is optional — omitted when no method is known
+    // (e.g. the booking-success screen), so the Date row becomes the last one.
+    final hasPayment = paymentLabel != null && paymentLabel.isNotEmpty;
     return pw.Container(
       decoration: pw.BoxDecoration(
         border: pw.Border.all(color: _line),
@@ -179,8 +182,9 @@ class BookingReceiptPdf {
         children: [
           _row('Booking Reference', bookingRef),
           _row('Station', stationName),
-          _row('Slot', slotLabel),
-          _row('Payment Method', paymentLabel, isLast: true),
+          _row('Date', slotLabel, isLast: !hasPayment),
+          if (hasPayment)
+            _row('Payment Method', paymentLabel, isLast: true),
         ],
       ),
     );

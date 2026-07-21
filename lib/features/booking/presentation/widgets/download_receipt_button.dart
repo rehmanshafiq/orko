@@ -13,14 +13,16 @@ class DownloadReceiptButton extends StatefulWidget {
     required this.bookingRef,
     required this.stationName,
     required this.slotLabel,
-    required this.paymentLabel,
+    this.paymentLabel,
     required this.amountPaid,
   });
 
   final String bookingRef;
   final String stationName;
   final String slotLabel;
-  final String paymentLabel;
+
+  /// Payment method shown on the receipt. Null/empty hides the row entirely.
+  final String? paymentLabel;
   final int amountPaid;
 
   @override
@@ -89,7 +91,7 @@ class _DownloadReceiptButtonState extends State<DownloadReceiptButton> {
                   ),
                   8.horizontalSpace,
                   AppText(
-                    'Download Receipt (PDF)',
+                    'Download Receipt',
                     color: ui.textSecondary,
                     fontSize: FontSizes.font14Sp,
                     fontWeight: FontWeights.weight700,

@@ -12,6 +12,7 @@ import 'package:orko_hubco/core/utils/widgets/primary_button_widget.dart';
 import 'package:orko_hubco/features/booking/domain/entities/charge_session_detail_entity.dart';
 import 'package:orko_hubco/features/booking/presentation/cubit/session_summary_cubit.dart';
 import 'package:orko_hubco/features/booking/presentation/cubit/session_summary_state.dart';
+import 'package:orko_hubco/features/booking/presentation/widgets/download_receipt_button.dart';
 
 /// Summary of a finished charging session: energy dispensed, carbon offset,
 /// session duration, and the amount charged. Every figure renders defensively
@@ -107,7 +108,7 @@ class _FailureBody extends StatelessWidget {
   }
 }
 
-class _SummaryBody extends StatelessWidget {
+class _SummaryBody extends StatefulWidget {
   const _SummaryBody({
     required this.ui,
     required this.detail,
@@ -119,23 +120,51 @@ class _SummaryBody extends StatelessWidget {
   final bool showPaymentButtons;
 
   @override
+  State<_SummaryBody> createState() => _SummaryBodyState();
+}
+
+class _SummaryBodyState extends State<_SummaryBody> {
+  /// Set once the user completes the Pay-at-Station flow. Then the close icon
+  /// appears, the payment buttons lock (disabled/greyed), and the download
+  /// receipt button shows at the bottom.
+  bool _paidAtStation = false;
+  _StationPaymentMethod? _method;
+
+  /// The close icon is hidden on the live-session flow until the user has paid
+  /// at the station; on other flows (History) it's always available.
+  bool get _showCloseIcon => !widget.showPaymentButtons || _paidAtStation;
+
+  void _onPaidAtStation(_StationPaymentMethod method) {
+    if (_paidAtStation) return;
+    setState(() {
+      _paidAtStation = true;
+      _method = method;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final ui = widget.ui;
+    final detail = widget.detail;
     return Column(
       children: [
         Padding(
           padding: EdgeInsets.fromLTRB(8.w, 4.h, 8.w, 0),
           child: Align(
             alignment: Alignment.centerRight,
-            child: IconButton(
-              onPressed: () => Navigator.of(context).maybePop(),
-              icon: Icon(
-                Icons.close_rounded,
-                color: ui.textSecondary,
-                size: 24.r,
-              ),
-              padding: EdgeInsets.all(8.r),
-              constraints: BoxConstraints(minWidth: 40.w, minHeight: 40.h),
-            ),
+            child: _showCloseIcon
+                ? IconButton(
+                    onPressed: () => Navigator.of(context).maybePop(),
+                    icon: Icon(
+                      Icons.close_rounded,
+                      color: ui.textSecondary,
+                      size: 24.r,
+                    ),
+                    padding: EdgeInsets.all(8.r),
+                    constraints:
+                        BoxConstraints(minWidth: 40.w, minHeight: 40.h),
+                  )
+                : SizedBox(width: 40.w, height: 40.h),
           ),
         ),
         Expanded(
@@ -164,9 +193,13 @@ class _SummaryBody extends StatelessWidget {
                 fontSize: FontSizes.font13Sp,
                 fontWeight: FontWeights.weight500,
               ),
-              if (showPaymentButtons) ...[
+              if (widget.showPaymentButtons) ...[
                 16.verticalSpace,
-                _PaymentButtons(ui: ui),
+                _PaymentButtons(
+                  ui: ui,
+                  disabled: _paidAtStation,
+                  onPaidAtStation: _onPaidAtStation,
+                ),
               ],
               20.verticalSpace,
               _StatCard(
@@ -208,6 +241,21 @@ class _SummaryBody extends StatelessWidget {
             ],
           ),
         ),
+        // The receipt is always available from History (a past, settled
+        // session); on the live-session flow it appears once paid at station.
+        if (_paidAtStation || !widget.showPaymentButtons)
+          Padding(
+            padding: AppUtils.horizontal16Padding.add(
+              EdgeInsets.only(bottom: 12.h, top: 8.h),
+            ),
+            child: DownloadReceiptButton(
+              bookingRef: '#${detail.id}',
+              stationName: detail.displayName,
+              slotLabel: _receiptSlotLabel,
+              paymentLabel: _paymentLabel,
+              amountPaid: _amountPaid,
+            ),
+          ),
         // Padding(
         //   padding: AppUtils.horizontal16Padding.add(
         //     EdgeInsets.only(bottom: 12.h, top: 8.h),
@@ -233,11 +281,34 @@ class _SummaryBody extends StatelessWidget {
   /// "Dolmen Mall Clifton · 16/07/2026 · 2:47 PM" — parts drop out when
   /// unavailable.
   String get _subtitle {
-    final parts = <String>[detail.displayName];
-    final completed = _formatTimestamp(detail.completedAt);
+    final parts = <String>[widget.detail.displayName];
+    final completed = _formatTimestamp(widget.detail.completedAt);
     if (completed != null) parts.add(completed);
     return parts.join(' · ');
   }
+
+  /// Date/time label used on the receipt for this session.
+  String get _receiptSlotLabel =>
+      _formatTimestamp(widget.detail.completedAt) ??
+      widget.detail.duration ??
+      '—';
+
+  /// Human-readable payment method for the receipt. Null when no method was
+  /// chosen (e.g. opened from History), which hides the row on the receipt.
+  String? get _paymentLabel {
+    switch (_method) {
+      case _StationPaymentMethod.cash:
+        return 'Cash';
+      case _StationPaymentMethod.credit:
+        return 'Credit/Debit';
+      case null:
+        return null;
+    }
+  }
+
+  /// Amount owed for the session, rounded to a whole number.
+  int get _amountPaid =>
+      (widget.detail.totalCost ?? widget.detail.energyCost ?? 0).round();
 
   static String? _formatTimestamp(String? raw) {
     if (raw == null || raw.isEmpty) return null;
@@ -259,9 +330,20 @@ enum _StationPaymentMethod { cash, credit }
 /// Payment choice for the finished session: in-app (not live yet — shows a
 /// "Coming soon" toast) or at the station (opens a cash/credit picker).
 class _PaymentButtons extends StatelessWidget {
-  const _PaymentButtons({required this.ui});
+  const _PaymentButtons({
+    required this.ui,
+    this.disabled = false,
+    required this.onPaidAtStation,
+  });
 
   final AppUiColors ui;
+
+  /// When true both buttons are locked (disabled/greyed) — set after the user
+  /// has completed the pay-at-station flow.
+  final bool disabled;
+
+  /// Called with the chosen method once the user settles at the station.
+  final ValueChanged<_StationPaymentMethod> onPaidAtStation;
 
   @override
   Widget build(BuildContext context) {
@@ -270,7 +352,8 @@ class _PaymentButtons extends StatelessWidget {
         Expanded(
           child: PrimaryButtonWidget(
             text: 'Pay at Station',
-            onPress: () => _onPayAtStation(context),
+            onPress: disabled ? null : () => _onPayAtStation(context),
+            isEnabled: !disabled,
             buttonHeight: 42.h,
             cornerRadius: 24.r,
             strokeColor: ui.textMuted,
@@ -284,7 +367,8 @@ class _PaymentButtons extends StatelessWidget {
         Expanded(
           child: PrimaryButtonWidget(
             text: 'Pay in App',
-            onPress: _onPayInApp,
+            onPress: disabled ? null : _onPayInApp,
+            isEnabled: !disabled,
             buttonHeight: 42.h,
             cornerRadius: 24.r,
             strokeColor: ui.textMuted,
@@ -374,6 +458,7 @@ class _PaymentButtons extends StatelessWidget {
       toastLength: Toast.LENGTH_SHORT,
       gravity: ToastGravity.BOTTOM,
     );
+    onPaidAtStation(method);
   }
 }
 
@@ -543,5 +628,5 @@ class _AmountCard extends StatelessWidget {
   }
 
   String _formatAmount(double? amount) =>
-      amount != null ? AppHelpers.formatCurrency(amount) : '—';
+      amount != null ? AppHelpers.formatCurrency(amount.roundToDouble()) : '—';
 }
