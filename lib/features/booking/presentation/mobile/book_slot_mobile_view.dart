@@ -79,24 +79,13 @@ class BookSlotMobileView extends StatelessWidget {
                   final cubit = context.read<BookingCubit>();
                   final screenW = MediaQuery.sizeOf(context).width;
                   final buttonW = screenW - 32.w - 24.w;
-                  // Estimated energy uses a flat ~10 kWh/hour assumption (5 kWh
-                  // per 30-min slot); cost is driven by the selected
-                  // connector's per-kWh tariff.
-                  final selectedPrice = state.selectedPort?.price;
-                  final pricePerKwh = selectedPrice?.price ?? 0;
-                  final currency = (selectedPrice?.currency.isNotEmpty ?? false)
-                      ? selectedPrice!.currency
-                      : 'PKR';
-                  final kwhNote = 5 * state.noOfSlots;
-                  final estimated = pricePerKwh * kwhNote;
-                  final hasPrice = selectedPrice != null && pricePerKwh > 0;
 
                   return SingleChildScrollView(
                     padding: AppUtils.horizontal16Padding,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        16.verticalSpace,
+                        20.verticalSpace,
                         StationInfoCard(
                           title: state.stationName ??
                               stationName ??
@@ -135,7 +124,7 @@ class BookSlotMobileView extends StatelessWidget {
                           selectedIndex: state.selectedDateIndex,
                           onSelectDate: cubit.selectDate,
                         ),
-                        20.verticalSpace,
+                        22.verticalSpace,
                         AppText(
                           'Available Time Slots',
                           color: ui.textPrimary,
@@ -150,17 +139,10 @@ class BookSlotMobileView extends StatelessWidget {
                           fontSize: FontSizes.font11Sp,
                           fontWeight: FontWeights.weight400,
                         ),
-                        12.verticalSpace,
+                        20.verticalSpace,
                         _SlotsSection(ui: ui, state: state, cubit: cubit),
-                        18.verticalSpace,
+                        24.verticalSpace,
                         SummaryBottomCard(
-                          ui: ui,
-                          durationLabel: _durationLabel(state.bookingMinutes),
-                          estimatedCost: estimated,
-                          estimatedKwh: kwhNote,
-                          currency: currency,
-                          pricePerKwh: pricePerKwh,
-                          hasPrice: hasPrice,
                           buttonWidth: buttonW,
                           isContinueEnabled: state.canContinue,
                           onContinueToPayment: () => _onContinue(context, cubit),
@@ -266,16 +248,6 @@ class BookSlotMobileView extends StatelessWidget {
     final timeLabel = [start, end].where((t) => t.isNotEmpty).join(' – ');
 
     return [dateLabel, timeLabel].where((p) => p.isNotEmpty).join(' · ');
-  }
-
-  /// `30 min` / `1 hour` label for the booked duration.
-  static String _durationLabel(int minutes) {
-    if (minutes < 60) return '$minutes min';
-    final hours = minutes / 60;
-    final whole = hours.truncate();
-    return hours == whole
-        ? '$whole hour${whole == 1 ? '' : 's'}'
-        : '${hours.toStringAsFixed(1)} hours';
   }
 }
 
