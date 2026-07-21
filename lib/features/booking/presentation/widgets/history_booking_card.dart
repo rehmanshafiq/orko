@@ -96,7 +96,7 @@ class HistoryBookingCard extends StatelessWidget {
               ),
             ],
           ),
-          16.verticalSpace,
+          14.verticalSpace,
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
