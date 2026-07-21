@@ -197,6 +197,7 @@ class _ChargingStatusMobileViewState extends State<ChargingStatusMobileView>
                       ui: ui,
                       estimatedTimeLabel: state.estimatedTimeLabel,
                       bookingTimeLeftLabel: state.bookingTimeLeftLabel,
+                      bookingSlotOver: state.isBookingSlotOver,
                       sliderValue: state.sliderValue,
                       targetPercentLabel: state.targetPercentLabel,
                       onSliderChanged: cubit.updateProgress,
@@ -251,6 +252,7 @@ class _ChargingSessionTargetCard extends StatelessWidget {
     required this.ui,
     required this.estimatedTimeLabel,
     required this.bookingTimeLeftLabel,
+    required this.bookingSlotOver,
     required this.sliderValue,
     required this.targetPercentLabel,
     required this.onSliderChanged,
@@ -261,6 +263,10 @@ class _ChargingSessionTargetCard extends StatelessWidget {
 
   /// Live `HH:MM:SS` countdown of the booked slot; empty hides the row.
   final String bookingTimeLeftLabel;
+
+  /// True once the booked slot has fully elapsed: the countdown is hidden and
+  /// an "ended" message is shown in its place.
+  final bool bookingSlotOver;
   final double sliderValue;
   final String targetPercentLabel;
   final ValueChanged<double> onSliderChanged;
@@ -290,7 +296,14 @@ class _ChargingSessionTargetCard extends StatelessWidget {
           //   fontSize: FontSizes.font18Sp,
           //   fontWeight: FontWeights.weight600,
           // ),
-          if (bookingTimeLeftLabel.isNotEmpty) ...[
+          if (bookingSlotOver) ...[
+            AppText(
+              'Your booking time has ended',
+              color: ui.textMuted,
+              fontSize: FontSizes.font15Sp,
+              fontWeight: FontWeights.weight500,
+            ),
+          ] else if (bookingTimeLeftLabel.isNotEmpty) ...[
             // 4.verticalSpace,
             AppText(
               'Remaining Booked Slot Time',
