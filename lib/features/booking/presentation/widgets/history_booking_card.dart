@@ -26,7 +26,7 @@ class HistoryBookingCard extends StatelessWidget {
     final energyLabel =
         booking.energyKwh != null ? '${_trim(booking.energyKwh!)} kWh' : '—';
     final amountLabel = booking.amount != null
-        ? AppHelpers.formatCurrency(booking.amount!)
+        ? AppHelpers.formatCurrency(booking.amount!.roundToDouble())
         : '—';
 
     return GestureDetector(
@@ -40,91 +40,68 @@ class HistoryBookingCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16.r),
         border: Border.all(color: ui.borderSubtle),
       ),
-      child: Row(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            height: 44.r,
-            width: 44.r,
-            decoration: BoxDecoration(
-              color: Colors.transparent,
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: ui.isLight ? ui.iconContainerOutline : ui.brandPrimary,
-                width: 1.5,
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                height: 44.r,
+                width: 44.r,
+                decoration: BoxDecoration(
+                  color: Colors.transparent,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color:
+                        ui.isLight ? ui.iconContainerOutline : ui.brandPrimary,
+                    width: 1.5,
+                  ),
+                ),
+                child: Icon(
+                  Icons.bolt,
+                  color: ui.brandPrimary,
+                  size: 22.sp,
+                ),
               ),
-            ),
-            child: Icon(
-              Icons.bolt,
-              color: ui.brandPrimary,
-              size: 22.sp,
-            ),
-          ),
-          12.horizontalSpace,
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                AppText(
-                  booking.stationName,
-                  color: ui.textPrimary,
-                  fontSize: FontSizes.font16Sp,
-                  fontWeight: FontWeights.weight700,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                4.verticalSpace,
-                AppText(
-                  booking.dateTimeLabel,
-                  color: ui.textSecondary,
-                  fontSize: FontSizes.font12Sp,
-                  fontWeight: FontWeights.weight400,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                4.verticalSpace,
-                Row(
+              12.horizontalSpace,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Flexible(
-                      child: AppText(
-                        booking.durationLabel,
-                        color: ui.textSecondary,
-                        fontSize: FontSizes.font12Sp,
-                        fontWeight: FontWeights.weight400,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
                     AppText(
-                      '  ·  ',
+                      booking.stationName,
+                      color: ui.textPrimary,
+                      fontSize: FontSizes.font16Sp,
+                      fontWeight: FontWeights.weight700,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    4.verticalSpace,
+                    AppText(
+                      booking.dateTimeLabel,
                       color: ui.textSecondary,
                       fontSize: FontSizes.font12Sp,
                       fontWeight: FontWeights.weight400,
-                    ),
-                    AppText(
-                      energyLabel,
-                      color: ui.brandPrimary,
-                      fontSize: FontSizes.font12Sp,
-                      fontWeight: FontWeights.weight600,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
-                if (booking.isWalkIn) ...[
-                  8.verticalSpace,
-                  _WalkInBadge(ui: ui),
-                ],
-              ],
-            ),
-          ),
-          8.horizontalSpace,
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
+              ),
+              8.horizontalSpace,
               _StatusBadge(
                 label: booking.statusLabel,
                 isInProgress: booking.isInProgress,
               ),
-              10.verticalSpace,
+            ],
+          ),
+          12.verticalSpace,
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              _SessionTypeBadge(ui: ui, isWalkIn: booking.isWalkIn),
+              const Spacer(),
               AppText(
                 amountLabel,
                 color: ui.textPrimary,
@@ -146,23 +123,24 @@ class HistoryBookingCard extends StatelessWidget {
   }
 }
 
-/// Small pill marking a session that had no booking (charged as a walk-in).
-class _WalkInBadge extends StatelessWidget {
-  const _WalkInBadge({required this.ui});
+/// Small pill marking how the session started: a walk-in (no booking) or a
+/// booked session (reserved beforehand).
+class _SessionTypeBadge extends StatelessWidget {
+  const _SessionTypeBadge({required this.ui, required this.isWalkIn});
 
   final AppUiColors ui;
+  final bool isWalkIn;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
       decoration: BoxDecoration(
-        // color: ui.brandSecondary.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(20.r),
         border: Border.all(width: 1.w, color: ui.textMuted),
       ),
       child: AppText(
-        'Walk-in',
+        isWalkIn ? 'Walk-in' : 'Booked session',
         color: ui.textMuted,
         fontSize: FontSizes.font10Sp,
         fontWeight: FontWeights.weight600,

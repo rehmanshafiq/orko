@@ -243,7 +243,7 @@ class _SummaryBody extends StatelessWidget {
     if (raw == null || raw.isEmpty) return null;
     final parsed = DateTime.tryParse(raw.replaceFirst(' ', 'T'));
     if (parsed == null) return raw;
-    return DateFormat('dd/MM/yyyy · h:mm a').format(parsed);
+    return DateFormat('dd/MM/yyyy').format(parsed);
   }
 
   /// Drops a trailing `.0` so `12.75` stays but `80.0` shows as `80`.
