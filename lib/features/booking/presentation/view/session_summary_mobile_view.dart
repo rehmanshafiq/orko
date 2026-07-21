@@ -583,7 +583,7 @@ class _StatCard extends StatelessWidget {
   }
 }
 
-/// Cost breakdown: the session's energy cost.
+/// Cost breakdown: the session's total cost.
 class _AmountCard extends StatelessWidget {
   const _AmountCard({required this.ui, required this.detail});
 
@@ -601,7 +601,7 @@ class _AmountCard extends StatelessWidget {
       ),
       child: Column(
         children: [
-          _row('Energy Cost', detail.energyCost),
+          _row('Total Cost', detail.totalCost),
         ],
       ),
     );
