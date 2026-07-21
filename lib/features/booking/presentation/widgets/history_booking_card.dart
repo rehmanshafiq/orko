@@ -185,7 +185,7 @@ class _StatusBadge extends StatelessWidget {
       ),
       child: Padding(
         // Cancelled badge gets a touch of bottom padding to sit centered.
-        padding: EdgeInsets.only(bottom: isCancelled ? 4.h : 0),
+        padding: EdgeInsets.only(bottom: isCancelled ? 1.h : 0),
         child: AppText(
           label,
           textAlign: TextAlign.center,
