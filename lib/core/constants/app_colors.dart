@@ -55,7 +55,7 @@ class AppColors {
   /// Busy / warning time slots (mustard on dark UI).
   static const slotBusyYellowColor = Color(0xFF9A7B1E);
   /// Pale-yellow outline of the "No Show" booking badge.
-  static const noShowBadgeOutlineColor = Color(0xFFFFF6E2);
+  static const noShowBadgeOutlineColor = Color(0xFFF4C97A); //Color(0xFFFFF6E2)
   /// Booked / unavailable slot chip background.
   static const slotBookedBackgroundColor = Color(0xFF512324);
   static const darkNearbyColor = Color(0xFF222222);

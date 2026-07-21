@@ -60,13 +60,6 @@ class UpcomingBookingCard extends StatelessWidget {
         .join(' ');
   }
 
-  String get _costLabel {
-    final cost = booking.estimatedCost;
-    if (cost == null) return 'N/A';
-    final currency = cost.currency.isEmpty ? 'PKR' : cost.currency;
-    return AppHelpers.formatCurrency(cost.amount, currency: currency);
-  }
-
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -172,13 +165,6 @@ class UpcomingBookingCard extends StatelessWidget {
                 fontWeight: FontWeights.weight400,
               ),
             ],
-          ),
-          12.verticalSpace,
-          AppText(
-            'Estimated Cost: $_costLabel',
-            color: ui.textPrimary,
-            fontSize: FontSizes.font14Sp,
-            fontWeight: FontWeights.weight700,
           ),
           // Scan QR (approved only) — grey rounded pill per design.
           if (showScanQr) ...[
