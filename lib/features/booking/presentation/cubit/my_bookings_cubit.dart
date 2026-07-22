@@ -46,14 +46,14 @@ class MyBookingsCubit extends Cubit<MyBookingsState> {
   /// Polls the live-session endpoint while the Active (Live) tab is on screen,
   /// so a session that starts (e.g. a walk-in) shows up within one interval
   /// even when the tab was sitting on the empty state.
-  static const Duration _livePollInterval = Duration(seconds: 10);
+  static const Duration _livePollInterval = Duration(seconds: 4);
   Timer? _liveTimer;
 
   /// Guards against overlapping live-session requests (a slow request must not
   /// let the next tick pile a second one on top of it).
   bool _liveInFlight = false;
 
-  /// Starts (or keeps) the 10s live-session poll loop. Fires an immediate
+  /// Starts (or keeps) the 4s live-session poll loop. Fires an immediate
   /// refresh — with a spinner only on the first load — then ticks silently.
   /// Safe to call repeatedly: it won't stack timers.
   void startLiveSessionPolling() {
