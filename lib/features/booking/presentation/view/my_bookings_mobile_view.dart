@@ -39,11 +39,27 @@ class _MyBookingsMobileViewState extends State<MyBookingsMobileView>
   /// longer be looked up via context.
   late final MyBookingsCubit _cubit;
 
+  /// Whether this screen is the visible bottom-nav tab. This view lives inside
+  /// the bottom-nav shell, where hidden tabs stay alive (so [dispose] is *not*
+  /// called when the user switches to another bottom-nav tab). The shell drives
+  /// [TickerMode] per visible tab, so we track it to stop the poll loop when
+  /// this screen is off-screen and resume it when it's shown again.
+  bool _isScreenVisible = true;
+
   @override
   void initState() {
     super.initState();
     _cubit = context.read<MyBookingsCubit>();
     WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Re-invoked whenever TickerMode flips (i.e. this screen is shown/hidden by
+    // the bottom-nav shell). Keep the poll loop in sync with visibility.
+    _isScreenVisible = TickerMode.valuesOf(context).enabled;
+    _syncLiveSessionPolling();
   }
 
   @override
@@ -56,17 +72,13 @@ class _MyBookingsMobileViewState extends State<MyBookingsMobileView>
   }
 
   /// Pause the live-session poll when the app leaves the foreground; resume it
-  /// on return, but only while Upcoming or Active is the tab on screen (see
-  /// [MyBookingsCubit.selectTab]).
+  /// on return, subject to the same visibility + tab gating as everywhere else.
   @override
   void didChangeAppLifecycleState(AppLifecycleState lifecycleState) {
     if (!mounted) return;
     switch (lifecycleState) {
       case AppLifecycleState.resumed:
-        final tab = _cubit.state.selectedTab;
-        if (tab == BookingTab.active || tab == BookingTab.upcoming) {
-          _cubit.startLiveSessionPolling();
-        }
+        _syncLiveSessionPolling();
         break;
       case AppLifecycleState.inactive:
       case AppLifecycleState.paused:
@@ -74,6 +86,21 @@ class _MyBookingsMobileViewState extends State<MyBookingsMobileView>
       case AppLifecycleState.detached:
         _cubit.stopLiveSessionPolling();
         break;
+    }
+  }
+
+  /// Starts the live-session poll only while this screen is visible *and* the
+  /// Live (Active) or Upcoming tab is selected; stops it otherwise. This is the
+  /// single gate used by visibility, lifecycle, and tab changes.
+  void _syncLiveSessionPolling() {
+    if (!mounted) return;
+    final tab = _cubit.state.selectedTab;
+    final wantsPolling = _isScreenVisible &&
+        (tab == BookingTab.active || tab == BookingTab.upcoming);
+    if (wantsPolling) {
+      _cubit.startLiveSessionPolling();
+    } else {
+      _cubit.stopLiveSessionPolling();
     }
   }
 
