@@ -29,9 +29,17 @@ class ChargeSessionDetailModel extends ChargeSessionDetailEntity {
     super.make,
     super.model,
     super.vehicleRegNo,
+    super.bookingDate,
+    super.bookingStartTime,
+    super.bookingEndTime,
+    super.paymentMethod,
   });
 
   factory ChargeSessionDetailModel.fromJson(Map<String, dynamic> json) {
+    // The booking slot arrives nested under `booking`; absent for ad-hoc
+    // sessions that weren't pre-booked.
+    final booking = json['booking'];
+    final bookingMap = booking is Map ? booking : const {};
     return ChargeSessionDetailModel(
       id: _asInt(json['id']),
       status: (json['status'] ?? '').toString(),
@@ -57,6 +65,10 @@ class ChargeSessionDetailModel extends ChargeSessionDetailEntity {
       make: _asStringOrNull(json['make']),
       model: _asStringOrNull(json['model']),
       vehicleRegNo: _asStringOrNull(json['vehicle_reg_no']),
+      bookingDate: _asStringOrNull(bookingMap['booking_date']),
+      bookingStartTime: _asStringOrNull(bookingMap['start_time']),
+      bookingEndTime: _asStringOrNull(bookingMap['end_time']),
+      paymentMethod: _asStringOrNull(json['payment_method']),
     );
   }
 

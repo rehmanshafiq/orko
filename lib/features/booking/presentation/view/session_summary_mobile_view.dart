@@ -289,8 +289,10 @@ class _SummaryBodyState extends State<_SummaryBody> {
     return parts.join(' · ');
   }
 
-  /// Date/time label used on the receipt for this session.
+  /// Booking slot shown on the receipt — the booked date/time range from the
+  /// API when present, otherwise the session's completion date or duration.
   String get _receiptSlotLabel =>
+      widget.detail.bookingSlotLabel ??
       _formatTimestamp(widget.detail.completedAt) ??
       widget.detail.duration ??
       '—';
@@ -310,7 +312,9 @@ class _SummaryBodyState extends State<_SummaryBody> {
       case _StationPaymentMethod.credit:
         return 'Credit/Debit';
       case null:
-        return null;
+        // No in-app choice made (e.g. opened from History) — fall back to the
+        // payment method recorded on the booking.
+        return widget.detail.paymentMethodLabel;
     }
   }
 

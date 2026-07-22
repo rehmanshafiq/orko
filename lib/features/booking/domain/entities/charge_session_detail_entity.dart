@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:intl/intl.dart';
 
 /// One `{timestamp, value}` point of the session energy graph, where [value]
 /// is the cumulative kWh delivered since session start.
@@ -44,6 +45,10 @@ class ChargeSessionDetailEntity extends Equatable {
     this.make,
     this.model,
     this.vehicleRegNo,
+    this.bookingDate,
+    this.bookingStartTime,
+    this.bookingEndTime,
+    this.paymentMethod,
   });
 
   final int id;
@@ -93,6 +98,63 @@ class ChargeSessionDetailEntity extends Equatable {
   final String? model;
   final String? vehicleRegNo;
 
+  /// Booking slot, from the nested `booking` object. Date is `yyyy-MM-dd`;
+  /// times are `HH:mm:ss` (24-hour). Null when no booking was attached.
+  final String? bookingDate;
+  final String? bookingStartTime;
+  final String? bookingEndTime;
+
+  /// Raw payment method, e.g. `cash`, `card`. Null when unavailable.
+  final String? paymentMethod;
+
+  /// Booking slot formatted for the receipt, e.g. "July 21 – 3:30 pm – 4:00
+  /// pm". Null when no booking date is available.
+  String? get bookingSlotLabel {
+    final date = bookingDate;
+    if (date == null || date.trim().isEmpty) return null;
+    final parsedDate = DateTime.tryParse(date.trim());
+    final datePart =
+        parsedDate != null ? DateFormat('MMMM d').format(parsedDate) : date.trim();
+    final start = _formatClock(bookingStartTime);
+    final end = _formatClock(bookingEndTime);
+    if (start != null && end != null) return '$datePart – $start – $end';
+    if (start != null) return '$datePart – $start';
+    return datePart;
+  }
+
+  /// Human-readable payment method for the receipt, e.g. "Cash". Null when
+  /// unavailable.
+  String? get paymentMethodLabel {
+    final method = paymentMethod?.trim();
+    if (method == null || method.isEmpty) return null;
+    switch (method.toLowerCase()) {
+      case 'cash':
+        return 'Cash';
+      case 'card':
+      case 'credit':
+      case 'debit':
+      case 'credit/debit':
+        return 'Credit/Debit Card';
+      default:
+        return method[0].toUpperCase() + method.substring(1);
+    }
+  }
+
+  /// Formats a `HH:mm:ss` clock string as "3:30 pm". Null when unparseable.
+  static String? _formatClock(String? raw) {
+    if (raw == null || raw.trim().isEmpty) return null;
+    final parts = raw.trim().split(':');
+    if (parts.length < 2) return null;
+    final hour = int.tryParse(parts[0]);
+    final minute = int.tryParse(parts[1]);
+    if (hour == null || minute == null) return null;
+    final dt = DateTime(2000, 1, 1, hour, minute);
+    return DateFormat('h:mm a')
+        .format(dt)
+        .replaceAll('AM', 'am')
+        .replaceAll('PM', 'pm');
+  }
+
   /// Best label for the session title, with a sensible fallback.
   String get displayName =>
       (locationName != null && locationName!.trim().isNotEmpty)
@@ -123,5 +185,9 @@ class ChargeSessionDetailEntity extends Equatable {
         make,
         model,
         vehicleRegNo,
+        bookingDate,
+        bookingStartTime,
+        bookingEndTime,
+        paymentMethod,
       ];
 }
