@@ -205,7 +205,7 @@ class _SummaryBodyState extends State<_SummaryBody> {
               _StatCard(
                 ui: ui,
                 icon: Icons.bolt_rounded,
-                iconColor: AppColors.mapPinBlueColor,
+                iconColor: ui.brandPrimary,
                 title: 'Total Energy Dispensed',
                 value: detail.energyConsumed != null
                     ? detail.energyConsumed!.toStringAsFixed(2)
@@ -229,7 +229,7 @@ class _SummaryBodyState extends State<_SummaryBody> {
               _StatCard(
                 ui: ui,
                 icon: Icons.offline_bolt_rounded,
-                iconColor: AppColors.ratingStarColor,
+                iconColor: ui.brandPrimary,
                 title: 'Charging Time',
                 value: detail.duration ?? '—',
                 unit: '',
