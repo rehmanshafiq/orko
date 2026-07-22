@@ -310,7 +310,7 @@ class _SummaryBodyState extends State<_SummaryBody> {
       case _StationPaymentMethod.cash:
         return 'Cash';
       case _StationPaymentMethod.credit:
-        return 'Credit/Debit';
+        return 'Credit/Debit Card';
       case null:
         // No in-app choice made (e.g. opened from History) — fall back to the
         // payment method recorded on the booking.
