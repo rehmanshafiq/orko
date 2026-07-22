@@ -56,13 +56,15 @@ class _MyBookingsMobileViewState extends State<MyBookingsMobileView>
   }
 
   /// Pause the live-session poll when the app leaves the foreground; resume it
-  /// on return, but only while the Active (Live) tab is the one on screen.
+  /// on return, but only while Upcoming or Active is the tab on screen (see
+  /// [MyBookingsCubit.selectTab]).
   @override
   void didChangeAppLifecycleState(AppLifecycleState lifecycleState) {
     if (!mounted) return;
     switch (lifecycleState) {
       case AppLifecycleState.resumed:
-        if (_cubit.state.selectedTab == BookingTab.active) {
+        final tab = _cubit.state.selectedTab;
+        if (tab == BookingTab.active || tab == BookingTab.upcoming) {
           _cubit.startLiveSessionPolling();
         }
         break;
@@ -554,8 +556,10 @@ _ChargerQr? _normalizeChargerQr(dynamic chargePoint, dynamic connector) {
   return (chargePointId: cp, connectorId: conn);
 }
 
-/// Shows the post-session summary for [sessionId], then refreshes the Active
-/// tab so the ended session disappears from it.
+/// Shows the post-session summary for [sessionId], then hands off from Active
+/// to History — where the just-finished session now shows up — if that's
+/// where the user was watching it. Otherwise just refreshes the Active tab so
+/// the ended session disappears from it.
 ///
 /// The one-shot flag is consumed first so a later live-session load can
 /// re-trigger this if the summary couldn't be shown right now (this screen
@@ -570,7 +574,11 @@ Future<void> _handleSessionCompleted(
   if (!TickerMode.valuesOf(context).enabled) return;
 
   await SessionSummaryPage.show(context, sessionId: sessionId);
-  cubit.loadLiveSession(showSpinner: false);
+  if (cubit.state.selectedTab == BookingTab.active) {
+    cubit.selectTab(BookingTab.history);
+  } else {
+    cubit.loadLiveSession(showSpinner: false);
+  }
 }
 
 class _ActiveTab extends StatelessWidget {
@@ -647,7 +655,9 @@ class _ActiveTab extends StatelessWidget {
         create: (_) => sl<ChargingStatusCubit>()..start(),
         child: ChargingStatusMobileView(
           embedded: true,
-          onSessionEnded: () => cubit.loadLiveSession(showSpinner: false),
+          // The summary is already shown by this point; hand off to History,
+          // where the just-finished session now shows up.
+          onSessionEnded: () => cubit.selectTab(BookingTab.history),
         ),
       );
     }
@@ -833,7 +843,8 @@ class _HistoryTab extends StatelessWidget {
       isCancelled: b.isCancelled,
       isNoShow: b.isNoShow,
       energyKwh: null,
-      amount: b.estimatedCost?.amount,
+      // No charging happened, so there's no real cost to show.
+      amount: null,
     );
   }
 }

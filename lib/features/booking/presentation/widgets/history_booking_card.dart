@@ -28,6 +28,8 @@ class HistoryBookingCard extends StatelessWidget {
     final amountLabel = booking.amount != null
         ? AppHelpers.formatCurrency(booking.amount!.roundToDouble())
         : '—';
+    // No charging happened for these, so there's no real cost to show.
+    final showAmount = !booking.isCancelled && !booking.isNoShow;
 
     return GestureDetector(
       onTap: onTap,
@@ -104,12 +106,13 @@ class HistoryBookingCard extends StatelessWidget {
             children: [
               _SessionTypeBadge(ui: ui, isWalkIn: booking.isWalkIn),
               const Spacer(),
-              AppText(
-                amountLabel,
-                color: ui.textPrimary,
-                fontSize: FontSizes.font16Sp,
-                fontWeight: FontWeights.weight700,
-              ),
+              if (showAmount)
+                AppText(
+                  amountLabel,
+                  color: ui.textPrimary,
+                  fontSize: FontSizes.font16Sp,
+                  fontWeight: FontWeights.weight700,
+                ),
             ],
           ),
         ],

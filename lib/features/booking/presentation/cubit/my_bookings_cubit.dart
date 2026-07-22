@@ -87,10 +87,11 @@ class MyBookingsCubit extends Cubit<MyBookingsState> {
     if (tab == BookingTab.upcoming) {
       loadBookings(showSpinner: false);
     }
-    // Poll the live session for as long as the Active tab is open — with a
-    // spinner on the first visit, silently on refreshes. Any other tab stops
-    // the loop.
-    if (tab == BookingTab.active) {
+    // Poll the live session while Upcoming or Active is open — Upcoming needs
+    // it to detect a session starting (so it can auto-advance to Active, see
+    // loadLiveSession), Active needs it to keep the live view current. Any
+    // other tab stops the loop.
+    if (tab == BookingTab.active || tab == BookingTab.upcoming) {
       startLiveSessionPolling();
     } else {
       stopLiveSessionPolling();
@@ -154,6 +155,11 @@ class MyBookingsCubit extends Cubit<MyBookingsState> {
           // Persist the running session's id / detect that a previously-seen
           // session (this launch or an earlier, killed one) has finished.
           final completedId = LiveSessionCompletion.register(session);
+          // A session just went live while the user was sitting on Upcoming:
+          // jump them to Active so they see it without switching tabs
+          // themselves.
+          final autoAdvanceToActive =
+              state.selectedTab == BookingTab.upcoming && session.active;
           emit(
             state.copyWith(
               liveStatus: MyBookingsStatus.success,
@@ -161,6 +167,8 @@ class MyBookingsCubit extends Cubit<MyBookingsState> {
               clearLiveError: true,
               completedSessionId: completedId,
               clearCompletedSessionId: completedId == null,
+              selectedTab:
+                  autoAdvanceToActive ? BookingTab.active : state.selectedTab,
             ),
           );
         },
