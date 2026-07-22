@@ -386,8 +386,9 @@ class _PaymentButtons extends StatelessWidget {
   void _onPayInApp() {
     Fluttertoast.showToast(
       msg: 'Coming soon',
-      toastLength: Toast.LENGTH_SHORT,
+      toastLength: Toast.LENGTH_LONG,
       gravity: ToastGravity.BOTTOM,
+      timeInSecForIosWeb: 4,
     );
   }
 
@@ -455,8 +456,9 @@ class _PaymentButtons extends StatelessWidget {
       msg: method == _StationPaymentMethod.cash
           ? 'Please pay in cash at the station counter'
           : 'Please pay by credit card at the station counter',
-      toastLength: Toast.LENGTH_SHORT,
+      toastLength: Toast.LENGTH_LONG,
       gravity: ToastGravity.BOTTOM,
+      timeInSecForIosWeb: 4,
     );
     onPaidAtStation(method);
   }
