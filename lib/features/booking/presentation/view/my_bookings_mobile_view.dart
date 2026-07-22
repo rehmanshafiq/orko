@@ -829,14 +829,13 @@ class _HistoryTab extends StatelessWidget {
   }
 
   /// Renders a cancelled / no-show booking as a History row. Shows the booked
-  /// slot (start–end) in place of the session start time.
+  /// date and start time (24-hour), matching the completed-session rows.
   HistoryBooking _bookingToHistory(MyBookingEntity b) {
-    final slot = [b.startTime, b.endTime]
-        .where((t) => t.trim().isNotEmpty)
-        .join(' - ');
     return HistoryBooking(
       stationName: b.displayName,
-      dateTimeLabel: [b.displayDate, slot].where((p) => p.isNotEmpty).join(' · '),
+      dateTimeLabel: [b.displayDate, _formatTime24(b.startTime)]
+          .where((p) => p.isNotEmpty)
+          .join(' · '),
       durationLabel: '—',
       statusLabel: b.isNoShow ? 'No Show' : 'Cancelled',
       isInProgress: false,
@@ -878,11 +877,27 @@ DateTime? _parseDateTime(String? raw) {
   return DateTime.tryParse(trimmed.replaceFirst(' ', 'T'));
 }
 
-/// Formats a `yyyy-MM-dd HH:mm:ss` timestamp into `dd/MM/yyyy · h:mm a`,
-/// falling back to the raw string (or a placeholder) when it can't be parsed.
+/// Formats a `yyyy-MM-dd HH:mm:ss` timestamp into `dd/MM/yyyy · HH:mm`
+/// (24-hour), falling back to the raw string (or a placeholder) when it can't
+/// be parsed.
 String _formatStartedAt(String? raw) {
   if (raw == null || raw.isEmpty) return 'Date unavailable';
   final parsed = DateTime.tryParse(raw.replaceFirst(' ', 'T'));
   if (parsed == null) return raw;
-  return DateFormat('dd/MM/yyyy · h:mm a').format(parsed);
+  return DateFormat('dd/MM/yyyy · HH:mm').format(parsed);
+}
+
+/// Normalizes a raw time string (`HH:mm[:ss]` or `h:mm a`) to 24-hour `HH:mm`,
+/// falling back to the trimmed input when it can't be parsed.
+String _formatTime24(String? raw) {
+  final trimmed = raw?.trim() ?? '';
+  if (trimmed.isEmpty) return '';
+  for (final pattern in ['HH:mm:ss', 'HH:mm', 'h:mm a', 'h:mm:ss a']) {
+    try {
+      return DateFormat('HH:mm').format(DateFormat(pattern).parseLoose(trimmed));
+    } catch (_) {
+      // Try the next pattern.
+    }
+  }
+  return trimmed;
 }
