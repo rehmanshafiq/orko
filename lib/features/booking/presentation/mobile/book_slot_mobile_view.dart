@@ -13,6 +13,7 @@ import 'package:orko_hubco/features/booking/presentation/booked_stations_session
 import 'package:orko_hubco/features/booking/presentation/cubit/booking_cubit.dart';
 import 'package:orko_hubco/features/booking/presentation/cubit/booking_state.dart';
 import 'package:orko_hubco/features/booking/presentation/pages/booking_success_page.dart';
+import 'package:orko_hubco/features/booking/presentation/utils/operating_hours.dart';
 import 'package:orko_hubco/features/booking/presentation/widgets/charger_port_selector.dart';
 import 'package:orko_hubco/features/booking/presentation/widgets/date_selector.dart';
 import 'package:orko_hubco/features/booking/presentation/widgets/station_info_card.dart';
@@ -26,6 +27,8 @@ class BookSlotMobileView extends StatelessWidget {
     this.stationName,
     this.stationAddress,
     this.fromTrip = false,
+    this.openingTime = '',
+    this.closingTime = '',
   });
 
   final String? stationName;
@@ -34,6 +37,14 @@ class BookSlotMobileView extends StatelessWidget {
   /// True when opened from the Trip planner's Pre-book flow — forwarded to the
   /// booking success screen so its close button returns to the Trip planner.
   final bool fromTrip;
+
+  /// Station opening time (`HH:mm:ss`) from station detail — used to grey out
+  /// Available Time Slots that fall outside service hours.
+  final String openingTime;
+
+  /// Station closing time (`HH:mm:ss`) from station detail — used to grey out
+  /// Available Time Slots that fall outside service hours.
+  final String closingTime;
 
   static const String _defaultStationTitle = 'HGL Charging Hub Motorway M2';
   static const String _defaultStationAddress =
@@ -140,7 +151,15 @@ class BookSlotMobileView extends StatelessWidget {
                           fontWeight: FontWeights.weight400,
                         ),
                         20.verticalSpace,
-                        _SlotsSection(ui: ui, state: state, cubit: cubit),
+                        _SlotsSection(
+                          ui: ui,
+                          state: state,
+                          cubit: cubit,
+                          operatingHours: OperatingHours(
+                            openingTime: openingTime,
+                            closingTime: closingTime,
+                          ),
+                        ),
                         24.verticalSpace,
                         SummaryBottomCard(
                           buttonWidth: buttonW,
@@ -312,11 +331,13 @@ class _SlotsSection extends StatelessWidget {
     required this.ui,
     required this.state,
     required this.cubit,
+    required this.operatingHours,
   });
 
   final AppUiColors ui;
   final BookingState state;
   final BookingCubit cubit;
+  final OperatingHours operatingHours;
 
   @override
   Widget build(BuildContext context) {
@@ -346,6 +367,7 @@ class _SlotsSection extends StatelessWidget {
 
       case SlotsStatus.success:
         // Only show available slots — hide booked/unavailable ones entirely.
+        // Out-of-hours available slots stay visible but are greyed out.
         final availableSlots =
             state.slots.where((s) => s.isAvailable).toList(growable: false);
         if (state.slots.isEmpty) {
@@ -368,6 +390,10 @@ class _SlotsSection extends StatelessWidget {
           selectedStartTimes: {
             for (final s in state.selectedSlots) s.startTime,
           },
+          isOutOfHours: (slot) => !operatingHours.containsSlot(
+            startTime: slot.startTime,
+            endTime: slot.endTime,
+          ),
           onSlotTap: cubit.selectSlot,
         );
     }

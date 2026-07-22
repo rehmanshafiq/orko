@@ -130,6 +130,8 @@ class AppRouter {
               stationName: extra.station.name,
               stationAddress: extra.station.address,
               fromTrip: extra.fromTrip,
+              openingTime: extra.openingTime,
+              closingTime: extra.closingTime,
             );
           }
           // Legacy callers pass only the station (no vehicle context).

@@ -65,6 +65,18 @@ class SlotChip extends StatelessWidget {
         textColor =
             ui.isLight ? AppColors.whiteColor : AppColors.whiteColor.withValues(alpha: 0.94);
         break;
+      case SlotStyle.outOfHours:
+        // Neutral grey for both themes so off-hours slots read as disabled.
+        bg = ui.isLight
+            ? AppColors.greyGridBoxColor.withValues(alpha: 0.65)
+            : AppColors.greyColor.withValues(alpha: 0.28);
+        borderColor = ui.isLight
+            ? AppColors.greyBorderColor.withValues(alpha: 0.35)
+            : AppColors.greyBorderColor.withValues(alpha: 0.55);
+        textColor = ui.isLight
+            ? AppColors.greyColor.withValues(alpha: 0.75)
+            : AppColors.whiteColor.withValues(alpha: 0.45);
+        break;
     }
 
     final interactive = style == SlotStyle.available;

@@ -20,6 +20,8 @@ class ChargingStationBottomActionsWidget extends StatelessWidget {
     this.isEnabled = true,
     this.isClosed = false,
     this.chargePointId,
+    this.openingTime = '',
+    this.closingTime = '',
   });
 
   final HubcoLocationEntity station;
@@ -34,6 +36,12 @@ class ChargingStationBottomActionsWidget extends StatelessWidget {
   /// The station's `charge_point_id`, used to verify vehicle compatibility
   /// before navigating to booking.
   final String? chargePointId;
+
+  /// Raw station opening time (`HH:mm:ss`) used to grey out off-hours slots.
+  final String openingTime;
+
+  /// Raw station closing time (`HH:mm:ss`) used to grey out off-hours slots.
+  final String closingTime;
 
   @override
   Widget build(BuildContext context) {
@@ -125,6 +133,8 @@ class ChargingStationBottomActionsWidget extends StatelessWidget {
       context,
       station: station,
       chargePointId: chargePointId,
+      openingTime: openingTime,
+      closingTime: closingTime,
     );
   }
 

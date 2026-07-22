@@ -8,6 +8,9 @@ import 'package:orko_hubco/features/booking/presentation/widgets/slot_chip.dart'
 /// Renders the slots returned by the API. Unavailable slots are greyed out
 /// (non-interactive); selected slots are highlighted. Supports multi-select
 /// via [selectedStartTimes] (e.g. two consecutive slots for a 1-hour booking).
+///
+/// When [isOutOfHours] returns true for a slot, it is shown greyed out and
+/// cannot be selected (outside station operating hours).
 class TimeSlotGrid extends StatelessWidget {
   const TimeSlotGrid({
     super.key,
@@ -15,12 +18,16 @@ class TimeSlotGrid extends StatelessWidget {
     required this.slots,
     required this.selectedStartTimes,
     required this.onSlotTap,
+    this.isOutOfHours,
   });
 
   final AppUiColors ui;
   final List<BookingSlotEntity> slots;
   final Set<String> selectedStartTimes;
   final void Function(BookingSlotEntity slot) onSlotTap;
+
+  /// Optional predicate — when true, the slot is disabled (out of service hours).
+  final bool Function(BookingSlotEntity slot)? isOutOfHours;
 
   @override
   Widget build(BuildContext context) {
@@ -44,15 +51,27 @@ class TimeSlotGrid extends StatelessWidget {
           ),
           itemBuilder: (context, index) {
             final slot = slots[index];
-            final isSelected = slot.isAvailable &&
-                selectedStartTimes.contains(slot.startTime);
+            final outOfHours = isOutOfHours?.call(slot) ?? false;
+            final canSelect = slot.isAvailable && !outOfHours;
+            final isSelected =
+                canSelect && selectedStartTimes.contains(slot.startTime);
+
+            late final SlotStyle style;
+            if (outOfHours) {
+              style = SlotStyle.outOfHours;
+            } else if (slot.isAvailable) {
+              style = SlotStyle.available;
+            } else {
+              style = SlotStyle.booked;
+            }
+
             return SlotChip(
               ui: ui,
               time: slot.startTime,
-              style: slot.isAvailable ? SlotStyle.available : SlotStyle.booked,
+              style: style,
               width: itemWidth,
               isSelected: isSelected,
-              onTap: () => onSlotTap(slot),
+              onTap: canSelect ? () => onSlotTap(slot) : null,
             );
           },
         );

@@ -12,6 +12,8 @@ class BookSlotArgs {
     required this.station,
     this.vehicleId,
     this.fromTrip = false,
+    this.openingTime = '',
+    this.closingTime = '',
   });
 
   final HubcoLocationEntity station;
@@ -19,6 +21,12 @@ class BookSlotArgs {
 
   /// True when opened from the Trip planner's Pre-book flow.
   final bool fromTrip;
+
+  /// Station opening time (`HH:mm:ss`) used to disable off-hours slots.
+  final String openingTime;
+
+  /// Station closing time (`HH:mm:ss`) used to disable off-hours slots.
+  final String closingTime;
 }
 
 class BookSlotPage extends StatelessWidget {
@@ -29,6 +37,8 @@ class BookSlotPage extends StatelessWidget {
     this.stationName,
     this.stationAddress,
     this.fromTrip = false,
+    this.openingTime = '',
+    this.closingTime = '',
   });
 
   /// Charging location id used by every booking call. Null when opened without
@@ -44,6 +54,12 @@ class BookSlotPage extends StatelessWidget {
   /// closing it returns to the Trip planner instead of Home.
   final bool fromTrip;
 
+  /// Station opening time (`HH:mm:ss`) used to disable off-hours slots.
+  final String openingTime;
+
+  /// Station closing time (`HH:mm:ss`) used to disable off-hours slots.
+  final String closingTime;
+
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
@@ -58,6 +74,8 @@ class BookSlotPage extends StatelessWidget {
         stationName: stationName,
         stationAddress: stationAddress,
         fromTrip: fromTrip,
+        openingTime: openingTime,
+        closingTime: closingTime,
       ),
     );
   }

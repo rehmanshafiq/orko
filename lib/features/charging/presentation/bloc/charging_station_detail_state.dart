@@ -21,6 +21,8 @@ class ChargingStationDetailState extends Equatable {
     this.name = '',
     this.address = '',
     this.operatingHours = '',
+    this.openingTime = '',
+    this.closingTime = '',
     this.pricing = '',
     this.contactNumber = '',
     this.averageRating = 0,
@@ -60,6 +62,13 @@ class ChargingStationDetailState extends Equatable {
   final String name;
   final String address;
   final String operatingHours;
+
+  /// Raw `HH:mm:ss` opening time from the detail API (for booking slot checks).
+  final String openingTime;
+
+  /// Raw `HH:mm:ss` closing time from the detail API (for booking slot checks).
+  final String closingTime;
+
   final String pricing;
   final String contactNumber;
   final double averageRating;
@@ -102,6 +111,8 @@ class ChargingStationDetailState extends Equatable {
     String? name,
     String? address,
     String? operatingHours,
+    String? openingTime,
+    String? closingTime,
     String? pricing,
     String? contactNumber,
     double? averageRating,
@@ -128,6 +139,8 @@ class ChargingStationDetailState extends Equatable {
       name: name ?? this.name,
       address: address ?? this.address,
       operatingHours: operatingHours ?? this.operatingHours,
+      openingTime: openingTime ?? this.openingTime,
+      closingTime: closingTime ?? this.closingTime,
       pricing: pricing ?? this.pricing,
       contactNumber: contactNumber ?? this.contactNumber,
       averageRating: averageRating ?? this.averageRating,
@@ -157,6 +170,8 @@ class ChargingStationDetailState extends Equatable {
         name,
         address,
         operatingHours,
+        openingTime,
+        closingTime,
         pricing,
         contactNumber,
         averageRating,

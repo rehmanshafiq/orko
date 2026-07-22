@@ -34,6 +34,8 @@ class ChargerCompatibilityGate {
     BuildContext context, {
     required HubcoLocationEntity station,
     required String? chargePointId,
+    String openingTime = '',
+    String closingTime = '',
   }) async {
     // 1. Fetch the user's vehicles.
     _showLoader(context);
@@ -68,7 +70,13 @@ class ChargerCompatibilityGate {
     // 3. No charge point id → can't verify; don't block a valid booking.
     final cpId = chargePointId?.trim();
     if (cpId == null || cpId.isEmpty) {
-      _proceedToBooking(context, station, vehicle.id);
+      _proceedToBooking(
+        context,
+        station,
+        vehicle.id,
+        openingTime: openingTime,
+        closingTime: closingTime,
+      );
       return;
     }
 
@@ -92,7 +100,13 @@ class ChargerCompatibilityGate {
       ),
       (compat) {
         if (compat.isCompatible) {
-          _proceedToBooking(context, station, vehicle.id);
+          _proceedToBooking(
+            context,
+            station,
+            vehicle.id,
+            openingTime: openingTime,
+            closingTime: closingTime,
+          );
         } else {
           _showIncompatibleDialog(context, vehicle, compat);
         }
@@ -103,11 +117,18 @@ class ChargerCompatibilityGate {
   static void _proceedToBooking(
     BuildContext context,
     HubcoLocationEntity station,
-    int vehicleId,
-  ) {
+    int vehicleId, {
+    String openingTime = '',
+    String closingTime = '',
+  }) {
     context.push(
       '/book-slot',
-      extra: BookSlotArgs(station: station, vehicleId: vehicleId),
+      extra: BookSlotArgs(
+        station: station,
+        vehicleId: vehicleId,
+        openingTime: openingTime,
+        closingTime: closingTime,
+      ),
     );
   }
 

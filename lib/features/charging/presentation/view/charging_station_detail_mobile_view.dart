@@ -281,6 +281,8 @@ class ChargingStationDetailMobileView extends StatelessWidget {
                   isEnabled: state.isSuccess,
                   isClosed: state.isClosed,
                   chargePointId: state.chargePointId,
+                  openingTime: state.openingTime,
+                  closingTime: state.closingTime,
                 ),
               ],
             ),

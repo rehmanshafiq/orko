@@ -3,4 +3,7 @@ enum SlotStyle {
   available,
   booked,
   busy,
+
+  /// Outside the station's operating hours — greyed out and non-interactive.
+  outOfHours,
 }
