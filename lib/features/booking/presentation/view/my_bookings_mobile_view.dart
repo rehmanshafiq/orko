@@ -745,7 +745,7 @@ class _HistoryTab extends StatelessWidget {
 
     // History = actual charging sessions plus the bookings that never
     // happened (cancelled / no-show), which moved here from the Upcoming tab.
-    // Everything is merged by date (newest first) and capped at the 10 most
+    // Everything is merged by date (newest first) and capped at the 15 most
     // recent entries.
     final entries = <_DatedHistoryItem>[
       for (final s in state.historySessions)
@@ -851,7 +851,7 @@ class _HistoryTab extends StatelessWidget {
 
 /// The History tab shows at most this many rows (sessions + cancelled
 /// bookings combined), newest first.
-const int _maxHistoryItems = 10;
+const int _maxHistoryItems = 15;
 
 /// A single History-tab row: the card model plus an optional tap handler
 /// (real sessions open their summary; cancelled/no-show bookings don't).
