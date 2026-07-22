@@ -735,20 +735,40 @@ class _HistoryTab extends StatelessWidget {
 
     // History = actual charging sessions plus the bookings that never
     // happened (cancelled / no-show), which moved here from the Upcoming tab.
-    final items = <_HistoryItem>[
+    // Everything is merged by date (newest first) and capped at the 10 most
+    // recent entries.
+    final entries = <_DatedHistoryItem>[
       for (final s in state.historySessions)
-        _HistoryItem(
-          booking: _sessionToHistory(s),
-          // Only real sessions have a summary to open.
-          onTap: () => SessionSummaryPage.show(
-            context,
-            sessionId: s.id,
-            showPaymentButtons: false,
+        _DatedHistoryItem(
+          date: _parseDateTime(s.startedAt),
+          item: _HistoryItem(
+            booking: _sessionToHistory(s),
+            // Only real sessions have a summary to open.
+            onTap: () => SessionSummaryPage.show(
+              context,
+              sessionId: s.id,
+              showPaymentButtons: false,
+            ),
           ),
         ),
       for (final b in state.upcomingCancelled)
-        _HistoryItem(booking: _bookingToHistory(b)),
+        _DatedHistoryItem(
+          date: _parseDateTime('${b.date} ${b.startTime}') ??
+              _parseDateTime(b.date),
+          item: _HistoryItem(booking: _bookingToHistory(b)),
+        ),
     ];
+    // Newest first; entries whose date can't be parsed sink to the bottom.
+    entries.sort((a, b) {
+      if (a.date == null && b.date == null) return 0;
+      if (a.date == null) return 1;
+      if (b.date == null) return -1;
+      return b.date!.compareTo(a.date!);
+    });
+    final items = entries
+        .take(_maxHistoryItems)
+        .map((e) => e.item)
+        .toList(growable: false);
 
     return RefreshIndicator(
       color: ui.brandPrimary,
@@ -818,6 +838,10 @@ class _HistoryTab extends StatelessWidget {
   }
 }
 
+/// The History tab shows at most this many rows (sessions + cancelled
+/// bookings combined), newest first.
+const int _maxHistoryItems = 10;
+
 /// A single History-tab row: the card model plus an optional tap handler
 /// (real sessions open their summary; cancelled/no-show bookings don't).
 class _HistoryItem {
@@ -825,6 +849,22 @@ class _HistoryItem {
 
   final HistoryBooking booking;
   final VoidCallback? onTap;
+}
+
+/// A History row paired with the timestamp used to sort and cap the list.
+class _DatedHistoryItem {
+  const _DatedHistoryItem({required this.date, required this.item});
+
+  final DateTime? date;
+  final _HistoryItem item;
+}
+
+/// Parses `yyyy-MM-dd HH:mm[:ss]`-style timestamps; null when unparseable so
+/// the row sorts to the bottom instead of taking a bogus position.
+DateTime? _parseDateTime(String? raw) {
+  final trimmed = raw?.trim();
+  if (trimmed == null || trimmed.isEmpty) return null;
+  return DateTime.tryParse(trimmed.replaceFirst(' ', 'T'));
 }
 
 /// Formats a `yyyy-MM-dd HH:mm:ss` timestamp into `dd/MM/yyyy · h:mm a`,

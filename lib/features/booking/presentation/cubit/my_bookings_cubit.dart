@@ -9,6 +9,7 @@ import 'package:orko_hubco/features/booking/domain/usecases/get_live_session_use
 import 'package:orko_hubco/features/booking/domain/usecases/get_my_bookings_usecase.dart';
 import 'package:orko_hubco/features/booking/domain/usecases/reschedule_booking_usecase.dart';
 import 'package:orko_hubco/features/booking/domain/usecases/verify_qr_usecase.dart';
+import 'package:orko_hubco/features/booking/domain/entities/charge_session_history_entity.dart';
 import 'package:orko_hubco/features/booking/domain/entities/live_session_entity.dart';
 import 'package:orko_hubco/features/booking/domain/entities/verify_qr_result_entity.dart';
 import 'package:orko_hubco/core/error/failures.dart';
@@ -211,11 +212,36 @@ class MyBookingsCubit extends Cubit<MyBookingsState> {
       (sessions) => emit(
         state.copyWith(
           historyStatus: MyBookingsStatus.success,
-          historySessions: sessions,
+          historySessions: _mostRecentSessions(sessions),
           clearHistoryError: true,
         ),
       ),
     );
+  }
+
+  /// The History tab shows at most this many charging sessions.
+  static const int _maxHistorySessions = 10;
+
+  /// Sorts [sessions] newest-first by `startedAt` (unparseable/missing dates
+  /// last) and keeps only the [_maxHistorySessions] most recent, so the tab
+  /// shows the 10 latest sessions regardless of the order the API returns.
+  List<ChargeSessionHistoryEntity> _mostRecentSessions(
+    List<ChargeSessionHistoryEntity> sessions,
+  ) {
+    DateTime? parse(String? raw) {
+      if (raw == null || raw.isEmpty) return null;
+      return DateTime.tryParse(raw.replaceFirst(' ', 'T'));
+    }
+
+    final sorted = [...sessions]..sort((a, b) {
+        final dateA = parse(a.startedAt);
+        final dateB = parse(b.startedAt);
+        if (dateA == null && dateB == null) return 0;
+        if (dateA == null) return 1;
+        if (dateB == null) return -1;
+        return dateB.compareTo(dateA);
+      });
+    return sorted.take(_maxHistorySessions).toList();
   }
 
   /// Loads (or reloads) the user's bookings.
