@@ -100,7 +100,7 @@ class _MyBookingsMobileViewState extends State<MyBookingsMobileView>
                     EdgeInsets.only(top: 12.h, bottom: 4.h),
                   ),
                   child: AppText(
-                    'My Bookings',
+                    'My Charging',
                     color: ui.textPrimary,
                     fontSize: FontSizes.font22Sp,
                     fontWeight: FontWeights.weight700,
