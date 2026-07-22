@@ -15,15 +15,22 @@ class DownloadReceiptButton extends StatefulWidget {
     required this.slotLabel,
     this.paymentLabel,
     required this.amountPaid,
+    this.vehicleRegNo,
+    this.kwhDispensed,
   });
 
   final String bookingRef;
   final String stationName;
   final String slotLabel;
 
-  /// Payment method shown on the receipt. Null/empty hides the row entirely.
+  /// Payment method shown on the receipt. Null/empty falls back to an em-dash.
   final String? paymentLabel;
   final int amountPaid;
+
+  /// Vehicle registration and energy dispensed rows. Null/empty fall back to
+  /// an em-dash on the receipt.
+  final String? vehicleRegNo;
+  final String? kwhDispensed;
 
   @override
   State<DownloadReceiptButton> createState() => _DownloadReceiptButtonState();
@@ -42,6 +49,8 @@ class _DownloadReceiptButtonState extends State<DownloadReceiptButton> {
         slotLabel: widget.slotLabel,
         paymentLabel: widget.paymentLabel,
         amountPaid: widget.amountPaid,
+        vehicleRegNo: widget.vehicleRegNo,
+        kwhDispensed: widget.kwhDispensed,
       );
     } catch (e, st) {
       debugPrint('❌ Receipt PDF failed: $e\n$st');

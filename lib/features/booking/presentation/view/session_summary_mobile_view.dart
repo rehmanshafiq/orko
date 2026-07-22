@@ -249,11 +249,13 @@ class _SummaryBodyState extends State<_SummaryBody> {
               EdgeInsets.only(bottom: 12.h, top: 8.h),
             ),
             child: DownloadReceiptButton(
-              bookingRef: '#${detail.id}',
+              bookingRef: 'BK-${detail.id}',
               stationName: detail.displayName,
               slotLabel: _receiptSlotLabel,
               paymentLabel: _paymentLabel,
               amountPaid: _amountPaid,
+              vehicleRegNo: detail.vehicleRegNo,
+              kwhDispensed: _receiptKwhLabel,
             ),
           ),
         // Padding(
@@ -292,6 +294,12 @@ class _SummaryBodyState extends State<_SummaryBody> {
       _formatTimestamp(widget.detail.completedAt) ??
       widget.detail.duration ??
       '—';
+
+  /// Energy dispensed label for the receipt, e.g. "12.75 kWh". Null when the
+  /// backend hasn't reported a figure yet (row shows an em-dash).
+  String? get _receiptKwhLabel => widget.detail.energyConsumed != null
+      ? '${widget.detail.energyConsumed!.toStringAsFixed(2)} kWh'
+      : null;
 
   /// Human-readable payment method for the receipt. Null when no method was
   /// chosen (e.g. opened from History), which hides the row on the receipt.
