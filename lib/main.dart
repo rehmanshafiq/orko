@@ -10,6 +10,7 @@ import 'package:get_storage/get_storage.dart';
 import 'package:orko_hubco/core/di/injection_container.dart';
 import 'package:orko_hubco/core/router/app_router.dart';
 import 'package:orko_hubco/core/services/push_notification_service.dart';
+import 'package:orko_hubco/core/services/secure_store.dart';
 import 'package:orko_hubco/core/theme/app_material_theme.dart';
 import 'package:orko_hubco/core/theme/theme_cubit.dart';
 import 'package:orko_hubco/features/remote_config/data/services/remote_config_service.dart';
@@ -21,6 +22,11 @@ Future<void> main() async {
 
   // Initialize local storage
   await GetStorage.init();
+
+  // Load encrypted secrets (tokens, PII) into memory and migrate any legacy
+  // plaintext values out of GetStorage. Must run before the first API call so
+  // the auth interceptor can read the token synchronously.
+  await SecureStore.instance.init();
 
   // Initialize Firebase
   await Firebase.initializeApp(

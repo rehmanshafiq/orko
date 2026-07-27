@@ -1,25 +1,32 @@
 import 'package:get_storage/get_storage.dart';
 import 'package:orko_hubco/core/constants/storage_constants.dart';
+import 'package:orko_hubco/core/services/secure_store.dart';
 
 /// Abstraction over local key-value storage.
+///
+/// Security-sensitive keys ([SecureStore.secureKeys]: auth tokens, user id and
+/// the cached user PII) are transparently routed to the encrypted
+/// [SecureStore]; everything else stays in the plain GetStorage box.
 class LocalStorageService {
   final GetStorage _box;
+  final SecureStore _secure = SecureStore.instance;
 
   LocalStorageService() : _box = GetStorage();
 
-  // ── Token Management ────────────────────────────────────────────────
+  // ── Token Management (encrypted at rest) ────────────────────────────
 
-  String? get accessToken => _box.read<String>(StorageConstants.accessToken);
+
+  String? get accessToken => _secure.read(StorageConstants.accessToken);
 
   Future<void> saveAccessToken(String token) =>
-      _box.write(StorageConstants.accessToken, token);
+      _secure.write(StorageConstants.accessToken, token);
 
-  String? get refreshToken => _box.read<String>(StorageConstants.refreshToken);
+  String? get refreshToken => _secure.read(StorageConstants.refreshToken);
 
   Future<void> saveRefreshToken(String token) =>
-      _box.write(StorageConstants.refreshToken, token);
+      _secure.write(StorageConstants.refreshToken, token);
 
-  // ── Auth State ──────────────────────────────────────────────────────
+  // ── Auth State (non-sensitive flags — plain box) ────────────────────
 
   bool get isLoggedIn => _box.read<bool>(StorageConstants.isLoggedIn) ?? false;
 
@@ -32,20 +39,40 @@ class LocalStorageService {
   Future<void> setGuest(bool value) =>
       _box.write(StorageConstants.isGuest, value);
 
-  // ── User ────────────────────────────────────────────────────────────
+  // ── User (encrypted at rest) ────────────────────────────────────────
 
-  String? get userId => _box.read<String>(StorageConstants.userId);
+  String? get userId => _secure.read(StorageConstants.userId);
 
   Future<void> saveUserId(String id) =>
-      _box.write(StorageConstants.userId, id);
+      _secure.write(StorageConstants.userId, id);
 
   // ── Generic ─────────────────────────────────────────────────────────
+  // Secret keys are routed to the encrypted store; all other keys use the
+  // plain GetStorage box.
 
-  T? read<T>(String key) => _box.read<T>(key);
+  T? read<T>(String key) {
+    if (SecureStore.secureKeys.contains(key)) {
+      return _secure.read(key) as T?;
+    }
+    return _box.read<T>(key);
+  }
 
-  Future<void> write(String key, dynamic value) => _box.write(key, value);
+  Future<void> write(String key, dynamic value) {
+    if (SecureStore.secureKeys.contains(key)) {
+      return _secure.write(key, value as String);
+    }
+    return _box.write(key, value);
+  }
 
-  Future<void> remove(String key) => _box.remove(key);
+  Future<void> remove(String key) {
+    if (SecureStore.secureKeys.contains(key)) {
+      return _secure.delete(key);
+    }
+    return _box.remove(key);
+  }
 
-  Future<void> clearAll() => _box.erase();
+  Future<void> clearAll() async {
+    await _secure.clear();
+    await _box.erase();
+  }
 }

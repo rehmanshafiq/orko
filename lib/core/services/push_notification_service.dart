@@ -5,8 +5,8 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:get_storage/get_storage.dart';
 import 'package:orko_hubco/core/constants/storage_constants.dart';
+import 'package:orko_hubco/core/services/secure_store.dart';
 import 'package:orko_hubco/core/di/injection_container.dart';
 import 'package:orko_hubco/core/router/app_router.dart';
 import 'package:orko_hubco/core/usecase/usecase.dart';
@@ -225,7 +225,7 @@ class PushNotificationService {
   /// True when a session access token is present (the device-token endpoints
   /// require auth). Reads storage directly to avoid a core→feature dependency.
   bool get _isAuthenticated {
-    final token = GetStorage().read<String>(StorageConstants.accessToken);
+    final token = SecureStore.instance.read(StorageConstants.accessToken);
     return token != null && token.isNotEmpty;
   }
 

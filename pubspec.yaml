@@ -46,6 +46,9 @@ dependencies:
   flutter_dotenv: ^6.0.0
   equatable: ^2.0.7
   get_storage: ^2.1.1
+  # Encrypted-at-rest storage (iOS Keychain / Android EncryptedSharedPreferences)
+  # for auth tokens and user PII. See lib/core/services/secure_store.dart.
+  flutter_secure_storage: ^9.2.4
   flutter_svg: ^2.2.1
   flutter_svg_provider: ^1.0.7
   cached_network_image: ^3.4.1

@@ -44,9 +44,12 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
 
   @override
   Future<void> clearCache() async {
+    // Fully remove the encrypted secrets rather than blanking them, so nothing
+    // sensitive lingers after logout.
     await storageService.remove(_cachedUserKey);
-    await storageService.saveAccessToken('');
-    await storageService.saveRefreshToken('');
+    await storageService.remove(StorageConstants.accessToken);
+    await storageService.remove(StorageConstants.refreshToken);
+    await storageService.remove(StorageConstants.userId);
     await storageService.setLoggedIn(false);
     await storageService.setGuest(false);
   }
