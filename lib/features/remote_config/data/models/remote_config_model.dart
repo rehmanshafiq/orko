@@ -173,6 +173,7 @@ class ApiEndpoints extends Equatable {
     required this.verifyQr,
     required this.chargeSessionHistory,
     required this.chargeSessionDetails,
+    required this.downloadReceipt,
     required this.liveSession,
     required this.chargingStats,
     required this.vehicleMakes,
@@ -232,6 +233,7 @@ class ApiEndpoints extends Equatable {
   final String verifyQr;
   final String chargeSessionHistory;
   final String chargeSessionDetails;
+  final String downloadReceipt;
   final String liveSession;
   final String chargingStats;
   final String vehicleMakes;
@@ -305,6 +307,11 @@ class ApiEndpoints extends Equatable {
       chargeSessionDetails: _nonEmpty(
         json['charge_session_details'] as String?,
         'api/v1/bookings/charge-session-details/',
+      ),
+      // Session id is appended as a trailing path segment by the datasource.
+      downloadReceipt: _nonEmpty(
+        json['download_receipt'] as String?,
+        'api/v1/bookings/download-receipt/',
       ),
       liveSession: json['live_session'] as String? ?? '',
       chargingStats: json['charging_stats'] as String? ?? '',
@@ -384,6 +391,7 @@ class ApiEndpoints extends Equatable {
       'verify_qr': verifyQr,
       'charge_session_history': chargeSessionHistory,
       'charge_session_details': chargeSessionDetails,
+      'download_receipt': downloadReceipt,
       'live_session': liveSession,
       'charging_stats': chargingStats,
       'vehicle_makes': vehicleMakes,
@@ -445,6 +453,7 @@ class ApiEndpoints extends Equatable {
     String? verifyQr,
     String? chargeSessionHistory,
     String? chargeSessionDetails,
+    String? downloadReceipt,
     String? liveSession,
     String? chargingStats,
     String? vehicleMakes,
@@ -509,6 +518,7 @@ class ApiEndpoints extends Equatable {
       verifyQr: verifyQr ?? this.verifyQr,
       chargeSessionHistory: chargeSessionHistory ?? this.chargeSessionHistory,
       chargeSessionDetails: chargeSessionDetails ?? this.chargeSessionDetails,
+      downloadReceipt: downloadReceipt ?? this.downloadReceipt,
       liveSession: liveSession ?? this.liveSession,
       chargingStats: chargingStats ?? this.chargingStats,
       vehicleMakes: vehicleMakes ?? this.vehicleMakes,
@@ -577,6 +587,7 @@ class ApiEndpoints extends Equatable {
     verifyQr,
     chargeSessionHistory,
     chargeSessionDetails,
+    downloadReceipt,
     liveSession,
     chargingStats,
     vehicleMakes,

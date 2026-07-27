@@ -12,7 +12,7 @@ import 'package:orko_hubco/core/utils/widgets/primary_button_widget.dart';
 import 'package:orko_hubco/features/booking/domain/entities/charge_session_detail_entity.dart';
 import 'package:orko_hubco/features/booking/presentation/cubit/session_summary_cubit.dart';
 import 'package:orko_hubco/features/booking/presentation/cubit/session_summary_state.dart';
-import 'package:orko_hubco/features/booking/presentation/widgets/download_receipt_button.dart';
+import 'package:orko_hubco/features/booking/presentation/widgets/session_receipt_download_button.dart';
 
 /// Summary of a finished charging session: energy dispensed, carbon offset,
 /// session duration, and the amount charged. Every figure renders defensively
@@ -128,7 +128,6 @@ class _SummaryBodyState extends State<_SummaryBody> {
   /// appears, the payment buttons lock (disabled/greyed), and the download
   /// receipt button shows at the bottom.
   bool _paidAtStation = false;
-  _StationPaymentMethod? _method;
 
   /// The close icon is hidden on the live-session flow until the user has paid
   /// at the station; on other flows (History) it's always available.
@@ -136,10 +135,7 @@ class _SummaryBodyState extends State<_SummaryBody> {
 
   void _onPaidAtStation(_StationPaymentMethod method) {
     if (_paidAtStation) return;
-    setState(() {
-      _paidAtStation = true;
-      _method = method;
-    });
+    setState(() => _paidAtStation = true);
   }
 
   @override
@@ -248,15 +244,7 @@ class _SummaryBodyState extends State<_SummaryBody> {
             padding: AppUtils.horizontal16Padding.add(
               EdgeInsets.only(bottom: 12.h, top: 8.h),
             ),
-            child: DownloadReceiptButton(
-              bookingRef: 'BK-${detail.id}',
-              stationName: detail.displayName,
-              slotLabel: _receiptSlotLabel,
-              paymentLabel: _paymentLabel,
-              amountPaid: _amountPaid,
-              vehicleRegNo: detail.vehicleRegNo,
-              kwhDispensed: _receiptKwhLabel,
-            ),
+            child: SessionReceiptDownloadButton(sessionId: detail.id),
           ),
         // Padding(
         //   padding: AppUtils.horizontal16Padding.add(
@@ -288,39 +276,6 @@ class _SummaryBodyState extends State<_SummaryBody> {
     if (completed != null) parts.add(completed);
     return parts.join(' · ');
   }
-
-  /// Booking slot shown on the receipt — the booked date/time range from the
-  /// API when present, otherwise the session's completion date or duration.
-  String get _receiptSlotLabel =>
-      widget.detail.bookingSlotLabel ??
-      _formatTimestamp(widget.detail.completedAt) ??
-      widget.detail.duration ??
-      '—';
-
-  /// Energy dispensed label for the receipt, e.g. "12.75 kWh". Null when the
-  /// backend hasn't reported a figure yet (row shows an em-dash).
-  String? get _receiptKwhLabel => widget.detail.energyConsumed != null
-      ? '${widget.detail.energyConsumed!.toStringAsFixed(2)} kWh'
-      : null;
-
-  /// Human-readable payment method for the receipt. Null when no method was
-  /// chosen (e.g. opened from History), which hides the row on the receipt.
-  String? get _paymentLabel {
-    switch (_method) {
-      case _StationPaymentMethod.cash:
-        return 'Cash';
-      case _StationPaymentMethod.credit:
-        return 'Credit/Debit Card';
-      case null:
-        // No in-app choice made (e.g. opened from History) — fall back to the
-        // payment method recorded on the booking.
-        return widget.detail.paymentMethodLabel;
-    }
-  }
-
-  /// Amount owed for the session, rounded to a whole number.
-  int get _amountPaid =>
-      (widget.detail.totalCost ?? widget.detail.energyCost ?? 0).round();
 
   static String? _formatTimestamp(String? raw) {
     if (raw == null || raw.isEmpty) return null;

@@ -6,6 +6,7 @@ import 'package:orko_hubco/features/booking/domain/repositories/booking_reposito
 import 'package:orko_hubco/features/booking/domain/usecases/cancel_booking_usecase.dart';
 import 'package:orko_hubco/features/booking/domain/usecases/create_booking_hgl_usecase.dart';
 import 'package:orko_hubco/features/booking/domain/usecases/create_booking_usecase.dart';
+import 'package:orko_hubco/features/booking/domain/usecases/download_receipt_usecase.dart';
 import 'package:orko_hubco/features/booking/domain/usecases/get_booking_slots_usecase.dart';
 import 'package:orko_hubco/features/booking/domain/usecases/get_charge_session_details_usecase.dart';
 import 'package:orko_hubco/features/booking/domain/usecases/get_charge_session_history_usecase.dart';
@@ -37,6 +38,7 @@ void initBookingDependencies() {
   sl.registerLazySingleton(() => GetMyBookingsUseCase(sl()));
   sl.registerLazySingleton(() => GetChargeSessionHistoryUseCase(sl()));
   sl.registerLazySingleton(() => GetChargeSessionDetailsUseCase(sl()));
+  sl.registerLazySingleton(() => DownloadReceiptUseCase(sl()));
   sl.registerLazySingleton(() => GetLiveSessionUseCase(sl()));
   sl.registerLazySingleton(() => CancelBookingUseCase(sl()));
   sl.registerLazySingleton(() => RescheduleBookingUseCase(sl()));
@@ -59,6 +61,7 @@ void initBookingDependencies() {
     (sessionId, _) => SessionSummaryCubit(
       sessionId: sessionId,
       getChargeSessionDetailsUseCase: sl(),
+      downloadReceiptUseCase: sl(),
     ),
   );
 

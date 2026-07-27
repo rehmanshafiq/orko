@@ -1,5 +1,8 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:orko_hubco/core/error/failures.dart';
+import 'package:orko_hubco/core/usecase/usecase.dart';
 import 'package:orko_hubco/core/utils/app_storage/app_storage.dart';
+import 'package:orko_hubco/features/booking/domain/usecases/download_receipt_usecase.dart';
 import 'package:orko_hubco/features/booking/domain/usecases/get_charge_session_details_usecase.dart';
 import 'package:orko_hubco/features/booking/presentation/cubit/session_summary_state.dart';
 
@@ -9,12 +12,25 @@ class SessionSummaryCubit extends Cubit<SessionSummaryState> {
   SessionSummaryCubit({
     required int sessionId,
     required GetChargeSessionDetailsUseCase getChargeSessionDetailsUseCase,
+    required DownloadReceiptUseCase downloadReceiptUseCase,
   })  : _sessionId = sessionId,
         _getChargeSessionDetailsUseCase = getChargeSessionDetailsUseCase,
+        _downloadReceiptUseCase = downloadReceiptUseCase,
         super(const SessionSummaryState());
 
   final int _sessionId;
   final GetChargeSessionDetailsUseCase _getChargeSessionDetailsUseCase;
+  final DownloadReceiptUseCase _downloadReceiptUseCase;
+
+  /// Resolves the temporary download URL of this session's PDF receipt via
+  /// `download-receipt/<sessionId>`. Returns the URL on success, or a [Failure]
+  /// the caller can surface. This is a one-shot action, so it deliberately
+  /// doesn't touch the summary state — the button owns its own progress UI.
+  Future<Either<Failure, String>> fetchReceiptUrl() {
+    return _downloadReceiptUseCase(
+      DownloadReceiptParams(sessionId: _sessionId),
+    );
+  }
 
   Future<void> load() async {
     emit(state.copyWith(

@@ -57,6 +57,10 @@ abstract class BookingRepository {
     required int sessionId,
   });
 
+  /// `GET /bookings/download-receipt/<sessionId>` — returns the temporary URL
+  /// of the generated PDF receipt for the session.
+  Future<Either<Failure, String>> getReceiptUrl({required int sessionId});
+
   /// `POST /bookings/cancel-booking/` — returns the success message.
   Future<Either<Failure, String>> cancelBooking({required int bookingId});
 

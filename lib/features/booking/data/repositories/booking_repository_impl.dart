@@ -99,6 +99,11 @@ class BookingRepositoryImpl implements BookingRepository {
   }
 
   @override
+  Future<Either<Failure, String>> getReceiptUrl({required int sessionId}) {
+    return _run(() => remoteDataSource.getReceiptUrl(sessionId: sessionId));
+  }
+
+  @override
   Future<Either<Failure, String>> cancelBooking({required int bookingId}) {
     return _run(() => remoteDataSource.cancelBooking(bookingId: bookingId));
   }

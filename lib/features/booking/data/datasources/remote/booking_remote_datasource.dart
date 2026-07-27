@@ -40,6 +40,9 @@ abstract class BookingRemoteDataSource {
     required int sessionId,
   });
 
+  /// Returns the temporary URL of the generated PDF receipt for [sessionId].
+  Future<String> getReceiptUrl({required int sessionId});
+
   Future<String> cancelBooking({required int bookingId});
 
   Future<BookingModel> rescheduleBooking({

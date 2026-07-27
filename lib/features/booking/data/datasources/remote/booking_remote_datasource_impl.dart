@@ -224,6 +224,33 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
   }
 
   @override
+  Future<String> getReceiptUrl({required int sessionId}) async {
+    return _guard('download-receipt', () async {
+      // The session id is a trailing path segment (endpoint keeps its slash),
+      // e.g. `.../download-receipt/17058`.
+      final url = _endpointUrl(
+        (e) => e.downloadReceipt,
+        unavailableMessage: 'Receipt download is not available right now',
+      );
+      final receiptEndpoint = '$url$sessionId';
+      log('[Booking] Download receipt URL: $receiptEndpoint');
+
+      final response = await apiClient.get(receiptEndpoint);
+
+      final body = _bodyOf(response, fallback: 'Failed to generate receipt');
+      if (body is Map) {
+        final receiptUrl = body['receipt_url'];
+        if (receiptUrl is String && receiptUrl.trim().isNotEmpty) {
+          return receiptUrl.trim();
+        }
+      }
+      throw const ServerException(
+        message: 'Receipt is not ready yet. Please try again later.',
+      );
+    });
+  }
+
+  @override
   Future<String> cancelBooking({required int bookingId}) async {
     return _guard('cancel-booking', () async {
       final url = _endpointUrl(
