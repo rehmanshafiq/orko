@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:orko_hubco/core/utils/app_storage/app_storage.dart';
 import 'package:orko_hubco/features/charging/domain/usecases/add_station_review_usecase.dart';
 import 'package:orko_hubco/features/charging/domain/usecases/delete_station_review_usecase.dart';
 import 'package:orko_hubco/features/charging/domain/usecases/get_station_reviews_usecase.dart';
@@ -34,6 +35,16 @@ class StationReviewsCubit extends Cubit<StationReviewsState> {
   /// Loads (or reloads) the reviews list. Shows the full-section spinner only
   /// on the first load; silent refreshes after mutations keep the list visible.
   Future<void> load({bool silent = false}) async {
+    // Reviews require auth (the endpoint returns 401 for guests). Skip the call
+    // entirely and surface a friendly "log in" state instead of a raw error.
+    if (AppStorage.isGuest) {
+      emit(state.copyWith(
+        status: StationReviewsStatus.guestGated,
+        errorMessage: '',
+      ));
+      return;
+    }
+
     if (!silent) {
       emit(state.copyWith(
         status: StationReviewsStatus.loading,

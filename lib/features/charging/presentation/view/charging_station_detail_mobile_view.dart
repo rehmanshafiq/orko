@@ -5,8 +5,10 @@ import 'package:go_router/go_router.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/di/injection_container.dart';
+import 'package:orko_hubco/core/utils/app_storage/app_storage.dart';
 import 'package:orko_hubco/core/utils/app_ui.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
+import 'package:orko_hubco/core/utils/widgets/auth_required_dialog.dart';
 import 'package:orko_hubco/features/charging/presentation/bloc/charging_station_detail_bloc.dart';
 import 'package:orko_hubco/features/charging/presentation/bloc/charging_station_detail_event.dart';
 import 'package:orko_hubco/features/charging/presentation/bloc/charging_station_detail_state.dart';
@@ -121,9 +123,22 @@ class ChargingStationDetailMobileView extends StatelessWidget {
                                 icon: state.favorite
                                     ? Icons.favorite_rounded
                                     : Icons.favorite_border_rounded,
-                                onTap: () => context
-                                    .read<ChargingStationDetailBloc>()
-                                    .add(const ChargingStationDetailFavoriteToggled()),
+                                onTap: () {
+                                  // Favouriting requires an account — prompt a
+                                  // guest to log in instead of calling the
+                                  // auth-only favourites endpoint (which 401s).
+                                  if (AppStorage.isGuest) {
+                                    AuthRequiredDialog.show(
+                                      context,
+                                      message:
+                                          'You\'re browsing as a guest. Please log in or create an account to save favourite stations.',
+                                    );
+                                    return;
+                                  }
+                                  context
+                                      .read<ChargingStationDetailBloc>()
+                                      .add(const ChargingStationDetailFavoriteToggled());
+                                },
                                 iconColor: state.favorite
                                     ? ui.brandPrimary
                                     : ui.textPrimary,

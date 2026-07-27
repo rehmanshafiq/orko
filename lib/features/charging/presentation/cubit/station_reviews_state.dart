@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:orko_hubco/features/charging/domain/entities/station_reviews_entity.dart';
 
-enum StationReviewsStatus { initial, loading, success, failure }
+enum StationReviewsStatus { initial, loading, success, failure, guestGated }
 
 class StationReviewsState extends Equatable {
   const StationReviewsState({
@@ -37,6 +37,9 @@ class StationReviewsState extends Equatable {
   bool get isLoading => status == StationReviewsStatus.loading;
   bool get isFailure => status == StationReviewsStatus.failure;
   bool get isSuccess => status == StationReviewsStatus.success;
+
+  /// Reviews require an authenticated account; the user is browsing as a guest.
+  bool get isGuestGated => status == StationReviewsStatus.guestGated;
 
   /// The logged-in user's own review, or null when they haven't reviewed yet.
   StationReviewItemEntity? get currentUserReview {

@@ -48,11 +48,12 @@ class AppRouter {
 
   static final _rootNavigatorKey = GlobalKey<NavigatorState>();
 
-  /// Routes that require a real authenticated session (not guest browsing).
-  /// Guests may browse the map/search/station details, but booking, payment
-  /// and account-scoped screens are gated here as defense-in-depth against
-  /// direct navigation / deep links — the backend still enforces auth on the
-  /// API calls themselves.
+  /// Routes not reachable without a session at all. Guests DO have a (guest)
+  /// session and may browse the whole app — every sensitive action is gated
+  /// in-screen via [AuthRequiredDialog], the data cubits short-circuit for
+  /// guests, and the backend enforces auth on the API calls. This guard is
+  /// therefore only a defense-in-depth net for a *fully sessionless* user
+  /// (e.g. right after a forced logout) trying to deep-link into these screens.
   static const Set<String> _authOnlyRoutes = {
     '/book-slot',
     '/payment-method',
@@ -68,8 +69,12 @@ class AppRouter {
     debugLogDiagnostics: false,
     refreshListenable: AuthNotifier.instance,
     redirect: (context, state) {
-      final loggedIn = sl<LocalStorageService>().isLoggedIn;
-      if (!loggedIn && _authOnlyRoutes.contains(state.matchedLocation)) {
+      final storage = sl<LocalStorageService>();
+      // A guest is a valid browsing session — do NOT bounce guests. Only a
+      // user with neither a real login nor guest mode (post forced-logout) is
+      // redirected away from the auth-only routes.
+      final hasSession = storage.isLoggedIn || storage.isGuest;
+      if (!hasSession && _authOnlyRoutes.contains(state.matchedLocation)) {
         return '/login';
       }
       return null;

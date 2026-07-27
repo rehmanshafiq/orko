@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:orko_hubco/core/usecase/usecase.dart';
+import 'package:orko_hubco/core/utils/app_storage/app_storage.dart';
 import 'package:orko_hubco/core/utils/helpers.dart';
 import 'package:orko_hubco/features/charging/domain/entities/charging_station_detail_entity.dart';
 import 'package:orko_hubco/features/charging/domain/usecases/add_favourite_station_usecase.dart';
@@ -92,7 +93,9 @@ class ChargingStationDetailBloc
 
     // Resolve the favourite state in the background. A failure here must not
     // surface as a screen-level error — the detail loaded successfully.
-    if (locationId != null) {
+    // Skipped for guests: the favourites endpoint requires auth and would only
+    // return a 401 (guests can't have favourites anyway).
+    if (locationId != null && !AppStorage.isGuest) {
       final favResult = await _getFavouriteStationsUseCase(const NoParams());
       favResult.fold(
         (_) {},

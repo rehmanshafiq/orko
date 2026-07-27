@@ -30,7 +30,15 @@ class AuthInterceptor extends Interceptor {
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
     if (err.response?.statusCode == 401) {
-      _forceLogout();
+      // Only tear down an ACTUAL authenticated session. A guest (no token) that
+      // hits an auth-only endpoint — e.g. GET charging-station/favourites/ —
+      // legitimately gets a 401 while browsing and must NOT be "logged out" or
+      // bounced to /login. Callers handle that 401 themselves (e.g. by showing
+      // a Login Required dialog).
+      final token = SecureStore.instance.read(StorageConstants.accessToken);
+      if (token != null && token.isNotEmpty) {
+        _forceLogout();
+      }
     }
     handler.next(err);
   }

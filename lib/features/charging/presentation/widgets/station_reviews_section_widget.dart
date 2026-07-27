@@ -215,6 +215,31 @@ class _Body extends StatelessWidget {
       );
     }
 
+    if (state.isGuestGated) {
+      return Row(
+        children: [
+          Expanded(
+            child: AppText(
+              'Log in to view and write reviews for this station.',
+              color: ui.textSecondary,
+              fontSize: FontSizes.font12Sp,
+              fontWeight: FontWeights.weight500,
+            ),
+          ),
+          8.horizontalSpace,
+          _ActionText(
+            label: 'Login',
+            color: ui.brandPrimary,
+            onTap: () => AuthRequiredDialog.show(
+              context,
+              message:
+                  'Please log in or create an account to view and write reviews.',
+            ),
+          ),
+        ],
+      );
+    }
+
     if (state.isFailure) {
       return Row(
         children: [
