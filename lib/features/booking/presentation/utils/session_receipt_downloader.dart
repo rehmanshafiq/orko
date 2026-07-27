@@ -4,20 +4,24 @@ import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:printing/printing.dart';
 
-/// Result of a receipt download: where the file was saved and whether that
-/// location is the user-visible public Downloads folder.
+/// Result of a receipt download: where the file was staged on disk.
 class ReceiptSaveResult {
-  const ReceiptSaveResult({required this.filePath, required this.savedToDownloads});
+  const ReceiptSaveResult({required this.filePath});
 
   final String filePath;
-  final bool savedToDownloads;
 }
 
-/// Downloads a server-generated receipt PDF from its (temporary) URL, saves it
-/// to the device's Downloads folder, then opens the system save/share sheet.
+/// Downloads a server-generated receipt PDF from its (temporary) URL and hands
+/// it to the OS share/save sheet so the user can save or forward it wherever
+/// they choose.
+///
+/// SECURITY: the PDF contains personal/billing data, so it is staged in the
+/// app's PRIVATE cache directory (not the world-readable public Downloads
+/// folder) and deleted right after the share sheet closes. This keeps receipts
+/// off shared storage where any other app could read them, and means the app
+/// needs no external-storage permission.
 ///
 /// The URL points at a third-party blob host (Azure), so it is fetched with a
 /// dedicated [Dio] instance — NOT the app's [ApiClient] — to avoid attaching
@@ -27,12 +31,8 @@ class SessionReceiptDownloader {
 
   static const _timeout = Duration(seconds: 60);
 
-  /// The public Downloads directory on Android. path_provider can't resolve it
-  /// (`getDownloadsDirectory` is desktop/iOS-only), so it's referenced directly.
-  static const _androidDownloadsPath = '/storage/emulated/0/Download';
-
-  /// Fetches the PDF at [receiptUrl], writes it to disk, and hands it to the OS
-  /// share/save sheet. Returns where the file landed.
+  /// Fetches the PDF at [receiptUrl], stages it in app-private storage, opens
+  /// the OS share/save sheet, then deletes the staged copy.
   ///
   /// Throws a [ReceiptDownloadException] (with a user-facing message) if the
   /// download, the disk write, or the share fails.
@@ -43,21 +43,21 @@ class SessionReceiptDownloader {
     final bytes = await _fetchBytes(receiptUrl);
     final filename = 'HUBCO_Receipt_$sessionId.pdf';
 
-    final saved = await _saveToDisk(bytes, filename);
+    final saved = await _stageInPrivateCache(bytes, filename);
 
     try {
-      // Share the on-disk file so the sheet reflects the saved document (and so
-      // the user can re-share/move it). Falls back to sharing the raw bytes.
+      // Hand the bytes to the system sheet. The user picks the destination
+      // (Files/Downloads/share target); we never write to shared storage
+      // ourselves.
       await Printing.sharePdf(bytes: bytes, filename: filename);
     } catch (e, st) {
-      // The file is already saved — a failed share sheet isn't fatal, but let
-      // the caller know sharing didn't open.
-      log('[Receipt] share failed (file saved at ${saved.filePath}): $e\n$st');
-      throw ReceiptDownloadException(
-        saved.savedToDownloads
-            ? 'Saved to Downloads, but the share sheet could not open.'
-            : 'Receipt saved, but the share sheet could not open.',
+      log('[Receipt] share failed: $e\n$st');
+      throw const ReceiptDownloadException(
+        'The receipt could not be opened for sharing. Please try again.',
       );
+    } finally {
+      // Best-effort cleanup so the receipt doesn't linger in the cache.
+      await _deleteQuietly(saved.filePath);
     }
 
     return saved;
@@ -97,71 +97,31 @@ class SessionReceiptDownloader {
     }
   }
 
-  /// Writes [bytes] to the Downloads folder (Android) or the app documents
-  /// directory (iOS — no shared Downloads exists), with an app-storage fallback
-  /// when the public folder isn't writable on this device.
-  static Future<ReceiptSaveResult> _saveToDisk(
+  /// Writes [bytes] to the app's private cache directory (app-sandboxed on both
+  /// Android and iOS — never world-readable).
+  static Future<ReceiptSaveResult> _stageInPrivateCache(
     Uint8List bytes,
     String filename,
   ) async {
     try {
-      if (Platform.isAndroid) {
-        await _ensureAndroidStoragePermission();
-        final downloads = Directory(_androidDownloadsPath);
-        if (await downloads.exists()) {
-          try {
-            final file = File('${downloads.path}/$filename');
-            await file.writeAsBytes(bytes, flush: true);
-            log('[Receipt] saved to Downloads: ${file.path}');
-            return ReceiptSaveResult(
-              filePath: file.path,
-              savedToDownloads: true,
-            );
-          } on FileSystemException catch (e) {
-            // Scoped storage blocked the write — fall through to app storage.
-            log('[Receipt] Downloads write blocked, falling back: $e');
-          }
-        }
-      }
-      // iOS, or Android fallback: app-visible storage (shareable, and on iOS
-      // exposed in Files when the app enables it).
-      final dir = await _appStorageDir();
+      final dir = await getTemporaryDirectory();
       final file = File('${dir.path}/$filename');
       await file.writeAsBytes(bytes, flush: true);
-      log('[Receipt] saved to app storage: ${file.path}');
-      return ReceiptSaveResult(filePath: file.path, savedToDownloads: false);
-    } on ReceiptDownloadException {
-      rethrow;
+      return ReceiptSaveResult(filePath: file.path);
     } catch (e, st) {
-      log('[Receipt] save failed: $e\n$st');
+      log('[Receipt] stage failed: $e\n$st');
       throw const ReceiptDownloadException(
-        'Could not save the receipt to your device. Please try again.',
+        'Could not prepare the receipt on your device. Please try again.',
       );
     }
   }
 
-  static Future<Directory> _appStorageDir() async {
-    if (Platform.isAndroid) {
-      return await getExternalStorageDirectory() ??
-          await getApplicationDocumentsDirectory();
-    }
-    return getApplicationDocumentsDirectory();
-  }
-
-  /// Requests legacy storage permission on Android 12 and below. On Android 13+
-  /// the request is a no-op (writing to Download needs no permission), and a
-  /// denial isn't fatal — the write itself falls back to app storage.
-  static Future<void> _ensureAndroidStoragePermission() async {
+  static Future<void> _deleteQuietly(String path) async {
     try {
-      final status = await Permission.storage.status;
-      if (status.isGranted || status.isPermanentlyDenied || status.isRestricted) {
-        return;
-      }
-      await Permission.storage.request();
-    } catch (e) {
-      // permission_handler can throw on platforms where the permission isn't
-      // declared — ignore; the disk-write fallback covers a denied write.
-      log('[Receipt] storage permission check skipped: $e');
+      final file = File(path);
+      if (await file.exists()) await file.delete();
+    } catch (_) {
+      // Non-fatal — the OS clears the cache directory eventually.
     }
   }
 }

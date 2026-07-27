@@ -147,6 +147,7 @@ flutter:
     - assets/icons/marker_orange.png
     - assets/data/hubco_locations.json
     - assets/data/remote_config.json
+    - assets/certs/api_ca_bundle.pem
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 

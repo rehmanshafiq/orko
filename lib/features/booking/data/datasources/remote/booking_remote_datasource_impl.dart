@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:dio/dio.dart';
 import 'package:orko_hubco/core/error/exceptions.dart';
 import 'package:orko_hubco/core/network/api_client.dart';
+import 'package:orko_hubco/core/utils/app_logger.dart';
 import 'package:orko_hubco/features/booking/data/datasources/remote/booking_remote_datasource.dart';
 import 'package:orko_hubco/features/booking/data/models/booking_model.dart';
 import 'package:orko_hubco/features/booking/data/models/booking_slot_model.dart';
@@ -315,9 +316,8 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
         (e) => e.verifyQr,
         unavailableMessage: 'QR verification is not available right now',
       );
-      log('[Booking] Verify QR URL: $url '
-          '(booking_code: $bookingCode, charge_point_id: $chargePointId, '
-          'connector_id: $connectorId)');
+      // booking_code is the credential presented at the charger — never log it.
+      AppLogger.d('[Booking] Verify QR request', name: 'Booking');
 
       // A wrong connector legitimately comes back as 422 with a meaningful
       // `{is_match: false, ...}` body — treat it as a result, not an error, by

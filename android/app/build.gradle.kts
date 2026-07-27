@@ -65,8 +65,16 @@ android {
 
     buildTypes {
         getByName("release") {
-            // Keep your existing proguard rules/minify options here
             signingConfig = signingConfigs.getByName("release")
+            // Shrink, optimize and obfuscate the Android/Kotlin/Java bytecode
+            // with R8. Dart code is separately obfuscated by building with
+            // `flutter build appbundle --obfuscate --split-debug-info=build/symbols`.
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
         }
     }
 }

@@ -5,12 +5,8 @@
     <uses-permission android:name="android.permission.CAMERA" />
     <!-- Android 13+ runtime notification permission (requested at runtime). -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <!-- Saving downloaded receipts to the public Downloads folder on Android 12
-         and below. On Android 13+ writing to Download needs no permission. -->
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
-        android:maxSdkVersion="32" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
-        android:maxSdkVersion="32" />
+    <!-- Receipts are shared via the OS share sheet from app-private storage, so
+         no external-storage permission is required. -->
     <uses-feature android:name="android.hardware.camera" android:required="false" />
     <application
         android:label="Hubco Green"

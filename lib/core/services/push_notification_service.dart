@@ -151,7 +151,11 @@ class PushNotificationService {
         if (apnsToken != null) break;
         await Future<void>.delayed(const Duration(seconds: 1));
       }
-      log('[Push] APNs token: ${apnsToken ?? 'NOT SET after 10s — device never registered with APNs'}');
+      // Device tokens are identifiers — full value only in debug, truncated
+      // otherwise (mirrors the FCM-token handling below).
+      log(kDebugMode
+          ? '[Push] APNs token: ${apnsToken ?? 'NOT SET after 10s — device never registered with APNs'}'
+          : '[Push] APNs token: ${apnsToken == null ? 'unavailable' : '${apnsToken.substring(0, apnsToken.length.clamp(0, 12))}…'}');
     }
 
     final token = await refreshToken();

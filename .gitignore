@@ -11,8 +11,8 @@ android/key.properties
 .flutter-plugins
 .flutter-plugins-dependencies
 .metadata
+android/.kotlin/
 android/.gradle/
-android/app/proguard-rules.pro
 android/local.properties
 build/
 ios/Flutter/Flutter.podspec

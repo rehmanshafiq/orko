@@ -1,8 +1,7 @@
-import 'dart:developer';
-
 import 'package:dio/dio.dart';
 import 'package:orko_hubco/core/error/exceptions.dart';
 import 'package:orko_hubco/core/network/api_client.dart';
+import 'package:orko_hubco/core/utils/app_logger.dart';
 import 'package:orko_hubco/features/remote_config/data/services/remote_config_service.dart';
 import 'package:orko_hubco/features/search/data/models/station_result_model.dart';
 
@@ -42,7 +41,8 @@ class SearchRemoteDataSourceImpl implements SearchRemoteDataSource {
         (e) => e.chargingStationSearch,
         fallbackPath: _defaultSearchPath,
       );
-      log('[Search] Search URL: $url (q: "$query", lat: $latitude, long: $longitude)');
+      // Coordinates and the raw query are PII — never logged.
+      AppLogger.d('[Search] Search request', name: 'Search');
 
       final response = await apiClient.post(
         url,
@@ -74,7 +74,8 @@ class SearchRemoteDataSourceImpl implements SearchRemoteDataSource {
         (e) => e.chargingStationPopular,
         fallbackPath: _defaultPopularPath,
       );
-      log('[Search] Popular URL: $url (lat: $latitude, long: $longitude)');
+      // Coordinates are PII — never logged.
+      AppLogger.d('[Search] Popular request', name: 'Search');
 
       final response = await apiClient.get(
         url,
@@ -118,10 +119,10 @@ class SearchRemoteDataSourceImpl implements SearchRemoteDataSource {
       } else {
         message = _friendlyStatusMessage(code);
       }
-      log('[Search] $tag failed ($code): ${e.message}');
+      AppLogger.d('[Search] $tag failed ($code): ${e.message}', name: 'Search');
       throw ServerException(message: message, statusCode: code, originalError: e);
     } catch (e) {
-      log('[Search] $tag unexpected error: $e');
+      AppLogger.d('[Search] $tag unexpected error: $e', name: 'Search');
       throw ServerException(message: e.toString(), originalError: e);
     }
   }

@@ -8,6 +8,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:orko_hubco/core/di/injection_container.dart';
+import 'package:orko_hubco/core/network/certificate_pinning.dart';
 import 'package:orko_hubco/core/router/app_router.dart';
 import 'package:orko_hubco/core/services/push_notification_service.dart';
 import 'package:orko_hubco/core/services/secure_store.dart';
@@ -27,6 +28,9 @@ Future<void> main() async {
   // plaintext values out of GetStorage. Must run before the first API call so
   // the auth interceptor can read the token synchronously.
   await SecureStore.instance.init();
+
+  // Load the pinned CA bundle before any API client is built (no-op in debug).
+  await CertificatePinning.load();
 
   // Initialize Firebase
   await Firebase.initializeApp(
