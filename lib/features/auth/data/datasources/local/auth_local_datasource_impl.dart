@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:orko_hubco/core/constants/storage_constants.dart';
+import 'package:orko_hubco/core/router/auth_notifier.dart';
 import 'package:orko_hubco/core/services/local_storage_service.dart';
 import 'package:orko_hubco/features/auth/data/datasources/local/auth_local_datasource.dart';
 import 'package:orko_hubco/features/auth/data/models/user_model.dart';
@@ -40,6 +41,8 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
     await storageService.setLoggedIn(true);
     // A real session supersedes any guest mode.
     await storageService.setGuest(false);
+    // Let the router re-evaluate its auth guard.
+    AuthNotifier.instance.authChanged();
   }
 
   @override
@@ -52,6 +55,8 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
     await storageService.remove(StorageConstants.userId);
     await storageService.setLoggedIn(false);
     await storageService.setGuest(false);
+    // Let the router re-evaluate its auth guard.
+    AuthNotifier.instance.authChanged();
   }
 
   @override

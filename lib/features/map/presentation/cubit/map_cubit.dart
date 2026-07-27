@@ -1,4 +1,4 @@
-import 'dart:developer';
+import 'package:orko_hubco/core/utils/app_logger.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geolocator/geolocator.dart';
@@ -103,7 +103,7 @@ class MapCubit extends Cubit<MapState> {
         ),
       );
     } catch (e) {
-      log('[Map] Failed to resolve current position: $e');
+      AppLogger.d('[Map] Failed to resolve current position: $e');
       return null;
     }
   }

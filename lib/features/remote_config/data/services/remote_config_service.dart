@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'dart:developer';
+import 'package:orko_hubco/core/utils/app_logger.dart';
 
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/foundation.dart';
@@ -90,19 +90,19 @@ class RemoteConfigService {
       );
 
       final activated = await remoteConfig.fetchAndActivate();
-      log('[RemoteConfig] fetchAndActivate() → activated: $activated');
+      AppLogger.d('[RemoteConfig] fetchAndActivate() → activated: $activated');
 
       final raw = remoteConfig.getString(_firebaseKey);
-      log('[RemoteConfig] Firebase raw response for "$_firebaseKey": $raw');
+      AppLogger.d('[RemoteConfig] Firebase raw response for "$_firebaseKey": $raw');
 
       if (raw.trim().isEmpty) {
-        log('[RemoteConfig] Firebase key "$_firebaseKey" is empty.');
+        AppLogger.d('[RemoteConfig] Firebase key "$_firebaseKey" is empty.');
         return null;
       }
 
       final decoded = jsonDecode(raw);
       if (decoded is! Map) {
-        log('[RemoteConfig] Firebase value is not a JSON object.');
+        AppLogger.d('[RemoteConfig] Firebase value is not a JSON object.');
         return null;
       }
 
@@ -112,13 +112,10 @@ class RemoteConfigService {
       );
 
       _writeToCache(model);
-      log('[RemoteConfig] Loaded from Firebase Remote Config: ${model.toJson()}');
+      AppLogger.d('[RemoteConfig] Loaded from Firebase Remote Config');
       return model;
     } catch (error, stackTrace) {
-      log(
-        '[RemoteConfig] Firebase fetch failed: $error',
-        stackTrace: stackTrace,
-      );
+      AppLogger.d('[RemoteConfig] Firebase fetch failed: $error\n$stackTrace');
       return null;
     }
   }
@@ -137,10 +134,10 @@ class RemoteConfigService {
         return null;
       }
 
-      log('[RemoteConfig] Loaded from GetStorage cache.');
+      AppLogger.d('[RemoteConfig] Loaded from GetStorage cache.');
       return RemoteConfigModel.fromJson(Map<String, dynamic>.from(decoded));
     } catch (error) {
-      log('[RemoteConfig] Cache read failed: $error');
+      AppLogger.d('[RemoteConfig] Cache read failed: $error');
       return null;
     }
   }
@@ -152,7 +149,7 @@ class RemoteConfigService {
         jsonEncode(model.toJson()),
       );
     } catch (error) {
-      log('[RemoteConfig] Cache write failed: $error');
+      AppLogger.d('[RemoteConfig] Cache write failed: $error');
     }
   }
 
@@ -166,10 +163,10 @@ class RemoteConfigService {
         return null;
       }
 
-      log('[RemoteConfig] Loaded from bundled asset.');
+      AppLogger.d('[RemoteConfig] Loaded from bundled asset.');
       return RemoteConfigModel.fromJson(Map<String, dynamic>.from(decoded));
     } catch (error) {
-      log('[RemoteConfig] Asset read failed: $error');
+      AppLogger.d('[RemoteConfig] Asset read failed: $error');
       return null;
     }
   }

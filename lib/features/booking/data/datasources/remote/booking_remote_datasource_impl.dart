@@ -1,4 +1,4 @@
-import 'dart:developer';
+import 'package:orko_hubco/core/utils/app_logger.dart';
 
 import 'package:dio/dio.dart';
 import 'package:orko_hubco/core/error/exceptions.dart';
@@ -30,7 +30,7 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
         (e) => e.chargerDetails,
         unavailableMessage: 'Charger details are not available right now',
       );
-      log('[Booking] Charger details URL: $url (location_id: $locationId)');
+      AppLogger.d('[Booking] Charger details URL: $url (location_id: $locationId)');
 
       final response = await apiClient.get(
         url,
@@ -55,7 +55,7 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
         (e) => e.bookingSlots,
         unavailableMessage: 'Time slots are not available right now',
       );
-      log('[Booking] Slots URL: $url (date: $date, location_id: $locationId)');
+      AppLogger.d('[Booking] Slots URL: $url (date: $date, location_id: $locationId)');
 
       final response = await apiClient.get(
         url,
@@ -85,7 +85,7 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
         (e) => e.createBooking,
         unavailableMessage: 'Booking is not available right now',
       );
-      log('[Booking] Create URL: $url');
+      AppLogger.d('[Booking] Create URL: $url');
 
       final response = await apiClient.post(
         url,
@@ -113,7 +113,7 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
         (e) => e.createBookingHgl,
         unavailableMessage: 'Booking is not available right now',
       );
-      log('[Booking] Create (HGL) URL: $url');
+      AppLogger.d('[Booking] Create (HGL) URL: $url');
 
       final response = await apiClient.post(
         url,
@@ -137,7 +137,7 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
         (e) => e.myBookings,
         unavailableMessage: 'Bookings are not available right now',
       );
-      log('[Booking] My bookings URL: $url');
+      AppLogger.d('[Booking] My bookings URL: $url');
 
       final response = await apiClient.get(url);
 
@@ -159,7 +159,7 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
         (e) => e.chargeSessionHistory,
         unavailableMessage: 'Charging history is not available right now',
       );
-      log('[Booking] Charge session history URL: $url');
+      AppLogger.d('[Booking] Charge session history URL: $url');
 
       final response = await apiClient.get(url);
 
@@ -184,7 +184,7 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
         (e) => e.liveSession,
         unavailableMessage: 'Live session is not available right now',
       );
-      log('[Booking] Live session URL: $url');
+      AppLogger.d('[Booking] Live session URL: $url');
 
       final response = await apiClient.get(url);
 
@@ -207,7 +207,7 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
         (e) => e.chargeSessionDetails,
         unavailableMessage: 'Session details are not available right now',
       );
-      log('[Booking] Charge session details URL: $url (id: $sessionId)');
+      AppLogger.d('[Booking] Charge session details URL: $url (id: $sessionId)');
 
       final response = await apiClient.get(
         url,
@@ -234,7 +234,7 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
         unavailableMessage: 'Receipt download is not available right now',
       );
       final receiptEndpoint = '$url$sessionId';
-      log('[Booking] Download receipt URL: $receiptEndpoint');
+      AppLogger.d('[Booking] Download receipt URL: $receiptEndpoint');
 
       final response = await apiClient.get(receiptEndpoint);
 
@@ -258,7 +258,7 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
         (e) => e.cancelBooking,
         unavailableMessage: 'Cancellation is not available right now',
       );
-      log('[Booking] Cancel URL: $url (booking_id: $bookingId)');
+      AppLogger.d('[Booking] Cancel URL: $url (booking_id: $bookingId)');
 
       final response = await apiClient.post(
         url,
@@ -286,7 +286,7 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
         (e) => e.rescheduleBooking,
         unavailableMessage: 'Rescheduling is not available right now',
       );
-      log('[Booking] Reschedule URL: $url (booking_id: $bookingId)');
+      AppLogger.d('[Booking] Reschedule URL: $url (booking_id: $bookingId)');
 
       // end_time is auto-derived by the backend (start + 30 × no_of_slots min).
       // Sending it triggers a server-side failure, so it must NOT be included.
@@ -368,14 +368,14 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
                   e.type == DioExceptionType.sendTimeout
               ? 'The request timed out. Please try again.'
               : (e.message ?? 'Something went wrong'));
-      log('[Booking] $tag failed (${e.response?.statusCode}): $message');
+      AppLogger.d('[Booking] $tag failed (${e.response?.statusCode}): $message');
       throw ServerException(
         message: message,
         statusCode: e.response?.statusCode,
         originalError: e,
       );
     } catch (e) {
-      log('[Booking] $tag unexpected error: $e');
+      AppLogger.d('[Booking] $tag unexpected error: $e');
       throw ServerException(message: e.toString(), originalError: e);
     }
   }

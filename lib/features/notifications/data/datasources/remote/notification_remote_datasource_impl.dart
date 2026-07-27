@@ -1,4 +1,4 @@
-import 'dart:developer';
+import 'package:orko_hubco/core/utils/app_logger.dart';
 
 import 'package:dio/dio.dart';
 import 'package:orko_hubco/core/error/exceptions.dart';
@@ -33,7 +33,7 @@ class NotificationRemoteDataSourceImpl implements NotificationRemoteDataSource {
   }) async {
     return _guard('list', () async {
       final url = _resolveUrl(_listPath());
-      log('[Notifications] List URL: $url (page $page)');
+      AppLogger.d('[Notifications] List URL: $url (page $page)');
 
       final response = await apiClient.get(
         url,
@@ -53,7 +53,7 @@ class NotificationRemoteDataSourceImpl implements NotificationRemoteDataSource {
       final url = _resolveUrl(
         _endpoint((e) => e.notificationsUnreadCount, _unreadCountFallback),
       );
-      log('[Notifications] Unread-count URL: $url');
+      AppLogger.d('[Notifications] Unread-count URL: $url');
 
       final response = await apiClient.get(url);
       _ensureOk(response, fallback: 'Failed to load unread count');
@@ -68,7 +68,7 @@ class NotificationRemoteDataSourceImpl implements NotificationRemoteDataSource {
       var base = _listPath();
       if (!base.endsWith('/')) base = '$base/';
       final url = _resolveUrl('$base$id/mark-read/');
-      log('[Notifications] Mark-read URL: $url');
+      AppLogger.d('[Notifications] Mark-read URL: $url');
 
       final response = await apiClient.post(url);
       _ensureOk(response, fallback: 'Failed to mark notification read');
@@ -82,7 +82,7 @@ class NotificationRemoteDataSourceImpl implements NotificationRemoteDataSource {
       final url = _resolveUrl(
         _endpoint((e) => e.notificationsMarkAllRead, _markAllReadFallback),
       );
-      log('[Notifications] Mark-all-read URL: $url');
+      AppLogger.d('[Notifications] Mark-all-read URL: $url');
 
       final response = await apiClient.post(url);
       _ensureOk(response, fallback: 'Failed to mark all notifications read');
@@ -96,7 +96,7 @@ class NotificationRemoteDataSourceImpl implements NotificationRemoteDataSource {
       final url = _resolveUrl(
         _endpoint((e) => e.notificationsClearAll, _clearAllFallback),
       );
-      log('[Notifications] Clear-all DELETE URL: $url');
+      AppLogger.d('[Notifications] Clear-all DELETE URL: $url');
 
       final response = await apiClient.delete(url);
       _ensureOk(response, fallback: 'Failed to clear notifications');
@@ -110,7 +110,7 @@ class NotificationRemoteDataSourceImpl implements NotificationRemoteDataSource {
       final url = _resolveUrl(
         _endpoint((e) => e.notificationsPreferences, _preferencesFallback),
       );
-      log('[Notifications] Preferences GET URL: $url');
+      AppLogger.d('[Notifications] Preferences GET URL: $url');
 
       final response = await apiClient.get(url);
       _ensureOk(response, fallback: 'Failed to load notification preferences');
@@ -126,7 +126,7 @@ class NotificationRemoteDataSourceImpl implements NotificationRemoteDataSource {
       final url = _resolveUrl(
         _endpoint((e) => e.notificationsPreferences, _preferencesFallback),
       );
-      log('[Notifications] Preferences PATCH URL: $url body: $changes');
+      AppLogger.d('[Notifications] Preferences PATCH URL: $url body: $changes');
 
       final response = await apiClient.patch(url, data: changes);
       _ensureOk(response, fallback: 'Failed to update notification preferences');
@@ -140,7 +140,7 @@ class NotificationRemoteDataSourceImpl implements NotificationRemoteDataSource {
       final url = _resolveUrl(
         _endpoint((e) => e.notificationsDeviceToken, _deviceTokenFallback),
       );
-      log('[Notifications] Device-token POST URL: $url');
+      AppLogger.d('[Notifications] Device-token POST URL: $url');
 
       final response = await apiClient.post(url, data: {'token': token});
       _ensureOk(response, fallback: 'Failed to register device token');
@@ -154,7 +154,7 @@ class NotificationRemoteDataSourceImpl implements NotificationRemoteDataSource {
       final url = _resolveUrl(
         _endpoint((e) => e.notificationsDeviceToken, _deviceTokenFallback),
       );
-      log('[Notifications] Device-token DELETE URL: $url');
+      AppLogger.d('[Notifications] Device-token DELETE URL: $url');
 
       final response = await apiClient.delete(url);
       _ensureOk(response, fallback: 'Failed to clear device token');
@@ -201,10 +201,10 @@ class NotificationRemoteDataSourceImpl implements NotificationRemoteDataSource {
       } else {
         message = _friendlyStatusMessage(code);
       }
-      log('[Notifications] $tag failed ($code): ${e.message}');
+      AppLogger.d('[Notifications] $tag failed ($code): ${e.message}');
       throw ServerException(message: message, statusCode: code, originalError: e);
     } catch (e) {
-      log('[Notifications] $tag unexpected error: $e');
+      AppLogger.d('[Notifications] $tag unexpected error: $e');
       throw ServerException(message: e.toString(), originalError: e);
     }
   }

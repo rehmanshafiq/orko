@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:orko_hubco/core/di/injection_container.dart';
 import 'package:orko_hubco/core/global_bloc/bloc/user_bloc.dart';
+import 'package:orko_hubco/core/router/auth_notifier.dart';
+import 'package:orko_hubco/core/services/local_storage_service.dart';
 import 'package:orko_hubco/features/auth/data/datasources/local/auth_local_datasource.dart';
 import 'package:orko_hubco/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:orko_hubco/features/auth/presentation/screens/login_screen.dart';
@@ -46,10 +48,32 @@ class AppRouter {
 
   static final _rootNavigatorKey = GlobalKey<NavigatorState>();
 
+  /// Routes that require a real authenticated session (not guest browsing).
+  /// Guests may browse the map/search/station details, but booking, payment
+  /// and account-scoped screens are gated here as defense-in-depth against
+  /// direct navigation / deep links — the backend still enforces auth on the
+  /// API calls themselves.
+  static const Set<String> _authOnlyRoutes = {
+    '/book-slot',
+    '/payment-method',
+    '/booking-confirmation',
+    '/booking-success',
+    '/bookings',
+    '/notifications',
+  };
+
   static final GoRouter router = GoRouter(
     navigatorKey: _rootNavigatorKey,
     initialLocation: '/splash',
     debugLogDiagnostics: false,
+    refreshListenable: AuthNotifier.instance,
+    redirect: (context, state) {
+      final loggedIn = sl<LocalStorageService>().isLoggedIn;
+      if (!loggedIn && _authOnlyRoutes.contains(state.matchedLocation)) {
+        return '/login';
+      }
+      return null;
+    },
     routes: [
       // ── Splash Route ────────────────────────────────────────────────
       GoRoute(
@@ -299,4 +323,20 @@ class AppRouter {
       ),
     ],
   );
+}
+
+/// Session-lifecycle actions driven from outside the widget tree (e.g. the Dio
+/// auth interceptor on a 401).
+class AuthRouterActions {
+  AuthRouterActions._();
+
+  /// Called when the session is no longer valid: clears the auth flags, tells
+  /// the router to re-guard, and routes to login.
+  static void onSessionExpired() {
+    final storage = sl<LocalStorageService>();
+    storage.setLoggedIn(false);
+    storage.setGuest(false);
+    AuthNotifier.instance.authChanged();
+    AppRouter.router.go('/login');
+  }
 }

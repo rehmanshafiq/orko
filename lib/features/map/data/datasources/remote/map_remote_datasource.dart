@@ -1,4 +1,4 @@
-import 'dart:developer';
+import 'package:orko_hubco/core/utils/app_logger.dart';
 
 import 'package:dio/dio.dart';
 import 'package:orko_hubco/core/error/exceptions.dart';
@@ -78,7 +78,7 @@ class MapRemoteDataSourceImpl implements MapRemoteDataSource {
         if (city != null && city.isNotEmpty) 'city': city,
       };
 
-      log('[Map] Nearest stations URL: $url (query: $queryParameters)');
+      AppLogger.d('[Map] Nearest stations URL: $url (query: $queryParameters)');
 
       final response = await apiClient.get(
         url,
@@ -129,7 +129,7 @@ class MapRemoteDataSourceImpl implements MapRemoteDataSource {
       }
       final url = _buildUrl(ApiClient.baseUrl, endpoint);
 
-      log('[Map] Filter options URL: $url');
+      AppLogger.d('[Map] Filter options URL: $url');
 
       final response = await apiClient.get(url);
 

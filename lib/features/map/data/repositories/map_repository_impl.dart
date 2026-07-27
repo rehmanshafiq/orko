@@ -1,4 +1,4 @@
-import 'dart:developer';
+import 'package:orko_hubco/core/utils/app_logger.dart';
 
 import 'package:orko_hubco/core/error/exceptions.dart';
 import 'package:orko_hubco/core/error/failures.dart';
@@ -45,7 +45,7 @@ class MapRepositoryImpl implements MapRepository {
       );
       return Right(stations);
     } catch (e) {
-      log('[Map] Remote nearest failed, falling back to asset: $e');
+      AppLogger.d('[Map] Remote nearest failed, falling back to asset: $e');
     }
 
     // Fallback: bundled asset. (The asset can't honour filters; it's the

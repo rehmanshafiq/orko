@@ -1,4 +1,4 @@
-import 'dart:developer';
+import 'package:orko_hubco/core/utils/app_logger.dart';
 
 import 'package:dio/dio.dart';
 import 'package:orko_hubco/core/error/exceptions.dart';
@@ -45,7 +45,7 @@ class SupportRemoteDataSourceImpl implements SupportRemoteDataSource {
       }
 
       final url = _buildUrl(ApiClient.baseUrl, endpoint);
-      log('[Support] Categories URL: $url');
+      AppLogger.d('[Support] Categories URL: $url');
 
       final response = await apiClient.get(url);
 
@@ -100,7 +100,7 @@ class SupportRemoteDataSourceImpl implements SupportRemoteDataSource {
       }
 
       final url = _buildUrl(ApiClient.baseUrl, endpoint);
-      log('[Support] Create-ticket URL: $url');
+      AppLogger.d('[Support] Create-ticket URL: $url');
 
       // The backend accepts repeated `attachments` parts under one field name.
       final attachments = <MultipartFile>[];

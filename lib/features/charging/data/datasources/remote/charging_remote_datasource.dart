@@ -1,4 +1,4 @@
-import 'dart:developer';
+import 'package:orko_hubco/core/utils/app_logger.dart';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
@@ -96,7 +96,7 @@ class ChargingRemoteDataSourceImpl implements ChargingRemoteDataSource {
         stationId,
       );
 
-      log('[Charging] Station detail URL: $url '
+      AppLogger.d('[Charging] Station detail URL: $url '
           '(lat: $latitude, long: $longitude)');
 
       final response = await apiClient.get(
@@ -139,7 +139,7 @@ class ChargingRemoteDataSourceImpl implements ChargingRemoteDataSource {
   Future<List<FavouriteStationModel>> getFavourites() async {
     try {
       final url = _favouritesUrl();
-      log('[Charging] Favourites URL (GET): $url');
+      AppLogger.d('[Charging] Favourites URL (GET): $url');
 
       final response = await apiClient.get(url);
 
@@ -175,7 +175,7 @@ class ChargingRemoteDataSourceImpl implements ChargingRemoteDataSource {
   Future<void> addFavourite(int locationId) async {
     try {
       final url = _favouritesUrl();
-      log('[Charging] Favourites URL (POST): $url (location_id: $locationId)');
+      AppLogger.d('[Charging] Favourites URL (POST): $url (location_id: $locationId)');
 
       final response = await apiClient.post(
         url,
@@ -202,7 +202,7 @@ class ChargingRemoteDataSourceImpl implements ChargingRemoteDataSource {
   Future<void> removeFavourite(int locationId) async {
     try {
       final url = _favouritesUrl();
-      log('[Charging] Favourites URL (DELETE): $url (location_id: $locationId)');
+      AppLogger.d('[Charging] Favourites URL (DELETE): $url (location_id: $locationId)');
 
       final response = await apiClient.delete(
         url,
@@ -232,7 +232,7 @@ class ChargingRemoteDataSourceImpl implements ChargingRemoteDataSource {
   }) async {
     try {
       final url = _compatibilityUrl();
-      log('[Charging] Compatibility URL (POST): $url '
+      AppLogger.d('[Charging] Compatibility URL (POST): $url '
           '(vehicle: $csmsVehicleId, charge_point_id: $chargePointId)');
 
       final response = await apiClient.post(
@@ -273,7 +273,7 @@ class ChargingRemoteDataSourceImpl implements ChargingRemoteDataSource {
   Future<StationReviewsModel> getReviews(int locationId) async {
     try {
       final url = _reviewsUrl();
-      log('[Charging] Reviews URL (GET): $url (location_id: $locationId)');
+      AppLogger.d('[Charging] Reviews URL (GET): $url (location_id: $locationId)');
 
       final response = await apiClient.get(
         url,
@@ -307,7 +307,7 @@ class ChargingRemoteDataSourceImpl implements ChargingRemoteDataSource {
   }) async {
     try {
       final url = _reviewsUrl();
-      log('[Charging] Reviews URL (POST add): $url '
+      AppLogger.d('[Charging] Reviews URL (POST add): $url '
           '(location_id: $locationId, rating: $rating)');
 
       final response = await apiClient.post(
@@ -337,7 +337,7 @@ class ChargingRemoteDataSourceImpl implements ChargingRemoteDataSource {
   }) async {
     try {
       final url = _reviewsUrl();
-      log('[Charging] Reviews URL (POST update): $url '
+      AppLogger.d('[Charging] Reviews URL (POST update): $url '
           '(review_id: $reviewId, rating: $rating)');
 
       final response = await apiClient.post(
@@ -367,7 +367,7 @@ class ChargingRemoteDataSourceImpl implements ChargingRemoteDataSource {
   Future<void> deleteReview(int reviewId) async {
     try {
       final url = _reviewsUrl();
-      log('[Charging] Reviews URL (DELETE): $url (review_id: $reviewId)');
+      AppLogger.d('[Charging] Reviews URL (DELETE): $url (review_id: $reviewId)');
 
       final response = await apiClient.delete(
         url,
@@ -444,7 +444,7 @@ class ChargingRemoteDataSourceImpl implements ChargingRemoteDataSource {
           ? data['message'].toString()
           : fallback;
     }
-    log('[Charging] Request failed '
+    AppLogger.d('[Charging] Request failed '
         '(${e.response?.statusCode ?? e.type}): ${e.message}');
     return ServerException(
       message: message,

@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:developer';
+import 'package:orko_hubco/core/utils/app_logger.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -234,7 +234,7 @@ class SearchCubit extends Cubit<SearchState> {
         ),
       );
     } catch (e) {
-      log('[Search] Failed to resolve current position: $e');
+      AppLogger.d('[Search] Failed to resolve current position: $e');
       return null;
     }
   }

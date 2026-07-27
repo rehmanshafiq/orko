@@ -1,4 +1,4 @@
-import 'dart:developer';
+import 'package:orko_hubco/core/utils/app_logger.dart';
 
 import 'package:dio/dio.dart';
 import 'package:orko_hubco/core/error/exceptions.dart';
@@ -24,7 +24,7 @@ class VehicleRemoteDataSourceImpl implements VehicleRemoteDataSource {
         fallbackPath: 'api/v1/vehicle/makes/',
         unavailableMessage: 'Vehicle makes are not available right now',
       );
-      log('[Vehicle] Makes URL: $url');
+      AppLogger.d('[Vehicle] Makes URL: $url');
 
       final response = await apiClient.get(url);
       final results = _resultsOf(response, fallback: 'Failed to load makes');
@@ -42,7 +42,7 @@ class VehicleRemoteDataSourceImpl implements VehicleRemoteDataSource {
         fallbackPath: 'api/v1/vehicle/models/',
         unavailableMessage: 'Vehicle models are not available right now',
       );
-      log('[Vehicle] Models URL: $url (md_make__id: $makeId)');
+      AppLogger.d('[Vehicle] Models URL: $url (md_make__id: $makeId)');
 
       final response = await apiClient.get(
         url,
@@ -68,7 +68,7 @@ class VehicleRemoteDataSourceImpl implements VehicleRemoteDataSource {
         fallbackPath: 'api/v1/vehicle/add-vehicle/',
         unavailableMessage: 'Adding a vehicle is not available right now',
       );
-      log('[Vehicle] Add URL: $url (make: $mdMake, model: $mdModel)');
+      AppLogger.d('[Vehicle] Add URL: $url (make: $mdMake, model: $mdModel)');
 
       final response = await apiClient.post(
         url,
@@ -97,7 +97,7 @@ class VehicleRemoteDataSourceImpl implements VehicleRemoteDataSource {
         fallbackPath: 'api/v1/vehicle/custom-make/',
         unavailableMessage: 'Adding a custom make is not available right now',
       );
-      log('[Vehicle] Custom make URL: $url (name: $name)');
+      AppLogger.d('[Vehicle] Custom make URL: $url (name: $name)');
 
       final response = await apiClient.post(url, data: {'name': name});
       final body = _bodyOf(response, fallback: 'Failed to create make');
@@ -122,7 +122,7 @@ class VehicleRemoteDataSourceImpl implements VehicleRemoteDataSource {
         fallbackPath: 'api/v1/vehicle/custom-model/',
         unavailableMessage: 'Adding a custom model is not available right now',
       );
-      log('[Vehicle] Custom model URL: $url (make: $mdMake, name: $name)');
+      AppLogger.d('[Vehicle] Custom model URL: $url (make: $mdMake, name: $name)');
 
       final response = await apiClient.post(
         url,
@@ -150,7 +150,7 @@ class VehicleRemoteDataSourceImpl implements VehicleRemoteDataSource {
         fallbackPath: 'api/v1/vehicle/user-vehicle/',
         unavailableMessage: 'Your vehicles are not available right now',
       );
-      log('[Vehicle] User vehicles URL: $url');
+      AppLogger.d('[Vehicle] User vehicles URL: $url');
 
       final response = await apiClient.get(url);
       final body = _bodyOf(response, fallback: 'Failed to load your vehicles');
@@ -173,7 +173,7 @@ class VehicleRemoteDataSourceImpl implements VehicleRemoteDataSource {
         fallbackPath: 'api/v1/vehicle/add-vehicle/',
         unavailableMessage: 'Deleting a vehicle is not available right now',
       );
-      log('[Vehicle] Delete URL: $url (id: $id)');
+      AppLogger.d('[Vehicle] Delete URL: $url (id: $id)');
 
       // Soft-delete shares the add-vehicle path; the id goes in the JSON body
       // per the API contract.
@@ -219,10 +219,10 @@ class VehicleRemoteDataSourceImpl implements VehicleRemoteDataSource {
       } else {
         message = _friendlyStatusMessage(code);
       }
-      log('[Vehicle] $tag failed ($code): ${e.message}');
+      AppLogger.d('[Vehicle] $tag failed ($code): ${e.message}');
       throw ServerException(message: message, statusCode: code, originalError: e);
     } catch (e) {
-      log('[Vehicle] $tag unexpected error: $e');
+      AppLogger.d('[Vehicle] $tag unexpected error: $e');
       throw ServerException(message: e.toString(), originalError: e);
     }
   }

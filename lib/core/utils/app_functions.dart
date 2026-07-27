@@ -11,7 +11,14 @@ import '../cache/local_cache.dart';
 
 class AppFunctions {
   static Future<void> openUrl(String url) async {
-    final Uri uri = Uri.parse(url);
+    final uri = Uri.tryParse(url.trim());
+    // Only allow web + explicit tel/mailto schemes. Blocks javascript:, file:,
+    // intent://, custom app schemes etc. that a server/attacker-controlled
+    // string could otherwise trigger via the external launcher.
+    const allowedSchemes = {'https', 'http', 'tel', 'mailto'};
+    if (uri == null || !allowedSchemes.contains(uri.scheme.toLowerCase())) {
+      throw 'Refusing to launch unsupported/unsafe URL: $url';
+    }
 
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
       throw 'Could not launch $url';
@@ -111,8 +118,16 @@ class AppFunctions {
   }
 
   static bool isValidEmail(String email) {
-    final regex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
-    return regex.hasMatch(email);
+    final value = email.trim();
+    // Reject over-long input, consecutive/edge dots and empty labels that the
+    // previous permissive pattern accepted (e.g. "a..b@x.com", "a@-x.com").
+    if (value.isEmpty || value.length > 254) return false;
+    final regex = RegExp(
+      r'^[a-zA-Z0-9](?:[a-zA-Z0-9._%+-]*[a-zA-Z0-9])?'
+      r'@(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$',
+    );
+    if (!regex.hasMatch(value)) return false;
+    return !value.contains('..');
   }
 
   static void closeKeyboard(BuildContext context) {

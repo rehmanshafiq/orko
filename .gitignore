@@ -111,3 +111,5 @@ linux/flutter/generated_plugins.cmake
 # FVM Version Cache
 .fvm/
 .fvmrc
+# Local secrets / tooling config
+.env

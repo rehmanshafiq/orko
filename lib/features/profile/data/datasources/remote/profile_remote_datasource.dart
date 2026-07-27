@@ -1,4 +1,4 @@
-import 'dart:developer';
+import 'package:orko_hubco/core/utils/app_logger.dart';
 
 import 'package:dio/dio.dart';
 import 'package:orko_hubco/core/error/exceptions.dart';
@@ -35,7 +35,7 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
       }
 
       final url = _buildUrl(ApiClient.baseUrl, endpoint);
-      log('[Profile] Charging stats URL: $url');
+      AppLogger.d('[Profile] Charging stats URL: $url');
 
       final response = await apiClient.get(url);
 

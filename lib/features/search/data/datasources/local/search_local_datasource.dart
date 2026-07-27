@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'dart:developer';
+import 'package:orko_hubco/core/utils/app_logger.dart';
 
 import 'package:orko_hubco/core/constants/storage_constants.dart';
 import 'package:orko_hubco/core/services/local_storage_service.dart';
@@ -45,7 +45,7 @@ class SearchLocalDataSourceImpl implements SearchLocalDataSource {
     } catch (e) {
       // Corrupt payload (e.g. a partial/legacy write) — reset rather than
       // letting one bad record break the screen on every open.
-      log('[Search] Failed to decode recent searches, resetting: $e');
+      AppLogger.d('[Search] Failed to decode recent searches, resetting: $e');
       await storageService.remove(_key);
       return const [];
     }

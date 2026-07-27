@@ -3,7 +3,6 @@
     "base_url_live": "https://apis-py.orkofleet.com/",
     "base_url_qa": "https://staging-python.orkofleet.com/",
     "domain": "Hubco",
-    "google_places_api_key": "AIzaSyDdfWz53rd1de4VDmBWJblRgFrL8Hrfd-Q",
     "autocomplete_url": "https://maps.googleapis.com/maps/api/place/autocomplete/json",
     "details_url": "https://maps.googleapis.com/maps/api/place/details/json",
     "api_endpoints": {

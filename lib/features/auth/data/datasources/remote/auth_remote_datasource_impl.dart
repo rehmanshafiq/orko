@@ -1,4 +1,4 @@
-import 'dart:developer';
+import 'package:orko_hubco/core/utils/app_logger.dart';
 
 import 'package:dio/dio.dart';
 import 'package:orko_hubco/core/error/exceptions.dart';
@@ -35,7 +35,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       }
 
       final url = _buildUrl(ApiClient.baseUrl, endpoint);
-      log('[Auth] Login URL: $url');
+      AppLogger.d('[Auth] Login URL: $url');
 
       final response = await apiClient.post(
         url,
@@ -97,7 +97,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       }
 
       final url = _buildUrl(ApiClient.baseUrl, endpoint);
-      log('[Auth] Login-with-google URL: $url');
+      AppLogger.d('[Auth] Login-with-google URL: $url');
 
       final response = await apiClient.post(
         url,
@@ -158,7 +158,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         config.apiConstants.apiEndpoints.signUpForm,
       );
 
-      log('[Auth] Complete-signup URL: $url');
+      AppLogger.d('[Auth] Complete-signup URL: $url');
 
       final response = await apiClient.post(
         url,
@@ -217,7 +217,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       }
 
       final url = _buildUrl(ApiClient.baseUrl, endpoint);
-      log('[Auth] Verify-OTP URL: $url');
+      AppLogger.d('[Auth] Verify-OTP URL: $url');
 
       final response = await apiClient.post(
         url,
@@ -272,7 +272,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       }
 
       final url = _buildUrl(ApiClient.baseUrl, endpoint);
-      log('[Auth] Resend-OTP URL: $url');
+      AppLogger.d('[Auth] Resend-OTP URL: $url');
 
       final Response response;
       if (otpId != null && otpId.trim().isNotEmpty) {
@@ -341,7 +341,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       }
 
       final url = _buildUrl(ApiClient.baseUrl, endpoint);
-      log('[Auth] Login-with-OTP URL: $url');
+      AppLogger.d('[Auth] Login-with-OTP URL: $url');
 
       final response = await apiClient.post(url, data: {'email': email});
 
@@ -395,7 +395,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       }
 
       final url = _buildUrl(ApiClient.baseUrl, endpoint);
-      log('[Auth] Verify-reset-OTP URL: $url');
+      AppLogger.d('[Auth] Verify-reset-OTP URL: $url');
 
       // No Authorization header — the OTP itself authorizes this call.
       final response = await apiClient.post(
@@ -451,7 +451,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       }
 
       final url = _buildUrl(ApiClient.baseUrl, endpoint);
-      log('[Auth] Reset-password URL: $url');
+      AppLogger.d('[Auth] Reset-password URL: $url');
 
       // Authorized with the short-lived token returned by verify-otp.
       final response = await apiClient.post(
@@ -511,7 +511,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       }
 
       final url = _buildUrl(ApiClient.baseUrl, endpoint);
-      log('[Auth] Get user URL: $url');
+      AppLogger.d('[Auth] Get user URL: $url');
 
       final response = await apiClient.get(url);
 
@@ -562,7 +562,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       }
 
       final url = _buildUrl(ApiClient.baseUrl, endpoint);
-      log('[Auth] Edit-user-profile URL: $url');
+      AppLogger.d('[Auth] Edit-user-profile URL: $url');
 
       final response = await apiClient.patch(url, data: data);
 
@@ -608,7 +608,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       }
 
       final url = _buildUrl(ApiClient.baseUrl, endpoint);
-      log('[Auth] Change-email URL: $url');
+      AppLogger.d('[Auth] Change-email URL: $url');
 
       final response = await apiClient.post(url, data: {'email': email});
 
@@ -657,7 +657,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       }
 
       final url = _buildUrl(ApiClient.baseUrl, endpoint);
-      log('[Auth] Change-email-verify URL: $url');
+      AppLogger.d('[Auth] Change-email-verify URL: $url');
 
       final response = await apiClient.post(url, data: {'otp': otp});
 
@@ -708,7 +708,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       }
 
       final url = _buildUrl(ApiClient.baseUrl, endpoint);
-      log('[Auth] Upload-user-picture URL: $url');
+      AppLogger.d('[Auth] Upload-user-picture URL: $url');
 
       final fileName = imagePath.split('/').last;
       final ext = fileName.contains('.')
@@ -779,7 +779,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       }
 
       final url = _buildUrl(ApiClient.baseUrl, endpoint);
-      log('[Auth] Delete-account URL: $url');
+      AppLogger.d('[Auth] Delete-account URL: $url');
 
       // Authorized via the saved token by AuthInterceptor.
       final response = await apiClient.delete(url);
@@ -834,7 +834,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       }
 
       final url = _buildUrl(ApiClient.baseUrl, endpoint);
-      log('[Auth] Delete-user-picture URL: $url');
+      AppLogger.d('[Auth] Delete-user-picture URL: $url');
 
       // Authorized via the saved token by AuthInterceptor.
       final response = await apiClient.delete(url);
@@ -900,7 +900,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       }
 
       final url = _buildUrl(ApiClient.baseUrl, endpoint);
-      log('[Auth] Logout URL: $url');
+      AppLogger.d('[Auth] Logout URL: $url');
 
       final response = await apiClient.get(url);
 

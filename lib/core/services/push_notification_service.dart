@@ -1,4 +1,4 @@
-import 'dart:developer';
+import 'package:orko_hubco/core/utils/app_logger.dart';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -32,7 +32,7 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   } catch (_) {
     // Already initialised in this isolate — ignore.
   }
-  log('[Push] Background message: ${message.messageId} '
+  AppLogger.d('[Push] Background message: ${message.messageId} '
       'data=${message.data} notif=${message.notification?.title}');
 }
 
@@ -89,7 +89,7 @@ class PushNotificationService {
         _deferOpen(initialMessage);
       }
     } catch (e, st) {
-      log('[Push] initialize failed: $e\n$st');
+      AppLogger.d('[Push] initialize failed: $e\n$st');
     }
   }
 
@@ -102,7 +102,7 @@ class PushNotificationService {
       }
       return token ?? (AppStorage.fcmToken.isEmpty ? null : AppStorage.fcmToken);
     } catch (e) {
-      log('[Push] getToken failed: $e');
+      AppLogger.d('[Push] getToken failed: $e');
       return AppStorage.fcmToken.isEmpty ? null : AppStorage.fcmToken;
     }
   }
@@ -133,9 +133,9 @@ class PushNotificationService {
   Future<void> _requestPermission() async {
     try {
       final settings = await _messaging.requestPermission();
-      log('[Push] permission: ${settings.authorizationStatus}');
+      AppLogger.d('[Push] permission: ${settings.authorizationStatus}');
     } catch (e) {
-      log('[Push] requestPermission failed: $e');
+      AppLogger.d('[Push] requestPermission failed: $e');
     }
   }
 
@@ -153,7 +153,7 @@ class PushNotificationService {
       }
       // Device tokens are identifiers — full value only in debug, truncated
       // otherwise (mirrors the FCM-token handling below).
-      log(kDebugMode
+      AppLogger.d(kDebugMode
           ? '[Push] APNs token: ${apnsToken ?? 'NOT SET after 10s — device never registered with APNs'}'
           : '[Push] APNs token: ${apnsToken == null ? 'unavailable' : '${apnsToken.substring(0, apnsToken.length.clamp(0, 12))}…'}');
     }
@@ -161,7 +161,7 @@ class PushNotificationService {
     final token = await refreshToken();
     // Full token in debug builds so it can be pasted into test tooling;
     // truncated in release to keep it out of production logs.
-    log(kDebugMode
+    AppLogger.d(kDebugMode
         ? '[Push] FCM token: $token'
         : '[Push] FCM token: ${token == null ? 'unavailable' : '${token.substring(0, token.length.clamp(0, 12))}…'}');
     await _maybeRegisterToken(token);
@@ -169,7 +169,7 @@ class PushNotificationService {
 
   Future<void> _onTokenRefresh(String token) async {
     await AppStorage.setFcmToken(token);
-    log('[Push] token refreshed');
+    AppLogger.d('[Push] token refreshed');
     await _maybeRegisterToken(token);
   }
 
@@ -185,14 +185,14 @@ class PushNotificationService {
     try {
       final result = await sl<RegisterDeviceTokenUseCase>()(token);
       result.fold(
-        (failure) => log('[Push] device-token register failed: ${failure.message}'),
+        (failure) => AppLogger.d('[Push] device-token register failed: ${failure.message}'),
         (_) async {
           await AppStorage.setFcmTokenRegistered(token);
-          log('[Push] device-token registered');
+          AppLogger.d('[Push] device-token registered');
         },
       );
     } catch (e) {
-      log('[Push] device-token register error: $e');
+      AppLogger.d('[Push] device-token register error: $e');
     }
   }
 
@@ -205,7 +205,7 @@ class PushNotificationService {
       final token = await refreshToken();
       await _maybeRegisterToken(token);
     } catch (e) {
-      log('[Push] post-login token sync failed: $e');
+      AppLogger.d('[Push] post-login token sync failed: $e');
     }
   }
 
@@ -218,11 +218,11 @@ class PushNotificationService {
     try {
       final result = await sl<DeleteDeviceTokenUseCase>()(const NoParams());
       result.fold(
-        (failure) => log('[Push] device-token delete failed: ${failure.message}'),
-        (_) => log('[Push] device-token cleared'),
+        (failure) => AppLogger.d('[Push] device-token delete failed: ${failure.message}'),
+        (_) => AppLogger.d('[Push] device-token cleared'),
       );
     } catch (e) {
-      log('[Push] device-token delete error: $e');
+      AppLogger.d('[Push] device-token delete error: $e');
     }
   }
 
@@ -282,7 +282,7 @@ class PushNotificationService {
     try {
       AppRouter.router.push('/notifications');
     } catch (e) {
-      log('[Push] navigation to notifications failed: $e');
+      AppLogger.d('[Push] navigation to notifications failed: $e');
     }
   }
 }

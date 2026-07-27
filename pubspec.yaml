@@ -43,7 +43,6 @@ dependencies:
   responsive_builder: ^0.7.1
   firebase_remote_config: ^6.1.0
   get_it: ^8.2.0
-  flutter_dotenv: ^6.0.0
   equatable: ^2.0.7
   get_storage: ^2.1.1
   # Encrypted-at-rest storage (iOS Keychain / Android EncryptedSharedPreferences)
@@ -64,7 +63,6 @@ dependencies:
   flutter_slidable: ^4.0.3
   uuid: ^4.5.1
   intl: ^0.20.2
-  flutter_inappwebview: ^6.1.5
   permission_handler: ^12.0.1
   google_maps_flutter: ^2.17.0
   geolocator: ^14.0.2

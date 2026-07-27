@@ -1,4 +1,4 @@
-import 'dart:developer';
+import 'package:orko_hubco/core/utils/app_logger.dart';
 
 import 'package:dio/dio.dart';
 import 'package:orko_hubco/core/error/exceptions.dart';
@@ -23,7 +23,7 @@ class TripRemoteDataSourceImpl implements TripRemoteDataSource {
         fallbackPath: 'api/v1/trip-planning/plan-trip/',
         unavailableMessage: 'Trip planning is not available right now',
       );
-      log('[Trip] Plan URL: $url');
+      AppLogger.d('[Trip] Plan URL: $url');
 
       final response = await apiClient.post(url, data: params.toJson());
       final body = _bodyOf(response, fallback: 'Failed to plan trip');
@@ -45,7 +45,7 @@ class TripRemoteDataSourceImpl implements TripRemoteDataSource {
         fallbackPath: 'api/v1/trip-planning/save-trip/',
         unavailableMessage: 'Saving a trip is not available right now',
       );
-      log('[Trip] Save URL: $url');
+      AppLogger.d('[Trip] Save URL: $url');
 
       final response = await apiClient.post(url, data: params.toJson());
       final body = _bodyOf(response, fallback: 'Failed to save trip');
@@ -64,7 +64,7 @@ class TripRemoteDataSourceImpl implements TripRemoteDataSource {
         fallbackPath: 'api/v1/trip-planning/trips/',
         unavailableMessage: 'Your saved trips are not available right now',
       );
-      log('[Trip] Saved trips URL: $url');
+      AppLogger.d('[Trip] Saved trips URL: $url');
 
       final response = await apiClient.get(url);
       final body = _bodyOf(response, fallback: 'Failed to load saved trips');
@@ -87,7 +87,7 @@ class TripRemoteDataSourceImpl implements TripRemoteDataSource {
         fallbackPath: 'api/v1/trip-planning/trips/$id/',
         unavailableMessage: 'This trip is not available right now',
       );
-      log('[Trip] Saved trip detail URL: $url');
+      AppLogger.d('[Trip] Saved trip detail URL: $url');
 
       final response = await apiClient.get(url);
       final body = _bodyOf(response, fallback: 'Trip plan not found.');
@@ -107,7 +107,7 @@ class TripRemoteDataSourceImpl implements TripRemoteDataSource {
         fallbackPath: 'api/v1/trip-planning/trips/$id/',
         unavailableMessage: 'Deleting a trip is not available right now',
       );
-      log('[Trip] Delete trip URL: $url');
+      AppLogger.d('[Trip] Delete trip URL: $url');
 
       final response = await apiClient.delete(url);
       // Validates the {status, message, body} envelope (body is {} here).
@@ -128,7 +128,7 @@ class TripRemoteDataSourceImpl implements TripRemoteDataSource {
         fallbackPath: 'api/v1/trip-planning/edit-trip/$tripId/',
         unavailableMessage: 'Editing a trip is not available right now',
       );
-      log('[Trip] Edit trip URL: $url');
+      AppLogger.d('[Trip] Edit trip URL: $url');
 
       final response = await apiClient.put(url, data: params.toJson());
       final body = _bodyOf(response, fallback: 'Failed to update trip');
@@ -164,10 +164,10 @@ class TripRemoteDataSourceImpl implements TripRemoteDataSource {
       } else {
         message = _friendlyStatusMessage(code);
       }
-      log('[Trip] $tag failed ($code): ${e.message}');
+      AppLogger.d('[Trip] $tag failed ($code): ${e.message}');
       throw ServerException(message: message, statusCode: code, originalError: e);
     } catch (e) {
-      log('[Trip] $tag unexpected error: $e');
+      AppLogger.d('[Trip] $tag unexpected error: $e');
       throw ServerException(message: e.toString(), originalError: e);
     }
   }

@@ -1,4 +1,4 @@
-import 'dart:developer';
+import 'package:orko_hubco/core/utils/app_logger.dart';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -51,7 +51,7 @@ class SessionReceiptDownloader {
       // ourselves.
       await Printing.sharePdf(bytes: bytes, filename: filename);
     } catch (e, st) {
-      log('[Receipt] share failed: $e\n$st');
+      AppLogger.d('[Receipt] share failed: $e\n$st');
       throw const ReceiptDownloadException(
         'The receipt could not be opened for sharing. Please try again.',
       );
@@ -83,7 +83,7 @@ class SessionReceiptDownloader {
       }
       return Uint8List.fromList(data);
     } on DioException catch (e) {
-      log('[Receipt] fetch failed (${e.response?.statusCode}): ${e.message}');
+      AppLogger.d('[Receipt] fetch failed (${e.response?.statusCode}): ${e.message}');
       final isTimeout = e.type == DioExceptionType.connectionTimeout ||
           e.type == DioExceptionType.receiveTimeout ||
           e.type == DioExceptionType.sendTimeout;
@@ -109,7 +109,7 @@ class SessionReceiptDownloader {
       await file.writeAsBytes(bytes, flush: true);
       return ReceiptSaveResult(filePath: file.path);
     } catch (e, st) {
-      log('[Receipt] stage failed: $e\n$st');
+      AppLogger.d('[Receipt] stage failed: $e\n$st');
       throw const ReceiptDownloadException(
         'Could not prepare the receipt on your device. Please try again.',
       );
