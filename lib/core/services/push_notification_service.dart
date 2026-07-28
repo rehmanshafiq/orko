@@ -236,6 +236,14 @@ class PushNotificationService {
   // ── Message handling ──────────────────────────────────────────────────────
 
   void _onForegroundMessage(RemoteMessage message) {
+    // Log the full payload on both iOS and Android so foreground pushes can be
+    // inspected regardless of platform (iOS returns early below to avoid a
+    // duplicate local notification, but we still want the payload in the logs).
+    AppLogger.d('[Push] Foreground message: ${message.messageId} '
+        'data=${message.data} '
+        'notif.title=${message.notification?.title} '
+        'notif.body=${message.notification?.body}');
+
     final notification = message.notification;
     if (notification == null) return; // data-only — nothing to display.
 
