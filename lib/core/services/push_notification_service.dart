@@ -11,6 +11,9 @@ import 'package:orko_hubco/core/di/injection_container.dart';
 import 'package:orko_hubco/core/router/app_router.dart';
 import 'package:orko_hubco/core/usecase/usecase.dart';
 import 'package:orko_hubco/core/utils/app_storage/app_storage.dart';
+import 'package:orko_hubco/features/booking/presentation/models/booking_session_model.dart';
+import 'package:orko_hubco/features/booking/presentation/pages/my_bookings_page.dart';
+import 'package:orko_hubco/features/bottom_navigation/presentation/screens/bottom_nav_shell.dart';
 import 'package:orko_hubco/features/notifications/domain/usecases/delete_device_token_usecase.dart';
 import 'package:orko_hubco/features/notifications/domain/usecases/register_device_token_usecase.dart';
 
@@ -118,8 +121,10 @@ class PushNotificationService {
     );
     await _localNotifications.initialize(
       settings: const InitializationSettings(android: androidInit, iOS: iosInit),
+      // The payload carries the notification title (set in [_onForegroundMessage])
+      // so a tap can deep-link to the right Bookings sub-tab.
       onDidReceiveNotificationResponse: (response) {
-        _openNotificationsScreen();
+        _handleNotificationTap(title: response.payload);
       },
     );
 
@@ -273,17 +278,78 @@ class PushNotificationService {
         ),
         iOS: const DarwinNotificationDetails(),
       ),
-      payload: message.data['route']?.toString(),
+      // Carry the title so the tap handler can deep-link to the matching
+      // Bookings sub-tab (see [_handleNotificationTap]).
+      payload: notification.title,
     );
   }
 
-  void _onMessageOpened(RemoteMessage message) => _openNotificationsScreen();
+  void _onMessageOpened(RemoteMessage message) =>
+      _handleNotificationTap(title: message.notification?.title);
 
   /// Cold-start taps fire before the router/first frame are ready, so defer.
   void _deferOpen(RemoteMessage message) {
+    final title = message.notification?.title;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Future.delayed(const Duration(milliseconds: 1200), _openNotificationsScreen);
+      Future.delayed(
+        const Duration(milliseconds: 1200),
+        () => _handleNotificationTap(title: title),
+      );
     });
+  }
+
+  /// Routes a notification tap: booking / charging notifications deep-link into
+  /// the matching Bookings sub-tab (by [title]); everything else falls back to
+  /// the notifications list.
+  void _handleNotificationTap({String? title}) {
+    final tab = _bookingTabForTitle(title);
+    if (tab != null) {
+      _openBookingsTab(tab);
+    } else {
+      _openNotificationsScreen();
+    }
+  }
+
+  /// Maps a notification [title] to the Bookings sub-tab it should open, or null
+  /// when the title isn't a booking/charging notification we deep-link.
+  ///
+  /// Titles mirror the backend's BOOKING / CHARGING_SESSION / LIVE_SESSION
+  /// message sets. Matched case-insensitively so minor casing drift is tolerated.
+  BookingTab? _bookingTabForTitle(String? title) {
+    final key = title?.trim().toLowerCase();
+    if (key == null || key.isEmpty) return null;
+    switch (key) {
+      // Reserved-but-not-started bookings live in the Upcoming tab.
+      case 'booking received':
+      case 'booking confirmed':
+      case 'booking rescheduled':
+        return BookingTab.upcoming;
+      // A session that is (about to be) live lives in the Live/Active tab.
+      case 'charging started':
+      case 'live session started':
+        return BookingTab.active;
+      // Finished / cancelled / rejected outcomes live in the History tab.
+      case 'booking rejected':
+      case 'booking cancelled':
+      case 'charging complete':
+      case 'charging completed':
+      case 'live session stopped':
+        return BookingTab.history;
+    }
+    return null;
+  }
+
+  /// Switches to the Bookings bottom-nav tab and lands it on [tab]. Bumps
+  /// [BottomNavShell.bookingsRefreshTick] so the page rebuilds and picks up the
+  /// pending tab even when the branch was already alive in the indexed stack.
+  void _openBookingsTab(BookingTab tab) {
+    try {
+      MyBookingsPage.pendingInitialTab = tab;
+      BottomNavShell.bookingsRefreshTick.value++;
+      AppRouter.router.go('/bookings');
+    } catch (e) {
+      AppLogger.d('[Push] navigation to bookings failed: $e');
+    }
   }
 
   void _openNotificationsScreen() {

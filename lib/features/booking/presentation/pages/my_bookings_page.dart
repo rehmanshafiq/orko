@@ -9,13 +9,23 @@ import 'package:orko_hubco/features/booking/presentation/view/my_bookings_mobile
 class MyBookingsPage extends StatelessWidget {
   const MyBookingsPage({super.key});
 
+  /// Sub-tab the screen should open on for its *next* build. Set by a
+  /// notification tap (see PushNotificationService) so the deep link lands on
+  /// the right tab, then consumed here on build. Null means the default Active
+  /// tab. Pairs with [BottomNavShell.bookingsRefreshTick], which is bumped to
+  /// force a rebuild so this value is picked up.
+  static BookingTab? pendingInitialTab;
+
   @override
   Widget build(BuildContext context) {
+    // Consume any pending deep-link target; default to Active otherwise.
+    final initialTab = pendingInitialTab ?? BookingTab.active;
+    pendingInitialTab = null;
     return BlocProvider(
-      // Land on the Active tab; loadBookings() still primes the Upcoming list.
+      // Land on [initialTab]; loadBookings() still primes the Upcoming list.
       create: (_) => sl<MyBookingsCubit>()
         ..loadBookings()
-        ..selectTab(BookingTab.active),
+        ..selectTab(initialTab),
       child: const ResponsiveView(
         mobile: MyBookingsMobileView(),
       ),
