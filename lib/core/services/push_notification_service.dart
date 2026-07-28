@@ -3,7 +3,6 @@ import 'package:orko_hubco/core/utils/app_logger.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:orko_hubco/core/constants/storage_constants.dart';
 import 'package:orko_hubco/core/services/secure_store.dart';
@@ -50,6 +49,18 @@ class PushNotificationService {
 
   bool _initialized = false;
 
+  /// The message (if any) that launched the app from a terminated (killed)
+  /// state via a notification tap. Captured as a Future at the very top of
+  /// [initialize] — *before* the slow token sync — and awaited by
+  /// [applyLaunchIntent] once the splash reaches the shell. Storing the Future
+  /// (rather than the resolved value) removes the startup race: the splash can
+  /// call [applyLaunchIntent] before `getInitialMessage()` has resolved and
+  /// still get the right result.
+  Future<RemoteMessage?>? _initialMessageFuture;
+
+  /// Guards [applyLaunchIntent] so the cold-start deep link fires at most once.
+  bool _launchIntentApplied = false;
+
   /// High-importance channel used for both foreground local notifications and
   /// (via the manifest meta-data) background system notifications. The id must
   /// match `default_notification_channel_id` in AndroidManifest.xml.
@@ -65,6 +76,12 @@ class PushNotificationService {
   Future<void> initialize() async {
     if (_initialized) return;
     _initialized = true;
+
+    // Capture the launch tap FIRST, before the slow steps below (iOS's
+    // _syncToken waits up to 10s for an APNs token). This runs synchronously
+    // when initialize() is kicked off at startup, so the Future is available
+    // long before the splash calls [applyLaunchIntent] — no startup race.
+    _initialMessageFuture = _messaging.getInitialMessage();
 
     try {
       await _initLocalNotifications();
@@ -86,11 +103,9 @@ class PushNotificationService {
       // App opened from background by tapping a notification.
       FirebaseMessaging.onMessageOpenedApp.listen(_onMessageOpened);
 
-      // App launched from terminated by tapping a notification.
-      final initialMessage = await _messaging.getInitialMessage();
-      if (initialMessage != null) {
-        _deferOpen(initialMessage);
-      }
+      // The terminated (killed) launch tap is captured up front via
+      // _initialMessageFuture and applied by the splash — see
+      // [applyLaunchIntent]. Nothing to do here.
     } catch (e, st) {
       AppLogger.d('[Push] initialize failed: $e\n$st');
     }
@@ -287,15 +302,41 @@ class PushNotificationService {
   void _onMessageOpened(RemoteMessage message) =>
       _handleNotificationTap(title: message.notification?.title);
 
-  /// Cold-start taps fire before the router/first frame are ready, so defer.
-  void _deferOpen(RemoteMessage message) {
-    final title = message.notification?.title;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      Future.delayed(
-        const Duration(milliseconds: 1200),
-        () => _handleNotificationTap(title: title),
-      );
-    });
+  /// Applies a pending cold-start (killed-app) notification deep-link, if any,
+  /// and returns whether it performed navigation.
+  ///
+  /// The splash flow awaits this *before* it navigates to the default home
+  /// shell: when it returns true the splash leaves navigation to us (a single
+  /// declarative `go`, so nothing clobbers it); when false the splash proceeds
+  /// to home as usual. Awaits [_initialMessageFuture], so it works even if
+  /// `getInitialMessage()` hasn't resolved yet (the slow token sync can outlast
+  /// the splash). A null message means the app wasn't launched from a tap.
+  Future<bool> applyLaunchIntent() async {
+    if (_launchIntentApplied) return false;
+    final future = _initialMessageFuture;
+    if (future == null) return false;
+    _launchIntentApplied = true;
+
+    RemoteMessage? message;
+    try {
+      message = await future;
+    } catch (e) {
+      AppLogger.d('[Push] getInitialMessage failed: $e');
+      return false;
+    }
+    // Normal cold start (not opened from a notification): let the splash route
+    // to home as usual.
+    if (message == null) return false;
+
+    final tab = _bookingTabForTitle(message.notification?.title);
+    if (tab != null) {
+      _openBookingsTab(tab);
+    } else {
+      // Non-booking launch tap: put the home shell underneath, then open the
+      // notifications list on top so Back returns to home.
+      _openNotificationsFromLaunch();
+    }
+    return true;
   }
 
   /// Routes a notification tap: booking / charging notifications deep-link into
@@ -357,6 +398,18 @@ class PushNotificationService {
       AppRouter.router.push('/notifications');
     } catch (e) {
       AppLogger.d('[Push] navigation to notifications failed: $e');
+    }
+  }
+
+  /// Cold-start variant of [_openNotificationsScreen]: the app launched onto
+  /// the splash, so there's no home under the stack. Establish the home shell
+  /// first, then push the notifications list on top of it.
+  void _openNotificationsFromLaunch() {
+    try {
+      AppRouter.router.go('/home');
+      AppRouter.router.push('/notifications');
+    } catch (e) {
+      AppLogger.d('[Push] launch navigation to notifications failed: $e');
     }
   }
 }

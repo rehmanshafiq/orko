@@ -12,6 +12,7 @@ import 'package:orko_hubco/core/global_bloc/bloc/user_bloc.dart'
         UserInitial,
         UserLoading,
         UserLoaded;
+import 'package:orko_hubco/core/services/push_notification_service.dart';
 import 'package:orko_hubco/core/usecase/usecase.dart';
 import 'package:orko_hubco/features/auth/domain/usecases/get_user_usecase.dart';
 
@@ -87,7 +88,16 @@ class _SplashMobileViewState extends State<SplashMobileView>
       if (userBloc.state is UserLoaded && !AppStorage.isGuest) {
         unawaited(_refreshUserFromServer(userBloc));
       }
-      AppNavigations.navigateToBottomNavigation(context);
+      // If the app was launched (from a killed state) by tapping a
+      // notification, deep-link straight to its target with a single
+      // declarative navigation, so nothing clobbers it. Only fall back to the
+      // default home shell when there was no launch tap to handle.
+      final handledLaunch =
+          await sl<PushNotificationService>().applyLaunchIntent();
+      if (!mounted) return;
+      if (!handledLaunch) {
+        AppNavigations.navigateToBottomNavigation(context);
+      }
       return;
     }
 
