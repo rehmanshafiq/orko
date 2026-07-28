@@ -12,6 +12,7 @@ import 'package:orko_hubco/core/global_bloc/bloc/user_bloc.dart'
         UserInitial,
         UserLoading,
         UserLoaded;
+import 'package:orko_hubco/core/services/live_charging/live_charging_notification_controller.dart';
 import 'package:orko_hubco/core/services/push_notification_service.dart';
 import 'package:orko_hubco/core/usecase/usecase.dart';
 import 'package:orko_hubco/features/auth/domain/usecases/get_user_usecase.dart';
@@ -97,6 +98,11 @@ class _SplashMobileViewState extends State<SplashMobileView>
       if (!mounted) return;
       if (!handledLaunch) {
         AppNavigations.navigateToBottomNavigation(context);
+        // Cold start from tapping the ongoing live-charging notification:
+        // route to the Live tab if that intent was recorded.
+        unawaited(
+          sl<LiveChargingNotificationController>().routePendingOpenLiveTabIfAny(),
+        );
       }
       return;
     }

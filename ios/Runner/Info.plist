@@ -26,6 +26,9 @@
 		<string>$(MAPS_API_KEY)</string>
 		<key>LSRequiresIPhoneOS</key>
 		<true/>
+		<!-- Enables the live-charging Live Activity (ActivityKit, iOS 16.1+). -->
+		<key>NSSupportsLiveActivities</key>
+		<true/>
 		<key>UIBackgroundModes</key>
 		<array>
 			<string>fetch</string>

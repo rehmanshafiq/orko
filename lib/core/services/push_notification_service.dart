@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:orko_hubco/core/utils/app_logger.dart';
 
 import 'package:firebase_core/firebase_core.dart';
@@ -5,6 +7,8 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:orko_hubco/core/constants/storage_constants.dart';
+import 'package:orko_hubco/core/services/live_charging/live_charging_notification_controller.dart';
+import 'package:orko_hubco/core/services/live_charging/live_charging_service_starter.dart';
 import 'package:orko_hubco/core/services/secure_store.dart';
 import 'package:orko_hubco/core/di/injection_container.dart';
 import 'package:orko_hubco/core/router/app_router.dart';
@@ -36,6 +40,37 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   }
   AppLogger.d('[Push] Background message: ${message.messageId} '
       'data=${message.data} notif=${message.notification?.title}');
+
+  // Session started while the app was backgrounded/killed: bring up the ongoing
+  // charging notification via a foreground service. High-priority FCM messages
+  // are granted a temporary allowance to start one. (Stop is handled by the
+  // service's own poll detecting the session ended.)
+  if (liveSessionSignalForTitle(message.notification?.title) ==
+      LiveSessionSignal.start) {
+    await startLiveChargingService();
+  }
+}
+
+/// Whether a notification title marks a live charging session starting, ending,
+/// or neither — used to arm/tear down the live-charging notification.
+enum LiveSessionSignal { start, stop, none }
+
+/// Maps a notification title to a [LiveSessionSignal]. Titles mirror the
+/// backend's CHARGING_SESSION / LIVE_SESSION message sets, matched
+/// case-insensitively.
+LiveSessionSignal liveSessionSignalForTitle(String? title) {
+  final key = title?.trim().toLowerCase();
+  if (key == null || key.isEmpty) return LiveSessionSignal.none;
+  switch (key) {
+    case 'live session started':
+    case 'charging started':
+      return LiveSessionSignal.start;
+    case 'live session stopped':
+    case 'charging complete':
+    case 'charging completed':
+      return LiveSessionSignal.stop;
+  }
+  return LiveSessionSignal.none;
 }
 
 /// Owns all Firebase Cloud Messaging wiring for the app:
@@ -264,6 +299,10 @@ class PushNotificationService {
         'notif.title=${message.notification?.title} '
         'notif.body=${message.notification?.body}');
 
+    // Arm / tear down the live-charging notification (before the iOS early
+    // return below, so iOS drives its Live Activity too).
+    _handleLiveSessionSignal(message.notification?.title);
+
     final notification = message.notification;
     if (notification == null) return; // data-only — nothing to display.
 
@@ -299,8 +338,27 @@ class PushNotificationService {
     );
   }
 
-  void _onMessageOpened(RemoteMessage message) =>
-      _handleNotificationTap(title: message.notification?.title);
+  void _onMessageOpened(RemoteMessage message) {
+    final title = message.notification?.title;
+    // Tapping a start/stop push also arms/tears down the live notification.
+    _handleLiveSessionSignal(title);
+    _handleNotificationTap(title: title);
+  }
+
+  /// Arms or tears down the live-charging notification for a live-session
+  /// start/stop [title]. Best-effort and fire-and-forget.
+  void _handleLiveSessionSignal(String? title) {
+    switch (liveSessionSignalForTitle(title)) {
+      case LiveSessionSignal.start:
+        unawaited(sl<LiveChargingNotificationController>().onSessionStartSignal());
+        break;
+      case LiveSessionSignal.stop:
+        unawaited(sl<LiveChargingNotificationController>().onSessionStopSignal());
+        break;
+      case LiveSessionSignal.none:
+        break;
+    }
+  }
 
   /// Applies a pending cold-start (killed-app) notification deep-link, if any,
   /// and returns whether it performed navigation.

@@ -76,6 +76,7 @@ dependencies:
   flutter_local_notifications: ^22.0.1
   image_picker: ^1.1.2
   image: ^4.3.0
+  flutter_foreground_task: ^10.0.0
 
 # Pin path_provider_foundation below 2.5.0: 2.5.0+ switched to an FFI
 # implementation backed by package:objective_c whose native framework fails

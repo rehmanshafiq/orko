@@ -10,6 +10,7 @@ import 'package:get_storage/get_storage.dart';
 import 'package:orko_hubco/core/di/injection_container.dart';
 import 'package:orko_hubco/core/network/certificate_pinning.dart';
 import 'package:orko_hubco/core/router/app_router.dart';
+import 'package:orko_hubco/core/services/live_charging/live_charging_notification_controller.dart';
 import 'package:orko_hubco/core/services/push_notification_service.dart';
 import 'package:orko_hubco/core/services/secure_store.dart';
 import 'package:orko_hubco/core/theme/app_material_theme.dart';
@@ -50,6 +51,14 @@ Future<void> main() async {
   // Wire up push notifications (permission, token, listeners). Best-effort and
   // non-blocking so it never delays first paint.
   unawaited(sl<PushNotificationService>().initialize());
+
+  // Live-charging "now playing" notification (Android foreground service / iOS
+  // Live Activity). Best-effort: configure it, then check whether a session is
+  // already running so it can resurface the notification on launch.
+  final liveCharging = sl<LiveChargingNotificationController>();
+  unawaited(
+    liveCharging.initialize().then((_) => liveCharging.checkOnLaunch()),
+  );
 
   // Lock orientation to portrait
   await SystemChrome.setPreferredOrientations([
