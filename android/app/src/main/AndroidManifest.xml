@@ -9,7 +9,7 @@
          no external-storage permission is required. -->
     <uses-feature android:name="android.hardware.camera" android:required="false" />
     <application
-        android:label="Hubco Green"
+        android:label="HUBCO Green"
         android:allowBackup="false"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
