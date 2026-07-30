@@ -11,11 +11,15 @@ import UIKit
 extension AppDelegate {
     func setupLiveChargingChannel() {
         guard let controller = window?.rootViewController as? FlutterViewController
-        else { return }
+        else {
+            NSLog("[LiveActivity] channel NOT registered: root view controller is not a FlutterViewController")
+            return
+        }
         let channel = FlutterMethodChannel(
             name: "orko/live_charging_activity",
             binaryMessenger: controller.binaryMessenger
         )
+        NSLog("[LiveActivity] channel registered")
         channel.setMethodCallHandler { call, result in
             guard #available(iOS 16.1, *) else {
                 result(call.method == "isSupported" ? false : nil)

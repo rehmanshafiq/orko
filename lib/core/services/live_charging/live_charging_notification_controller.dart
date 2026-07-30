@@ -29,7 +29,7 @@ import 'package:orko_hubco/features/bottom_navigation/presentation/screens/botto
 /// It's armed by a live-session **start** FCM signal (or an app-launch check)
 /// and torn down by a **stop** signal or a poll that reports the session ended.
 /// Tapping the notification deep-links to the My Charging → Live tab.
-class LiveChargingNotificationController {
+class LiveChargingNotificationController with WidgetsBindingObserver {
   LiveChargingNotificationController();
 
   final LiveSessionFetcher _fetcher = LiveSessionFetcher();
@@ -48,6 +48,10 @@ class LiveChargingNotificationController {
     if (_initialized) return;
     _initialized = true;
     try {
+      // Re-check on resume so a session that started while iOS had the app
+      // backgrounded (where a Live Activity can't be started) surfaces as soon
+      // as the app is opened again.
+      WidgetsBinding.instance.addObserver(this);
       FlutterForegroundTask.initCommunicationPort();
       FlutterForegroundTask.addTaskDataCallback(_onTaskData);
       if (Platform.isAndroid) {
@@ -103,6 +107,24 @@ class LiveChargingNotificationController {
   /// A live-session **stop** push arrived. The push itself renders the
   /// "Charging Complete" system notification, so we just tear the live UI down.
   Future<void> onSessionStopSignal() => _stop();
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      unawaited(_onAppResumed());
+    }
+  }
+
+  /// On foreground return: revive the iOS poll (suspended while backgrounded)
+  /// and pick up a session that started while the app was away.
+  Future<void> _onAppResumed() async {
+    if (Platform.isIOS && _active && _iosPoll == null) {
+      _iosPoll = Timer.periodic(_pollInterval, (_) => _iosTick());
+    }
+    if (!_active) {
+      await checkOnLaunch();
+    }
+  }
 
   /// Consumes the "open Live tab" intent recorded when the ongoing notification
   /// was tapped from a cold start (app was killed, service still running).
