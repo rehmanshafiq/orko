@@ -397,6 +397,18 @@ class PushNotificationService {
     return true;
   }
 
+  /// Routes an in-app notifications-list tap the same way a push tap routes:
+  /// booking / charging notifications (matched by [title]) deep-link into the
+  /// matching Bookings sub-tab. Returns whether it navigated — a non-booking
+  /// title routes nowhere (the user is already on the notifications list), so
+  /// the caller can leave the list in place rather than re-opening it.
+  bool openDeepLinkForNotification(String? title) {
+    final tab = _bookingTabForTitle(title);
+    if (tab == null) return false;
+    _openBookingsTab(tab);
+    return true;
+  }
+
   /// Routes a notification tap: booking / charging notifications deep-link into
   /// the matching Bookings sub-tab (by [title]); everything else falls back to
   /// the notifications list.

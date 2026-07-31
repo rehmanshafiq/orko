@@ -5,6 +5,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/di/injection_container.dart';
+import 'package:orko_hubco/core/services/push_notification_service.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
 import 'package:orko_hubco/core/utils/widgets/primary_button_widget.dart';
 import 'package:orko_hubco/features/notifications/presentation/cubit/notifications_cubit.dart';
@@ -261,7 +262,14 @@ class _NotificationsViewState extends State<_NotificationsView> {
               final notification = state.notifications[index];
               return NotificationTileWidget(
                 notification: notification,
-                onTap: () => cubit.markAsRead(notification.id),
+                onTap: () {
+                  // Mark read, then deep-link exactly like a push tap: booking /
+                  // charging notifications route into the matching Bookings
+                  // sub-tab; anything else stays on the list (already open).
+                  cubit.markAsRead(notification.id);
+                  sl<PushNotificationService>()
+                      .openDeepLinkForNotification(notification.title);
+                },
               );
             },
           ),
