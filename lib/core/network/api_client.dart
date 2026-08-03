@@ -59,11 +59,8 @@ class ApiClient {
   ///
   /// Falls back to [ApiConstants.baseUrl] before Remote Config has resolved.
   static String get baseUrl {
-    final api = RemoteConfigService.config?.apiConstants;
-    // Release/profile builds always target the live host; only debug builds
-    // use the QA/staging host. This prevents a production build from silently
-    // talking to staging.
-    final resolved = kReleaseMode ? api?.baseUrlLive : api?.baseUrlQa;
+    final config = RemoteConfigService.config;
+    final resolved = config?.apiConstants.baseUrlQa;
     return (resolved == null || resolved.trim().isEmpty)
         ? ApiConstants.baseUrl
         : resolved;
