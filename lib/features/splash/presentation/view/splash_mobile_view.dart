@@ -63,7 +63,7 @@ class _SplashMobileViewState extends State<SplashMobileView>
   }
 
   Future<void> _startSplashFlow() async {
-    await Future.delayed(const Duration(seconds: 3));
+    await Future.delayed(const Duration(seconds: 2));
 
     if (!mounted) return;
 
