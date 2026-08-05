@@ -113,3 +113,6 @@ linux/flutter/generated_plugins.cmake
 .fvmrc
 # Local secrets / tooling config
 .env
+
+# Local notes
+firebase_analytics_recommendations.md
