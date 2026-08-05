@@ -18,6 +18,10 @@ class StationPriceEntity extends Equatable {
 class HubcoLocationEntity extends Equatable {
   final int id;
   final String name;
+
+  /// Human-friendly title from the map API `display_name` key. Empty when the
+  /// API omits it (the card then falls back to [name]).
+  final String displayName;
   final String address;
 
   /// Area/locality from the charging-station map API (e.g. `F11`).
@@ -52,6 +56,7 @@ class HubcoLocationEntity extends Equatable {
   const HubcoLocationEntity({
     required this.id,
     required this.name,
+    this.displayName = '',
     required this.address,
     this.area = '',
     this.city = '',
@@ -72,6 +77,7 @@ class HubcoLocationEntity extends Equatable {
   List<Object?> get props => [
         id,
         name,
+        displayName,
         address,
         area,
         city,

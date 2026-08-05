@@ -23,7 +23,10 @@ class HomeStationCardWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ui = AppUiColors.of(context);
-    final locationLabel = stationLocationLabel(station);
+    // final locationLabel = stationLocationLabel(station);
+    // final title = station.displayName.isNotEmpty
+    //     ? station.displayName
+    //     : (locationLabel.isNotEmpty ? locationLabel : station.name);
     return Material(
       color: AppColors.transparentColor,
       child: InkWell(
@@ -44,7 +47,7 @@ class HomeStationCardWidget extends StatelessWidget {
                 children: [
                   Expanded(
                     child: AppText(
-                      locationLabel.isNotEmpty ? locationLabel : station.name,
+                      station.displayName,
                       color: ui.textPrimary,
                       fontSize: FontSizes.font14Sp,
                       fontWeight: FontWeights.weight700,
@@ -80,7 +83,7 @@ class HomeStationCardWidget extends StatelessWidget {
                   ),
                 ],
               ),
-              if (locationLabel.isNotEmpty) ...[
+              // if (locationLabel.isNotEmpty) ...[
                 5.verticalSpace,
                 AppText(
                   station.name,
@@ -90,7 +93,7 @@ class HomeStationCardWidget extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-              ],
+              // ],
               6.verticalSpace,
               AppText(
                 stationAvailabilityLabel(station),

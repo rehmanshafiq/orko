@@ -4,6 +4,7 @@ class HubcoLocationModel extends HubcoLocationEntity {
   const HubcoLocationModel({
     required super.id,
     required super.name,
+    super.displayName,
     required super.address,
     super.area,
     super.city,
@@ -25,6 +26,7 @@ class HubcoLocationModel extends HubcoLocationEntity {
     return HubcoLocationModel(
       id: (json['id'] as num?)?.toInt() ?? 0,
       name: (json['name'] ?? '').toString(),
+      displayName: (json['display_name'] ?? '').toString().trim(),
       address: (json['address'] ?? '').toString(),
       latitude: (json['latitude'] as num?)?.toDouble() ?? 0,
       longitude: (json['longitude'] as num?)?.toDouble() ?? 0,
@@ -42,6 +44,7 @@ class HubcoLocationModel extends HubcoLocationEntity {
     return HubcoLocationModel(
       id: int.tryParse('${json['location_id'] ?? ''}') ?? 0,
       name: (json['name'] ?? '').toString(),
+      displayName: (json['display_name'] ?? '').toString().trim(),
       address: (json['address_guide'] ?? '').toString(),
       area: (json['area'] ?? '').toString().trim(),
       city: (json['city'] ?? '').toString().trim(),
