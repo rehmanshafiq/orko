@@ -126,7 +126,7 @@ class ChargingStationBottomActionsWidget extends StatelessWidget {
       return;
     }
     if (AppStorage.isGuest) {
-      AuthRequiredDialog.show(context);
+      AuthRequiredDialog.show(context, feature: 'booking');
       return;
     }
     ChargerCompatibilityGate.run(

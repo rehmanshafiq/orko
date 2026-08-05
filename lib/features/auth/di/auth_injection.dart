@@ -76,6 +76,7 @@ void initAuthDependencies() {
       logoutUseCase: sl(),
       googleAuthService: sl(),
       pushNotificationService: sl(),
+      analytics: sl(),
     ),
   );
 

@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:orko_hubco/core/services/analytics_service.dart';
 import 'package:orko_hubco/core/usecase/usecase.dart';
 import 'package:orko_hubco/core/utils/app_storage/app_storage.dart';
 import 'package:orko_hubco/features/vehicle/domain/entities/vehicle_make_entity.dart';
@@ -30,6 +31,7 @@ class VehicleCubit extends Cubit<VehicleState> {
     required DeleteVehicleUseCase deleteVehicleUseCase,
     required CreateCustomMakeUseCase createCustomMakeUseCase,
     required CreateCustomModelUseCase createCustomModelUseCase,
+    required AnalyticsService analytics,
   })  : _getMakesUseCase = getMakesUseCase,
         _getModelsUseCase = getModelsUseCase,
         _addVehicleUseCase = addVehicleUseCase,
@@ -37,6 +39,7 @@ class VehicleCubit extends Cubit<VehicleState> {
         _deleteVehicleUseCase = deleteVehicleUseCase,
         _createCustomMakeUseCase = createCustomMakeUseCase,
         _createCustomModelUseCase = createCustomModelUseCase,
+        _analytics = analytics,
         super(const VehicleState());
 
   final GetVehicleMakesUseCase _getMakesUseCase;
@@ -46,6 +49,7 @@ class VehicleCubit extends Cubit<VehicleState> {
   final DeleteVehicleUseCase _deleteVehicleUseCase;
   final CreateCustomMakeUseCase _createCustomMakeUseCase;
   final CreateCustomModelUseCase _createCustomModelUseCase;
+  final AnalyticsService _analytics;
 
   /// Loads the user's vehicles for the Vehicles tab. Guests have no server
   /// session, so we surface an empty list rather than an Unauthorized error.
@@ -234,6 +238,19 @@ class VehicleCubit extends Cubit<VehicleState> {
         return (success: false, message: failure.message);
       },
       (_) async {
+        // Resolve human-readable make/model/connector from the loaded catalog
+        // lists — the add-vehicle response carries only integer ids.
+        final makeMatch = state.makes.where((m) => m.id == mdMake);
+        final modelMatch = state.models.where((m) => m.id == mdModel);
+        _analytics.logEvent(
+          'vehicle_added',
+          parameters: {
+            'make': makeMatch.isNotEmpty ? makeMatch.first.name : null,
+            'model': modelMatch.isNotEmpty ? modelMatch.first.name : null,
+            'connector_type':
+                modelMatch.isNotEmpty ? modelMatch.first.connectorType : null,
+          },
+        );
         emit(state.copyWith(isSubmitting: false));
         await loadUserVehicles(showSpinner: false);
         return (success: true, message: 'Vehicle added.');

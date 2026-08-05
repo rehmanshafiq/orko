@@ -130,6 +130,7 @@ class ChargingStationDetailMobileView extends StatelessWidget {
                                   if (AppStorage.isGuest) {
                                     AuthRequiredDialog.show(
                                       context,
+                                      feature: 'favorites',
                                       message:
                                           'You\'re browsing as a guest. Please log in or create an account to save favourite stations.',
                                     );

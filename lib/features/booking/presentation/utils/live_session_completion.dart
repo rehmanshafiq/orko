@@ -1,3 +1,5 @@
+import 'package:orko_hubco/core/di/injection_container.dart';
+import 'package:orko_hubco/core/services/analytics_service.dart';
 import 'package:orko_hubco/core/utils/app_storage/app_storage.dart';
 import 'package:orko_hubco/features/booking/domain/entities/live_session_entity.dart';
 
@@ -22,6 +24,18 @@ class LiveSessionCompletion {
       final id = session.sessionId;
       if (id != null && AppStorage.activeChargeSessionId != id) {
         AppStorage.setActiveChargeSessionId(id);
+        // This is the "no active → active" edge for THIS session id, guarded by
+        // the persisted id so it fires exactly once per session even though two
+        // pollers (My Bookings + charging status) both call register().
+        sl<AnalyticsService>().logEvent(
+          'live_session_started',
+          parameters: {
+            'session_id': id,
+            'session_type': session.isWalkinSession ? 'walkin' : 'booked',
+            // The live-session payload carries no station id, only its name.
+            'station_name': session.locationName,
+          },
+        );
       }
       return null;
     }

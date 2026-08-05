@@ -42,6 +42,7 @@ void initVehicleDependencies() {
       deleteVehicleUseCase: sl(),
       createCustomMakeUseCase: sl(),
       createCustomModelUseCase: sl(),
+      analytics: sl(),
     ),
   );
 }

@@ -182,7 +182,7 @@ class BookSlotMobileView extends StatelessWidget {
   void _onContinue(BuildContext context, BookingCubit cubit) {
     // Guests can browse and select a slot but must authenticate before booking.
     if (AppStorage.isGuest) {
-      AuthRequiredDialog.show(context);
+      AuthRequiredDialog.show(context, feature: 'booking');
       return;
     }
     // The vehicle is chosen earlier by the compatibility gate (station detail

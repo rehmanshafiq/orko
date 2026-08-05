@@ -132,6 +132,7 @@ class _AdminSupportViewState extends State<_AdminSupportView> {
     if (AppStorage.isGuest) {
       AuthRequiredDialog.show(
         context,
+        feature: 'support',
         message:
             'You\'re browsing as a guest. Please log in or create an account to contact support.',
       );

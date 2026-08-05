@@ -48,6 +48,7 @@ class _ProfileHeaderState extends State<ProfileHeader> {
     if (storage.isGuest) {
       AuthRequiredDialog.show(
         context,
+        feature: 'profile',
         message: 'Please log in or create an account to set a profile photo.',
       );
       return;

@@ -210,6 +210,7 @@ class _HomeMobileViewState extends State<HomeMobileView> {
     if (AppStorage.isGuest) {
       AuthRequiredDialog.show(
         context,
+        feature: 'notifications',
         message:
             'Please log in or create an account to view your notifications.',
       );

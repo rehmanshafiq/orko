@@ -46,6 +46,7 @@ class _VehiclesTabBodyState extends State<VehiclesTabBody> {
     if (AppStorage.isGuest) {
       AuthRequiredDialog.show(
         context,
+        feature: 'vehicle',
         message: 'You\'re browsing as a guest. Please log in or create an '
             'account to add a vehicle.',
       );

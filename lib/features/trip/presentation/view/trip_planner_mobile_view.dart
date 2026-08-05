@@ -92,6 +92,7 @@ class _TripPlannerMobileViewState extends State<TripPlannerMobileView> {
     if (AppStorage.isGuest) {
       AuthRequiredDialog.show(
         context,
+        feature: 'trip',
         message:
             'You\'re browsing as a guest. Please log in or create an account to plan a trip.',
       );
@@ -405,6 +406,7 @@ class _TripPlannerMobileViewState extends State<TripPlannerMobileView> {
                             if (AppStorage.isGuest) {
                               AuthRequiredDialog.show(
                                 context,
+                                feature: 'trip',
                                 message:
                                     'Please log in or create an account to view your saved trips.',
                               );
@@ -641,6 +643,7 @@ class _TripPlannerMobileViewState extends State<TripPlannerMobileView> {
                             onPreBook: (index) => bloc.openPreBook(
                               context,
                               station: state.currentPlan!.stops[index],
+                              stopIndex: index,
                             ),
                             onNavigate: (index) =>
                                 _onNavigateToStop(context, state, index),

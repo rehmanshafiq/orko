@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:orko_hubco/core/services/analytics_service.dart';
 import 'package:orko_hubco/features/booking/domain/entities/booking_slot_entity.dart';
 import 'package:orko_hubco/features/booking/domain/usecases/create_booking_hgl_usecase.dart';
 import 'package:orko_hubco/features/booking/domain/usecases/get_booking_slots_usecase.dart';
@@ -11,13 +12,16 @@ class BookingCubit extends Cubit<BookingState> {
     required GetChargerDetailsUseCase getChargerDetailsUseCase,
     required GetBookingSlotsUseCase getSlotsUseCase,
     required CreateBookingHglUseCase createBookingUseCase,
+    required AnalyticsService analytics,
   })  : _getChargerDetailsUseCase = getChargerDetailsUseCase,
         _getSlotsUseCase = getSlotsUseCase,
         _createBookingUseCase = createBookingUseCase,
+        _analytics = analytics,
         super(const BookingState());
 
   final GetChargerDetailsUseCase _getChargerDetailsUseCase;
   final GetBookingSlotsUseCase _getSlotsUseCase;
+  final AnalyticsService _analytics;
   // Booking uses the `book-charge-session` endpoint: end_time is auto-derived
   // by the backend (start + 30 min), so it must NOT be sent.
   final CreateBookingHglUseCase _createBookingUseCase;
@@ -264,6 +268,21 @@ class BookingCubit extends Cubit<BookingState> {
         return false;
       },
       (booking) {
+        // Estimated amount mirrors the booking-success screen's calculation
+        // (price_per_kwh × 5 × no_of_slots); labelled est_* since real revenue
+        // is only realized at charging_session_completed.
+        final pricePerKwh = state.selectedPort?.price?.price ?? 0;
+        final estAmount = (pricePerKwh * 5 * state.noOfSlots).round();
+        _analytics.logEvent(
+          'booking_submitted',
+          parameters: {
+            'booking_id': booking.id,
+            'station_id': state.locationId,
+            'no_of_slots': state.noOfSlots,
+            'est_amount': estAmount,
+            'vehicle_id': state.vehicleId,
+          },
+        );
         emit(
           state.copyWith(
             submitStatus: BookingSubmitStatus.success,

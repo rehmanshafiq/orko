@@ -3,6 +3,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
+import 'package:orko_hubco/core/di/injection_container.dart';
+import 'package:orko_hubco/core/services/analytics_service.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
 import 'package:orko_hubco/core/utils/widgets/primary_button_widget.dart';
 
@@ -13,13 +15,22 @@ class AuthRequiredDialog {
 
   /// Shows the prompt. Returns once the dialog is dismissed.
   ///
-  /// [title]/[message] can be overridden per call site; defaults suit booking.
+  /// [feature] identifies the gated capability the guest was blocked from
+  /// (e.g. booking/notifications/support/vehicle/profile/trip/favorites/
+  /// reviews) and is reported to analytics as the guest→register conversion
+  /// driver. [title]/[message] can be overridden per call site; defaults suit
+  /// booking.
   static Future<void> show(
     BuildContext context, {
+    required String feature,
     String title = 'Login Required',
     String message =
         'You\'re browsing as a guest. Please log in or create an account to book a charging slot.',
   }) {
+    sl<AnalyticsService>().logEvent(
+      'auth_required_prompt',
+      parameters: {'feature': feature},
+    );
     return showDialog<void>(
       context: context,
       barrierDismissible: true,

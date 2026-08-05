@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:orko_hubco/core/services/analytics_service.dart';
 import 'package:orko_hubco/core/services/google_auth_service.dart';
 import 'package:orko_hubco/core/services/push_notification_service.dart';
 import 'package:orko_hubco/core/usecase/usecase.dart';
@@ -24,6 +25,7 @@ class AuthCubit extends Cubit<AuthState> {
   final LogoutUseCase _logoutUseCase;
   final GoogleAuthService _googleAuthService;
   final PushNotificationService _pushNotificationService;
+  final AnalyticsService _analytics;
 
   AuthCubit({
     required LoginUseCase loginUseCase,
@@ -34,6 +36,7 @@ class AuthCubit extends Cubit<AuthState> {
     required LogoutUseCase logoutUseCase,
     required GoogleAuthService googleAuthService,
     required PushNotificationService pushNotificationService,
+    required AnalyticsService analytics,
   })  : _loginUseCase = loginUseCase,
         _loginWithGoogleUseCase = loginWithGoogleUseCase,
         _signUpUseCase = signUpUseCase,
@@ -42,6 +45,7 @@ class AuthCubit extends Cubit<AuthState> {
         _logoutUseCase = logoutUseCase,
         _googleAuthService = googleAuthService,
         _pushNotificationService = pushNotificationService,
+        _analytics = analytics,
         super(const AuthInitial());
 
   /// Performs login via the `login_api` endpoint. On success the access token +
@@ -67,6 +71,7 @@ class AuthCubit extends Cubit<AuthState> {
         // Claim this device for the new session; the marker was cleared on the
         // last logout, so this re-registers the FCM token server-side.
         unawaited(_pushNotificationService.registerTokenForSession());
+        _analytics.logEvent('login', parameters: {'method': 'phone'});
         emit(AuthAuthenticated(loginResult.user));
       },
     );
@@ -102,6 +107,7 @@ class AuthCubit extends Cubit<AuthState> {
       (failure) => emit(AuthError(failure.message)),
       (loginResult) {
         unawaited(_pushNotificationService.registerTokenForSession());
+        _analytics.logEvent('login', parameters: {'method': 'google'});
         emit(AuthAuthenticated(loginResult.user));
       },
     );
@@ -133,7 +139,10 @@ class AuthCubit extends Cubit<AuthState> {
 
     result.fold(
       (failure) => emit(AuthError(failure.message)),
-      (signUpResult) => emit(SignUpSuccess(signUpResult)),
+      (signUpResult) {
+        _analytics.logEvent('sign_up', parameters: {'method': 'phone'});
+        emit(SignUpSuccess(signUpResult));
+      },
     );
   }
 

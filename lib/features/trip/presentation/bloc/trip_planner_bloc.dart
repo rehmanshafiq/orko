@@ -13,6 +13,7 @@ import 'package:orko_hubco/core/utils/helpers.dart';
 import 'package:orko_hubco/core/constants/app_images.dart';
 import 'package:orko_hubco/core/constants/charging_stations.dart';
 import 'package:orko_hubco/core/di/injection_container.dart';
+import 'package:orko_hubco/core/services/analytics_service.dart';
 import 'package:orko_hubco/features/booking/presentation/pages/book_slot_page.dart';
 import 'package:orko_hubco/features/map/domain/entities/hubco_location_entity.dart';
 import 'package:orko_hubco/features/charging/presentation/page/charging_station_detail_page.dart';
@@ -35,9 +36,11 @@ class TripPlannerBloc extends Bloc<TripPlannerEvent, TripPlannerState> {
     SaveTripUseCase? saveTrip,
     EditTripUseCase? editTrip,
     SavedTripEntity? editingTrip,
+    AnalyticsService? analytics,
   })  : _planTrip = planTrip ?? sl<PlanTripUseCase>(),
         _saveTrip = saveTrip ?? sl<SaveTripUseCase>(),
         _editTrip = editTrip ?? sl<EditTripUseCase>(),
+        _analytics = analytics ?? sl<AnalyticsService>(),
         super(_initialStateFor(editingTrip)) {
     _startLocationController.addListener(_onLocationChanged);
     _endLocationController.addListener(_onLocationChanged);
@@ -101,6 +104,7 @@ class TripPlannerBloc extends Bloc<TripPlannerEvent, TripPlannerState> {
       '${lat.toStringAsFixed(4)}, ${lng.toStringAsFixed(4)}';
 
   final PlanTripUseCase _planTrip;
+  final AnalyticsService _analytics;
   final SaveTripUseCase _saveTrip;
   final EditTripUseCase _editTrip;
 
@@ -930,7 +934,15 @@ class TripPlannerBloc extends Bloc<TripPlannerEvent, TripPlannerState> {
   void openPreBook(
     BuildContext context, {
     required HubcoLocationEntity station,
+    required int stopIndex,
   }) {
+    _analytics.logEvent(
+      'trip_stop_prebook_tapped',
+      parameters: {
+        'station_id': station.id,
+        'stop_index': stopIndex,
+      },
+    );
     // Route through the root-level `/book-slot` (not an imperative push) and
     // flag the flow as trip-originated, so the booking success screen's close
     // action returns to the Trip planner and clears the intermediate stack.

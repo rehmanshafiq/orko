@@ -52,6 +52,7 @@ void initBookingDependencies() {
       getChargerDetailsUseCase: sl(),
       getSlotsUseCase: sl(),
       createBookingUseCase: sl<CreateBookingHglUseCase>(),
+      analytics: sl(),
     ),
   );
 
@@ -62,6 +63,7 @@ void initBookingDependencies() {
       sessionId: sessionId,
       getChargeSessionDetailsUseCase: sl(),
       downloadReceiptUseCase: sl(),
+      analytics: sl(),
     ),
   );
 

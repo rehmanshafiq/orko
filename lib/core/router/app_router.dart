@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:orko_hubco/core/di/injection_container.dart';
 import 'package:orko_hubco/core/global_bloc/bloc/user_bloc.dart';
 import 'package:orko_hubco/core/router/auth_notifier.dart';
+import 'package:orko_hubco/core/services/analytics_service.dart';
 import 'package:orko_hubco/core/services/local_storage_service.dart';
 import 'package:orko_hubco/features/auth/data/datasources/local/auth_local_datasource.dart';
 import 'package:orko_hubco/features/auth/presentation/cubit/auth_cubit.dart';
@@ -68,6 +69,9 @@ class AppRouter {
     initialLocation: '/splash',
     debugLogDiagnostics: false,
     refreshListenable: AuthNotifier.instance,
+    // Emits an automatic `screen_view` on every route change across all
+    // named routes.
+    observers: [sl<AnalyticsService>().observer],
     redirect: (context, state) {
       final storage = sl<LocalStorageService>();
       // A guest is a valid browsing session — do NOT bounce guests. Only a

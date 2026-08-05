@@ -67,6 +67,7 @@ Future<void> openEditProfile(
   if (isGuest || cachedUser == null) {
     AuthRequiredDialog.show(
       context,
+      feature: 'profile',
       message: 'Please log in or create an account to edit your profile.',
     );
     return;

@@ -143,6 +143,7 @@ class _Header extends StatelessWidget {
     if (!AppStorage.isGuest) return false;
     AuthRequiredDialog.show(
       context,
+      feature: 'reviews',
       message: 'Please log in or create an account to review this station.',
     );
     return true;
@@ -232,6 +233,7 @@ class _Body extends StatelessWidget {
             color: ui.brandPrimary,
             onTap: () => AuthRequiredDialog.show(
               context,
+              feature: 'reviews',
               message:
                   'Please log in or create an account to view and write reviews.',
             ),

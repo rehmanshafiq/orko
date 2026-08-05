@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:orko_hubco/core/error/failures.dart';
+import 'package:orko_hubco/core/services/analytics_service.dart';
 import 'package:orko_hubco/core/usecase/usecase.dart';
 import 'package:orko_hubco/core/utils/app_storage/app_storage.dart';
 import 'package:orko_hubco/features/booking/domain/usecases/download_receipt_usecase.dart';
@@ -13,14 +14,17 @@ class SessionSummaryCubit extends Cubit<SessionSummaryState> {
     required int sessionId,
     required GetChargeSessionDetailsUseCase getChargeSessionDetailsUseCase,
     required DownloadReceiptUseCase downloadReceiptUseCase,
+    required AnalyticsService analytics,
   })  : _sessionId = sessionId,
         _getChargeSessionDetailsUseCase = getChargeSessionDetailsUseCase,
         _downloadReceiptUseCase = downloadReceiptUseCase,
+        _analytics = analytics,
         super(const SessionSummaryState());
 
   final int _sessionId;
   final GetChargeSessionDetailsUseCase _getChargeSessionDetailsUseCase;
   final DownloadReceiptUseCase _downloadReceiptUseCase;
+  final AnalyticsService _analytics;
 
   /// Resolves the temporary download URL of this session's PDF receipt via
   /// `download-receipt/<sessionId>`. Returns the URL on success, or a [Failure]
@@ -51,6 +55,24 @@ class SessionSummaryCubit extends Cubit<SessionSummaryState> {
         ),
       ),
       (detail) {
+        // Fire the core revenue event only when THIS load corresponds to the
+        // session that just finished live (its id is still the persisted active
+        // one). Opening the same summary later from history leaves the persisted
+        // id null, so the purchase-equivalent event isn't double-counted.
+        if (AppStorage.activeChargeSessionId == _sessionId) {
+          _analytics.logEvent(
+            'charging_session_completed',
+            parameters: {
+              'session_id': detail.id,
+              'energy_kwh': detail.energyConsumed,
+              'total_cost': detail.totalCost,
+              'energy_cost': detail.energyCost,
+              'co2_reduced_kg': detail.co2ReducedKg,
+              // Costs on this entity are documented as PKR (no currency field).
+              'currency': 'PKR',
+            },
+          );
+        }
         // The summary reached the user — drop the pending session id now so a
         // kill-while-on-this-screen doesn't re-show it on the next launch.
         // (Dismissing the screen clears it too; this is the earlier of the
