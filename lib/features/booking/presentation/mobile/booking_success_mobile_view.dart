@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
+import 'package:orko_hubco/core/di/injection_container.dart';
+import 'package:orko_hubco/core/services/analytics_service.dart';
 import 'package:orko_hubco/core/utils/app_ui.dart';
 import 'package:orko_hubco/features/booking/presentation/widgets/booking_details_card.dart';
 import 'package:orko_hubco/features/bottom_navigation/presentation/screens/bottom_nav_shell.dart';
@@ -12,7 +14,7 @@ import 'package:orko_hubco/features/booking/presentation/widgets/info_banner.dar
 /// Shown after a booking is created successfully. Mirrors the layout of
 /// [BookingConfirmationMobileView] but omits the `Payment` row — every value in
 /// the summary card is supplied dynamically by the booking screen.
-class BookingSuccessMobileView extends StatelessWidget {
+class BookingSuccessMobileView extends StatefulWidget {
   const BookingSuccessMobileView({
     super.key,
     required this.bookingRef,
@@ -31,9 +33,27 @@ class BookingSuccessMobileView extends StatelessWidget {
   /// closing returns to the Trip planner; otherwise it returns Home.
   final bool fromTrip;
 
+  @override
+  State<BookingSuccessMobileView> createState() =>
+      _BookingSuccessMobileViewState();
+}
+
+class _BookingSuccessMobileViewState extends State<BookingSuccessMobileView> {
+  @override
+  void initState() {
+    super.initState();
+    // Booking-funnel completion: fires once when the success screen mounts.
+    sl<AnalyticsService>().logEvent('booking_success_view', parameters: {
+      'booking_ref': widget.bookingRef,
+      'amount': widget.amountPaid,
+      'station_name': widget.stationName,
+      'from_trip': widget.fromTrip,
+    });
+  }
+
   /// Destination when the success screen is closed — clears the intermediate
   /// booking pages from the stack.
-  String get _closeDestination => fromTrip ? '/trip' : '/home';
+  String get _closeDestination => widget.fromTrip ? '/trip' : '/home';
 
   /// Closes the success screen. The booking just created a notification
   /// server-side, so bump the map tick — the home screen listens to it and
@@ -89,10 +109,10 @@ class BookingSuccessMobileView extends StatelessWidget {
                       28.verticalSpace,
                       BookingDetailsCard(
                         ui: ui,
-                        bookingRef: bookingRef,
-                        stationName: stationName,
-                        slotLabel: slotLabel,
-                        amountPaid: amountPaid,
+                        bookingRef: widget.bookingRef,
+                        stationName: widget.stationName,
+                        slotLabel: widget.slotLabel,
+                        amountPaid: widget.amountPaid,
                       ),
                       20.verticalSpace,
                       InfoBanner(ui: ui),

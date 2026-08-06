@@ -3,6 +3,7 @@ import 'package:get_it/get_it.dart';
 import 'package:orko_hubco/core/network/api_client.dart';
 import 'package:orko_hubco/core/network/network_info.dart';
 import 'package:orko_hubco/core/services/analytics_service.dart';
+import 'package:orko_hubco/core/services/analytics_user_properties.dart';
 import 'package:orko_hubco/core/services/live_charging/live_charging_notification_controller.dart';
 import 'package:orko_hubco/core/services/local_storage_service.dart';
 import 'package:orko_hubco/core/services/push_notification_service.dart';
@@ -35,6 +36,9 @@ Future<void> initDependencies() async {
   // Services
   sl.registerLazySingleton<LocalStorageService>(() => LocalStorageService());
   sl.registerLazySingleton<AnalyticsService>(() => AnalyticsService());
+  sl.registerLazySingleton<AnalyticsUserProperties>(
+    () => AnalyticsUserProperties(sl()),
+  );
   sl.registerLazySingleton<PushNotificationService>(
     () => PushNotificationService(),
   );

@@ -8,6 +8,7 @@ import 'package:orko_hubco/core/constants/app_images.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/di/injection_container.dart';
 import 'package:orko_hubco/core/services/analytics_service.dart';
+import 'package:orko_hubco/core/services/analytics_user_properties.dart';
 import 'package:orko_hubco/core/utils/app_storage/app_storage.dart';
 import 'package:orko_hubco/core/utils/helpers.dart';
 import 'package:orko_hubco/core/utils/app_ui.dart';
@@ -87,6 +88,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _onContinueAsGuest() async {
     await AppStorage.setGuest(true);
     sl<AnalyticsService>().logEvent('guest_mode_entered');
+    sl<AnalyticsUserProperties>().setGuest();
     if (!mounted) return;
     context.go('/home');
   }

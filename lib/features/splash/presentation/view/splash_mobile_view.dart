@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_images.dart';
 import 'package:orko_hubco/core/di/injection_container.dart';
+import 'package:orko_hubco/core/services/analytics_user_properties.dart';
 import 'package:orko_hubco/core/global_bloc/bloc/user_bloc.dart'
     show
         UserBloc,
@@ -84,6 +85,11 @@ class _SplashMobileViewState extends State<SplashMobileView>
 
     // A real cached session, or an explicit guest choice, both land on home.
     if (userBloc.state is UserLoaded || AppStorage.isGuest) {
+      // Authenticated identity is set by UserBloc on UserLoaded; the guest
+      // branch has no cached user, so set its properties here on relaunch.
+      if (AppStorage.isGuest && userBloc.state is! UserLoaded) {
+        sl<AnalyticsUserProperties>().setGuest();
+      }
       // For a real logged-in session, refresh the cached user from the server
       // in the background (best-effort — failures keep the cached copy).
       if (userBloc.state is UserLoaded && !AppStorage.isGuest) {

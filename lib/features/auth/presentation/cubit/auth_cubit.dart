@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:orko_hubco/core/di/injection_container.dart';
 import 'package:orko_hubco/core/services/analytics_service.dart';
+import 'package:orko_hubco/core/services/analytics_user_properties.dart';
 import 'package:orko_hubco/core/services/google_auth_service.dart';
 import 'package:orko_hubco/core/services/push_notification_service.dart';
 import 'package:orko_hubco/core/usecase/usecase.dart';
@@ -78,6 +80,7 @@ class AuthCubit extends Cubit<AuthState> {
         // last logout, so this re-registers the FCM token server-side.
         unawaited(_pushNotificationService.registerTokenForSession());
         _analytics.logEvent('login', parameters: {'method': 'phone'});
+        sl<AnalyticsUserProperties>().setAuthenticated(loginResult.user);
         emit(AuthAuthenticated(loginResult.user));
       },
     );
@@ -124,6 +127,7 @@ class AuthCubit extends Cubit<AuthState> {
       (loginResult) {
         unawaited(_pushNotificationService.registerTokenForSession());
         _analytics.logEvent('login', parameters: {'method': 'google'});
+        sl<AnalyticsUserProperties>().setAuthenticated(loginResult.user);
         emit(AuthAuthenticated(loginResult.user));
       },
     );
@@ -185,6 +189,9 @@ class AuthCubit extends Cubit<AuthState> {
       },
       (_) {
         _analytics.logEvent('otp_verify', parameters: {'flow': flow});
+        // The full UserEntity isn't available here (verify returns no user), so
+        // set the critical user_type now; the rest fill in when the user loads.
+        sl<AnalyticsUserProperties>().setAuthenticatedType();
         unawaited(_pushNotificationService.registerTokenForSession());
         emit(const OtpVerified());
       },
@@ -225,6 +232,7 @@ class AuthCubit extends Cubit<AuthState> {
       },
       (_) {
         _analytics.logEvent('logout', parameters: {'user_type': 'registered'});
+        sl<AnalyticsUserProperties>().clear();
         emit(const AuthUnauthenticated());
       },
     );

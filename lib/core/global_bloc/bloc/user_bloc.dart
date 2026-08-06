@@ -1,4 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:orko_hubco/core/di/injection_container.dart';
+import 'package:orko_hubco/core/services/analytics_user_properties.dart';
 import 'package:orko_hubco/features/auth/data/datasources/local/auth_local_datasource.dart';
 import 'package:orko_hubco/features/auth/domain/entities/user_entity.dart';
 
@@ -39,13 +41,17 @@ class UserFailure extends UserState {
 }
 
 class UserBloc extends Bloc<UserEvent, UserState> {
-  UserBloc({required AuthLocalDataSource localDataSource})
-      : _localDataSource = localDataSource,
+  UserBloc({
+    required AuthLocalDataSource localDataSource,
+    AnalyticsUserProperties? userProperties,
+  })  : _localDataSource = localDataSource,
+        _userProperties = userProperties ?? sl<AnalyticsUserProperties>(),
         super(const UserInitial()) {
     on<OnLoadCustomerFromCache>(_onLoadCustomerFromCache);
   }
 
   final AuthLocalDataSource _localDataSource;
+  final AnalyticsUserProperties _userProperties;
 
   Future<void> _onLoadCustomerFromCache(
     OnLoadCustomerFromCache event,
@@ -61,6 +67,9 @@ class UserBloc extends Bloc<UserEvent, UserState> {
         return;
       }
 
+      // Whenever the cached user resolves (cold start + every refresh) update
+      // the analytics identity — the single, reliable authenticated-user hook.
+      _userProperties.setAuthenticated(user);
       emit(UserLoaded(user));
     } catch (error) {
       emit(UserFailure(error.toString()));

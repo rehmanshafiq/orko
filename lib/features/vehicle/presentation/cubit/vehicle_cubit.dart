@@ -1,5 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:orko_hubco/core/di/injection_container.dart';
 import 'package:orko_hubco/core/services/analytics_service.dart';
+import 'package:orko_hubco/core/services/analytics_user_properties.dart';
 import 'package:orko_hubco/core/usecase/usecase.dart';
 import 'package:orko_hubco/core/utils/app_storage/app_storage.dart';
 import 'package:orko_hubco/features/vehicle/domain/entities/vehicle_make_entity.dart';
@@ -77,11 +79,16 @@ class VehicleCubit extends Cubit<VehicleState> {
         vehiclesStatus: VehicleStatus.failure,
         vehiclesError: failure.message,
       )),
-      (vehicles) => emit(state.copyWith(
-        vehiclesStatus: VehicleStatus.success,
-        vehicles: vehicles,
-        clearVehiclesError: true,
-      )),
+      (vehicles) {
+        // Keep the has_vehicle user property authoritative — this branch also
+        // runs after add/delete (both refresh via loadUserVehicles).
+        sl<AnalyticsUserProperties>().setHasVehicle(vehicles.isNotEmpty);
+        emit(state.copyWith(
+          vehiclesStatus: VehicleStatus.success,
+          vehicles: vehicles,
+          clearVehiclesError: true,
+        ));
+      },
     );
   }
 
