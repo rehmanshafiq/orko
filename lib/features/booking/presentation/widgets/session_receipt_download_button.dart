@@ -31,11 +31,12 @@ class _SessionReceiptDownloadButtonState
     if (_isDownloading) return;
     setState(() => _isDownloading = true);
 
-    // Capture the messenger before the first await so we don't touch
+    // Capture the messenger + cubit before the first await so we don't touch
     // `context` across async gaps after a possible dispose.
     final messenger = ScaffoldMessenger.of(context);
+    final cubit = context.read<SessionSummaryCubit>();
     try {
-      final result = await context.read<SessionSummaryCubit>().fetchReceiptUrl();
+      final result = await cubit.fetchReceiptUrl();
       if (!mounted) return;
 
       final failure = result.fold((f) => f, (_) => null);
@@ -49,6 +50,8 @@ class _SessionReceiptDownloadButtonState
         receiptUrl: url,
         sessionId: widget.sessionId,
       );
+      // Reached only when the fetch + share completed without throwing.
+      cubit.logReceiptDownloaded();
     } on ReceiptDownloadException catch (e) {
       if (mounted) _showMessage(messenger, e.message);
     } catch (e) {

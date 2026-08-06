@@ -135,6 +135,9 @@ class _SummaryBodyState extends State<_SummaryBody> {
 
   void _onPaidAtStation(_StationPaymentMethod method) {
     if (_paidAtStation) return;
+    context
+        .read<SessionSummaryCubit>()
+        .logPayAtStationSelected(method.name);
     setState(() => _paidAtStation = true);
   }
 
@@ -334,7 +337,7 @@ class _PaymentButtons extends StatelessWidget {
         Expanded(
           child: PrimaryButtonWidget(
             text: 'Pay in App',
-            onPress: disabled ? null : _onPayInApp,
+            onPress: disabled ? null : () => _onPayInApp(context),
             isEnabled: !disabled,
             buttonHeight: 42.h,
             cornerRadius: 24.r,
@@ -350,7 +353,8 @@ class _PaymentButtons extends StatelessWidget {
   }
 
   /// In-app payment isn't live yet.
-  void _onPayInApp() {
+  void _onPayInApp(BuildContext context) {
+    context.read<SessionSummaryCubit>().logPayInAppTapped();
     Fluttertoast.showToast(
       msg: 'Coming soon',
       toastLength: Toast.LENGTH_LONG,

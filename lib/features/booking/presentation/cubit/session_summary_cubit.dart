@@ -36,6 +36,31 @@ class SessionSummaryCubit extends Cubit<SessionSummaryState> {
     );
   }
 
+  /// Logs that the user chose to settle at the station. [method] is the picked
+  /// settlement method (`cash` / `credit`).
+  void logPayAtStationSelected(String method) {
+    _analytics.logEvent('pay_at_station_selected', parameters: {
+      'method': method,
+      'session_id': _sessionId,
+    });
+  }
+
+  /// Logs a tap on the in-app pay button, which is not live yet — [outcome]
+  /// records why nothing happened (currently always `coming_soon`).
+  void logPayInAppTapped({String outcome = 'coming_soon'}) {
+    _analytics.logEvent('pay_in_app_tapped', parameters: {
+      'outcome': outcome,
+      'session_id': _sessionId,
+    });
+  }
+
+  /// Logs a receipt that was successfully fetched and handed to the share sheet.
+  void logReceiptDownloaded() {
+    _analytics.logEvent('receipt_downloaded', parameters: {
+      'session_id': _sessionId,
+    });
+  }
+
   Future<void> load() async {
     emit(state.copyWith(
       status: SessionSummaryStatus.loading,
