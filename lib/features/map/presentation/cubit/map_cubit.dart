@@ -68,14 +68,15 @@ class MapCubit extends Cubit<MapState> {
     if (isClosed) return;
     result.fold(
       (failure) => emit(MapError(failure.message)),
-      (locations) {
+      (data) {
+        final locations = data.stations;
         // "Available Now" has no API param — apply it client-side.
         final visible = filters.availableNow
             ? locations
                 .where((l) => l.availableConnectors > 0)
                 .toList(growable: false)
             : locations;
-        emit(MapLoaded(visible));
+        emit(MapLoaded(visible, usedAssetFallback: data.usedAssetFallback));
       },
     );
   }

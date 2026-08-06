@@ -183,6 +183,9 @@ class HomeBottomSheetWidget extends StatelessWidget {
           : message;
     }
 
+    // Filtered results (the "Results" list) vs the distance-capped nearby list.
+    final source = filtersApplied ? 'home_results' : 'nearby_list';
+
     if (expanded) {
       // Full-screen: a vertical, scrollable list of full-width cards.
       return Expanded(
@@ -191,7 +194,10 @@ class HomeBottomSheetWidget extends StatelessWidget {
           itemCount: nearbyStations.length,
           separatorBuilder: (_, __) => 10.verticalSpace,
           itemBuilder: (context, index) =>
-              HomeStationCardWidget(nearbyStations[index]),
+              HomeStationCardWidget(
+            nearbyStations[index],
+            analyticsSource: source,
+          ),
         ),
       );
     }
@@ -208,6 +214,7 @@ class HomeBottomSheetWidget extends StatelessWidget {
           child: HomeStationCardWidget(
             nearbyStations[index],
             isHorizontal: true,
+            analyticsSource: source,
           ),
         ),
       ),

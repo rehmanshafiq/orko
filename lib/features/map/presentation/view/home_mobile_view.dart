@@ -12,6 +12,7 @@ import 'package:go_router/go_router.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_images.dart';
 import 'package:orko_hubco/core/di/injection_container.dart';
+import 'package:orko_hubco/core/services/analytics_service.dart';
 import 'package:orko_hubco/core/usecase/usecase.dart';
 import 'package:orko_hubco/core/utils/app_storage/app_storage.dart';
 import 'package:orko_hubco/core/utils/app_ui.dart';
@@ -25,6 +26,7 @@ import 'package:orko_hubco/features/map/domain/entities/hubco_location_entity.da
 import 'package:orko_hubco/features/map/domain/entities/station_filters.dart';
 import 'package:orko_hubco/features/map/presentation/cubit/map_state.dart';
 import 'package:orko_hubco/features/map/presentation/cubit/map_cubit.dart';
+import 'package:orko_hubco/features/map/presentation/utils/map_analytics.dart';
 import 'package:orko_hubco/features/map/presentation/widgets/home_bottom_sheet_widget.dart';
 import 'package:orko_hubco/features/map/presentation/widgets/home_error_banner_widget.dart';
 import 'package:orko_hubco/features/map/presentation/widgets/map_control_button_widget.dart';
@@ -1054,8 +1056,15 @@ class _HomeMobileViewState extends State<HomeMobileView> {
       // Pin tip (not bitmap bottom — the glow pads it) points at the station.
       anchor: const Offset(0.5, _stationPinTipFraction),
       infoWindow: InfoWindow(title: station.name),
-      onTap: () => context.push('/station-detail', extra: station),
+      onTap: () => _openStationDetail(station),
     );
+  }
+
+  /// Logs the `station_detail_view` event (source: map marker) and opens the
+  /// station detail screen.
+  void _openStationDetail(HubcoLocationEntity station) {
+    logStationDetailView(station, source: 'map_marker');
+    context.push('/station-detail', extra: station);
   }
 
   /// Clears the applied filters: reloads the map with an empty filter set, which
@@ -1105,6 +1114,10 @@ class _HomeMobileViewState extends State<HomeMobileView> {
         child: BlocConsumer<MapCubit, MapState>(
           listener: (context, state) {
             if (state is MapLoaded) {
+              sl<AnalyticsService>().logEvent('map_view', parameters: {
+                'station_count': state.locations.length,
+                'used_asset_fallback': state.usedAssetFallback,
+              });
               _onLocationsLoaded(state.locations);
             }
           },

@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/di/injection_container.dart';
+import 'package:orko_hubco/core/services/analytics_service.dart';
 import 'package:orko_hubco/core/usecase/usecase.dart';
 import 'package:orko_hubco/core/utils/app_ui.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
@@ -57,6 +58,7 @@ class ChargerCompatibilityGate {
 
     final vehicles = vehiclesResult.getOrElse(() => const []);
     if (vehicles.isEmpty) {
+      _logCompatibilityCheck(station.id, 'no_vehicle');
       _showNoVehiclesDialog(context);
       return;
     }
@@ -100,6 +102,7 @@ class ChargerCompatibilityGate {
       ),
       (compat) {
         if (compat.isCompatible) {
+          _logCompatibilityCheck(station.id, 'compatible');
           _proceedToBooking(
             context,
             station,
@@ -108,10 +111,23 @@ class ChargerCompatibilityGate {
             closingTime: closingTime,
           );
         } else {
+          _logCompatibilityCheck(station.id, 'incompatible');
           _showIncompatibleDialog(context, vehicle, compat);
         }
       },
     );
+  }
+
+  /// Logs the `compatibility_check` gate result. [result] is one of
+  /// `compatible`, `incompatible`, or `no_vehicle` (the enumerated gate
+  /// outcomes). The vehicles-fetch error and the fail-open no-charge-point
+  /// path are intentionally not logged: neither runs an actual vehicle↔charger
+  /// check, so counting them would distort the compatible/incompatible rates.
+  static void _logCompatibilityCheck(int stationId, String result) {
+    sl<AnalyticsService>().logEvent('compatibility_check', parameters: {
+      'result': result,
+      'station_id': stationId,
+    });
   }
 
   static void _proceedToBooking(

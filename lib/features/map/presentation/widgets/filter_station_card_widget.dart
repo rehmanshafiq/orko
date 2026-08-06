@@ -22,10 +22,10 @@ class FilterStationCardWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ui = AppUiColors.of(context);
-    // final locationLabel = stationLocationLabel(station);
-    // final title = station.displayName.isNotEmpty
-    //     ? station.displayName
-    //     : (locationLabel.isNotEmpty ? locationLabel : station.name);
+    final locationLabel = stationLocationLabel(station);
+    final title = station.displayName.isNotEmpty
+        ? station.displayName
+        : (locationLabel.isNotEmpty ? locationLabel : station.name);
     return Material(
       color: AppColors.transparentColor,
       child: InkWell(
@@ -46,7 +46,7 @@ class FilterStationCardWidget extends StatelessWidget {
                 children: [
                   Expanded(
                     child: AppText(
-                      station.displayName,
+                      title,
                       color: ui.textPrimary,
                       fontSize: FontSizes.font14Sp,
                       fontWeight: FontWeights.weight700,

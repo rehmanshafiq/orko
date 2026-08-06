@@ -19,10 +19,15 @@ class MapLoading extends MapState {
 class MapLoaded extends MapState {
   final List<HubcoLocationEntity> locations;
 
-  const MapLoaded(this.locations);
+  /// True when [locations] came from the bundled offline asset (the remote
+  /// nearest API failed), false when they came from the API. Surfaced for the
+  /// `map_view` analytics event.
+  final bool usedAssetFallback;
+
+  const MapLoaded(this.locations, {this.usedAssetFallback = false});
 
   @override
-  List<Object?> get props => [locations];
+  List<Object?> get props => [locations, usedAssetFallback];
 }
 
 class MapError extends MapState {

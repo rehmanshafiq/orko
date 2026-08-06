@@ -5,6 +5,7 @@ import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
 import 'package:orko_hubco/features/map/domain/entities/hubco_location_entity.dart';
+import 'package:orko_hubco/features/map/presentation/utils/map_analytics.dart';
 import 'package:orko_hubco/features/map/presentation/widgets/station_label_helpers.dart';
 import 'package:orko_hubco/features/map/presentation/widgets/station_plug_icons_row_widget.dart';
 
@@ -15,22 +16,31 @@ class HomeStationCardWidget extends StatelessWidget {
     this.station, {
     super.key,
     this.isHorizontal = false,
+    this.analyticsSource = 'nearby_list',
   });
 
   final HubcoLocationEntity station;
   final bool isHorizontal;
 
+  /// `source` reported on the `station_detail_view` event when this card is
+  /// tapped (e.g. `nearby_list` for the collapsed list, `home_results` when
+  /// the sheet is showing filtered results).
+  final String analyticsSource;
+
   @override
   Widget build(BuildContext context) {
     final ui = AppUiColors.of(context);
-    // final locationLabel = stationLocationLabel(station);
-    // final title = station.displayName.isNotEmpty
-    //     ? station.displayName
-    //     : (locationLabel.isNotEmpty ? locationLabel : station.name);
+    final locationLabel = stationLocationLabel(station);
+    final title = station.displayName.isNotEmpty
+        ? station.displayName
+        : (locationLabel.isNotEmpty ? locationLabel : station.name);
     return Material(
       color: AppColors.transparentColor,
       child: InkWell(
-        onTap: () => context.push('/station-detail', extra: station),
+        onTap: () {
+          logStationDetailView(station, source: analyticsSource);
+          context.push('/station-detail', extra: station);
+        },
         borderRadius: BorderRadius.circular(24.r),
         child: Ink(
           padding: EdgeInsets.fromLTRB(14.w, 12.h, 14.w, 4.h),
@@ -47,7 +57,7 @@ class HomeStationCardWidget extends StatelessWidget {
                 children: [
                   Expanded(
                     child: AppText(
-                      station.displayName,
+                      title,
                       color: ui.textPrimary,
                       fontSize: FontSizes.font14Sp,
                       fontWeight: FontWeights.weight700,

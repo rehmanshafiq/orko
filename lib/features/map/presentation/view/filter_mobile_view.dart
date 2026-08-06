@@ -6,6 +6,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/di/injection_container.dart';
+import 'package:orko_hubco/core/services/analytics_service.dart';
 import 'package:orko_hubco/core/usecase/usecase.dart';
 import 'package:orko_hubco/core/utils/app_storage/app_storage.dart';
 import 'package:orko_hubco/core/utils/app_ui.dart';
@@ -129,10 +130,22 @@ class _FilterMobileViewState extends State<FilterMobileView> {
     final ui = AppUiColors.of(context);
     return Scaffold(
       backgroundColor: ui.scaffoldBackground,
-      body: SafeArea(
-        child: Column(
-          children: [
-            10.verticalSpace,
+      body: BlocListener<MapCubit, MapState>(
+        // Each completed filtered query (initial load + retries) resolves to a
+        // MapLoaded; log one `search` per result set.
+        listenWhen: (previous, current) => current is MapLoaded,
+        listener: (context, state) {
+          if (state is MapLoaded) {
+            sl<AnalyticsService>().logEvent('search', parameters: {
+              'trigger': 'filter',
+              'result_count': state.locations.length,
+            });
+          }
+        },
+        child: SafeArea(
+          child: Column(
+            children: [
+              10.verticalSpace,
             Padding(
               padding: AppUtils.horizontal16Padding,
               child: MapTopActionsWidget(
@@ -156,6 +169,7 @@ class _FilterMobileViewState extends State<FilterMobileView> {
               ),
             ),
           ],
+          ),
         ),
       ),
     );

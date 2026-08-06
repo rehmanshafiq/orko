@@ -3,11 +3,18 @@ import 'package:orko_hubco/core/usecase/usecase.dart';
 import 'package:orko_hubco/features/map/domain/entities/hubco_location_entity.dart';
 import 'package:orko_hubco/features/map/domain/entities/station_filter_options_entity.dart';
 
+/// Nearest-stations payload: the stations plus whether they came from the
+/// bundled offline asset (`usedAssetFallback: true`) instead of the remote API.
+typedef NearestStationsData = ({
+  List<HubcoLocationEntity> stations,
+  bool usedAssetFallback,
+});
+
 abstract class MapRepository {
   /// Returns nearest charging stations for the given coordinates, optionally
   /// narrowed by the filter params. Falls back to the bundled asset when the
   /// remote request fails.
-  Future<Either<Failure, List<HubcoLocationEntity>>> getNearestStations({
+  Future<Either<Failure, NearestStationsData>> getNearestStations({
     required double latitude,
     required double longitude,
     double? radius,

@@ -1,17 +1,16 @@
 import 'package:equatable/equatable.dart';
 import 'package:orko_hubco/core/error/failures.dart';
 import 'package:orko_hubco/core/usecase/usecase.dart';
-import 'package:orko_hubco/features/map/domain/entities/hubco_location_entity.dart';
 import 'package:orko_hubco/features/map/domain/repositories/map_repository.dart';
 
 class GetHubcoLocationsUseCase
-    implements UseCase<List<HubcoLocationEntity>, NearestStationsParams> {
+    implements UseCase<NearestStationsData, NearestStationsParams> {
   final MapRepository repository;
 
   const GetHubcoLocationsUseCase(this.repository);
 
   @override
-  Future<Either<Failure, List<HubcoLocationEntity>>> call(
+  Future<Either<Failure, NearestStationsData>> call(
     NearestStationsParams params,
   ) {
     return repository.getNearestStations(

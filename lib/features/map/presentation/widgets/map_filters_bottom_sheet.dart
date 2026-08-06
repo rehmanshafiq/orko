@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/di/injection_container.dart';
+import 'package:orko_hubco/core/services/analytics_service.dart';
 import 'package:orko_hubco/core/usecase/usecase.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
 import 'package:orko_hubco/core/utils/widgets/gradient_switch.dart';
@@ -157,6 +158,16 @@ class _MapFiltersBottomSheetState extends State<MapFiltersBottomSheet> {
       availableNow: _availableNow,
       city: _selectedCity,
     );
+    sl<AnalyticsService>().logEvent('station_filter_apply', parameters: {
+      // 'all' rather than null so the dimension is always populated in GA4.
+      'city': _selectedCity ?? 'all',
+      'power_output': _selectedPowerOutput == null
+          ? 'all'
+          : '${_selectedPowerOutput!.round()}kW',
+      'price_range':
+          '${_priceRange.start.round()}-${_priceRange.end.round()}',
+      'available_now': _availableNow,
+    });
     // Capture the calling screen's cubit + router before popping the sheet,
     // since this context is torn down as the modal closes.
     final cubit = context.read<MapCubit>();
