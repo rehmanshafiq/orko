@@ -7,6 +7,7 @@ import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/storage_constants.dart';
 import 'package:orko_hubco/core/di/injection_container.dart';
 import 'package:orko_hubco/core/global_bloc/bloc/user_bloc.dart';
+import 'package:orko_hubco/core/services/analytics_service.dart';
 import 'package:orko_hubco/core/services/local_storage_service.dart';
 import 'package:orko_hubco/core/utils/widgets/auth_required_dialog.dart';
 import 'package:orko_hubco/features/auth/data/models/user_model.dart';
@@ -25,6 +26,7 @@ Future<void> handleSignOut(BuildContext context) async {
   final storage = sl<LocalStorageService>();
 
   if (storage.isGuest) {
+    sl<AnalyticsService>().logEvent('logout', parameters: {'user_type': 'guest'});
     await storage.setGuest(false);
     await clearUserData(storage);
     if (context.mounted) context.go('/login');

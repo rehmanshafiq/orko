@@ -86,7 +86,7 @@ class _LoginScreenState extends State<LoginScreen> {
   /// is cleared automatically once they log in or sign up.
   Future<void> _onContinueAsGuest() async {
     await AppStorage.setGuest(true);
-    sl<AnalyticsService>().logEvent('login', parameters: {'method': 'guest'});
+    sl<AnalyticsService>().logEvent('guest_mode_entered');
     if (!mounted) return;
     context.go('/home');
   }

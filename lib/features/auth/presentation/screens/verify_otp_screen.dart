@@ -142,7 +142,12 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
       return;
     }
     FocusScope.of(context).unfocus();
-    context.read<AuthCubit>().verifyOtp(_code);
+    // otpId is null for post-signup verification and set for the OTP sign-in
+    // flow — this maps directly onto the analytics `flow` label.
+    context.read<AuthCubit>().verifyOtp(
+          _code,
+          flow: widget.otpId == null ? 'sign_up' : 'sign_in',
+        );
   }
 
   void _clearCode() {

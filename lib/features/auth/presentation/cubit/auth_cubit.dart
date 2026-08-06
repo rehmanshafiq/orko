@@ -66,7 +66,13 @@ class AuthCubit extends Cubit<AuthState> {
     );
 
     result.fold(
-      (failure) => emit(AuthError(failure.message)),
+      (failure) {
+        _analytics.logEvent('login_failed', parameters: {
+          'method': 'phone',
+          'error_reason': _reason(failure.message),
+        });
+        emit(AuthError(failure.message));
+      },
       (loginResult) {
         // Claim this device for the new session; the marker was cleared on the
         // last logout, so this re-registers the FCM token server-side.
@@ -89,6 +95,10 @@ class AuthCubit extends Cubit<AuthState> {
     try {
       account = await _googleAuthService.signIn();
     } catch (_) {
+      _analytics.logEvent('login_failed', parameters: {
+        'method': 'google',
+        'error_reason': 'sign_in_exception',
+      });
       emit(const AuthError('Google sign-in failed. Please try again.'));
       return;
     }
@@ -104,7 +114,13 @@ class AuthCubit extends Cubit<AuthState> {
     );
 
     result.fold(
-      (failure) => emit(AuthError(failure.message)),
+      (failure) {
+        _analytics.logEvent('login_failed', parameters: {
+          'method': 'google',
+          'error_reason': _reason(failure.message),
+        });
+        emit(AuthError(failure.message));
+      },
       (loginResult) {
         unawaited(_pushNotificationService.registerTokenForSession());
         _analytics.logEvent('login', parameters: {'method': 'google'});
@@ -138,7 +154,13 @@ class AuthCubit extends Cubit<AuthState> {
     );
 
     result.fold(
-      (failure) => emit(AuthError(failure.message)),
+      (failure) {
+        _analytics.logEvent('sign_up_failed', parameters: {
+          'method': 'phone',
+          'error_reason': _reason(failure.message),
+        });
+        emit(AuthError(failure.message));
+      },
       (signUpResult) {
         _analytics.logEvent('sign_up', parameters: {'method': 'phone'});
         emit(SignUpSuccess(signUpResult));
@@ -148,14 +170,21 @@ class AuthCubit extends Cubit<AuthState> {
 
   /// Verifies the OTP entered by the user. Emits [OtpVerified] on success so the
   /// UI can route to the home shell, or [AuthError] with a readable message.
-  Future<void> verifyOtp(String otp) async {
+  ///
+  /// [flow] labels the analytics event with the originating flow ('sign_up' for
+  /// post-registration verification, 'sign_in' for the OTP sign-in flow).
+  Future<void> verifyOtp(String otp, {String flow = 'sign_up'}) async {
     emit(const OtpVerifying());
 
     final result = await _verifyOtpUseCase(VerifyOtpParams(otp: otp));
 
     result.fold(
-      (failure) => emit(AuthError(failure.message)),
+      (failure) {
+        _analytics.logEvent('otp_verify_failed', parameters: {'flow': flow});
+        emit(AuthError(failure.message));
+      },
       (_) {
+        _analytics.logEvent('otp_verify', parameters: {'flow': flow});
         unawaited(_pushNotificationService.registerTokenForSession());
         emit(const OtpVerified());
       },
@@ -194,7 +223,18 @@ class AuthCubit extends Cubit<AuthState> {
         unawaited(_pushNotificationService.registerTokenForSession());
         emit(AuthError(failure.message));
       },
-      (_) => emit(const AuthUnauthenticated()),
+      (_) {
+        _analytics.logEvent('logout', parameters: {'user_type': 'registered'});
+        emit(const AuthUnauthenticated());
+      },
     );
+  }
+
+  /// Trims a failure message to GA4's 100-char parameter-value limit so a long
+  /// server message can never cause the whole event to be dropped.
+  String _reason(String message) {
+    final trimmed = message.trim();
+    if (trimmed.isEmpty) return 'unknown';
+    return trimmed.length > 100 ? trimmed.substring(0, 100) : trimmed;
   }
 }
