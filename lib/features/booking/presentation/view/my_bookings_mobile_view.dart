@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/di/injection_container.dart';
+import 'package:orko_hubco/core/services/analytics_service.dart';
 import 'package:orko_hubco/core/services/barcode_scanner_service.dart';
 import 'package:orko_hubco/core/utils/helpers.dart';
 import 'package:orko_hubco/core/utils/app_ui.dart';
@@ -362,6 +363,12 @@ Future<void> _confirmCancel(
   if (confirmed != true || !context.mounted) return;
 
   final result = await cubit.cancelBooking(booking.id);
+  if (result.success) {
+    sl<AnalyticsService>().logEvent('booking_cancelled', parameters: {
+      'booking_id': booking.id,
+      'hours_before': _hoursUntilBookingStart(booking),
+    });
+  }
   if (!context.mounted) return;
   AppHelpers.showSnackBar(context, result.message, isError: !result.success);
 }
@@ -374,6 +381,9 @@ Future<void> _openReschedule(
   final selection = await RescheduleSheet.show(context, booking);
   if (selection == null || !context.mounted) return;
 
+  // Captured before the reschedule so `hours_before` reflects how far ahead the
+  // *original* slot was when the user changed it.
+  final hoursBefore = _hoursUntilBookingStart(booking);
   final result = await cubit.rescheduleBooking(
     bookingId: booking.id,
     locationId: booking.locationId,
@@ -381,6 +391,12 @@ Future<void> _openReschedule(
     startTime: selection.startTime,
     noOfSlots: selection.noOfSlots,
   );
+  if (result.success) {
+    sl<AnalyticsService>().logEvent('booking_rescheduled', parameters: {
+      'booking_id': booking.id,
+      'hours_before': hoursBefore,
+    });
+  }
   if (!context.mounted) return;
   AppHelpers.showSnackBar(context, result.message, isError: !result.success);
 }
@@ -894,6 +910,18 @@ class _DatedHistoryItem {
 
   final DateTime? date;
   final _HistoryItem item;
+}
+
+/// Hours between now and the booking's scheduled start, rounded to one decimal
+/// (e.g. `2.5`). Null when the date/time can't be parsed; negative when the
+/// start is already in the past. Used as `hours_before` on the
+/// `booking_cancelled` / `booking_rescheduled` analytics events.
+double? _hoursUntilBookingStart(MyBookingEntity booking) {
+  final start = _parseDateTime('${booking.date} ${booking.startTime}') ??
+      _parseDateTime(booking.date);
+  if (start == null) return null;
+  final hours = start.difference(DateTime.now()).inMinutes / 60.0;
+  return (hours * 10).round() / 10;
 }
 
 /// Parses `yyyy-MM-dd HH:mm[:ss]`-style timestamps; null when unparseable so

@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
+import 'package:orko_hubco/core/di/injection_container.dart';
+import 'package:orko_hubco/core/services/analytics_service.dart';
 import 'package:orko_hubco/core/utils/app_storage/app_storage.dart';
 import 'package:orko_hubco/core/utils/app_ui.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
@@ -21,7 +23,7 @@ import 'package:orko_hubco/features/booking/presentation/widgets/summary_bottom_
 import 'package:orko_hubco/features/booking/presentation/widgets/time_slot_grid.dart';
 
 /// EV charging slot booking UI backed by the bookings API.
-class BookSlotMobileView extends StatelessWidget {
+class BookSlotMobileView extends StatefulWidget {
   const BookSlotMobileView({
     super.key,
     this.stationName,
@@ -46,9 +48,27 @@ class BookSlotMobileView extends StatelessWidget {
   /// Available Time Slots that fall outside service hours.
   final String closingTime;
 
+  @override
+  State<BookSlotMobileView> createState() => _BookSlotMobileViewState();
+}
+
+class _BookSlotMobileViewState extends State<BookSlotMobileView> {
   static const String _defaultStationTitle = 'HGL Charging Hub Motorway M2';
   static const String _defaultStationAddress =
       'Motorway M2, Near Exit 15, XYZ City';
+
+  @override
+  void initState() {
+    super.initState();
+    // Booking-funnel entry: fires once when the Book-a-Slot screen opens. The
+    // BookingCubit is created (and `start()`ed with the location) by BookSlotPage
+    // above this widget, so its locationId is already populated here.
+    final cubit = context.read<BookingCubit>();
+    sl<AnalyticsService>().logEvent('book_slot_tapped', parameters: {
+      'station_id': cubit.state.locationId,
+      'is_guest': AppStorage.isGuest,
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -99,10 +119,10 @@ class BookSlotMobileView extends StatelessWidget {
                         20.verticalSpace,
                         StationInfoCard(
                           title: state.stationName ??
-                              stationName ??
+                              widget.stationName ??
                               _defaultStationTitle,
                           address: state.stationAddress ??
-                              stationAddress ??
+                              widget.stationAddress ??
                               _defaultStationAddress,
                           ui: ui,
                           // Plug chips mirror each port's connectorType.
@@ -156,8 +176,8 @@ class BookSlotMobileView extends StatelessWidget {
                           state: state,
                           cubit: cubit,
                           operatingHours: OperatingHours(
-                            openingTime: openingTime,
-                            closingTime: closingTime,
+                            openingTime: widget.openingTime,
+                            closingTime: widget.closingTime,
                           ),
                         ),
                         24.verticalSpace,
@@ -214,10 +234,11 @@ class BookSlotMobileView extends StatelessWidget {
           '/booking-success',
           extra: BookingSuccessArgs(
             bookingRef: _bookingRef(state),
-            stationName: state.stationName ?? stationName ?? _defaultStationTitle,
+            stationName:
+                state.stationName ?? widget.stationName ?? _defaultStationTitle,
             slotLabel: _slotLabel(state),
             amountPaid: amount,
-            fromTrip: fromTrip,
+            fromTrip: widget.fromTrip,
           ),
         );
         break;

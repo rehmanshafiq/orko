@@ -202,6 +202,16 @@ class BookingCubit extends Cubit<BookingState> {
     }
 
     emit(state.copyWith(selectedSlots: next, clearSubmitError: true));
+
+    // Log only genuine selections (a slot added, or the selection restarted
+    // from a fresh tap) — toggling a slot off is not a "slot chosen".
+    if (alreadyIndex < 0 && next.isNotEmpty) {
+      _analytics.logEvent('booking_slot_selected', parameters: {
+        'slot_count': next.length,
+        'start_time': next.first.startTime,
+        'station_id': state.locationId,
+      });
+    }
   }
 
   /// True when [slot] directly precedes or follows the selected block.
@@ -259,6 +269,19 @@ class BookingCubit extends Cubit<BookingState> {
     if (isClosed) return false;
     return result.fold(
       (failure) {
+        // Estimated amount mirrors the success branch so both booking outcomes
+        // carry comparable est_amount values.
+        final pricePerKwh = state.selectedPort?.price?.price ?? 0;
+        final estAmount = (pricePerKwh * 5 * state.noOfSlots).round();
+        _analytics.logEvent(
+          'booking_failed',
+          parameters: {
+            'station_id': state.locationId,
+            'no_of_slots': state.noOfSlots,
+            'est_amount': estAmount,
+            'error_reason': _reason(failure.message),
+          },
+        );
         emit(
           state.copyWith(
             submitStatus: BookingSubmitStatus.failure,
@@ -292,6 +315,14 @@ class BookingCubit extends Cubit<BookingState> {
         return true;
       },
     );
+  }
+
+  /// Trims a failure message to GA4's 100-char parameter-value limit so a long
+  /// server message can never cause the whole event to be dropped.
+  String _reason(String message) {
+    final trimmed = message.trim();
+    if (trimmed.isEmpty) return 'unknown';
+    return trimmed.length > 100 ? trimmed.substring(0, 100) : trimmed;
   }
 
   /// Highlights an available connector. Display-only — the booking endpoint
