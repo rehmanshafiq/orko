@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:orko_hubco/core/services/analytics_service.dart';
 import 'package:orko_hubco/core/usecase/usecase.dart';
 import 'package:orko_hubco/features/notifications/domain/entities/notification_preferences_entity.dart';
 import 'package:orko_hubco/features/notifications/domain/usecases/get_notification_preferences_usecase.dart';
@@ -10,12 +11,15 @@ class NotificationPreferencesCubit
   NotificationPreferencesCubit({
     required GetNotificationPreferencesUseCase getPreferences,
     required UpdateNotificationPreferencesUseCase updatePreferences,
+    required AnalyticsService analytics,
   })  : _getPreferences = getPreferences,
         _updatePreferences = updatePreferences,
+        _analytics = analytics,
         super(const NotificationPreferencesState());
 
   final GetNotificationPreferencesUseCase _getPreferences;
   final UpdateNotificationPreferencesUseCase _updatePreferences;
+  final AnalyticsService _analytics;
 
   Future<void> load() async {
     if (state.status == NotificationPreferencesStatus.loading) return;
@@ -102,10 +106,19 @@ class NotificationPreferencesCubit
         updating: nextUpdating,
         actionError: failure.message,
       )),
-      (serverPrefs) => emit(state.copyWith(
-        preferences: serverPrefs, // server is authoritative
-        updating: nextUpdating,
-      )),
+      (serverPrefs) {
+        // Log only after the change persisted (server authoritative) so a
+        // reverted optimistic toggle never counts as a preference change. Use
+        // the server's resolved value for `enabled`.
+        _analytics.logEvent('notification_pref_toggled', parameters: {
+          'pref_key': key.apiKey,
+          'enabled': serverPrefs.valueOf(key),
+        });
+        emit(state.copyWith(
+          preferences: serverPrefs, // server is authoritative
+          updating: nextUpdating,
+        ));
+      },
     );
   }
 }

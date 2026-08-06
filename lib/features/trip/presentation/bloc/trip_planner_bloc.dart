@@ -273,6 +273,13 @@ class TripPlannerBloc extends Bloc<TripPlannerEvent, TripPlannerState> {
       saveSuccess: false,
     ));
 
+    // Funnel entry: fires once per plan attempt, before results exist (so the
+    // distance/stop/co2 outcome params belong to `trip_planned`, not here).
+    _analytics.logEvent('trip_plan_started', parameters: {
+      'has_vehicle': state.selectedVehicle != null,
+      'start_soc': state.currentBatteryPercent.toInt(),
+    });
+
     // 1. Resolve origin/destination coordinates.
     final origin = await _resolvePoint(
       text: _startLocationController.text,
@@ -347,6 +354,13 @@ class TripPlannerBloc extends Bloc<TripPlannerEvent, TripPlannerState> {
           longitude: destination.lng,
         );
         final mapped = _mapApiPlanToModel(plan, startPoint, endPoint);
+        _analytics.logEvent('trip_planned', parameters: {
+          'distance_km': plan.totalDistanceKm,
+          'stop_count': plan.numberOfStops,
+          // Nullable — dropped by the sanitizer when the API omits savings.
+          'co2_reduced_kg': plan.savings?.co2ReducedKg,
+          'feasible': plan.feasible,
+        });
         emit(state.copyWith(
           planLoading: false,
           tripPlanned: true,
@@ -376,7 +390,12 @@ class TripPlannerBloc extends Bloc<TripPlannerEvent, TripPlannerState> {
     final result = await _saveTrip(params);
     result.fold(
       (failure) => emit(state.copyWith(saving: false, saveError: failure.message)),
-      (_) => emit(state.copyWith(saving: false, saveSuccess: true)),
+      (savedTrip) {
+        _analytics.logEvent('trip_saved', parameters: {
+          'trip_id': savedTrip.id,
+        });
+        emit(state.copyWith(saving: false, saveSuccess: true));
+      },
     );
   }
 
@@ -419,7 +438,14 @@ class TripPlannerBloc extends Bloc<TripPlannerEvent, TripPlannerState> {
     final result = await _editTrip(EditTripParams(tripId: id, params: params));
     result.fold(
       (failure) => emit(state.copyWith(saving: false, saveError: failure.message)),
-      (_) => emit(state.copyWith(saving: false, saveSuccess: true)),
+      (savedTrip) {
+        // Editing persists the trip too; `is_edit` separates it from a first save.
+        _analytics.logEvent('trip_saved', parameters: {
+          'trip_id': savedTrip.id,
+          'is_edit': true,
+        });
+        emit(state.copyWith(saving: false, saveSuccess: true));
+      },
     );
   }
 

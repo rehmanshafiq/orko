@@ -51,6 +51,7 @@ void initNotificationDependencies() {
     () => NotificationPreferencesCubit(
       getPreferences: sl(),
       updatePreferences: sl(),
+      analytics: sl(),
     ),
   );
 }

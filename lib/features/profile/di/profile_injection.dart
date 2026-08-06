@@ -23,5 +23,7 @@ void initProfileDependencies() {
 
   // Cubit
   sl.registerFactory(() => ProfileCubit());
-  sl.registerFactory(() => ChargingStatsCubit(getChargingStats: sl()));
+  sl.registerFactory(
+    () => ChargingStatsCubit(getChargingStats: sl(), analytics: sl()),
+  );
 }
