@@ -47,6 +47,7 @@ class ChargerCompatibilityGate {
     _dismissLoader(context);
 
     if (vehiclesResult.isLeft) {
+      _logCompatibilityCheck(station.id, 'error');
       _showMessageDialog(
         context,
         icon: Icons.error_outline_rounded,
@@ -72,6 +73,7 @@ class ChargerCompatibilityGate {
     // 3. No charge point id → can't verify; don't block a valid booking.
     final cpId = chargePointId?.trim();
     if (cpId == null || cpId.isEmpty) {
+      _logCompatibilityCheck(station.id, 'no_charge_point');
       _proceedToBooking(
         context,
         station,
@@ -94,12 +96,15 @@ class ChargerCompatibilityGate {
     _dismissLoader(context);
 
     compatResult.fold(
-      (failure) => _showMessageDialog(
-        context,
-        icon: Icons.error_outline_rounded,
-        title: 'Compatibility check failed',
-        message: failure.message,
-      ),
+      (failure) {
+        _logCompatibilityCheck(station.id, 'error');
+        _showMessageDialog(
+          context,
+          icon: Icons.error_outline_rounded,
+          title: 'Compatibility check failed',
+          message: failure.message,
+        );
+      },
       (compat) {
         if (compat.isCompatible) {
           _logCompatibilityCheck(station.id, 'compatible');
@@ -118,11 +123,14 @@ class ChargerCompatibilityGate {
     );
   }
 
-  /// Logs the `compatibility_check` gate result. [result] is one of
-  /// `compatible`, `incompatible`, or `no_vehicle` (the enumerated gate
-  /// outcomes). The vehicles-fetch error and the fail-open no-charge-point
-  /// path are intentionally not logged: neither runs an actual vehicle↔charger
-  /// check, so counting them would distort the compatible/incompatible rates.
+  /// Logs the `compatibility_check` gate result on every terminal branch so the
+  /// event fires whenever the gate runs. [result] is one of:
+  /// - `compatible` / `incompatible` — an actual vehicle↔charger check ran;
+  /// - `no_vehicle` — the user has no vehicle to check;
+  /// - `no_charge_point` — the station exposes no charge-point id, so the gate
+  ///   fails open to booking without a check (kept distinct so it never inflates
+  ///   the `compatible` rate);
+  /// - `error` — fetching vehicles or the compatibility check itself failed.
   static void _logCompatibilityCheck(int stationId, String result) {
     sl<AnalyticsService>().logEvent('compatibility_check', parameters: {
       'result': result,
