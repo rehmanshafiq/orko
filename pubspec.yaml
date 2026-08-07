@@ -58,6 +58,7 @@ dependencies:
   flutter_typeahead: ^5.2.0
   connectivity_plus: ^6.0.5
   url_launcher: ^6.3.1
+  webview_flutter: ^4.10.0
   package_info_plus: ^9.0.0
   firebase_analytics: ^12.1.0
   flutter_slidable: ^4.0.3

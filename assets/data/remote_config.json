@@ -5,6 +5,7 @@
     "domain": "Hubco",
     "autocomplete_url": "https://maps.googleapis.com/maps/api/place/autocomplete/json",
     "details_url": "https://maps.googleapis.com/maps/api/place/details/json",
+    "privacy_policy_url": "https://green.hubpower.com/privacy-policy/",
     "api_endpoints": {
       "sign_up_form": "api/v1/orko-auth/complete-signup",
       "verify_otp": "api/v1/orko-auth/verify-otp",

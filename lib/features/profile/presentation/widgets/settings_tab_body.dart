@@ -8,18 +8,34 @@ import 'package:orko_hubco/core/di/injection_container.dart';
 import 'package:orko_hubco/core/services/local_storage_service.dart';
 import 'package:orko_hubco/core/theme/theme_cubit.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
+import 'package:orko_hubco/core/utils/widgets/app_web_view_page.dart';
 import 'package:orko_hubco/core/utils/widgets/primary_button_widget.dart';
+import 'package:orko_hubco/features/remote_config/data/services/remote_config_service.dart';
 import 'package:orko_hubco/features/notifications/presentation/page/notification_preferences_page.dart';
 import 'package:orko_hubco/features/profile/presentation/page/help_support_page.dart';
 import 'package:orko_hubco/features/profile/presentation/utils/profile_actions.dart';
 import 'package:orko_hubco/features/profile/presentation/widgets/section_card.dart';
 
-/// Placeholder for not-yet-built settings entries.
-void _showComingSoon() {
-  Fluttertoast.showToast(
-    msg: 'Coming soon',
-    toastLength: Toast.LENGTH_SHORT,
-    gravity: ToastGravity.BOTTOM,
+/// Opens the privacy policy (from Remote Config) in an in-app WebView. Falls
+/// back to a toast when Remote Config carries no URL yet.
+void _openPrivacyPolicy(BuildContext context) {
+  final url =
+      RemoteConfigService.config?.apiConstants.privacyPolicyUrl.trim() ?? '';
+  if (url.isEmpty) {
+    Fluttertoast.showToast(
+      msg: 'Privacy policy is currently unavailable',
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.BOTTOM,
+    );
+    return;
+  }
+  Navigator.of(context).push(
+    MaterialPageRoute<void>(
+      builder: (_) => AppWebViewPage(
+        url: url,
+        title: 'Privacy & Security',
+      ),
+    ),
   );
 }
 
@@ -68,7 +84,7 @@ class SettingsTabBody extends StatelessWidget {
               AccountTile(
                 icon: Icons.shield_outlined,
                 label: 'Privacy & Security',
-                onTap: _showComingSoon,
+                onTap: () => _openPrivacyPolicy(context),
               ),
               const DividerLine(),
               AccountTile(

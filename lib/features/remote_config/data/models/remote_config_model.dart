@@ -12,6 +12,7 @@ import 'package:equatable/equatable.dart';
 ///     "google_places_api_key": "AIza...",
 ///     "autocomplete_url": "https://maps.googleapis.com/maps/api/place/autocomplete/json",
 ///     "details_url": "https://maps.googleapis.com/maps/api/place/details/json",
+///     "privacy_policy_url": "https://green.hubpower.com/privacy-policy/",
 ///     "api_endpoints": {
 ///       "charging_station_map": "api/v1/charging-station/nearest?",
 ///       "charging_station_detail": "api/v1/charging-station/",
@@ -64,6 +65,7 @@ class ApiConstants extends Equatable {
     required this.googlePlacesApiKey,
     required this.autocompleteUrl,
     required this.detailsUrl,
+    required this.privacyPolicyUrl,
     required this.apiEndpoints,
   });
 
@@ -73,6 +75,7 @@ class ApiConstants extends Equatable {
   final String googlePlacesApiKey;
   final String autocompleteUrl;
   final String detailsUrl;
+  final String privacyPolicyUrl;
   final ApiEndpoints apiEndpoints;
 
   /// Parses the inner `api_constants` object. This matches the value stored in
@@ -86,6 +89,7 @@ class ApiConstants extends Equatable {
       googlePlacesApiKey: json['google_places_api_key'] as String? ?? '',
       autocompleteUrl: json['autocomplete_url'] as String? ?? '',
       detailsUrl: json['details_url'] as String? ?? '',
+      privacyPolicyUrl: json['privacy_policy_url'] as String? ?? '',
       apiEndpoints: ApiEndpoints.fromJson(
         rawEndpoints is Map
             ? Map<String, dynamic>.from(rawEndpoints)
@@ -102,6 +106,7 @@ class ApiConstants extends Equatable {
       'google_places_api_key': googlePlacesApiKey,
       'autocomplete_url': autocompleteUrl,
       'details_url': detailsUrl,
+      'privacy_policy_url': privacyPolicyUrl,
       'api_endpoints': apiEndpoints.toJson(),
     };
   }
@@ -113,6 +118,7 @@ class ApiConstants extends Equatable {
     String? googlePlacesApiKey,
     String? autocompleteUrl,
     String? detailsUrl,
+    String? privacyPolicyUrl,
     ApiEndpoints? apiEndpoints,
   }) {
     return ApiConstants(
@@ -122,6 +128,7 @@ class ApiConstants extends Equatable {
       googlePlacesApiKey: googlePlacesApiKey ?? this.googlePlacesApiKey,
       autocompleteUrl: autocompleteUrl ?? this.autocompleteUrl,
       detailsUrl: detailsUrl ?? this.detailsUrl,
+      privacyPolicyUrl: privacyPolicyUrl ?? this.privacyPolicyUrl,
       apiEndpoints: apiEndpoints ?? this.apiEndpoints,
     );
   }
@@ -134,6 +141,7 @@ class ApiConstants extends Equatable {
         googlePlacesApiKey,
         autocompleteUrl,
         detailsUrl,
+        privacyPolicyUrl,
         apiEndpoints,
       ];
 }
