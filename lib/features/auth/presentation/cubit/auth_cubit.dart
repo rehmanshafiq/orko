@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:orko_hubco/core/di/injection_container.dart';
 import 'package:orko_hubco/core/services/analytics_service.dart';
 import 'package:orko_hubco/core/services/analytics_user_properties.dart';
+import 'package:orko_hubco/core/services/apple_auth_service.dart';
 import 'package:orko_hubco/core/services/google_auth_service.dart';
 import 'package:orko_hubco/core/services/push_notification_service.dart';
 import 'package:orko_hubco/core/usecase/usecase.dart';
@@ -26,6 +27,7 @@ class AuthCubit extends Cubit<AuthState> {
   final ResendOtpUseCase _resendOtpUseCase;
   final LogoutUseCase _logoutUseCase;
   final GoogleAuthService _googleAuthService;
+  final AppleAuthService _appleAuthService;
   final PushNotificationService _pushNotificationService;
   final AnalyticsService _analytics;
 
@@ -37,6 +39,7 @@ class AuthCubit extends Cubit<AuthState> {
     required ResendOtpUseCase resendOtpUseCase,
     required LogoutUseCase logoutUseCase,
     required GoogleAuthService googleAuthService,
+    required AppleAuthService appleAuthService,
     required PushNotificationService pushNotificationService,
     required AnalyticsService analytics,
   })  : _loginUseCase = loginUseCase,
@@ -46,6 +49,7 @@ class AuthCubit extends Cubit<AuthState> {
         _resendOtpUseCase = resendOtpUseCase,
         _logoutUseCase = logoutUseCase,
         _googleAuthService = googleAuthService,
+        _appleAuthService = appleAuthService,
         _pushNotificationService = pushNotificationService,
         _analytics = analytics,
         super(const AuthInitial());
@@ -127,6 +131,63 @@ class AuthCubit extends Cubit<AuthState> {
       (loginResult) {
         unawaited(_pushNotificationService.registerTokenForSession());
         _analytics.logEvent('login', parameters: {'method': 'google'});
+        sl<AnalyticsUserProperties>().setAuthenticated(loginResult.user);
+        emit(AuthAuthenticated(loginResult.user));
+      },
+    );
+  }
+
+  /// Signs in with Apple: runs the native authorization sheet, then exchanges
+  /// the account's name + email for a session via the **same** backend endpoint
+  /// as Google (`login_with_google` — the backend keys the account off the
+  /// email, so no separate Apple endpoint is needed). On success the access
+  /// token + user are persisted and [AuthAuthenticated] is emitted. If the user
+  /// dismisses the sheet, returns silently to [AuthInitial] without an error.
+  Future<void> loginWithApple() async {
+    emit(const AuthLoading());
+
+    final AppleAccountInfo? account;
+    try {
+      account = await _appleAuthService.signIn();
+    } on AppleEmailUnavailableException catch (e) {
+      // Sign-in itself worked, but no email is available to send to the
+      // backend. Surface Apple's remediation message.
+      _analytics.logEvent('login_failed', parameters: {
+        'method': 'apple',
+        'error_reason': 'email_unavailable',
+      });
+      emit(AuthError(e.message));
+      return;
+    } catch (_) {
+      _analytics.logEvent('login_failed', parameters: {
+        'method': 'apple',
+        'error_reason': 'sign_in_exception',
+      });
+      emit(const AuthError('Apple sign-in failed. Please try again.'));
+      return;
+    }
+
+    if (account == null) {
+      // User cancelled the sheet — no error, just reset.
+      emit(const AuthInitial());
+      return;
+    }
+
+    final result = await _loginWithGoogleUseCase(
+      LoginWithGoogleParams(name: account.name, email: account.email),
+    );
+
+    result.fold(
+      (failure) {
+        _analytics.logEvent('login_failed', parameters: {
+          'method': 'apple',
+          'error_reason': _reason(failure.message),
+        });
+        emit(AuthError(failure.message));
+      },
+      (loginResult) {
+        unawaited(_pushNotificationService.registerTokenForSession());
+        _analytics.logEvent('login', parameters: {'method': 'apple'});
         sl<AnalyticsUserProperties>().setAuthenticated(loginResult.user);
         emit(AuthAuthenticated(loginResult.user));
       },

@@ -58,4 +58,47 @@ class AppStorage {
   static Future<void> clearActiveChargeSessionId() {
     return _storage.remove(StorageConstants.activeChargeSessionId);
   }
+
+  // ── Sign in with Apple ────────────────────────────────────────────────
+  // Apple only returns the user's name + email on the first authorization for
+  // an app; later sign-ins return them as null. We persist them keyed by the
+  // stable `userIdentifier` so subsequent logins can still reconstruct the
+  // `{name, email}` payload the backend expects.
+
+  static String _appleKey(String userIdentifier) =>
+      '${StorageConstants.appleAccountPrefix}$userIdentifier';
+
+  /// Returns the cached `{name, email}` for [userIdentifier], or null if the
+  /// user has never been captured on this device.
+  static ({String? name, String? email})? appleAccount(String userIdentifier) {
+    if (userIdentifier.isEmpty) return null;
+    final value = _storage.read(_appleKey(userIdentifier));
+    if (value is! Map) return null;
+    return (
+      name: value['name']?.toString(),
+      email: value['email']?.toString(),
+    );
+  }
+
+  /// Caches the name/email captured on the first Apple sign-in. Only writes the
+  /// fields that are non-empty so a later (empty) response never clobbers a
+  /// value captured earlier.
+  static Future<void> cacheAppleAccount({
+    required String userIdentifier,
+    String? name,
+    String? email,
+  }) {
+    if (userIdentifier.isEmpty) return Future<void>.value();
+    final existing = appleAccount(userIdentifier);
+    final mergedName = (name != null && name.trim().isNotEmpty)
+        ? name.trim()
+        : existing?.name;
+    final mergedEmail = (email != null && email.trim().isNotEmpty)
+        ? email.trim()
+        : existing?.email;
+    return _storage.write(_appleKey(userIdentifier), {
+      'name': mergedName,
+      'email': mergedEmail,
+    });
+  }
 }

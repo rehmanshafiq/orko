@@ -1,4 +1,5 @@
 import 'package:orko_hubco/core/di/injection_container.dart';
+import 'package:orko_hubco/core/services/apple_auth_service.dart';
 import 'package:orko_hubco/core/services/google_auth_service.dart';
 import 'package:orko_hubco/features/auth/data/datasources/local/auth_local_datasource.dart';
 import 'package:orko_hubco/features/auth/data/datasources/local/auth_local_datasource_impl.dart';
@@ -37,6 +38,7 @@ void initAuthDependencies() {
 
   // ── Services ──────────────────────────────────────────────────────────
   sl.registerLazySingleton<GoogleAuthService>(() => GoogleAuthService());
+  sl.registerLazySingleton<AppleAuthService>(() => const AppleAuthService());
 
   // ── Repository ────────────────────────────────────────────────────────
   sl.registerLazySingleton<AuthRepository>(
@@ -75,6 +77,7 @@ void initAuthDependencies() {
       resendOtpUseCase: sl(),
       logoutUseCase: sl(),
       googleAuthService: sl(),
+      appleAuthService: sl(),
       pushNotificationService: sl(),
       analytics: sl(),
     ),

@@ -1,3 +1,5 @@
+import 'dart:io' show Platform;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -34,7 +36,16 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _obscurePassword = true;
   AutovalidateMode _autovalidateMode = AutovalidateMode.disabled;
 
+  /// Which social provider triggered the in-flight [AuthLoading], so only that
+  /// button shows a spinner (phone login sets none). Reset whenever we leave
+  /// the loading state.
+  _SocialProvider? _loadingProvider;
+
   static const String _countryCode = '+92';
+
+  /// Apple sign-in is only offered on iOS; Android keeps the Google + Guest
+  /// layout. (iOS min deployment is 13+, so the API is always available here.)
+  bool get _showAppleSignIn => Platform.isIOS;
 
   @override
   void dispose() {
@@ -71,7 +82,18 @@ class _LoginScreenState extends State<LoginScreen> {
   /// resets silently; failures surface a snackbar via [AuthError].
   void _onGoogleLogin() {
     FocusScope.of(context).unfocus();
+    setState(() => _loadingProvider = _SocialProvider.google);
     context.read<AuthCubit>().loginWithGoogle();
+  }
+
+  /// Starts the Sign in with Apple flow (iOS only). Mirrors [_onGoogleLogin]:
+  /// the cubit reuses the same backend endpoint as Google, so success emits
+  /// [AuthAuthenticated]; cancellation resets silently; failures surface a
+  /// snackbar via [AuthError].
+  void _onAppleLogin() {
+    FocusScope.of(context).unfocus();
+    setState(() => _loadingProvider = _SocialProvider.apple);
+    context.read<AuthCubit>().loginWithApple();
   }
 
   /// Opens the forgot-password flow (request OTP by email → reset password).
@@ -100,6 +122,10 @@ class _LoginScreenState extends State<LoginScreen> {
       backgroundColor: ui.scaffoldBackground,
       body: BlocConsumer<AuthCubit, AuthState>(
         listener: (context, state) {
+          // Once we leave the loading state, no social button should spin.
+          if (state is! AuthLoading && _loadingProvider != null) {
+            setState(() => _loadingProvider = null);
+          }
           if (state is AuthAuthenticated) {
             context.go('/home');
           } else if (state is AuthError) {
@@ -145,28 +171,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     20.verticalSpace,
                     _buildContinueWith(ui),
                     16.verticalSpace,
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _SocialButton(
-                            imagePath: 'assets/icons/ic_google.png',
-                            text: 'Google',
-                            isLoading: state is AuthLoading,
-                            enabled: state is! AuthLoading,
-                            onTap: _onGoogleLogin,
-                          ),
-                        ),
-                        14.horizontalSpace,
-                        Expanded(
-                          child: _SocialButton(
-                            icon: Icons.person_outline,
-                            text: 'Guest',
-                            enabled: state is! AuthLoading,
-                            onTap: _onContinueAsGuest,
-                          ),
-                        ),
-                      ],
-                    ),
+                    _buildSocialButtons(state),
                     30.verticalSpace,
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -419,6 +424,63 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  /// Social / guest buttons.
+  ///
+  /// - **iOS:** Apple + Google side by side, with Guest full-width underneath
+  ///   (Apple's guidelines want Sign in with Apple presented prominently).
+  /// - **Android:** the original Google + Guest row (no Apple button).
+  Widget _buildSocialButtons(AuthState state) {
+    final bool isBusy = state is AuthLoading;
+
+    final googleButton = _SocialButton(
+      imagePath: 'assets/icons/ic_google.png',
+      text: 'Google',
+      isLoading: _loadingProvider == _SocialProvider.google,
+      enabled: !isBusy,
+      onTap: _onGoogleLogin,
+    );
+
+    final guestButton = _SocialButton(
+      icon: Icons.person_outline,
+      text: 'Guest',
+      enabled: !isBusy,
+      onTap: _onContinueAsGuest,
+    );
+
+    if (!_showAppleSignIn) {
+      return Row(
+        children: [
+          Expanded(child: googleButton),
+          14.horizontalSpace,
+          Expanded(child: guestButton),
+        ],
+      );
+    }
+
+    final appleButton = _SocialButton(
+      icon: Icons.apple,
+      text: 'Apple',
+      isLoading: _loadingProvider == _SocialProvider.apple,
+      enabled: !isBusy,
+      onTap: _onAppleLogin,
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          children: [
+            Expanded(child: appleButton),
+            14.horizontalSpace,
+            Expanded(child: googleButton),
+          ],
+        ),
+        14.verticalSpace,
+        guestButton,
+      ],
+    );
+  }
+
   Widget _buildContinueWith(AppUiColors ui) {
     return Row(
       children: [
@@ -447,6 +509,10 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
+
+/// Identifies which social provider a sign-in is in flight for, so only the
+/// tapped button shows a spinner.
+enum _SocialProvider { google, apple }
 
 class _SocialButton extends StatelessWidget {
   final IconData? icon;

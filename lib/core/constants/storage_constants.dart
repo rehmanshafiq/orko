@@ -28,4 +28,12 @@ class StorageConstants {
   /// Persisted so the post-session summary can still be shown when the session
   /// ends while the app is killed; cleared once the summary is dismissed.
   static const String activeChargeSessionId = 'active_charge_session_id';
+
+  /// Prefix for the name/email captured on the *first* Sign in with Apple.
+  /// Apple only returns the user's name and email on the very first
+  /// authorization for an app; every subsequent sign-in returns them as null.
+  /// We cache them keyed by Apple's stable `userIdentifier` so later logins can
+  /// still send `{name, email}` to the backend. Actual key:
+  /// `apple_account_<userIdentifier>`.
+  static const String appleAccountPrefix = 'apple_account_';
 }
