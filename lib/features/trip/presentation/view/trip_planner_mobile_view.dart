@@ -24,6 +24,7 @@ import 'package:orko_hubco/features/trip/presentation/widgets/trip_location_fiel
 import 'package:orko_hubco/features/trip/presentation/widgets/phev_notice_dialog.dart';
 import 'package:orko_hubco/features/trip/presentation/widgets/trip_map_card_widget.dart';
 import 'package:orko_hubco/features/trip/presentation/widgets/trip_section_title_widget.dart';
+import 'package:orko_hubco/features/trip/presentation/widgets/trip_stops_tab_selector.dart';
 import 'package:orko_hubco/features/trip/presentation/widgets/trip_summary_card_widget.dart';
 import 'package:orko_hubco/features/trip/presentation/widgets/trip_vehicle_dropdown_widget.dart';
 import 'package:orko_hubco/features/trip/presentation/view/saved_trips_view.dart';
@@ -47,8 +48,13 @@ class _TripPlannerMobileViewState extends State<TripPlannerMobileView> {
 
   final ScrollController _scrollController = ScrollController();
 
-  /// Anchors the Suggested Stops section so a successful plan can scroll to it.
-  final GlobalKey _suggestedStopsKey = GlobalKey();
+  /// Anchors the disclaimer (just below the route map) so a successful plan can
+  /// scroll it into view.
+  final GlobalKey _disclaimerKey = GlobalKey();
+
+  /// Which stops tab is showing. "All Stops" is backend-pending, so it renders
+  /// an empty state for now.
+  TripStopsTab _selectedStopsTab = TripStopsTab.suggested;
 
   @override
   void dispose() {
@@ -205,16 +211,16 @@ class _TripPlannerMobileViewState extends State<TripPlannerMobileView> {
     }
   }
 
-  /// After a successful plan, scrolls down to the Suggested Stops section
-  /// (or to the bottom of the results when the plan has no charging stops).
-  void _scrollToSuggestedStops() {
+  /// After a successful plan, scrolls the disclaimer (just below the route map)
+  /// into view so the results below it come into focus.
+  void _scrollToDisclaimer() {
     // Wait for the frame that lays out the freshly-built results first.
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted || !_scrollController.hasClients) return;
 
-      var stopsContext = _suggestedStopsKey.currentContext;
-      if (stopsContext == null) {
-        // The ListView builds children lazily, so the section may not exist
+      var target = _disclaimerKey.currentContext;
+      if (target == null) {
+        // The ListView builds children lazily, so the disclaimer may not exist
         // yet — scroll to the end to force it into the tree, then align it.
         await _scrollController.animateTo(
           _scrollController.position.maxScrollExtent,
@@ -222,11 +228,11 @@ class _TripPlannerMobileViewState extends State<TripPlannerMobileView> {
           curve: Curves.easeOut,
         );
         if (!mounted) return;
-        stopsContext = _suggestedStopsKey.currentContext;
+        target = _disclaimerKey.currentContext;
       }
-      if (stopsContext != null && stopsContext.mounted) {
+      if (target != null && target.mounted) {
         await Scrollable.ensureVisible(
-          stopsContext,
+          target,
           duration: const Duration(milliseconds: 350),
           curve: Curves.easeOut,
         );
@@ -288,7 +294,13 @@ class _TripPlannerMobileViewState extends State<TripPlannerMobileView> {
             !c.planLoading &&
             c.tripPlanned &&
             c.planError == null,
-        listener: (context, state) => _scrollToSuggestedStops(),
+        listener: (context, state) {
+          // A fresh plan always lands on the Suggested Stops tab.
+          if (_selectedStopsTab != TripStopsTab.suggested) {
+            setState(() => _selectedStopsTab = TripStopsTab.suggested);
+          }
+          _scrollToDisclaimer();
+        },
         child: BlocConsumer<TripPlannerBloc, TripPlannerState>(
           listenWhen: (p, c) =>
               p.saveSuccess != c.saveSuccess || p.saveError != c.saveError,
@@ -589,7 +601,7 @@ class _TripPlannerMobileViewState extends State<TripPlannerMobileView> {
                     //   cornerRadius: 24.r,
                     // ),
                     if (state.tripPlanned) ...[
-                      16.verticalSpace,
+                      12.verticalSpace,
                       if (state.feasible == false) ...[
                         _TripBanner(
                           color: AppColors.ratingStarColor,
@@ -614,50 +626,76 @@ class _TripPlannerMobileViewState extends State<TripPlannerMobileView> {
                           station: state.currentPlan!.stops[index],
                         ),
                       ),
+                      // Estimates are indicative, not guaranteed.
+                      18.verticalSpace,
+                      _TripDisclaimer(key: _disclaimerKey),
                       // Suggested Stops + Trip Summary only make sense when the
                       // plan actually has charging stops along the route.
                       if (hasStops) ...[
                         16.verticalSpace,
-                        // Rebuilds when a booking succeeds anywhere in the session
-                        // so already-booked stops show "Booked" on return here.
-                        ValueListenableBuilder<Set<int>>(
-                          key: _suggestedStopsKey,
-                          valueListenable: BookedStationsSession.ids,
-                          builder: (context, bookedIds, _) =>
-                              TripChargingStopsSectionWidget(
-                            plan: state.currentPlan,
-                            currentBatteryPercent: state.currentBatteryPercent,
-                            targetArrivalBatteryPercent:
-                                state.targetArrivalBatteryPercent,
-                            expandedChargingStopIndex:
-                                state.expandedChargingStopIndex,
-                            bookedStationIds: bookedIds,
-                            onToggleChargingStop: (index) => context
-                                .read<TripPlannerBloc>()
-                                .add(TripPlannerChargingStopExpanded(index)),
-                            onViewDetails: (index) =>
-                                bloc.openChargingStationDetails(
-                              context,
-                              station: state.currentPlan!.stops[index],
-                            ),
-                            onPreBook: (index) => bloc.openPreBook(
-                              context,
-                              station: state.currentPlan!.stops[index],
-                              stopIndex: index,
-                            ),
-                            onNavigate: (index) =>
-                                _onNavigateToStop(context, state, index),
-                            formatPkr: bloc.formatPkr,
-                          ),
+                        TripStopsTabSelector(
+                          ui: ui,
+                          selectedTab: _selectedStopsTab,
+                          onTabSelected: (tab) =>
+                              setState(() => _selectedStopsTab = tab),
                         ),
                         16.verticalSpace,
-                        const TripSectionTitleWidget(text: 'Trip Summary'),
-                        8.verticalSpace,
-                        TripSummaryCardWidget(
-                          plan: state.currentPlan,
-                          formatDuration: bloc.formatDuration,
-                          formatPkr: bloc.formatPkr,
-                        ),
+                        if (_selectedStopsTab == TripStopsTab.suggested) ...[
+                          // Rebuilds when a booking succeeds anywhere in the
+                          // session so already-booked stops show "Booked" on
+                          // return here.
+                          ValueListenableBuilder<Set<int>>(
+                            valueListenable: BookedStationsSession.ids,
+                            builder: (context, bookedIds, _) =>
+                                TripChargingStopsSectionWidget(
+                              // The tab label already heads the section.
+                              showTitle: false,
+                              plan: state.currentPlan,
+                              currentBatteryPercent:
+                                  state.currentBatteryPercent,
+                              targetArrivalBatteryPercent:
+                                  state.targetArrivalBatteryPercent,
+                              expandedChargingStopIndex:
+                                  state.expandedChargingStopIndex,
+                              bookedStationIds: bookedIds,
+                              onToggleChargingStop: (index) => context
+                                  .read<TripPlannerBloc>()
+                                  .add(TripPlannerChargingStopExpanded(index)),
+                              onViewDetails: (index) =>
+                                  bloc.openChargingStationDetails(
+                                context,
+                                station: state.currentPlan!.stops[index],
+                              ),
+                              onPreBook: (index) => bloc.openPreBook(
+                                context,
+                                station: state.currentPlan!.stops[index],
+                                stopIndex: index,
+                              ),
+                              onNavigate: (index) =>
+                                  _onNavigateToStop(context, state, index),
+                              formatPkr: bloc.formatPkr,
+                            ),
+                          ),
+                          16.verticalSpace,
+                          const TripSectionTitleWidget(text: 'Trip Summary'),
+                          8.verticalSpace,
+                          TripSummaryCardWidget(
+                            plan: state.currentPlan,
+                            formatDuration: bloc.formatDuration,
+                            formatPkr: bloc.formatPkr,
+                          ),
+                        ] else ...[
+                          // "All Stops" is a backend work-in-progress — show a
+                          // placeholder empty state until the endpoint lands.
+                          _TripStopsEmptyState(
+                            ui: ui,
+                            icon: Icons.ev_station_outlined,
+                            title: 'No All Stops',
+                            subtitle:
+                                "There are no all stops to show yet. We're "
+                                'still working on this — check back soon.',
+                          ),
+                        ],
                       ],
                       16.verticalSpace,
                       // Outlined style matches Start Journey below (no icon).
@@ -816,6 +854,98 @@ class _TripBanner extends StatelessWidget {
               fontSize: FontSizes.font12Sp,
               fontWeight: FontWeights.weight500,
             ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Indicative-estimate disclaimer shown under the Plan Trip button once a trip
+/// is planned: the numbers are modelled, not guaranteed.
+class _TripDisclaimer extends StatelessWidget {
+  const _TripDisclaimer({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final ui = AppUiColors.of(context);
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(Icons.info_outline_rounded, size: 14.sp, color: ui.textMuted),
+        6.horizontalSpace,
+        Expanded(
+          child: AppText(
+            'Performance related matrices are based on controlled conditions. '
+            'Actual performance will vary depending on driving behaviour, '
+            'environment and other influencing factors.',
+            color: ui.textMuted,
+            fontSize: FontSizes.font10Sp,
+            fontWeight: FontWeights.weight400,
+            height: 1.4,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Empty-state card for a stops tab with nothing to show. Mirrors the My
+/// Bookings empty state so both screens read the same.
+class _TripStopsEmptyState extends StatelessWidget {
+  const _TripStopsEmptyState({
+    required this.ui,
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+  });
+
+  final AppUiColors ui;
+  final IconData icon;
+  final String title;
+  final String subtitle;
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = ui.brandPrimary;
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(vertical: 48.h, horizontal: 24.w),
+      decoration: BoxDecoration(
+        color: ui.cardBackground,
+        borderRadius: BorderRadius.circular(16.r),
+        border: Border.all(color: ui.borderSubtle),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            height: 72.r,
+            width: 72.r,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: ui.isLight ? ui.iconContainerOutline : accent,
+                width: 1.5,
+              ),
+            ),
+            child: Icon(icon, color: accent, size: 32.sp),
+          ),
+          20.verticalSpace,
+          AppText(
+            title,
+            textAlign: TextAlign.center,
+            color: ui.textPrimary,
+            fontSize: FontSizes.font18Sp,
+            fontWeight: FontWeights.weight700,
+          ),
+          8.verticalSpace,
+          AppText(
+            subtitle,
+            textAlign: TextAlign.center,
+            color: ui.textSecondary,
+            fontSize: FontSizes.font13Sp,
+            fontWeight: FontWeights.weight400,
           ),
         ],
       ),

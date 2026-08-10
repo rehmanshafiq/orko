@@ -20,6 +20,7 @@ class TripChargingStopsSectionWidget extends StatelessWidget {
     required this.onNavigate,
     required this.formatPkr,
     this.bookedStationIds = const <int>{},
+    this.showTitle = true,
     super.key,
   });
 
@@ -38,6 +39,10 @@ class TripChargingStopsSectionWidget extends StatelessWidget {
   /// Station ids booked this session — their stop cards show "Booked".
   final Set<int> bookedStationIds;
 
+  /// Whether to render the "Suggested Stops" heading. Hidden when a tab label
+  /// already serves as the section header.
+  final bool showTitle;
+
   @override
   Widget build(BuildContext context) {
     final ui = AppUiColors.of(context);
@@ -45,8 +50,10 @@ class TripChargingStopsSectionWidget extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const TripSectionTitleWidget(text: 'Suggested Stops'),
-        14.verticalSpace,
+        if (showTitle) ...[
+          const TripSectionTitleWidget(text: 'Suggested Stops'),
+          14.verticalSpace,
+        ],
         if (plan == null)
           AppText(
             'Plan a trip to see charging stops along your route.',
