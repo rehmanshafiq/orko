@@ -116,16 +116,16 @@ class _BookingSuccessMobileViewState extends State<BookingSuccessMobileView> {
                         slotLabel: widget.slotLabel,
                         amountPaid: widget.amountPaid,
                       ),
-                      20.verticalSpace,
-                      InfoBanner(ui: ui),
-                      24.verticalSpace,
+                      // 20.verticalSpace,
+                      // InfoBanner(ui: ui),
+                      // 24.verticalSpace,
                     ],
                   ),
                 ),
               ),
               Padding(
                 padding: AppUtils.horizontal16Padding.add(
-                  EdgeInsets.only(bottom: 16.h, top: 8.h),
+                  EdgeInsets.only(bottom: 36.h, top: 8.h),
                 ),
                 child: Container(
                   width: double.infinity,
