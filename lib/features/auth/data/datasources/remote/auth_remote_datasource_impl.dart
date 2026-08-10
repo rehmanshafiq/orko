@@ -863,7 +863,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         return 'Unable to reach the server. Please check your internet '
             'connection and try again.';
       case DioExceptionType.badCertificate:
-        return "Couldn't establish a secure connection. Please try again "
+        return "Please check your internet abd try again "
             'later.';
       case DioExceptionType.unknown:
         // Usually a SocketException — the device is offline or DNS failed.
