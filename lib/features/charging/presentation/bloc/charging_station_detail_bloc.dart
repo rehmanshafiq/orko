@@ -76,6 +76,8 @@ class ChargingStationDetailBloc
       name: detail.name,
       address: detail.address,
       operatingHours: _formatOperatingHours(detail),
+      operatingHoursInfo: detail.operatingHours,
+      clearOperatingHoursInfo: detail.operatingHours == null,
       openingTime: detail.openingTime,
       closingTime: detail.closingTime,
       pricing: _formatPricing(detail),

@@ -18,6 +18,7 @@ import 'package:orko_hubco/features/charging/presentation/widgets/charging_stati
 import 'package:orko_hubco/features/charging/presentation/widgets/charging_station_bottom_actions_widget.dart';
 import 'package:orko_hubco/features/charging/presentation/widgets/charging_station_glass_button_widget.dart';
 import 'package:orko_hubco/features/charging/presentation/widgets/charging_station_meta_row_widget.dart';
+import 'package:orko_hubco/features/charging/presentation/widgets/charging_station_operating_hours_widget.dart';
 import 'package:orko_hubco/features/charging/presentation/widgets/charging_station_ports_list_widget.dart';
 import 'package:orko_hubco/features/charging/presentation/widgets/charging_station_section_title_widget.dart';
 import 'package:orko_hubco/features/charging/presentation/widgets/station_reviews_section_widget.dart';
@@ -243,16 +244,12 @@ class ChargingStationDetailMobileView extends StatelessWidget {
                                 const ChargingStationSectionTitleWidget(
                                   title: 'Operating Hours',
                                 ),
-                                4.verticalSpace,
-                                AppText(
-                                  state.operatingHours.isNotEmpty
-                                      ? state.operatingHours
-                                      : 'Not available',
-                                  color: ui.textSecondary,
-                                  fontSize: FontSizes.font12Sp,
-                                  fontWeight: FontWeights.weight400,
-                                ),
                                 8.verticalSpace,
+                                ChargingStationOperatingHoursWidget(
+                                  info: state.operatingHoursInfo,
+                                  fallbackText: state.operatingHours,
+                                ),
+                                12.verticalSpace,
                                 const ChargingStationSectionTitleWidget(
                                   title: 'Pricing',
                                 ),

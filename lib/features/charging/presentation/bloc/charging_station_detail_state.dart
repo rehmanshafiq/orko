@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:orko_hubco/features/charging/domain/entities/charging_station_detail_entity.dart';
 import 'package:orko_hubco/features/charging/presentation/models/amenity_model.dart';
 import 'package:orko_hubco/features/charging/presentation/models/charger_port_model.dart';
 import 'package:orko_hubco/features/charging/presentation/models/review_model.dart';
@@ -21,6 +22,7 @@ class ChargingStationDetailState extends Equatable {
     this.name = '',
     this.address = '',
     this.operatingHours = '',
+    this.operatingHoursInfo,
     this.openingTime = '',
     this.closingTime = '',
     this.pricing = '',
@@ -61,7 +63,13 @@ class ChargingStationDetailState extends Equatable {
 
   final String name;
   final String address;
+
+  /// Legacy single-line hours (today's range) — the fallback shown when
+  /// [operatingHoursInfo] is null.
   final String operatingHours;
+
+  /// Structured weekly hours (`operating_hours`); null when unavailable.
+  final StationOperatingHoursEntity? operatingHoursInfo;
 
   /// Raw `HH:mm:ss` opening time from the detail API (for booking slot checks).
   final String openingTime;
@@ -111,6 +119,8 @@ class ChargingStationDetailState extends Equatable {
     String? name,
     String? address,
     String? operatingHours,
+    StationOperatingHoursEntity? operatingHoursInfo,
+    bool clearOperatingHoursInfo = false,
     String? openingTime,
     String? closingTime,
     String? pricing,
@@ -139,6 +149,9 @@ class ChargingStationDetailState extends Equatable {
       name: name ?? this.name,
       address: address ?? this.address,
       operatingHours: operatingHours ?? this.operatingHours,
+      operatingHoursInfo: clearOperatingHoursInfo
+          ? null
+          : (operatingHoursInfo ?? this.operatingHoursInfo),
       openingTime: openingTime ?? this.openingTime,
       closingTime: closingTime ?? this.closingTime,
       pricing: pricing ?? this.pricing,
@@ -170,6 +183,7 @@ class ChargingStationDetailState extends Equatable {
         name,
         address,
         operatingHours,
+        operatingHoursInfo,
         openingTime,
         closingTime,
         pricing,

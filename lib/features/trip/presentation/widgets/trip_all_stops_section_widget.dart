@@ -247,8 +247,11 @@ class _AllStopCard extends StatelessWidget {
                   ],
                 ),
               ),
-              8.horizontalSpace,
-              _DistanceBadge(ui: ui, km: stop.distanceFromStartKm),
+              // Hide the distance chip entirely when the API gives no value.
+              if (stop.distanceFromStartKm > 0) ...[
+                8.horizontalSpace,
+                _DistanceBadge(ui: ui, km: stop.distanceFromStartKm),
+              ],
             ],
           ),
           10.verticalSpace,
@@ -259,7 +262,7 @@ class _AllStopCard extends StatelessWidget {
             connectorPowerKw: stop.connectorPowerKw,
             matchesVehicle: stop.connectorTypeMatchesVehicle,
           ),
-          if (stop.distanceFromPreviousStopKm != null) ...[
+          if ((stop.distanceFromPreviousStopKm ?? 0) > 0) ...[
             10.verticalSpace,
             Row(
               children: [
@@ -390,7 +393,7 @@ class _DistanceBadge extends StatelessWidget {
         border: Border.all(color: ui.borderSubtle),
       ),
       child: AppText(
-        km > 0 ? '${km.toStringAsFixed(0)} km' : '—',
+        '${km.toStringAsFixed(0)} km',
         color: ui.textSecondary,
         fontSize: FontSizes.font10Sp,
         fontWeight: FontWeights.weight600,

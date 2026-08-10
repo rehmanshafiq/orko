@@ -23,6 +23,7 @@ class ChargingStationDetailModel extends ChargingStationDetailEntity {
     super.addressGuide,
     super.isClosed,
     super.bannerImage,
+    super.operatingHours,
   });
 
   factory ChargingStationDetailModel.fromJson(Map<String, dynamic> json) {
@@ -54,6 +55,47 @@ class ChargingStationDetailModel extends ChargingStationDetailEntity {
       reviews: _asList(reviewDetails['reviews'])
           .map(_reviewFromJson)
           .toList(growable: false),
+      operatingHours: _operatingHoursFromJson(json['operating_hours']),
+    );
+  }
+
+  /// Parses the `operating_hours` object; null when the key is absent/null so
+  /// callers fall back to the top-level today hours.
+  static StationOperatingHoursEntity? _operatingHoursFromJson(dynamic value) {
+    if (value is! Map) return null;
+    final json = Map<String, dynamic>.from(value);
+    final today = json['today'];
+    return StationOperatingHoursEntity(
+      timezone: (json['timezone'] ?? '').toString(),
+      today: today is Map ? _operatingDayFromJson(_asMap(today)) : null,
+      grouped: _asList(json['grouped'])
+          .map(_operatingGroupFromJson)
+          .toList(growable: false),
+      days: _asList(json['days'])
+          .map(_operatingDayFromJson)
+          .toList(growable: false),
+    );
+  }
+
+  static StationOperatingDay _operatingDayFromJson(Map<String, dynamic> json) {
+    return StationOperatingDay(
+      dayName: (json['day_name'] ?? '').toString(),
+      dayShortName: (json['day_short_name'] ?? '').toString(),
+      isClosed: json['is_closed'] == true,
+      openingTime: (json['opening_time'] ?? '').toString(),
+      closingTime: (json['closing_time'] ?? '').toString(),
+      isToday: json['is_today'] == true,
+    );
+  }
+
+  static StationOperatingGroup _operatingGroupFromJson(
+    Map<String, dynamic> json,
+  ) {
+    return StationOperatingGroup(
+      daysLabel: (json['days_label'] ?? '').toString(),
+      isClosed: json['is_closed'] == true,
+      openingTime: (json['opening_time'] ?? '').toString(),
+      closingTime: (json['closing_time'] ?? '').toString(),
     );
   }
 

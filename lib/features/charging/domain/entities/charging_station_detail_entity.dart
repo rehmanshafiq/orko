@@ -21,6 +21,7 @@ class ChargingStationDetailEntity extends Equatable {
     this.addressGuide,
     this.isClosed = false,
     this.bannerImage,
+    this.operatingHours,
   });
 
   final String locationId;
@@ -50,6 +51,11 @@ class ChargingStationDetailEntity extends Equatable {
   final double averageRating;
   final int totalReviews;
   final List<StationReviewEntity> reviews;
+
+  /// Structured weekly opening hours (`operating_hours` key). Null when the
+  /// backend has no hours configured; the top-level [openingTime]/[closingTime]
+  /// (today's hours) remain the backward-compatible fallback.
+  final StationOperatingHoursEntity? operatingHours;
 
   /// Flattened list of every connector across all chargers.
   List<ConnectorEntity> get connectors =>
@@ -85,7 +91,75 @@ class ChargingStationDetailEntity extends Equatable {
         averageRating,
         totalReviews,
         reviews,
+        operatingHours,
       ];
+}
+
+/// The station's weekly opening hours (`operating_hours`). Times are raw
+/// `HH:mm:ss` 24-hour strings in [timezone]; format to am/pm in the UI.
+class StationOperatingHoursEntity extends Equatable {
+  const StationOperatingHoursEntity({
+    required this.timezone,
+    required this.today,
+    required this.grouped,
+    required this.days,
+  });
+
+  final String timezone;
+
+  /// Today's entry — drives the Open/Closed badge. Null if the API omits it.
+  final StationOperatingDay? today;
+
+  /// Collapsed ranges (e.g. `Mon - Thu`) — the compact timings list.
+  final List<StationOperatingGroup> grouped;
+
+  /// All seven days, Mon→Sun — the full-week view.
+  final List<StationOperatingDay> days;
+
+  @override
+  List<Object?> get props => [timezone, today, grouped, days];
+}
+
+/// A single day of opening hours (used by `today` and `days`).
+class StationOperatingDay extends Equatable {
+  const StationOperatingDay({
+    required this.dayName,
+    required this.dayShortName,
+    required this.isClosed,
+    required this.openingTime,
+    required this.closingTime,
+    required this.isToday,
+  });
+
+  final String dayName;
+  final String dayShortName;
+  final bool isClosed;
+  final String openingTime;
+  final String closingTime;
+  final bool isToday;
+
+  @override
+  List<Object?> get props =>
+      [dayName, dayShortName, isClosed, openingTime, closingTime, isToday];
+}
+
+/// A collapsed range of consecutive days sharing the same hours
+/// (an entry of `operating_hours.grouped`).
+class StationOperatingGroup extends Equatable {
+  const StationOperatingGroup({
+    required this.daysLabel,
+    required this.isClosed,
+    required this.openingTime,
+    required this.closingTime,
+  });
+
+  final String daysLabel;
+  final bool isClosed;
+  final String openingTime;
+  final String closingTime;
+
+  @override
+  List<Object?> get props => [daysLabel, isClosed, openingTime, closingTime];
 }
 
 class AmenityEntity extends Equatable {
