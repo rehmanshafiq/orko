@@ -11,10 +11,10 @@ import 'package:orko_hubco/features/trip/presentation/widgets/trip_charging_amen
 import 'package:orko_hubco/features/trip/presentation/widgets/trip_charging_stop_metric_widget.dart';
 
 /// "All Stops" tab body: every charger along the planned route (the API's
-/// `all_stations` browse mode). No charging is simulated in this mode, so the
-/// cards deliberately omit SoC / cost / charging-time and show only station
-/// identity, distance and connector availability.
-class TripAllStopsSectionWidget extends StatelessWidget {
+/// `all_stations` browse mode). Cards mirror the Recommended stop cards
+/// (same container, expand/collapse accordion) but — since no charging is
+/// simulated in this mode — omit SoC / cost / charging-time.
+class TripAllStopsSectionWidget extends StatefulWidget {
   const TripAllStopsSectionWidget({
     required this.loading,
     required this.error,
@@ -47,10 +47,27 @@ class TripAllStopsSectionWidget extends StatelessWidget {
   final Set<int> bookedStationIds;
 
   @override
+  State<TripAllStopsSectionWidget> createState() =>
+      _TripAllStopsSectionWidgetState();
+}
+
+class _TripAllStopsSectionWidgetState extends State<TripAllStopsSectionWidget> {
+  /// Index of the currently-expanded card (accordion — one at a time), or null
+  /// when all are collapsed. Mirrors the Recommended list's expand behaviour.
+  int? _expandedIndex;
+
+  @override
+  void didUpdateWidget(covariant TripAllStopsSectionWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // A fresh browse result invalidates the expanded index.
+    if (oldWidget.plan != widget.plan) _expandedIndex = null;
+  }
+
+  @override
   Widget build(BuildContext context) {
     final ui = AppUiColors.of(context);
 
-    if (loading) {
+    if (widget.loading) {
       return Padding(
         padding: EdgeInsets.symmetric(vertical: 40.h),
         child: Center(
@@ -66,17 +83,17 @@ class TripAllStopsSectionWidget extends StatelessWidget {
       );
     }
 
-    if (error != null) {
+    if (widget.error != null) {
       return _AllStopsMessage(
         ui: ui,
         icon: Icons.error_outline_rounded,
         title: 'Couldn\'t load stations',
-        subtitle: error!,
+        subtitle: widget.error!,
         action: SizedBox(
           width: 160.w,
           child: PrimaryButtonWidget(
             text: 'Retry',
-            onPress: onRetry,
+            onPress: widget.onRetry,
             buttonHeight: 40.h,
             cornerRadius: 22.r,
             fontSize: FontSizes.font14Sp,
@@ -86,8 +103,8 @@ class TripAllStopsSectionWidget extends StatelessWidget {
       );
     }
 
-    final stops = plan?.stops ?? const <TripStopEntity>[];
-    if (plan == null || stops.isEmpty) {
+    final stops = widget.plan?.stops ?? const <TripStopEntity>[];
+    if (widget.plan == null || stops.isEmpty) {
       return _AllStopsMessage(
         ui: ui,
         icon: Icons.ev_station_outlined,
@@ -100,7 +117,7 @@ class TripAllStopsSectionWidget extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         AppText(
-          _summaryLine(stops.length, plan!.totalDistanceKm),
+          _summaryLine(stops.length, widget.plan!.totalDistanceKm),
           color: ui.textMuted,
           fontSize: FontSizes.font10Sp,
           fontWeight: FontWeights.weight400,
@@ -111,10 +128,14 @@ class TripAllStopsSectionWidget extends StatelessWidget {
           _AllStopCard(
             ui: ui,
             stop: stops[i],
-            booked: bookedStationIds.contains(stops[i].locationId),
-            onViewDetails: () => onViewDetails(i),
-            onPreBook: () => onPreBook(i),
-            onNavigate: () => onNavigate(i),
+            booked: widget.bookedStationIds.contains(stops[i].locationId),
+            expanded: _expandedIndex == i,
+            onToggleExpanded: () => setState(
+              () => _expandedIndex = _expandedIndex == i ? null : i,
+            ),
+            onViewDetails: () => widget.onViewDetails(i),
+            onPreBook: () => widget.onPreBook(i),
+            onNavigate: () => widget.onNavigate(i),
           ),
         ],
       ],
@@ -185,13 +206,17 @@ class _AllStopsMessage extends StatelessWidget {
   }
 }
 
-/// A single browse-mode station card: identity, distance-from-start, connector
-/// availability, amenities, and View Details / Navigate actions.
+/// A single browse-mode station card, styled and expanded like the Recommended
+/// stop card: header + connector + previous-stop distance always visible;
+/// amenities and the View Details / Pre-book / Navigate actions revealed on
+/// expand.
 class _AllStopCard extends StatelessWidget {
   const _AllStopCard({
     required this.ui,
     required this.stop,
     required this.booked,
+    required this.expanded,
+    required this.onToggleExpanded,
     required this.onViewDetails,
     required this.onPreBook,
     required this.onNavigate,
@@ -202,13 +227,16 @@ class _AllStopCard extends StatelessWidget {
 
   /// Booked this session — the Pre-book button reads "Booked" and is disabled.
   final bool booked;
+  final bool expanded;
+  final VoidCallback onToggleExpanded;
   final VoidCallback onViewDetails;
   final VoidCallback onPreBook;
   final VoidCallback onNavigate;
 
   /// A station with no usable connector still appears in this mode; the API
   /// signals it with a null connector id.
-  bool get _hasUsableConnector => stop.connectorId != null && stop.connectorType.trim().isNotEmpty;
+  bool get _hasUsableConnector =>
+      stop.connectorId != null && stop.connectorType.trim().isNotEmpty;
 
   @override
   Widget build(BuildContext context) {
@@ -217,7 +245,10 @@ class _AllStopCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: ui.searchBackground,
         borderRadius: BorderRadius.circular(14.r),
-        border: Border.all(color: ui.borderSubtle),
+        border: Border.all(
+          color: ui.brandPrimary,
+          width: 2,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -230,7 +261,9 @@ class _AllStopCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     AppText(
-                      stop.locationName.isEmpty ? 'Charging station' : stop.locationName,
+                      stop.locationName.isEmpty
+                          ? 'Charging station'
+                          : stop.locationName,
                       color: ui.textPrimary,
                       fontSize: FontSizes.font14Sp,
                       fontWeight: FontWeights.weight700,
@@ -247,14 +280,24 @@ class _AllStopCard extends StatelessWidget {
                   ],
                 ),
               ),
-              // Hide the distance chip entirely when the API gives no value.
-              if (stop.distanceFromStartKm > 0) ...[
-                8.horizontalSpace,
-                _DistanceBadge(ui: ui, km: stop.distanceFromStartKm),
-              ],
+              4.horizontalSpace,
+              GestureDetector(
+                onTap: onToggleExpanded,
+                behavior: HitTestBehavior.opaque,
+                child: Padding(
+                  padding: AppUtils.all4Padding,
+                  child: Icon(
+                    expanded
+                        ? Icons.expand_less_rounded
+                        : Icons.expand_more_rounded,
+                    size: 22.sp,
+                    color: ui.textSecondary,
+                  ),
+                ),
+              ),
             ],
           ),
-          10.verticalSpace,
+          12.verticalSpace,
           _ConnectorLine(
             ui: ui,
             hasUsableConnector: _hasUsableConnector,
@@ -269,83 +312,93 @@ class _AllStopCard extends StatelessWidget {
                 Expanded(
                   child: TripChargingStopMetricWidget(
                     label: 'Distance from previous stop',
-                    value: '${stop.distanceFromPreviousStopKm!.toStringAsFixed(2)} km',
+                    value:
+                        '${stop.distanceFromPreviousStopKm!.toStringAsFixed(2)} km',
                     valueColor: ui.textPrimary,
                   ),
                 ),
               ],
             ),
           ],
-          if (stop.amenities.isNotEmpty) ...[
-            10.verticalSpace,
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: [
-                  for (var i = 0; i < stop.amenities.length; i++) ...[
-                    if (i > 0) 8.horizontalSpace,
-                    TripChargingAmenityChipWidget(
-                      icon: _amenityIcon(stop.amenities[i]),
-                      label: stop.amenities[i],
-                    ),
+          if (expanded) ...[
+            if (stop.amenities.isNotEmpty) ...[
+              14.verticalSpace,
+              AppText(
+                'Amenities',
+                color: ui.textPrimary,
+                fontSize: FontSizes.font10Sp,
+                fontWeight: FontWeights.weight600,
+              ),
+              8.verticalSpace,
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    for (var i = 0; i < stop.amenities.length; i++) ...[
+                      if (i > 0) 8.horizontalSpace,
+                      TripChargingAmenityChipWidget(
+                        icon: _amenityIcon(stop.amenities[i]),
+                        label: stop.amenities[i],
+                      ),
+                    ],
                   ],
-                ],
-              ),
-            ),
-          ],
-          12.verticalSpace,
-          Row(
-            children: [
-              Expanded(
-                child: PrimaryButtonWidget(
-                  text: 'View Details',
-                  onPress: onViewDetails,
-                  // Disabled once booked, matching the Recommended card.
-                  isEnabled: !booked,
-                  buttonWidth: double.infinity,
-                  buttonHeight: 38.h,
-                  cornerRadius: 8.r,
-                  buttonColor: ui.cardBackground,
-                  strokeColor: ui.inputBorder,
-                  textColor: ui.textPrimary,
-                  fontSize: FontSizes.font10Sp,
-                  fontWeight: FontWeights.weight600,
-                ),
-              ),
-              8.horizontalSpace,
-              Expanded(
-                child: PrimaryButtonWidget(
-                  text: booked ? 'Booked' : 'Pre-book',
-                  onPress: onPreBook,
-                  // Can't pre-book a station with no usable connector, or one
-                  // already booked this session.
-                  isEnabled: !booked && _hasUsableConnector,
-                  buttonWidth: double.infinity,
-                  buttonHeight: 38.h,
-                  cornerRadius: 8.r,
-                  buttonColor: ui.cardBackground,
-                  strokeColor: ui.inputBorder,
-                  textColor: ui.textPrimary,
-                  fontSize: FontSizes.font10Sp,
-                  fontWeight: FontWeights.weight600,
                 ),
               ),
             ],
-          ),
-          8.verticalSpace,
-          // Stays enabled for booked stops — you still need to get there.
-          PrimaryButtonWidget(
-            text: 'Navigate',
-            onPress: onNavigate,
-            buttonWidth: double.infinity,
-            buttonHeight: 38.h,
-            cornerRadius: 8.r,
-            buttonColor: ui.cardBackground,
-            strokeColor: ui.inputBorder,
-            textColor: ui.textPrimary,
-            fontSize: FontSizes.font10Sp,
-            fontWeight: FontWeights.weight600,
-          ),
+            14.verticalSpace,
+            Row(
+              children: [
+                Expanded(
+                  child: PrimaryButtonWidget(
+                    text: 'View Details',
+                    onPress: onViewDetails,
+                    // Disabled once booked, matching the Recommended card.
+                    isEnabled: !booked,
+                    buttonWidth: double.infinity,
+                    buttonHeight: 38.h,
+                    cornerRadius: 8.r,
+                    buttonColor: ui.cardBackground,
+                    strokeColor: ui.inputBorder,
+                    textColor: ui.textPrimary,
+                    fontSize: FontSizes.font10Sp,
+                    fontWeight: FontWeights.weight600,
+                  ),
+                ),
+                8.horizontalSpace,
+                Expanded(
+                  child: PrimaryButtonWidget(
+                    text: booked ? 'Booked' : 'Pre-book',
+                    onPress: onPreBook,
+                    // Can't pre-book a station with no usable connector, or one
+                    // already booked this session.
+                    isEnabled: !booked && _hasUsableConnector,
+                    buttonWidth: double.infinity,
+                    buttonHeight: 38.h,
+                    cornerRadius: 8.r,
+                    buttonColor: ui.cardBackground,
+                    strokeColor: ui.inputBorder,
+                    textColor: ui.textPrimary,
+                    fontSize: FontSizes.font10Sp,
+                    fontWeight: FontWeights.weight600,
+                  ),
+                ),
+              ],
+            ),
+            8.verticalSpace,
+            // Stays enabled for booked stops — you still need to get there.
+            PrimaryButtonWidget(
+              text: 'Navigate',
+              onPress: onNavigate,
+              buttonWidth: double.infinity,
+              buttonHeight: 38.h,
+              cornerRadius: 8.r,
+              buttonColor: ui.cardBackground,
+              strokeColor: ui.inputBorder,
+              textColor: ui.textPrimary,
+              fontSize: FontSizes.font10Sp,
+              fontWeight: FontWeights.weight600,
+            ),
+          ],
         ],
       ),
     );
@@ -374,31 +427,6 @@ class _AllStopCard extends StatelessWidget {
     if (key.contains('park')) return Icons.local_parking_rounded;
     if (key.contains('charg')) return Icons.ev_station_rounded;
     return Icons.check_circle_outline_rounded;
-  }
-}
-
-class _DistanceBadge extends StatelessWidget {
-  const _DistanceBadge({required this.ui, required this.km});
-
-  final AppUiColors ui;
-  final double km;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
-      decoration: BoxDecoration(
-        color: ui.vehicleStatBoxBg,
-        borderRadius: BorderRadius.circular(8.r),
-        border: Border.all(color: ui.borderSubtle),
-      ),
-      child: AppText(
-        '${km.toStringAsFixed(0)} km',
-        color: ui.textSecondary,
-        fontSize: FontSizes.font10Sp,
-        fontWeight: FontWeights.weight600,
-      ),
-    );
   }
 }
 
