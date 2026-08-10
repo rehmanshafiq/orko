@@ -162,8 +162,9 @@ class TripPlannerBloc extends Bloc<TripPlannerEvent, TripPlannerState> {
   /// Logical (dp) marker side for start/end location pins on the mini-map.
   static const double stationMarkerSize = 12;
 
-  /// Charger stop pins — same logical size as home map markers.
-  static const double _chargerStopMarkerSize = 44;
+  /// Charger stop pins on the route map. Kept smaller than the home-map pins so
+  /// clustered enroute stops stay legible.
+  static const double _chargerStopMarkerSize = 30;
 
   static const List<RouteStrategyModel> strategies = <RouteStrategyModel>[
     RouteStrategyModel(
