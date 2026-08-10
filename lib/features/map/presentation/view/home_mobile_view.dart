@@ -57,6 +57,21 @@ class _HomeMobileViewState extends State<HomeMobileView> {
 
   /// Country-wide zoom used before the overlay-aware fit can be computed.
   static const double _pakistanFallbackZoom = 4.8;
+
+  /// Caps panning to Pakistan's bounding box so the camera centre can never
+  /// leave the country — surrounding countries (India, Iran, Afghanistan) stay
+  /// off to the edges instead of becoming the focus. Client feedback: the first
+  /// screen should show Pakistan only.
+  static final CameraTargetBounds _pakistanCameraBounds = CameraTargetBounds(
+    LatLngBounds(
+      southwest: LatLng(_pakistanSouthLat, _pakistanWestLng),
+      northeast: LatLng(_pakistanNorthLat, _pakistanEastLng),
+    ),
+  );
+
+  /// Country-wide floor used before the exact first-screen framing zoom is
+  /// computed; [_minZoom] tightens to that framing once it's known.
+  static const double _pakistanMinZoom = 4.4;
   static const String _darkMapStyle = '''
 [
   {"elementType":"geometry","stylers":[{"color":"#141825"}]},
@@ -126,6 +141,11 @@ class _HomeMobileViewState extends State<HomeMobileView> {
 
   /// Camera position after the map first frames loaded stations; restored by zoom out.
   CameraPosition? _initialCameraPosition;
+
+  /// Lowest zoom the map allows. Starts at the country-wide floor and tightens
+  /// to the exact first-screen framing once computed, so the user can never
+  /// zoom out past the initial Pakistan view.
+  double _minZoom = _pakistanMinZoom;
 
   /// Whether the zoom-out control is visible (user has zoomed in past the initial level).
   bool _showZoomOutButton = false;
@@ -272,12 +292,17 @@ class _HomeMobileViewState extends State<HomeMobileView> {
       _pakistanNorthLat,
       _pakistanWestLng,
       _pakistanEastLng,
-    ).clamp(3.5, 7.0).toDouble();
+    ).clamp(_pakistanMinZoom, 7.0).toDouble();
     final position = CameraPosition(target: _pakistanCenter, zoom: zoom);
     _initialCameraPosition = position;
     _currentZoom = zoom;
-    if (_showZoomOutButton) {
-      setState(() => _showZoomOutButton = false);
+    // Pin the zoom-out floor to this first-screen framing so the country view
+    // is the furthest out the user can go.
+    if (_showZoomOutButton || _minZoom != zoom) {
+      setState(() {
+        _showZoomOutButton = false;
+        _minZoom = zoom;
+      });
     }
     await controller.animateCamera(CameraUpdate.newCameraPosition(position));
   }
@@ -1143,6 +1168,10 @@ class _HomeMobileViewState extends State<HomeMobileView> {
                       target: _pakistanCenter,
                       zoom: _pakistanFallbackZoom,
                     ),
+                    // Keep the first screen (and every later pan/zoom) locked to
+                    // Pakistan so neighbouring countries never take over.
+                    cameraTargetBounds: _pakistanCameraBounds,
+                    minMaxZoomPreference: MinMaxZoomPreference(_minZoom, null),
                     onMapCreated: _onMapCreated,
                     onCameraMove: (position) =>
                         _onCameraPositionChanged(position.zoom),
