@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
+import 'package:orko_hubco/core/utils/app_storage/app_storage.dart';
 import 'package:orko_hubco/core/utils/app_ui.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
+import 'package:orko_hubco/core/utils/widgets/auth_required_dialog.dart';
 import 'package:orko_hubco/features/profile/presentation/page/admin_support_page.dart';
 import 'package:orko_hubco/features/profile/presentation/page/faq_page.dart';
 import 'package:orko_hubco/features/profile/presentation/widgets/section_card.dart';
@@ -48,21 +51,42 @@ class HelpSupportPage extends StatelessWidget {
                     AccountTile(
                       icon: Icons.help_outline_rounded,
                       label: 'FAQs',
-                      onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute<void>(
-                          builder: (_) => const FaqPage(),
-                        ),
-                      ),
+                      // onTap: () => Navigator.of(context).push(
+                      //   MaterialPageRoute<void>(
+                      //     builder: (_) => const FaqPage(),
+                      //   ),
+                      // ),
+                      onTap: () {
+                        Fluttertoast.showToast(
+                          msg: 'Coming soon',
+                          toastLength: Toast.LENGTH_SHORT,
+                          gravity: ToastGravity.BOTTOM,
+                        );
+                        return;
+                      },
                     ),
                     const DividerLine(),
                     AccountTile(
                       icon: Icons.support_agent_rounded,
                       label: 'Admin Support',
-                      onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute<void>(
-                          builder: (_) => const AdminSupportPage(),
-                        ),
-                      ),
+                      onTap: () {
+                        // Support is tied to the authenticated user — guests
+                        // must sign in first.
+                        if (AppStorage.isGuest) {
+                          AuthRequiredDialog.show(
+                            context,
+                            feature: 'support',
+                            message:
+                                'You\'re browsing as a guest. Please log in or create an account to contact support.',
+                          );
+                          return;
+                        }
+                        Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => const AdminSupportPage(),
+                          ),
+                        );
+                      },
                     ),
                   ],
                 ),
