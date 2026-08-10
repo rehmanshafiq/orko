@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
+import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/di/injection_container.dart';
 import 'package:orko_hubco/core/services/analytics_service.dart';
 import 'package:orko_hubco/core/utils/app_ui.dart';
+import 'package:orko_hubco/core/utils/widgets/app_text.dart';
 import 'package:orko_hubco/features/booking/presentation/widgets/booking_details_card.dart';
 import 'package:orko_hubco/features/bottom_navigation/presentation/screens/bottom_nav_shell.dart';
 import 'package:orko_hubco/features/booking/presentation/widgets/confirmation_header.dart';
@@ -117,6 +119,57 @@ class _BookingSuccessMobileViewState extends State<BookingSuccessMobileView> {
                       20.verticalSpace,
                       InfoBanner(ui: ui),
                       24.verticalSpace,
+                    ],
+                  ),
+                ),
+              ),
+              Padding(
+                padding: AppUtils.horizontal16Padding.add(
+                  EdgeInsets.only(bottom: 16.h, top: 8.h),
+                ),
+                child: Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 14.w,
+                    vertical: 12.h,
+                  ),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12.r),
+                    border: Border.all(
+                      color: ui.textMuted,
+                    ),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        Icons.info_outline_rounded,
+                        color: ui.textMuted,
+                        size: 20.r,
+                      ),
+                      10.horizontalSpace,
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            AppText(
+                              'Disclaimer',
+                              color: ui.textPrimary,
+                              fontSize: FontSizes.font13Sp,
+                              fontWeight: FontWeights.weight700,
+                            ),
+                            6.verticalSpace,
+                            AppText(
+                              'Your booked slot will be released after '
+                              '10 minutes if not utilized. You can modify your '
+                              'booking up to 1 hour before your scheduled slot.',
+                              color: ui.textPrimary.withValues(alpha: 0.88),
+                              fontSize: FontSizes.font12Sp,
+                              fontWeight: FontWeights.weight400,
+                            ),
+                          ],
+                        ),
+                      ),
                     ],
                   ),
                 ),

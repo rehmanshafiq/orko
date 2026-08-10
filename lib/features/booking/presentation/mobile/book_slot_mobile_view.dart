@@ -387,10 +387,16 @@ class _SlotsSection extends StatelessWidget {
         );
 
       case SlotsStatus.success:
-        // Only show available slots — hide booked/unavailable ones entirely.
-        // Out-of-hours available slots stay visible but are greyed out.
-        final availableSlots =
-            state.slots.where((s) => s.isAvailable).toList(growable: false);
+        // Only show available slots that fall within operating hours — hide
+        // booked/unavailable slots and out-of-hours slots entirely.
+        final availableSlots = state.slots
+            .where((s) =>
+                s.isAvailable &&
+                operatingHours.containsSlot(
+                  startTime: s.startTime,
+                  endTime: s.endTime,
+                ))
+            .toList(growable: false);
         if (state.slots.isEmpty) {
           return _SlotsMessage(
             ui: ui,
@@ -411,10 +417,7 @@ class _SlotsSection extends StatelessWidget {
           selectedStartTimes: {
             for (final s in state.selectedSlots) s.startTime,
           },
-          isOutOfHours: (slot) => !operatingHours.containsSlot(
-            startTime: slot.startTime,
-            endTime: slot.endTime,
-          ),
+          isOutOfHours: (_) => false,
           onSlotTap: cubit.selectSlot,
         );
     }

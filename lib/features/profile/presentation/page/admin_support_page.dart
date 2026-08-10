@@ -215,8 +215,8 @@ class _AdminSupportViewState extends State<_AdminSupportView> {
                   children: [
                     16.verticalSpace,
                     AppText(
-                      'Facing a technical issue or need help? Pick a category and '
-                      'describe the problem — our team will get back to you.',
+                      'Need assistance? Fill out the form below and our customer '
+                      'support team will get in touch with you.',
                       color: ui.textSecondary,
                       fontSize: FontSizes.font13Sp,
                       fontWeight: FontWeights.weight400,

@@ -65,12 +65,12 @@ class ChargingStationPortItemWidget extends StatelessWidget {
                             ),
                           ),
                           6.verticalSpace,
-                          AppText(
-                            port.price,
-                            color: ui.textSecondary,
-                            fontSize: FontSizes.font11Sp,
-                            fontWeight: FontWeights.weight400,
-                          ),
+                          // AppText(
+                          //   port.price,
+                          //   color: ui.textSecondary,
+                          //   fontSize: FontSizes.font11Sp,
+                          //   fontWeight: FontWeights.weight400,
+                          // ),
                           8.horizontalSpace,
                           ChargingStationPortStatusChipWidget(
                             available: port.available,

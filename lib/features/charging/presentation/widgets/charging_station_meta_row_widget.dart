@@ -54,7 +54,7 @@ class ChargingStationMetaRowWidget extends StatelessWidget {
                   ),
                   4.horizontalSpace,
                   AppText(
-                    '($reviewCount reviews)',
+                    '($reviewCount ${reviewCount < 2 ? 'review' : 'reviews'})',
                     color: ui.textSecondary,
                     fontSize: FontSizes.font12Sp,
                     fontWeight: FontWeights.weight500,
