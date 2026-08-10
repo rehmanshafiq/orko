@@ -24,6 +24,7 @@ class BookingSuccessMobileView extends StatefulWidget {
     required this.slotLabel,
     required this.amountPaid,
     this.fromTrip = false,
+    this.minutesMobile,
   });
 
   final String bookingRef;
@@ -34,6 +35,11 @@ class BookingSuccessMobileView extends StatefulWidget {
   /// When true this booking came from the Trip planner's Pre-book flow, so
   /// closing returns to the Trip planner; otherwise it returns Home.
   final bool fromTrip;
+
+  /// Grace window (minutes) after which an unused slot is released, read from
+  /// the booking response (`minutes_mobile`). Null when the backend omits it,
+  /// in which case the release sentence is dropped rather than guessing.
+  final int? minutesMobile;
 
   @override
   State<BookingSuccessMobileView> createState() =>
@@ -56,6 +62,20 @@ class _BookingSuccessMobileViewState extends State<BookingSuccessMobileView> {
   /// Destination when the success screen is closed — clears the intermediate
   /// booking pages from the stack.
   String get _closeDestination => widget.fromTrip ? '/trip' : '/home';
+
+  /// The disclaimer copy. The slot-release window comes from `minutes_mobile`
+  /// (backend config); when it's absent we drop that sentence instead of
+  /// showing a hardcoded number.
+  String get _disclaimerText {
+    const modifyClause =
+        'You can modify your booking up to 1 hour before your scheduled slot.';
+    final minutes = widget.minutesMobile;
+    if (minutes != null && minutes > 0) {
+      return 'Your booked slot will be released after $minutes minutes if not '
+          'utilized. $modifyClause';
+    }
+    return modifyClause;
+  }
 
   /// Closes the success screen. The booking just created a notification
   /// server-side, so bump the map tick — the home screen listens to it and
@@ -160,9 +180,7 @@ class _BookingSuccessMobileViewState extends State<BookingSuccessMobileView> {
                             ),
                             6.verticalSpace,
                             AppText(
-                              'Your booked slot will be released after '
-                              '10 minutes if not utilized. You can modify your '
-                              'booking up to 1 hour before your scheduled slot.',
+                              _disclaimerText,
                               color: ui.textPrimary.withValues(alpha: 0.88),
                               fontSize: FontSizes.font12Sp,
                               fontWeight: FontWeights.weight400,

@@ -10,6 +10,7 @@ class BookingModel extends BookingEntity {
     required super.location,
     super.chargeStation,
     super.chargerConnector,
+    super.minutesMobile,
   });
 
   factory BookingModel.fromJson(Map<String, dynamic> json) {
@@ -22,6 +23,7 @@ class BookingModel extends BookingEntity {
       location: _asInt(json['location']),
       chargeStation: _asIntOrNull(json['charge_station']),
       chargerConnector: _asIntOrNull(json['charger_connector']),
+      minutesMobile: _asIntOrNull(json['minutes_mobile']),
     );
   }
 

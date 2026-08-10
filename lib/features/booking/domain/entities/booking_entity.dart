@@ -14,6 +14,7 @@ class BookingEntity extends Equatable {
     required this.location,
     this.chargeStation,
     this.chargerConnector,
+    this.minutesMobile,
   });
 
   final int id;
@@ -34,6 +35,11 @@ class BookingEntity extends Equatable {
   final int? chargeStation;
   final int? chargerConnector;
 
+  /// Grace window (minutes) after which an unused slot is released, from the
+  /// backend config (`minutes_mobile`, only on the create 200 response).
+  /// Display-only; null when the endpoint omits it.
+  final int? minutesMobile;
+
   bool get isApproved => bookingStatus == 'approved';
   bool get isPendingApproval => bookingStatus == 'pending_approval';
 
@@ -47,5 +53,6 @@ class BookingEntity extends Equatable {
         location,
         chargeStation,
         chargerConnector,
+        minutesMobile,
       ];
 }

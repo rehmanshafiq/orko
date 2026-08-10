@@ -72,16 +72,16 @@ class _ChargingStationOperatingHoursWidgetState extends State<ChargingStationOpe
               children: [
                 AppText(
                   _showFullWeek ? 'Hide full week' : 'View full week',
-                  color: ui.brandPrimary,
+                  color: ui.textSecondary,
                   fontSize: FontSizes.font12Sp,
-                  fontWeight: FontWeights.weight600,
+                  fontWeight: FontWeights.weight700,
                 ),
                 2.horizontalSpace,
                 Icon(
                   _showFullWeek
                       ? Icons.keyboard_arrow_up_rounded
                       : Icons.keyboard_arrow_down_rounded,
-                  color: ui.brandPrimary,
+                  color: ui.textSecondary,
                   size: 18.sp,
                 ),
               ],
@@ -170,7 +170,7 @@ class _HoursRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final labelColor = highlight ? ui.brandPrimary : ui.textSecondary;
     final valueColor = closed ? AppColors.redColor : (highlight ? ui.brandPrimary : ui.textPrimary);
-    final weight = highlight ? FontWeights.weight700 : FontWeights.weight500;
+    final weight = FontWeights.weight500; //highlight ? FontWeights.weight700 :
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,

@@ -239,6 +239,8 @@ class _BookSlotMobileViewState extends State<BookSlotMobileView> {
             slotLabel: _slotLabel(state),
             amountPaid: amount,
             fromTrip: widget.fromTrip,
+            // Slot-release window from the backend config; display-only.
+            minutesMobile: state.createdBooking?.minutesMobile,
           ),
         );
         break;

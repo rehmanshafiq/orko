@@ -10,6 +10,7 @@ class BookingSuccessArgs extends Equatable {
     required this.slotLabel,
     required this.amountPaid,
     this.fromTrip = false,
+    this.minutesMobile,
   });
 
   final String bookingRef;
@@ -21,9 +22,13 @@ class BookingSuccessArgs extends Equatable {
   /// Closing the success screen then returns to the Trip planner instead of Home.
   final bool fromTrip;
 
+  /// Slot-release grace window (minutes) from the create response
+  /// (`minutes_mobile`); null when the backend omits it.
+  final int? minutesMobile;
+
   @override
   List<Object?> get props =>
-      [bookingRef, stationName, slotLabel, amountPaid, fromTrip];
+      [bookingRef, stationName, slotLabel, amountPaid, fromTrip, minutesMobile];
 }
 
 class BookingSuccessPage extends StatelessWidget {
@@ -39,6 +44,7 @@ class BookingSuccessPage extends StatelessWidget {
       slotLabel: args.slotLabel,
       amountPaid: args.amountPaid,
       fromTrip: args.fromTrip,
+      minutesMobile: args.minutesMobile,
     );
   }
 }
