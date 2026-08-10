@@ -3,21 +3,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
+import 'package:orko_hubco/features/trip/presentation/models/trip_stops_tab.dart';
 
-/// The two tabs shown once a trip is planned: the enroute charging stops the
-/// planner suggests, and (soon) every station along the route.
-enum TripStopsTab { suggested, all }
-
-extension TripStopsTabX on TripStopsTab {
-  String get label {
-    switch (this) {
-      case TripStopsTab.suggested:
-        return 'Recommended Stops';
-      case TripStopsTab.all:
-        return 'All Stops';
-    }
-  }
-}
+export 'package:orko_hubco/features/trip/presentation/models/trip_stops_tab.dart';
 
 /// Pill-style segmented control for the trip planner stops tabs. Mirrors the
 /// My Bookings tab selector so both screens share one look.
@@ -38,9 +26,8 @@ class TripStopsTabSelector extends StatelessWidget {
     return Container(
       padding: EdgeInsets.all(4.r),
       decoration: BoxDecoration(
-        color: ui.isLight
-            ? AppColors.shimmerGreyColor
-            : AppColors.whiteColor.withValues(alpha: 0.06),
+        color:
+            ui.isLight ? AppColors.shimmerGreyColor : AppColors.whiteColor.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(14.r),
       ),
       child: Row(
@@ -99,8 +86,7 @@ class _TabSegment extends StatelessWidget {
           textAlign: TextAlign.center,
           color: isSelected ? ui.textPrimary : ui.textSecondary,
           fontSize: FontSizes.font14Sp,
-          fontWeight:
-              isSelected ? FontWeights.weight700 : FontWeights.weight500,
+          fontWeight: isSelected ? FontWeights.weight700 : FontWeights.weight500,
         ),
       ),
     );

@@ -25,6 +25,7 @@ class TripPlanResultModel extends TripPlanEntity {
     super.batteryCapacityKwh,
     super.savings,
     super.message,
+    super.planType,
   });
 
   factory TripPlanResultModel.fromJson(
@@ -52,14 +53,14 @@ class TripPlanResultModel extends TripPlanEntity {
       stops: rawStops is List
           ? rawStops
               .whereType<Map>()
-              .map((e) =>
-                  TripStopModel.fromPlanJson(Map<String, dynamic>.from(e)))
+              .map((e) => TripStopModel.fromPlanJson(Map<String, dynamic>.from(e)))
               .toList(growable: false)
           : const [],
       savings: rawSavings is Map
           ? TripSavingsModel.fromJson(Map<String, dynamic>.from(rawSavings))
           : null,
       message: message,
+      planType: TripJson.asStringOrNull(json['plan_type']),
     );
   }
 }

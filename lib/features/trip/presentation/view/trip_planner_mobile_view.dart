@@ -15,6 +15,7 @@ import 'package:orko_hubco/features/trip/domain/entities/saved_trip_entity.dart'
 import 'package:orko_hubco/features/trip/presentation/bloc/trip_planner_bloc.dart';
 import 'package:orko_hubco/features/trip/presentation/bloc/trip_planner_event.dart';
 import 'package:orko_hubco/features/trip/presentation/bloc/trip_planner_state.dart';
+import 'package:orko_hubco/features/trip/presentation/widgets/trip_all_stops_section_widget.dart';
 import 'package:orko_hubco/features/trip/presentation/widgets/trip_charging_stops_section_widget.dart';
 import 'package:orko_hubco/features/trip/presentation/widgets/trip_current_battery_slider_widget.dart';
 import 'package:orko_hubco/features/trip/presentation/widgets/trip_ev_details_card_widget.dart';
@@ -51,10 +52,6 @@ class _TripPlannerMobileViewState extends State<TripPlannerMobileView> {
   /// Anchors the disclaimer (just below the route map) so a successful plan can
   /// scroll it into view.
   final GlobalKey _disclaimerKey = GlobalKey();
-
-  /// Which stops tab is showing. "All Stops" is backend-pending, so it renders
-  /// an empty state for now.
-  TripStopsTab _selectedStopsTab = TripStopsTab.suggested;
 
   @override
   void dispose() {
@@ -99,8 +96,7 @@ class _TripPlannerMobileViewState extends State<TripPlannerMobileView> {
       AuthRequiredDialog.show(
         context,
         feature: 'trip',
-        message:
-            'You\'re browsing as a guest. Please log in or create an account to plan a trip.',
+        message: 'You\'re browsing as a guest. Please log in or create an account to plan a trip.',
       );
       return;
     }
@@ -142,9 +138,7 @@ class _TripPlannerMobileViewState extends State<TripPlannerMobileView> {
     if (vehicle == null) {
       return 'Please select a vehicle for this trip.';
     }
-    if (vehicle.range == null ||
-        vehicle.range == 0 ||
-        vehicle.batteryCapacity == null) {
+    if (vehicle.range == null || vehicle.range == 0 || vehicle.batteryCapacity == null) {
       return 'Selected vehicle is missing battery/range details. Pick another vehicle.';
     }
 
@@ -171,9 +165,7 @@ class _TripPlannerMobileViewState extends State<TripPlannerMobileView> {
         originLongitude: plan.start.longitude,
         destinationLatitude: plan.end.latitude,
         destinationLongitude: plan.end.longitude,
-        stops: plan.stops
-            .map((s) => (latitude: s.latitude, longitude: s.longitude))
-            .toList(),
+        stops: plan.stops.map((s) => (latitude: s.latitude, longitude: s.longitude)).toList(),
       );
     } catch (_) {
       if (context.mounted) {
@@ -200,6 +192,31 @@ class _TripPlannerMobileViewState extends State<TripPlannerMobileView> {
         latitude: station.latitude,
         longitude: station.longitude,
         label: station.name,
+      );
+    } catch (_) {
+      if (context.mounted) {
+        _showValidationError(
+          context,
+          'Could not open a maps app for directions.',
+        );
+      }
+    }
+  }
+
+  /// Opens the user's preferred maps app with directions to an arbitrary
+  /// station (used by the All Stops browse list, which isn't index-aligned to
+  /// the optimized plan's stops).
+  Future<void> _openStationDirections(
+    BuildContext context, {
+    required double latitude,
+    required double longitude,
+    required String label,
+  }) async {
+    try {
+      await AppFunctions.openPreferredMapsDirections(
+        latitude: latitude,
+        longitude: longitude,
+        label: label,
       );
     } catch (_) {
       if (context.mounted) {
@@ -290,20 +307,14 @@ class _TripPlannerMobileViewState extends State<TripPlannerMobileView> {
         // The plan request just finished successfully — take the user to the
         // suggested charging stops.
         listenWhen: (p, c) =>
-            p.planLoading &&
-            !c.planLoading &&
-            c.tripPlanned &&
-            c.planError == null,
+            p.planLoading && !c.planLoading && c.tripPlanned && c.planError == null,
         listener: (context, state) {
-          // A fresh plan always lands on the Suggested Stops tab.
-          if (_selectedStopsTab != TripStopsTab.suggested) {
-            setState(() => _selectedStopsTab = TripStopsTab.suggested);
-          }
+          // The bloc resets to the Recommended tab on a fresh plan; here we
+          // just bring the freshly-built results into view.
           _scrollToDisclaimer();
         },
         child: BlocConsumer<TripPlannerBloc, TripPlannerState>(
-          listenWhen: (p, c) =>
-              p.saveSuccess != c.saveSuccess || p.saveError != c.saveError,
+          listenWhen: (p, c) => p.saveSuccess != c.saveSuccess || p.saveError != c.saveError,
           listener: (context, state) {
             final messenger = ScaffoldMessenger.of(context);
             if (state.saveSuccess) {
@@ -383,14 +394,10 @@ class _TripPlannerMobileViewState extends State<TripPlannerMobileView> {
                             bloc.endLocationController,
                           ]),
                           builder: (context, _) {
-                            final allFieldsFilled = bloc
-                                    .startLocationController.text
-                                    .trim()
-                                    .isNotEmpty &&
-                                bloc.endLocationController.text
-                                    .trim()
-                                    .isNotEmpty &&
-                                state.selectedVehicle != null;
+                            final allFieldsFilled =
+                                bloc.startLocationController.text.trim().isNotEmpty &&
+                                    bloc.endLocationController.text.trim().isNotEmpty &&
+                                    state.selectedVehicle != null;
                             if (!state.tripPlanned && !allFieldsFilled) {
                               return const SizedBox.shrink();
                             }
@@ -468,9 +475,8 @@ class _TripPlannerMobileViewState extends State<TripPlannerMobileView> {
                       // Edit mode: resolve the complete vehicle (battery/range)
                       // from the user-vehicle API by id, not the trip's slim copy.
                       initialVehicleId: widget.editTrip?.vehicle?.id,
-                      onVehicleSelected: (vehicle) => context
-                          .read<TripPlannerBloc>()
-                          .add(TripPlannerVehicleSelected(vehicle)),
+                      onVehicleSelected: (vehicle) =>
+                          context.read<TripPlannerBloc>().add(TripPlannerVehicleSelected(vehicle)),
                     ),
                     14.verticalSpace,
                     const TripSectionTitleWidget(text: 'EV Details'),
@@ -493,9 +499,8 @@ class _TripPlannerMobileViewState extends State<TripPlannerMobileView> {
                     // 14.verticalSpace,
                     TripCurrentBatterySliderWidget(
                       currentBatteryPercent: state.currentBatteryPercent,
-                      onChanged: (v) => context
-                          .read<TripPlannerBloc>()
-                          .add(TripPlannerBatteryChanged(v)),
+                      onChanged: (v) =>
+                          context.read<TripPlannerBloc>().add(TripPlannerBatteryChanged(v)),
                     ),
                     16.verticalSpace,
                     // PrimaryButtonWidget(
@@ -611,58 +616,57 @@ class _TripPlannerMobileViewState extends State<TripPlannerMobileView> {
                         ),
                         16.verticalSpace,
                       ],
-                      // Route map above the stops list.
+                      // Route map above the stops list. Reflects the active tab:
+                      // the optimized route on Recommended, every charger on the
+                      // way on All Stops.
                       TripMapCardWidget(
-                        plan: state.currentPlan,
+                        plan: state.displayPlan,
                         startIcon: state.startIcon,
                         endIcon: state.endIcon,
                         stopIcon: state.stopIcon,
                         darkMapStyle: TripPlannerBloc.darkMapStyle,
-                        onMapCreated: (controller) => context
-                            .read<TripPlannerBloc>()
-                            .add(TripPlannerMapCreated(controller)),
+                        onMapCreated: (controller) =>
+                            context.read<TripPlannerBloc>().add(TripPlannerMapCreated(controller)),
                         onStopTap: (index) => bloc.openChargingStationDetails(
                           context,
-                          station: state.currentPlan!.stops[index],
+                          station: state.displayPlan!.stops[index],
                         ),
                       ),
                       // Estimates are indicative, not guaranteed.
                       18.verticalSpace,
                       _TripDisclaimer(key: _disclaimerKey),
-                      // Suggested Stops + Trip Summary only make sense when the
-                      // plan actually has charging stops along the route.
-                      if (hasStops) ...[
-                        16.verticalSpace,
-                        TripStopsTabSelector(
-                          ui: ui,
-                          selectedTab: _selectedStopsTab,
-                          onTabSelected: (tab) =>
-                              setState(() => _selectedStopsTab = tab),
-                        ),
-                        16.verticalSpace,
-                        if (_selectedStopsTab == TripStopsTab.suggested) ...[
+                      // Two views of the same route: the optimized "Recommended
+                      // Stops" plan, and the "All Stops" browse list of every
+                      // charger on the way (fetched lazily when first opened).
+                      16.verticalSpace,
+                      TripStopsTabSelector(
+                        ui: ui,
+                        selectedTab: state.selectedStopsTab,
+                        // The bloc switches tabs, lazily loads the browse list
+                        // (cached + deduped) and re-fits the map to match.
+                        onTabSelected: (tab) =>
+                            context.read<TripPlannerBloc>().add(TripPlannerStopsTabChanged(tab)),
+                      ),
+                      16.verticalSpace,
+                      if (state.selectedStopsTab == TripStopsTab.suggested) ...[
+                        if (hasStops) ...[
                           // Rebuilds when a booking succeeds anywhere in the
                           // session so already-booked stops show "Booked" on
                           // return here.
                           ValueListenableBuilder<Set<int>>(
                             valueListenable: BookedStationsSession.ids,
-                            builder: (context, bookedIds, _) =>
-                                TripChargingStopsSectionWidget(
+                            builder: (context, bookedIds, _) => TripChargingStopsSectionWidget(
                               // The tab label already heads the section.
                               showTitle: false,
                               plan: state.currentPlan,
-                              currentBatteryPercent:
-                                  state.currentBatteryPercent,
-                              targetArrivalBatteryPercent:
-                                  state.targetArrivalBatteryPercent,
-                              expandedChargingStopIndex:
-                                  state.expandedChargingStopIndex,
+                              currentBatteryPercent: state.currentBatteryPercent,
+                              targetArrivalBatteryPercent: state.targetArrivalBatteryPercent,
+                              expandedChargingStopIndex: state.expandedChargingStopIndex,
                               bookedStationIds: bookedIds,
                               onToggleChargingStop: (index) => context
                                   .read<TripPlannerBloc>()
                                   .add(TripPlannerChargingStopExpanded(index)),
-                              onViewDetails: (index) =>
-                                  bloc.openChargingStationDetails(
+                              onViewDetails: (index) => bloc.openChargingStationDetails(
                                 context,
                                 station: state.currentPlan!.stops[index],
                               ),
@@ -671,8 +675,7 @@ class _TripPlannerMobileViewState extends State<TripPlannerMobileView> {
                                 station: state.currentPlan!.stops[index],
                                 stopIndex: index,
                               ),
-                              onNavigate: (index) =>
-                                  _onNavigateToStop(context, state, index),
+                              onNavigate: (index) => _onNavigateToStop(context, state, index),
                               formatPkr: bloc.formatPkr,
                             ),
                           ),
@@ -685,129 +688,172 @@ class _TripPlannerMobileViewState extends State<TripPlannerMobileView> {
                             formatPkr: bloc.formatPkr,
                           ),
                         ] else ...[
-                          // "All Stops" is a backend work-in-progress — show a
-                          // placeholder empty state until the endpoint lands.
+                          // Optimized plan found no usable charging stops — the
+                          // All Stops tab still lists every charger on the way.
                           _TripStopsEmptyState(
                             ui: ui,
                             icon: Icons.ev_station_outlined,
-                            title: 'No All Stops',
-                            subtitle:
-                                "There are no all stops to show yet. We're "
-                                'still working on this — check back soon.',
+                            title: 'No Recommended Stops',
+                            subtitle: 'No recommended charging stops for this route. '
+                                'Open the All Stops tab to see every charger '
+                                'along the way.',
                           ),
                         ],
+                      ] else ...[
+                        // All Stops browse mode — every charger along the route.
+                        // Rebuilds when a booking succeeds so cards show "Booked".
+                        ValueListenableBuilder<Set<int>>(
+                          valueListenable: BookedStationsSession.ids,
+                          builder: (context, bookedIds, _) => TripAllStopsSectionWidget(
+                            loading: state.allStationsLoading,
+                            error: state.allStationsError,
+                            plan: state.allStationsPlan,
+                            bookedStationIds: bookedIds,
+                            onRetry: () => context.read<TripPlannerBloc>().add(
+                                  const TripPlannerAllStationsRequested(force: true),
+                                ),
+                            onViewDetails: (index) => bloc.openChargingStationDetails(
+                              context,
+                              station: bloc.locationFromStop(
+                                state.allStationsPlan!.stops[index],
+                              ),
+                            ),
+                            onPreBook: (index) => bloc.openPreBook(
+                              context,
+                              station: bloc.locationFromStop(
+                                state.allStationsPlan!.stops[index],
+                              ),
+                              stopIndex: index,
+                            ),
+                            onNavigate: (index) => _openStationDirections(
+                              context,
+                              latitude: state.allStationsPlan!.stops[index].latitude,
+                              longitude: state.allStationsPlan!.stops[index].longitude,
+                              label: state.allStationsPlan!.stops[index].locationName,
+                            ),
+                          ),
+                        ),
                       ],
                       16.verticalSpace,
-                      // Outlined style matches Start Journey below (no icon).
-                      SizedBox(
-                        height: 38.h,
-                        width: double.infinity,
-                        child: OutlinedButton(
-                          onPressed: state.saving
-                              ? null
-                              : () {
-                                  if (state.isEditMode) {
-                                    // Edited an input after planning → the shown
-                                    // plan is stale; make them re-plan first.
-                                    if (bloc.hasUnplannedChanges) {
-                                      _showValidationError(
-                                        context,
-                                        'You\'ve changed the trip details. Tap Plan Trip again before updating.',
-                                      );
-                                      return;
+                      // Save + Start Journey act on the recommended (optimized)
+                      // plan, so they're hidden while browsing All Stops — and
+                      // the API rejects saving an all-stations plan anyway (422).
+                      if (state.selectedStopsTab == TripStopsTab.suggested) ...[
+                        // Outlined style matches Start Journey below (no icon).
+                        SizedBox(
+                          height: 38.h,
+                          width: double.infinity,
+                          child: OutlinedButton(
+                            onPressed: state.saving
+                                ? null
+                                : () {
+                                    if (state.isEditMode) {
+                                      // Edited an input after planning → the shown
+                                      // plan is stale; make them re-plan first.
+                                      if (bloc.hasUnplannedChanges) {
+                                        _showValidationError(
+                                          context,
+                                          'You\'ve changed the trip details. Tap Plan Trip again before updating.',
+                                        );
+                                        return;
+                                      }
+                                      // Nothing changed vs the saved trip → block a
+                                      // no-op update.
+                                      if (!bloc.editHasChanges) {
+                                        _showValidationError(
+                                          context,
+                                          'Change the start, destination, vehicle or battery before updating your trip.',
+                                        );
+                                        return;
+                                      }
                                     }
-                                    // Nothing changed vs the saved trip → block a
-                                    // no-op update.
-                                    if (!bloc.editHasChanges) {
-                                      _showValidationError(
-                                        context,
-                                        'Change the start, destination, vehicle or battery before updating your trip.',
-                                      );
-                                      return;
-                                    }
-                                  }
-                                  context.read<TripPlannerBloc>().add(
-                                        state.isEditMode
-                                            ? const TripPlannerEditTripRequested()
-                                            : const TripPlannerSaveTripRequested(),
-                                      );
-                                },
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: ui.textPrimary,
-                            padding: EdgeInsets.symmetric(horizontal: 12.w),
-                            minimumSize: Size.zero,
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(32.r),
-                            ),
-                          ).copyWith(
-                            // Click feedback: the outline turns brand-primary
-                            // while the button is pressed.
-                            side: WidgetStateProperty.resolveWith(
-                              (states) => BorderSide(
-                                color: states.contains(WidgetState.pressed)
-                                    ? ui.brandPrimary
-                                    : ui.textPrimary.withValues(
-                                        alpha: state.saving ? 0.35 : 0.85,
-                                      ),
+                                    context.read<TripPlannerBloc>().add(
+                                          state.isEditMode
+                                              ? const TripPlannerEditTripRequested()
+                                              : const TripPlannerSaveTripRequested(),
+                                        );
+                                  },
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: ui.textPrimary,
+                              padding: EdgeInsets.symmetric(horizontal: 12.w),
+                              minimumSize: Size.zero,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(32.r),
+                              ),
+                            ).copyWith(
+                              // Click feedback: the outline turns brand-primary
+                              // while the button is pressed.
+                              side: WidgetStateProperty.resolveWith(
+                                (states) => BorderSide(
+                                  color: states.contains(WidgetState.pressed)
+                                      ? ui.brandPrimary
+                                      : ui.textPrimary.withValues(
+                                          alpha: state.saving ? 0.35 : 0.85,
+                                        ),
+                                ),
                               ),
                             ),
-                          ),
-                          child: AppText(
-                            state.isEditMode
-                                ? (state.saving ? 'Updating…' : 'Edit Trip')
-                                : (state.saving ? 'Saving…' : 'Save Trip'),
-                            color: ui.textPrimary,
-                            fontSize: FontSizes.font14Sp,
-                            fontWeight: FontWeights.weight600,
+                            child: AppText(
+                              state.isEditMode
+                                  ? (state.saving ? 'Updating…' : 'Edit Trip')
+                                  : (state.saving ? 'Saving…' : 'Save Trip'),
+                              color: ui.textPrimary,
+                              fontSize: FontSizes.font14Sp,
+                              fontWeight: FontWeights.weight600,
+                            ),
                           ),
                         ),
-                      ),
-                      12.verticalSpace,
-                      // Opens Google Maps with the whole trip as one journey —
-                      // every suggested stop mapped as a waypoint on the route.
-                      // Outlined style matches the Directions button on the
-                      // charging station detail screen.
-                      SizedBox(
-                        height: 38.h,
-                        width: double.infinity,
-                        child: OutlinedButton(
-                          onPressed: () => _onStartJourney(context, state),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: ui.textPrimary,
-                            padding: EdgeInsets.symmetric(horizontal: 12.w),
-                            minimumSize: Size.zero,
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(32.r),
-                            ),
-                          ).copyWith(
-                            // Click feedback: the outline turns brand-primary
-                            // while the button is pressed.
-                            side: WidgetStateProperty.resolveWith(
-                              (states) => BorderSide(
-                                color: states.contains(WidgetState.pressed)
-                                    ? ui.brandPrimary
-                                    : ui.textPrimary.withValues(alpha: 0.85),
+                        12.verticalSpace,
+                        // Opens Google Maps with the whole trip as one journey —
+                        // every suggested stop mapped as a waypoint on the route.
+                        // Outlined style matches the Directions button on the
+                        // charging station detail screen.
+                        SizedBox(
+                          height: 38.h,
+                          width: double.infinity,
+                          child: OutlinedButton(
+                            onPressed: () => _onStartJourney(context, state),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: ui.textPrimary,
+                              padding: EdgeInsets.symmetric(horizontal: 12.w),
+                              minimumSize: Size.zero,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(32.r),
+                              ),
+                            ).copyWith(
+                              // Click feedback: the outline turns brand-primary
+                              // while the button is pressed.
+                              side: WidgetStateProperty.resolveWith(
+                                (states) => BorderSide(
+                                  color: states.contains(WidgetState.pressed)
+                                      ? ui.brandPrimary
+                                      : ui.textPrimary.withValues(alpha: 0.85),
+                                ),
                               ),
                             ),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.navigation_rounded, size: 18.r),
-                              8.horizontalSpace,
-                              AppText(
-                                'Start Journey',
-                                color: ui.textPrimary,
-                                fontSize: FontSizes.font14Sp,
-                                fontWeight: FontWeights.weight600,
-                              ),
-                            ],
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.navigation_rounded, size: 18.r),
+                                8.horizontalSpace,
+                                AppText(
+                                  'Start Journey',
+                                  color: ui.textPrimary,
+                                  fontSize: FontSizes.font14Sp,
+                                  fontWeight: FontWeights.weight600,
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-                      22.verticalSpace,
+                        22.verticalSpace,
+                      ] else ...[
+                        // All Stops is a browse view; the plan actions belong
+                        // to the recommended plan only.
+                        22.verticalSpace,
+                      ],
                     ],
                     24.verticalSpace,
                   ],

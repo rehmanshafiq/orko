@@ -25,9 +25,21 @@ class TripPlanEntity extends Equatable {
     this.batteryCapacityKwh,
     this.savings,
     this.message,
+    this.planType,
   });
 
   final UserVehicleEntity? vehicle;
+
+  /// Echoes the planning mode the server ran (`"optimized"` | `"all_stations"`);
+  /// null on older responses that predate the field.
+  final String? planType;
+
+  /// `true` when this is an all-stations browse result. In that mode every
+  /// charging-simulation field ([feasible], [startSoc], [totalCost],
+  /// [totalChargingMinutes], [currency], [savings], and each stop's SoC / cost /
+  /// energy / charging-minutes) is absent server-side — do not display them.
+  bool get isAllStations => planType == 'all_stations';
+
   final bool feasible;
   final double startSoc;
   final double rangeKm;
@@ -64,5 +76,6 @@ class TripPlanEntity extends Equatable {
         stops,
         savings,
         message,
+        planType,
       ];
 }

@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:orko_hubco/features/trip/presentation/models/trip_stops_tab.dart';
 import 'package:orko_hubco/features/vehicle/domain/entities/user_vehicle_entity.dart';
 
 abstract class TripPlannerEvent extends Equatable {
@@ -25,6 +26,29 @@ class TripPlannerPlanTripRequested extends TripPlannerEvent {
 /// Persists the most recently planned trip via the `save-trip` API.
 class TripPlannerSaveTripRequested extends TripPlannerEvent {
   const TripPlannerSaveTripRequested();
+}
+
+/// Fetches the `all_stations` browse list for the current trip (every charger
+/// along the route). Reuses the last plan's origin/destination/vehicle. The
+/// result is cached until the next optimized plan; [force] refetches (Retry).
+class TripPlannerAllStationsRequested extends TripPlannerEvent {
+  const TripPlannerAllStationsRequested({this.force = false});
+
+  final bool force;
+
+  @override
+  List<Object?> get props => [force];
+}
+
+/// Switches the active stops tab. Lazily loads the all-stations browse the
+/// first time "All Stops" is opened and re-fits the map to the active plan.
+class TripPlannerStopsTabChanged extends TripPlannerEvent {
+  const TripPlannerStopsTabChanged(this.tab);
+
+  final TripStopsTab tab;
+
+  @override
+  List<Object?> get props => [tab];
 }
 
 /// Updates the trip being edited via the `edit-trip` API (edit mode only).
@@ -104,4 +128,3 @@ class TripPlannerMapCreated extends TripPlannerEvent {
 class TripPlannerFitMapRoute extends TripPlannerEvent {
   const TripPlannerFitMapRoute();
 }
-

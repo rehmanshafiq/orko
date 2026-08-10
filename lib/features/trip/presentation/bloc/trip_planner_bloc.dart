@@ -19,6 +19,7 @@ import 'package:orko_hubco/features/map/domain/entities/hubco_location_entity.da
 import 'package:orko_hubco/features/charging/presentation/page/charging_station_detail_page.dart';
 import 'package:orko_hubco/features/trip/domain/entities/saved_trip_entity.dart';
 import 'package:orko_hubco/features/trip/domain/entities/trip_plan_entity.dart';
+import 'package:orko_hubco/features/trip/domain/entities/trip_stop_entity.dart';
 import 'package:orko_hubco/features/trip/domain/usecases/edit_trip_usecase.dart';
 import 'package:orko_hubco/features/trip/domain/usecases/plan_trip_usecase.dart';
 import 'package:orko_hubco/features/trip/domain/usecases/save_trip_usecase.dart';
@@ -29,6 +30,7 @@ import 'package:orko_hubco/features/trip/presentation/models/latlng_named_model.
 import 'package:orko_hubco/features/trip/presentation/models/route_strategy_model.dart';
 import 'package:orko_hubco/features/trip/presentation/models/stop_charge_info_model.dart';
 import 'package:orko_hubco/features/trip/presentation/models/trip_plan_model.dart';
+import 'package:orko_hubco/features/trip/presentation/models/trip_stops_tab.dart';
 
 class TripPlannerBloc extends Bloc<TripPlannerEvent, TripPlannerState> {
   TripPlannerBloc({
@@ -48,6 +50,8 @@ class TripPlannerBloc extends Bloc<TripPlannerEvent, TripPlannerState> {
     on<TripPlannerLocationChanged>(_handleLocationChanged);
     on<TripPlannerPlanTripPressed>(_handlePlanTripPressed);
     on<TripPlannerPlanTripRequested>(_handlePlanTripRequested);
+    on<TripPlannerAllStationsRequested>(_handleAllStationsRequested);
+    on<TripPlannerStopsTabChanged>(_handleStopsTabChanged);
     on<TripPlannerSaveTripRequested>(_handleSaveTripRequested);
     on<TripPlannerEditTripRequested>(_handleEditTripRequested);
     on<TripPlannerResetRequested>(_handleResetRequested);
@@ -71,8 +75,7 @@ class TripPlannerBloc extends Bloc<TripPlannerEvent, TripPlannerState> {
           : _coordLabel(editingTrip.originLatitude, editingTrip.originLongitude);
       final endName = editingTrip.destinationAddress?.trim().isNotEmpty == true
           ? editingTrip.destinationAddress!.trim()
-          : _coordLabel(
-              editingTrip.destinationLatitude, editingTrip.destinationLongitude);
+          : _coordLabel(editingTrip.destinationLatitude, editingTrip.destinationLongitude);
       _startPlace = (
         lat: editingTrip.originLatitude,
         lng: editingTrip.originLongitude,
@@ -146,8 +149,7 @@ class TripPlannerBloc extends Bloc<TripPlannerEvent, TripPlannerState> {
         (sameCoord(end.lat, params.destinationLatitude) &&
             sameCoord(end.lng, params.destinationLongitude));
     final vehicleMatches = state.selectedVehicle?.id == params.customerVehicleId;
-    final batteryMatches =
-        state.currentBatteryPercent.toInt() == params.startSoc;
+    final batteryMatches = state.currentBatteryPercent.toInt() == params.startSoc;
     return !(startMatches && endMatches && vehicleMatches && batteryMatches);
   }
 
@@ -271,6 +273,11 @@ class TripPlannerBloc extends Bloc<TripPlannerEvent, TripPlannerState> {
       clearPlanError: true,
       clearSaveError: true,
       saveSuccess: false,
+      // A fresh optimized plan invalidates any cached all-stations browse.
+      clearAllStationsPlan: true,
+      clearAllStationsModel: true,
+      allStationsLoading: false,
+      clearAllStationsError: true,
     ));
 
     // Funnel entry: fires once per plan attempt, before results exist (so the
@@ -302,8 +309,7 @@ class TripPlannerBloc extends Bloc<TripPlannerEvent, TripPlannerState> {
     if (destination == null) {
       emit(state.copyWith(
         planLoading: false,
-        planError:
-            'Couldn\'t find your destination. Try entering a known city name.',
+        planError: 'Couldn\'t find your destination. Try entering a known city name.',
       ));
       return;
     }
@@ -311,9 +317,7 @@ class TripPlannerBloc extends Bloc<TripPlannerEvent, TripPlannerState> {
     // 2. Block a selected-but-incomplete vehicle (mirrors the picker rule).
     final vehicle = state.selectedVehicle;
     if (vehicle != null &&
-        (vehicle.range == null ||
-            vehicle.range == 0 ||
-            vehicle.batteryCapacity == null)) {
+        (vehicle.range == null || vehicle.range == 0 || vehicle.batteryCapacity == null)) {
       emit(state.copyWith(
         planLoading: false,
         planError: 'Vehicle battery/range data is incomplete.',
@@ -371,10 +375,115 @@ class TripPlannerBloc extends Bloc<TripPlannerEvent, TripPlannerState> {
           routePlans: <TripPlanModel?>[mapped],
           selectedRouteIndex: 0,
           resetExpandedChargingStopIndex: true,
+          // A fresh plan always lands on the Recommended tab, and guards
+          // against a slow in-flight all-stations fetch reattaching here; the
+          // "All Stops" tab refetches on demand.
+          selectedStopsTab: TripStopsTab.suggested,
+          clearAllStationsPlan: true,
+          clearAllStationsModel: true,
+          allStationsLoading: false,
+          clearAllStationsError: true,
         ));
         add(const TripPlannerFitMapRoute());
       },
     );
+  }
+
+  /// Fetches the `all_stations` browse list (every charger along the route),
+  /// reusing the last optimized plan's inputs. Cached until the next plan; a
+  /// [TripPlannerAllStationsRequested.force] refetch re-runs it (Retry).
+  Future<void> _handleAllStationsRequested(
+    TripPlannerAllStationsRequested event,
+    Emitter<TripPlannerState> emit,
+  ) async {
+    final base = state.lastPlanParams;
+    if (base == null) {
+      // The tab is only reachable after a successful plan, so this is a guard,
+      // not an expected path.
+      emit(state.copyWith(
+        allStationsLoading: false,
+        allStationsError: 'Plan a trip first to see all stations.',
+      ));
+      return;
+    }
+    // Already loaded for these inputs, or a fetch is already running — don't
+    // stack another (unless the user explicitly retried).
+    if (!event.force && (state.allStationsPlan != null || state.allStationsLoading)) {
+      return;
+    }
+
+    emit(state.copyWith(
+      allStationsLoading: true,
+      clearAllStationsError: true,
+    ));
+
+    final result = await _planTrip(
+      base.copyWith(planType: TripPlanType.allStations),
+    );
+
+    // The user re-planned (different inputs) while this was in flight — drop the
+    // now-stale result rather than showing it against the new plan.
+    if (state.lastPlanParams != base) return;
+
+    result.fold(
+      (failure) => emit(state.copyWith(
+        allStationsLoading: false,
+        allStationsError: failure.message,
+      )),
+      (plan) {
+        _analytics.logEvent('trip_all_stations_viewed', parameters: {
+          'stop_count': plan.stops.length,
+        });
+        // Origin/destination are identical to the optimized plan (same params),
+        // so build the map model from those coordinates.
+        final start = GeoPoint(
+          name: (base.originAddress ?? '').trim().isEmpty ? 'Start' : base.originAddress!.trim(),
+          latitude: base.originLatitude,
+          longitude: base.originLongitude,
+        );
+        final end = GeoPoint(
+          name: (base.destinationAddress ?? '').trim().isEmpty
+              ? 'Destination'
+              : base.destinationAddress!.trim(),
+          latitude: base.destinationLatitude,
+          longitude: base.destinationLongitude,
+        );
+        emit(state.copyWith(
+          allStationsLoading: false,
+          allStationsPlan: plan,
+          allStationsModel: _mapApiPlanToModel(plan, start, end),
+          clearAllStationsError: true,
+        ));
+        // If the user is still on the All Stops tab, move the map onto the
+        // freshly-loaded browse route.
+        if (state.selectedStopsTab == TripStopsTab.all) {
+          add(const TripPlannerFitMapRoute());
+        }
+      },
+    );
+  }
+
+  /// Switches the active stops tab: kicks off the lazy all-stations fetch the
+  /// first time "All Stops" opens, and re-fits the map to the plan now on
+  /// screen (the fetch's success re-fits once the browse route is ready).
+  void _handleStopsTabChanged(
+    TripPlannerStopsTabChanged event,
+    Emitter<TripPlannerState> emit,
+  ) {
+    if (state.selectedStopsTab == event.tab) return;
+    emit(state.copyWith(selectedStopsTab: event.tab));
+
+    if (event.tab == TripStopsTab.all) {
+      // Cached / deduped inside the handler — safe to always request.
+      add(const TripPlannerAllStationsRequested());
+    }
+
+    // Fit now only when the target plan already exists; otherwise the browse
+    // fetch's success handler fits once its route lands.
+    final readyForTab = event.tab == TripStopsTab.suggested || state.allStationsModel != null;
+    if (readyForTab) {
+      add(const TripPlannerFitMapRoute());
+    }
   }
 
   Future<void> _handleSaveTripRequested(
@@ -421,16 +530,14 @@ class TripPlannerBloc extends Bloc<TripPlannerEvent, TripPlannerState> {
     // they must re-plan before the edit reflects their change.
     if (hasUnplannedChanges) {
       emit(state.copyWith(
-        saveError:
-            'You\'ve changed the trip details. Tap Plan Trip again before updating.',
+        saveError: 'You\'ve changed the trip details. Tap Plan Trip again before updating.',
       ));
       return;
     }
     // Block a no-op update: nothing changed vs the original saved trip.
     if (!editHasChanges) {
       emit(state.copyWith(
-        saveError:
-            'Change the start, destination, vehicle or battery before updating your trip.',
+        saveError: 'Change the start, destination, vehicle or battery before updating your trip.',
       ));
       return;
     }
@@ -483,8 +590,7 @@ class TripPlannerBloc extends Bloc<TripPlannerEvent, TripPlannerState> {
       return selected;
     }
 
-    final wantsGps = isOrigin &&
-        (trimmed.isEmpty || trimmed.toLowerCase() == 'current location');
+    final wantsGps = isOrigin && (trimmed.isEmpty || trimmed.toLowerCase() == 'current location');
 
     if (wantsGps) {
       final position = await _resolveCurrentPosition();
@@ -568,13 +674,11 @@ class TripPlannerBloc extends Bloc<TripPlannerEvent, TripPlannerState> {
 
     final waypoints = <LatLngNamedModel>[
       LatLngNamedModel(start.name, start.latitude, start.longitude),
-      ...plan.stops
-          .map((s) => LatLngNamedModel(s.locationName, s.latitude, s.longitude)),
+      ...plan.stops.map((s) => LatLngNamedModel(s.locationName, s.latitude, s.longitude)),
       LatLngNamedModel(end.name, end.latitude, end.longitude),
     ];
 
-    final totalMinutes =
-        (plan.totalDriveMinutes + plan.totalChargingMinutes).round();
+    final totalMinutes = (plan.totalDriveMinutes + plan.totalChargingMinutes).round();
 
     return TripPlanModel(
       strategy: strategies.first,
@@ -711,7 +815,7 @@ class TripPlannerBloc extends Bloc<TripPlannerEvent, TripPlannerState> {
     TripPlannerFitMapRoute event,
     Emitter<TripPlannerState> emit,
   ) async {
-    final plan = state.currentPlan;
+    final plan = state.displayPlan;
     if (plan == null || plan.waypoints.length < 2) return;
     if (!state.mapControllerCompleter.isCompleted) return;
     final controller = await state.mapControllerCompleter.future;
@@ -816,8 +920,7 @@ class TripPlannerBloc extends Bloc<TripPlannerEvent, TripPlannerState> {
   /// Same green charger pin as the home map (`ic_charger_map`).
   Future<BitmapDescriptor?> _loadChargerMapMarkerIcon(double dpr) async {
     try {
-      final targetWidth =
-          (_chargerStopMarkerSize * dpr).round().clamp(1, 512);
+      final targetWidth = (_chargerStopMarkerSize * dpr).round().clamp(1, 512);
 
       final data = await rootBundle.load(AppImages.icChargerMap);
       final codec = await ui.instantiateImageCodec(
@@ -846,8 +949,7 @@ class TripPlannerBloc extends Bloc<TripPlannerEvent, TripPlannerState> {
   }
 
   Future<Uint8List?> _tintedPngBytes(ui.Image source, Color tint) async {
-    final rawData =
-        await source.toByteData(format: ui.ImageByteFormat.rawRgba);
+    final rawData = await source.toByteData(format: ui.ImageByteFormat.rawRgba);
     if (rawData == null) return null;
 
     final pixels = rawData.buffer.asUint8List();
@@ -855,10 +957,7 @@ class TripPlannerBloc extends Bloc<TripPlannerEvent, TripPlannerState> {
       final alpha = pixels[i + 3];
       if (alpha == 0) continue;
 
-      final lum = (0.2126 * pixels[i] +
-              0.7152 * pixels[i + 1] +
-              0.0722 * pixels[i + 2]) /
-          255;
+      final lum = (0.2126 * pixels[i] + 0.7152 * pixels[i + 1] + 0.0722 * pixels[i + 2]) / 255;
 
       pixels[i] = (tint.red * lum).round().clamp(0, 255);
       pixels[i + 1] = (tint.green * lum).round().clamp(0, 255);
@@ -946,6 +1045,21 @@ class TripPlannerBloc extends Bloc<TripPlannerEvent, TripPlannerState> {
 
   String formatPkr(int amount) => AppHelpers.formatRs(amount);
 
+  /// Builds a [HubcoLocationEntity] from an all-stations browse stop so the
+  /// station-detail page can be opened for it (charging fields aren't simulated
+  /// in that mode, so only identity/location are carried over).
+  HubcoLocationEntity locationFromStop(TripStopEntity stop) {
+    return HubcoLocationEntity(
+      id: stop.locationId,
+      name: stop.locationName,
+      address: stop.locationAddress ?? '',
+      latitude: stop.latitude,
+      longitude: stop.longitude,
+      status: true,
+      connectorTypes: stop.connectorType.isEmpty ? const [] : [stop.connectorType],
+    );
+  }
+
   void openChargingStationDetails(
     BuildContext context, {
     required HubcoLocationEntity station,
@@ -990,4 +1104,3 @@ class TripPlannerBloc extends Bloc<TripPlannerEvent, TripPlannerState> {
     return super.close();
   }
 }
-

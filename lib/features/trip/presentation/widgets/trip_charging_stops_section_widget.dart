@@ -104,4 +104,3 @@ class TripChargingStopsSectionWidget extends StatelessWidget {
     );
   }
 }
-
