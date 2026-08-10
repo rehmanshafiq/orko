@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:orko_hubco/core/utils/app_logger.dart';
 
 import 'package:dio/dio.dart';
@@ -64,11 +66,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         statusCode: response.statusCode,
       );
     } on DioException catch (e) {
-      final data = e.response?.data;
       throw ServerException(
-        message: (data is Map && data['message'] != null)
-            ? data['message'].toString()
-            : (e.message ?? 'Login failed'),
+        message: _dioMessage(e, fallback: 'Login failed'),
         statusCode: e.response?.statusCode,
         originalError: e,
       );
@@ -123,11 +122,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         statusCode: response.statusCode,
       );
     } on DioException catch (e) {
-      final data = e.response?.data;
       throw ServerException(
-        message: (data is Map && data['message'] != null)
-            ? data['message'].toString()
-            : (e.message ?? 'Google sign-in failed'),
+        message: _dioMessage(e, fallback: 'Google sign-in failed'),
         statusCode: e.response?.statusCode,
         originalError: e,
       );
@@ -239,11 +235,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         statusCode: response.statusCode,
       );
     } on DioException catch (e) {
-      final data = e.response?.data;
       throw ServerException(
-        message: (data is Map && data['message'] != null)
-            ? data['message'].toString()
-            : (e.message ?? 'OTP verification failed'),
+        message: _dioMessage(e, fallback: 'OTP verification failed'),
         statusCode: e.response?.statusCode,
         originalError: e,
       );
@@ -311,11 +304,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         statusCode: response.statusCode,
       );
     } on DioException catch (e) {
-      final data = e.response?.data;
       throw ServerException(
-        message: (data is Map && data['message'] != null)
-            ? data['message'].toString()
-            : (e.message ?? 'Could not resend the code'),
+        message: _dioMessage(e, fallback: 'Could not resend the code'),
         statusCode: e.response?.statusCode,
         originalError: e,
       );
@@ -362,11 +352,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         statusCode: response.statusCode,
       );
     } on DioException catch (e) {
-      final data = e.response?.data;
       throw ServerException(
-        message: (data is Map && data['message'] != null)
-            ? data['message'].toString()
-            : (e.message ?? 'Could not send the reset code'),
+        message: _dioMessage(e, fallback: 'Could not send the reset code'),
         statusCode: e.response?.statusCode,
         originalError: e,
       );
@@ -417,11 +404,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         statusCode: response.statusCode,
       );
     } on DioException catch (e) {
-      final data = e.response?.data;
       throw ServerException(
-        message: (data is Map && data['message'] != null)
-            ? data['message'].toString()
-            : (e.message ?? 'OTP verification failed'),
+        message: _dioMessage(e, fallback: 'OTP verification failed'),
         statusCode: e.response?.statusCode,
         originalError: e,
       );
@@ -481,11 +465,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         statusCode: response.statusCode,
       );
     } on DioException catch (e) {
-      final data = e.response?.data;
       throw ServerException(
-        message: (data is Map && data['message'] != null)
-            ? data['message'].toString()
-            : (e.message ?? 'Could not reset your password'),
+        message: _dioMessage(e, fallback: 'Could not reset your password'),
         statusCode: e.response?.statusCode,
         originalError: e,
       );
@@ -532,11 +513,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         statusCode: response.statusCode,
       );
     } on DioException catch (e) {
-      final data = e.response?.data;
       throw ServerException(
-        message: (data is Map && data['message'] != null)
-            ? data['message'].toString()
-            : (e.message ?? 'Failed to load user'),
+        message: _dioMessage(e, fallback: 'Failed to load user'),
         statusCode: e.response?.statusCode,
         originalError: e,
       );
@@ -804,11 +782,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         statusCode: response.statusCode,
       );
     } on DioException catch (e) {
-      final data = e.response?.data;
       throw ServerException(
-        message: (data is Map && data['message'] != null)
-            ? data['message'].toString()
-            : (e.message ?? 'Failed to delete your account'),
+        message: _dioMessage(e, fallback: 'Failed to delete your account'),
         statusCode: e.response?.statusCode,
         originalError: e,
       );
@@ -862,13 +837,45 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     }
   }
 
-  /// Extracts a human-readable message from a Dio error response.
+  /// Extracts a human-readable, user-safe message from a Dio error.
+  ///
+  /// Prefers the server's own `message`, which is present only when the request
+  /// actually reached the backend and it returned an error body. When the
+  /// request never completed — no internet, connection refused, timeouts — Dio's
+  /// own `e.message` is raw internal text (e.g. "The connection errored:
+  /// Connection refused This indicates an error which most likely cannot be
+  /// solved by the library.") that must never be shown to users, so we map the
+  /// failure type to a friendly message instead.
   String _dioMessage(DioException e, {required String fallback}) {
     final data = e.response?.data;
     if (data is Map && data['message'] != null) {
-      return data['message'].toString();
+      final serverMessage = data['message'].toString().trim();
+      if (serverMessage.isNotEmpty) return serverMessage;
     }
-    return e.message ?? fallback;
+
+    switch (e.type) {
+      case DioExceptionType.connectionTimeout:
+      case DioExceptionType.sendTimeout:
+      case DioExceptionType.receiveTimeout:
+        return 'The request timed out. Please check your internet connection '
+            'and try again.';
+      case DioExceptionType.connectionError:
+        return 'Unable to reach the server. Please check your internet '
+            'connection and try again.';
+      case DioExceptionType.badCertificate:
+        return "Couldn't establish a secure connection. Please try again "
+            'later.';
+      case DioExceptionType.unknown:
+        // Usually a SocketException — the device is offline or DNS failed.
+        if (e.error is SocketException) {
+          return 'Unable to reach the server. Please check your internet '
+              'connection and try again.';
+        }
+        return fallback;
+      case DioExceptionType.cancel:
+      case DioExceptionType.badResponse:
+        return fallback;
+    }
   }
 
   /// Joins the base URL and endpoint path into a single clean URL.
@@ -916,11 +923,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         statusCode: response.statusCode,
       );
     } on DioException catch (e) {
-      final data = e.response?.data;
       throw ServerException(
-        message: (data is Map && data['message'] != null)
-            ? data['message'].toString()
-            : (e.message ?? 'Logout failed'),
+        message: _dioMessage(e, fallback: 'Logout failed'),
         statusCode: e.response?.statusCode,
         originalError: e,
       );
