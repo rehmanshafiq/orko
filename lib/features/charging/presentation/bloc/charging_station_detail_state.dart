@@ -34,6 +34,7 @@ class ChargingStationDetailState extends Equatable {
     this.longitude,
     this.chargePointId,
     this.isClosed = false,
+    this.isThirdParty = false,
     this.bannerImage,
   });
 
@@ -96,6 +97,10 @@ class ChargingStationDetailState extends Equatable {
   /// "Coming soon" toast instead of proceeding.
   final bool isClosed;
 
+  /// True when the station is third-party operated (`is_third_party` API key) —
+  /// the Book Slot button is disabled.
+  final bool isThirdParty;
+
   /// Station banner image URL (`banner_image` API key). Null when the backend
   /// omits it, in which case the bundled asset is shown.
   final String? bannerImage;
@@ -132,6 +137,7 @@ class ChargingStationDetailState extends Equatable {
     double? longitude,
     String? chargePointId,
     bool? isClosed,
+    bool? isThirdParty,
     String? bannerImage,
   }) {
     return ChargingStationDetailState(
@@ -163,6 +169,7 @@ class ChargingStationDetailState extends Equatable {
       longitude: longitude ?? this.longitude,
       chargePointId: chargePointId ?? this.chargePointId,
       isClosed: isClosed ?? this.isClosed,
+      isThirdParty: isThirdParty ?? this.isThirdParty,
       bannerImage: bannerImage ?? this.bannerImage,
     );
   }
@@ -195,6 +202,7 @@ class ChargingStationDetailState extends Equatable {
         longitude,
         chargePointId,
         isClosed,
+        isThirdParty,
         bannerImage,
       ];
 }

@@ -90,6 +90,7 @@ class ChargingStationDetailBloc
       locationId: locationId,
       chargePointId: detail.primaryChargePointId,
       isClosed: detail.isClosed,
+      isThirdParty: detail.isThirdParty,
       bannerImage: detail.bannerImage,
     ));
 

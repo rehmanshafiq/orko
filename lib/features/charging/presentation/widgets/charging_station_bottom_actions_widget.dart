@@ -19,6 +19,7 @@ class ChargingStationBottomActionsWidget extends StatelessWidget {
     required this.longitude,
     this.isEnabled = true,
     this.isClosed = false,
+    this.isThirdParty = false,
     this.chargePointId,
     this.openingTime = '',
     this.closingTime = '',
@@ -32,6 +33,10 @@ class ChargingStationBottomActionsWidget extends StatelessWidget {
   /// True when the station is closed (`is_closed` API key) — tapping Book Slot
   /// shows a "Coming soon" toast instead of proceeding to booking.
   final bool isClosed;
+
+  /// True when the station is third-party operated (`is_third_party` API key) —
+  /// the Book Slot button is disabled.
+  final bool isThirdParty;
 
   /// The station's `charge_point_id`, used to verify vehicle compatibility
   /// before navigating to booking.
@@ -94,7 +99,7 @@ class ChargingStationBottomActionsWidget extends StatelessWidget {
                 leadingIcon: Icons.calendar_today_outlined,
                 iconHeight: 18.sp,
                 onPress: () => _onBookSlot(context),
-                isEnabled: isEnabled,
+                isEnabled: isEnabled && !isThirdParty,
                 buttonWidth: double.infinity,
                 buttonHeight: 38.h,
                 cornerRadius: 24.r,

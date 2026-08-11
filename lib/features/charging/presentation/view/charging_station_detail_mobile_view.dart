@@ -293,6 +293,7 @@ class ChargingStationDetailMobileView extends StatelessWidget {
                   longitude: state.longitude ?? hub.longitude,
                   isEnabled: state.isSuccess,
                   isClosed: state.isClosed,
+                  isThirdParty: state.isThirdParty,
                   chargePointId: state.chargePointId,
                   openingTime: state.openingTime,
                   closingTime: state.closingTime,

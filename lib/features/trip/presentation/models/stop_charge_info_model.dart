@@ -6,6 +6,7 @@ class StopChargeInfoModel {
     required this.costPkr,
     this.distanceFromPreviousStopKm,
     this.amenities = const [],
+    this.isThirdParty = false,
   });
 
   final int arrivePct;
@@ -18,5 +19,9 @@ class StopChargeInfoModel {
 
   /// Amenities available at the stop, e.g. `['Wifi', 'Air Conditioner']`.
   final List<String> amenities;
+
+  /// True when the station is operated by a third party (`is_third_party` key) —
+  /// the View Details and Pre-book actions are hidden for these stops.
+  final bool isThirdParty;
 }
 

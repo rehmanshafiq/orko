@@ -22,6 +22,7 @@ class TripChargingStopCardWidget extends StatelessWidget {
     required this.onNavigate,
     required this.formatPkr,
     this.booked = false,
+    this.isThirdParty = false,
     super.key,
   });
 
@@ -40,6 +41,10 @@ class TripChargingStopCardWidget extends StatelessWidget {
   /// True when the user already booked this station in this session — the
   /// Pre-book button then reads "Booked" and is disabled.
   final bool booked;
+
+  /// True when the station is third-party operated (`is_third_party` API key) —
+  /// the View Details and Pre-book buttons are hidden.
+  final bool isThirdParty;
 
   /// Maps an amenity label to a representative icon, falling back to a generic
   /// check mark for anything not explicitly recognised.
@@ -197,44 +202,48 @@ class TripChargingStopCardWidget extends StatelessWidget {
               ),
             ],
             14.verticalSpace,
-            Row(
-              children: [
-                Expanded(
-                  child: PrimaryButtonWidget(
-                    text: 'View Details',
-                    onPress: onViewDetails,
-                    // Disabled once the stop is booked, matching Pre-book.
-                    isEnabled: !booked,
-                    buttonWidth: double.infinity,
-                    buttonHeight: 38.h,
-                    cornerRadius: 8.r,
-                    buttonColor: ui.cardBackground,
-                    strokeColor: ui.inputBorder,
-                    textColor: ui.textPrimary,
-                    fontSize: FontSizes.font10Sp,
-                    fontWeight: FontWeights.weight600,
+            // Third-party stations can't be viewed or pre-booked in-app — hide
+            // both actions and leave only Navigate.
+            if (!isThirdParty) ...[
+              Row(
+                children: [
+                  Expanded(
+                    child: PrimaryButtonWidget(
+                      text: 'View Details',
+                      onPress: onViewDetails,
+                      // Disabled once the stop is booked, matching Pre-book.
+                      isEnabled: !booked,
+                      buttonWidth: double.infinity,
+                      buttonHeight: 38.h,
+                      cornerRadius: 8.r,
+                      buttonColor: ui.cardBackground,
+                      strokeColor: ui.inputBorder,
+                      textColor: ui.textPrimary,
+                      fontSize: FontSizes.font10Sp,
+                      fontWeight: FontWeights.weight600,
+                    ),
                   ),
-                ),
-                8.horizontalSpace,
-                Expanded(
-                  child: PrimaryButtonWidget(
-                    text: booked ? 'Booked' : 'Pre-book',
-                    onPress: onPreBook,
-                    // A booked stop can't be pre-booked again from here.
-                    isEnabled: !booked,
-                    buttonWidth: double.infinity,
-                    buttonHeight: 38.h,
-                    cornerRadius: 8.r,
-                    buttonColor: ui.cardBackground,
-                    strokeColor: ui.inputBorder,
-                    textColor: ui.textPrimary,
-                    fontSize: FontSizes.font10Sp,
-                    fontWeight: FontWeights.weight600,
+                  8.horizontalSpace,
+                  Expanded(
+                    child: PrimaryButtonWidget(
+                      text: booked ? 'Booked' : 'Pre-book',
+                      onPress: onPreBook,
+                      // A booked stop can't be pre-booked again from here.
+                      isEnabled: !booked,
+                      buttonWidth: double.infinity,
+                      buttonHeight: 38.h,
+                      cornerRadius: 8.r,
+                      buttonColor: ui.cardBackground,
+                      strokeColor: ui.inputBorder,
+                      textColor: ui.textPrimary,
+                      fontSize: FontSizes.font10Sp,
+                      fontWeight: FontWeights.weight600,
+                    ),
                   ),
-                ),
-              ],
-            ),
-            8.verticalSpace,
+                ],
+              ),
+              8.verticalSpace,
+            ],
             // Opens the user's preferred maps app with directions to this stop.
             // Stays enabled for booked stops — you still need to get there.
             PrimaryButtonWidget(

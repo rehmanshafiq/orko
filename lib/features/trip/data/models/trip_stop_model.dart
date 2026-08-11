@@ -24,6 +24,7 @@ class TripStopModel extends TripStopEntity {
     super.distanceFromRouteKm,
     super.distanceFromPreviousStopKm,
     super.amenities,
+    super.isThirdParty,
   });
 
   /// `plan-trip` stop shape: `location_id`, `latitude`, `longitude`,
@@ -51,6 +52,7 @@ class TripStopModel extends TripStopEntity {
       chargingMinutes: TripJson.asDouble(json['charging_minutes']),
       cost: TripJson.asDouble(json['cost']),
       amenities: TripJson.asStringList(json['amenities']),
+      isThirdParty: TripJson.asBool(json['is_third_party']),
     );
   }
 
@@ -76,6 +78,7 @@ class TripStopModel extends TripStopEntity {
       chargingMinutes: TripJson.asDouble(json['charging_minutes']),
       cost: TripJson.asDouble(json['cost']),
       amenities: TripJson.asStringList(json['amenities']),
+      isThirdParty: TripJson.asBool(json['is_third_party']),
     );
   }
 }

@@ -346,45 +346,49 @@ class _AllStopCard extends StatelessWidget {
               ),
             ],
             14.verticalSpace,
-            Row(
-              children: [
-                Expanded(
-                  child: PrimaryButtonWidget(
-                    text: 'View Details',
-                    onPress: onViewDetails,
-                    // Disabled once booked, matching the Recommended card.
-                    isEnabled: !booked,
-                    buttonWidth: double.infinity,
-                    buttonHeight: 38.h,
-                    cornerRadius: 8.r,
-                    buttonColor: ui.cardBackground,
-                    strokeColor: ui.inputBorder,
-                    textColor: ui.textPrimary,
-                    fontSize: FontSizes.font10Sp,
-                    fontWeight: FontWeights.weight600,
+            // Third-party stations can't be viewed or pre-booked in-app — hide
+            // both actions and leave only Navigate.
+            if (!stop.isThirdParty) ...[
+              Row(
+                children: [
+                  Expanded(
+                    child: PrimaryButtonWidget(
+                      text: 'View Details',
+                      onPress: onViewDetails,
+                      // Disabled once booked, matching the Recommended card.
+                      isEnabled: !booked,
+                      buttonWidth: double.infinity,
+                      buttonHeight: 38.h,
+                      cornerRadius: 8.r,
+                      buttonColor: ui.cardBackground,
+                      strokeColor: ui.inputBorder,
+                      textColor: ui.textPrimary,
+                      fontSize: FontSizes.font10Sp,
+                      fontWeight: FontWeights.weight600,
+                    ),
                   ),
-                ),
-                8.horizontalSpace,
-                Expanded(
-                  child: PrimaryButtonWidget(
-                    text: booked ? 'Booked' : 'Pre-book',
-                    onPress: onPreBook,
-                    // Can't pre-book a station with no usable connector, or one
-                    // already booked this session.
-                    isEnabled: !booked && _hasUsableConnector,
-                    buttonWidth: double.infinity,
-                    buttonHeight: 38.h,
-                    cornerRadius: 8.r,
-                    buttonColor: ui.cardBackground,
-                    strokeColor: ui.inputBorder,
-                    textColor: ui.textPrimary,
-                    fontSize: FontSizes.font10Sp,
-                    fontWeight: FontWeights.weight600,
+                  8.horizontalSpace,
+                  Expanded(
+                    child: PrimaryButtonWidget(
+                      text: booked ? 'Booked' : 'Pre-book',
+                      onPress: onPreBook,
+                      // Can't pre-book a station with no usable connector, or one
+                      // already booked this session.
+                      isEnabled: !booked && _hasUsableConnector,
+                      buttonWidth: double.infinity,
+                      buttonHeight: 38.h,
+                      cornerRadius: 8.r,
+                      buttonColor: ui.cardBackground,
+                      strokeColor: ui.inputBorder,
+                      textColor: ui.textPrimary,
+                      fontSize: FontSizes.font10Sp,
+                      fontWeight: FontWeights.weight600,
+                    ),
                   ),
-                ),
-              ],
-            ),
-            8.verticalSpace,
+                ],
+              ),
+              8.verticalSpace,
+            ],
             // Stays enabled for booked stops — you still need to get there.
             PrimaryButtonWidget(
               text: 'Navigate',

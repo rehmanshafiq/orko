@@ -28,6 +28,7 @@ class TripStopEntity extends Equatable {
     this.distanceFromRouteKm,
     this.distanceFromPreviousStopKm,
     this.amenities = const [],
+    this.isThirdParty = false,
   });
 
   final int sequence;
@@ -58,6 +59,10 @@ class TripStopEntity extends Equatable {
   /// Amenities available at the stop, e.g. `['Wifi', 'Air Conditioner']`.
   final List<String> amenities;
 
+  /// True when the station is operated by a third party (`is_third_party` key) —
+  /// the View Details and Pre-book actions are hidden for these stops.
+  final bool isThirdParty;
+
   @override
   List<Object?> get props => [
         sequence,
@@ -79,5 +84,6 @@ class TripStopEntity extends Equatable {
         chargingMinutes,
         cost,
         amenities,
+        isThirdParty,
       ];
 }

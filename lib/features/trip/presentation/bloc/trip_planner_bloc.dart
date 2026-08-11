@@ -669,6 +669,7 @@ class TripPlannerBloc extends Bloc<TripPlannerEvent, TripPlannerState> {
           costPkr: s.cost.round(),
           distanceFromPreviousStopKm: s.distanceFromPreviousStopKm,
           amenities: s.amenities,
+          isThirdParty: s.isThirdParty,
         ),
       );
     }

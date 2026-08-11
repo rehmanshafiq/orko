@@ -22,6 +22,7 @@ class ChargingStationDetailModel extends ChargingStationDetailEntity {
     required super.reviews,
     super.addressGuide,
     super.isClosed,
+    super.isThirdParty,
     super.bannerImage,
     super.operatingHours,
   });
@@ -35,6 +36,7 @@ class ChargingStationDetailModel extends ChargingStationDetailEntity {
       name: (json['name'] ?? '').toString(),
       status: json['status'] == true,
       isClosed: json['is_closed'] == true,
+      isThirdParty: json['is_third_party'] == true,
       bannerImage: _asNullableUrl(json['banner_image']),
       address: (json['address'] ?? '').toString(),
       addressGuide: json['address_guide']?.toString(),

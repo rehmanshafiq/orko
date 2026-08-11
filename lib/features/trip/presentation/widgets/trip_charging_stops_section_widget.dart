@@ -82,6 +82,7 @@ class TripChargingStopsSectionWidget extends StatelessWidget {
                         onNavigate: () => onNavigate(i),
                         formatPkr: formatPkr,
                         booked: bookedStationIds.contains(plan!.stops[i].id),
+                        isThirdParty: plan!.chargeInfo[i].isThirdParty,
                       ),
                     ),
                   ],
