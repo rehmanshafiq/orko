@@ -28,6 +28,8 @@ class ChargingStationMetaRowWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final ui = AppUiColors.of(context);
     final distanceText = AppHelpers.formatDistanceKm(station.distance);
+    // Hide the distance chip when there's no meaningful distance (null/0/'—').
+    final hasDistance = distanceText.isNotEmpty && distanceText != '—';
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
@@ -61,13 +63,14 @@ class ChargingStationMetaRowWidget extends StatelessWidget {
                   ),
                 ],
               ),
-              ChargingStationMetaItemWidget(
-                icon: Icons.location_on_rounded,
-                text: distanceText,
-                iconColor: AppColors.mapPinBlueColor,
-                textColor: AppColors.mapPinBlueColor,
-                textFontWeight: FontWeights.weight600,
-              ),
+              if (hasDistance)
+                ChargingStationMetaItemWidget(
+                  icon: Icons.location_on_rounded,
+                  text: distanceText,
+                  iconColor: AppColors.mapPinBlueColor,
+                  textColor: AppColors.mapPinBlueColor,
+                  textFontWeight: FontWeights.weight600,
+                ),
             ],
           ),
         ),

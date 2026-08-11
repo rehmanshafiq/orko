@@ -310,7 +310,24 @@ class ChargingStationDetailBloc
     return buffer.toString().trim();
   }
 
+  /// Formats a contact string that may contain multiple numbers. The API
+  /// separates numbers with a newline (`\n`); each line is normalised on its
+  /// own so the newline is preserved and the numbers render on separate lines.
+  /// This lets the backend control how many numbers show — and their line
+  /// breaks — without requiring a new app build.
   String _formatContactNumber(String raw) {
+    // The backend may send a real newline (0x0A) OR the literal two-character
+    // sequence `\n`. Normalise the literal form to a real newline first, then
+    // split so each number lands on its own line either way.
+    final normalised = raw.replaceAll(r'\n', '\n').replaceAll(r'\r', '\n');
+    return normalised
+        .split(RegExp(r'[\r\n]+'))
+        .map(_normaliseSingleNumber)
+        .where((n) => n.isNotEmpty)
+        .join('\n');
+  }
+
+  String _normaliseSingleNumber(String raw) {
     final digits = raw.replaceAll(RegExp(r'\D'), '');
     if (digits.isEmpty) return '';
     if (digits.startsWith('0')) return digits;
