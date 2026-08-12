@@ -164,16 +164,8 @@ class SearchMobileView extends StatelessWidget {
     return widgets;
   }
 
-  /// Card title from the API `area`/`city`, e.g. `HGL – F11, Islamabad`.
-  /// Empty when neither is provided (the card then falls back to the name).
-  String _stationLocationLabel(StationResultEntity station) {
-    final parts = [station.area, station.city].where((s) => s.isNotEmpty);
-    if (parts.isEmpty) return '';
-    return 'HGL – ${parts.join(', ')}';
-  }
-
   Widget _stationCard(BuildContext context, StationResultEntity station) {
-    final locationLabel = _stationLocationLabel(station);
+    final locationLabel = station.displayName;
     return StationCardWidget(
       title: locationLabel.isNotEmpty ? locationLabel : station.name,
       subtitle: locationLabel.isNotEmpty ? station.name : station.subtitle,

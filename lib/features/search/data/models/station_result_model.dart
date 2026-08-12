@@ -6,6 +6,7 @@ class StationResultModel extends StationResultEntity {
   const StationResultModel({
     required super.id,
     required super.name,
+    super.displayName,
     super.subtitle,
     super.area,
     super.city,
@@ -31,6 +32,7 @@ class StationResultModel extends StationResultEntity {
     return StationResultModel(
       id: _asInt(json['location_id']),
       name: (json['name'] ?? '').toString().trim(),
+      displayName: (json['display_name'] ?? '').toString().trim(),
       subtitle: (json['parent_company'] ?? '').toString().trim(),
       area: (json['area'] ?? '').toString().trim(),
       city: (json['city'] ?? '').toString().trim(),
@@ -55,6 +57,7 @@ class StationResultModel extends StationResultEntity {
     return StationResultModel(
       id: _asInt(json['id']),
       name: (json['name'] ?? '').toString().trim(),
+      displayName: (json['display_name'] ?? '').toString().trim(),
       subtitle: (json['city'] ?? '').toString().trim(),
       area: (json['area'] ?? '').toString().trim(),
       city: (json['city'] ?? '').toString().trim(),

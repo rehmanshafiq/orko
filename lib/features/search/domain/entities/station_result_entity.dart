@@ -12,6 +12,7 @@ class StationResultEntity extends Equatable {
   const StationResultEntity({
     required this.id,
     required this.name,
+    this.displayName = '',
     this.subtitle = '',
     this.area = '',
     this.city = '',
@@ -30,6 +31,10 @@ class StationResultEntity extends Equatable {
   /// `location_id` (search) or `id` (popular). 0 when unknown.
   final int id;
   final String name;
+
+  /// Location label from the API `display_name` key, e.g.
+  /// `HGL – F11, Islamabad`. Empty when not provided.
+  final String displayName;
 
   /// Secondary line: parent company (search) or city (popular).
   final String subtitle;
@@ -103,6 +108,7 @@ class StationResultEntity extends Equatable {
   List<Object?> get props => [
         id,
         name,
+        displayName,
         subtitle,
         area,
         city,
