@@ -208,8 +208,25 @@ String _formatTime(String hhmmss) {
   return '$hours12:${minutes.toString().padLeft(2, '0')} $period';
 }
 
+/// Minutes since midnight for `"HH:mm[:ss]"`, or null if unparseable.
+int? _minutesOfDay(String hhmmss) {
+  final value = hhmmss.trim();
+  if (value.isEmpty) return null;
+  final parts = value.split(':');
+  final hours = int.tryParse(parts[0]);
+  if (hours == null) return null;
+  final minutes = parts.length > 1 ? int.tryParse(parts[1]) ?? 0 : 0;
+  return hours * 60 + minutes;
+}
+
 /// `"12:30 pm – 11:00 pm"`; empty when neither time is parseable.
+/// A full-day range (12:00 am → 11:59 pm) collapses to `"24 hrs"`.
 String _range(String opening, String closing) {
+  final openMinutes = _minutesOfDay(opening);
+  final closeMinutes = _minutesOfDay(closing);
+  // 12:00 am (0) to 11:59 pm (23*60 + 59 = 1439) means open all day.
+  if (openMinutes == 0 && closeMinutes == 1439) return '24 hrs';
+
   final open = _formatTime(opening);
   final close = _formatTime(closing);
   if (open.isEmpty && close.isEmpty) return '';
