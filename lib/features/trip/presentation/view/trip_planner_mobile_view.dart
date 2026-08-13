@@ -679,14 +679,19 @@ class _TripPlannerMobileViewState extends State<TripPlannerMobileView> {
                               formatPkr: bloc.formatPkr,
                             ),
                           ),
-                          16.verticalSpace,
-                          const TripSectionTitleWidget(text: 'Trip Summary'),
-                          8.verticalSpace,
-                          TripSummaryCardWidget(
-                            plan: state.currentPlan,
-                            formatDuration: bloc.formatDuration,
-                            formatPkr: bloc.formatPkr,
-                          ),
+                          // Hidden when the trip is infeasible (the warning
+                          // banner is showing) — a partial route has no
+                          // meaningful trip summary.
+                          if (state.feasible != false) ...[
+                            16.verticalSpace,
+                            const TripSectionTitleWidget(text: 'Trip Summary'),
+                            8.verticalSpace,
+                            TripSummaryCardWidget(
+                              plan: state.currentPlan,
+                              formatDuration: bloc.formatDuration,
+                              formatPkr: bloc.formatPkr,
+                            ),
+                          ],
                         ] else ...[
                           // Optimized plan found no usable charging stops — the
                           // All Stops tab still lists every charger on the way.
