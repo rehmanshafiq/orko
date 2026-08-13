@@ -809,50 +809,54 @@ class _TripPlannerMobileViewState extends State<TripPlannerMobileView> {
                             ),
                           ),
                         ),
-                        12.verticalSpace,
-                        // Opens Google Maps with the whole trip as one journey —
-                        // every suggested stop mapped as a waypoint on the route.
-                        // Outlined style matches the Directions button on the
-                        // charging station detail screen.
-                        SizedBox(
-                          height: 38.h,
-                          width: double.infinity,
-                          child: OutlinedButton(
-                            onPressed: () => _onStartJourney(context, state),
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: ui.textPrimary,
-                              padding: EdgeInsets.symmetric(horizontal: 12.w),
-                              minimumSize: Size.zero,
-                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(32.r),
-                              ),
-                            ).copyWith(
-                              // Click feedback: the outline turns brand-primary
-                              // while the button is pressed.
-                              side: WidgetStateProperty.resolveWith(
-                                (states) => BorderSide(
-                                  color: states.contains(WidgetState.pressed)
-                                      ? ui.brandPrimary
-                                      : ui.textPrimary.withValues(alpha: 0.85),
+                        // Start Journey routes through the recommended stops, so
+                        // it's hidden when there are no recommended stops.
+                        if (hasStops) ...[
+                          12.verticalSpace,
+                          // Opens Google Maps with the whole trip as one journey —
+                          // every suggested stop mapped as a waypoint on the route.
+                          // Outlined style matches the Directions button on the
+                          // charging station detail screen.
+                          SizedBox(
+                            height: 38.h,
+                            width: double.infinity,
+                            child: OutlinedButton(
+                              onPressed: () => _onStartJourney(context, state),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: ui.textPrimary,
+                                padding: EdgeInsets.symmetric(horizontal: 12.w),
+                                minimumSize: Size.zero,
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(32.r),
+                                ),
+                              ).copyWith(
+                                // Click feedback: the outline turns brand-primary
+                                // while the button is pressed.
+                                side: WidgetStateProperty.resolveWith(
+                                  (states) => BorderSide(
+                                    color: states.contains(WidgetState.pressed)
+                                        ? ui.brandPrimary
+                                        : ui.textPrimary.withValues(alpha: 0.85),
+                                  ),
                                 ),
                               ),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.navigation_rounded, size: 18.r),
-                                8.horizontalSpace,
-                                AppText(
-                                  'Start Journey',
-                                  color: ui.textPrimary,
-                                  fontSize: FontSizes.font14Sp,
-                                  fontWeight: FontWeights.weight600,
-                                ),
-                              ],
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.navigation_rounded, size: 18.r),
+                                  8.horizontalSpace,
+                                  AppText(
+                                    'Start Journey',
+                                    color: ui.textPrimary,
+                                    fontSize: FontSizes.font14Sp,
+                                    fontWeight: FontWeights.weight600,
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
-                        ),
+                        ],
                         22.verticalSpace,
                       ] else ...[
                         // All Stops is a browse view; the plan actions belong
