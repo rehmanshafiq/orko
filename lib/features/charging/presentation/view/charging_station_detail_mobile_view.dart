@@ -90,7 +90,7 @@ class ChargingStationDetailMobileView extends StatelessWidget {
           // trip planner (both suggested and all-stops carry it on `address`).
           final subtext = hub.displayName.trim().isNotEmpty
               ? hub.displayName.trim()
-              : hub.address.trim();
+              : "HGL - ${hub.area.trim()}, ${hub.city.trim()}";
 
           return Scaffold(
             backgroundColor: ui.scaffoldBackground,
