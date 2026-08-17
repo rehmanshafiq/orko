@@ -85,12 +85,20 @@ class ChargingStationDetailMobileView extends StatelessWidget {
           final availableCount = state.ports.where((p) => p.available).length;
           final totalPorts = state.ports.length;
           final stationName = state.name.isNotEmpty ? state.name : hub.name;
-          // Subtext under the title: the map's `display_name` when opened from
-          // the map, or the trip stop's `location_address` when opened from the
-          // trip planner (both suggested and all-stops carry it on `address`).
-          final subtext = hub.displayName.trim().isNotEmpty
-              ? hub.displayName.trim()
-              : "HGL - ${hub.area.trim()}, ${hub.city.trim()}";
+          // Subtitle under the title, sourced from the entity that opened this
+          // screen:
+          //  • Map  → `display_name`; hidden when it just repeats the loaded
+          //    title (the map's display name can equal the API name).
+          //  • Trip → the stop's `location_name`, always shown when present.
+          String subtext;
+          if (hub.displayName.trim().isNotEmpty) {
+            final displayName = hub.displayName.trim();
+            subtext = displayName.toLowerCase() == stationName.trim().toLowerCase()
+                ? ''
+                : displayName;
+          } else {
+            subtext = hub.name.trim();
+          }
 
           return Scaffold(
             backgroundColor: ui.scaffoldBackground,
@@ -199,20 +207,18 @@ class ChargingStationDetailMobileView extends StatelessWidget {
                               children: [
                                 16.verticalSpace,
                                 AppText(
-                                  stationName,
+                                  subtext,
                                   color: ui.textPrimary,
                                   fontSize: FontSizes.font26Sp,
                                   fontWeight: FontWeights.weight700,
                                 ),
-                                if (subtext.isNotEmpty) ...[
-                                  4.verticalSpace,
-                                  AppText(
-                                    subtext,
-                                    color: ui.textSecondary,
-                                    fontSize: FontSizes.font14Sp,
-                                    fontWeight: FontWeights.weight400,
-                                  ),
-                                ],
+                                4.verticalSpace,
+                                AppText(
+                                  stationName,
+                                  color: ui.textSecondary,
+                                  fontSize: FontSizes.font14Sp,
+                                  fontWeight: FontWeights.weight400,
+                                ),
                                 6.verticalSpace,
                                 ChargingStationMetaRowWidget(
                                   station: hub,
