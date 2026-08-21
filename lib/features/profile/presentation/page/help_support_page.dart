@@ -51,19 +51,19 @@ class HelpSupportPage extends StatelessWidget {
                     AccountTile(
                       icon: Icons.help_outline_rounded,
                       label: 'FAQs',
-                      // onTap: () => Navigator.of(context).push(
-                      //   MaterialPageRoute<void>(
-                      //     builder: (_) => const FaqPage(),
-                      //   ),
-                      // ),
-                      onTap: () {
-                        Fluttertoast.showToast(
-                          msg: 'Coming soon',
-                          toastLength: Toast.LENGTH_SHORT,
-                          gravity: ToastGravity.BOTTOM,
-                        );
-                        return;
-                      },
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => const FaqPage(),
+                        ),
+                      ),
+                      // onTap: () {
+                      //   Fluttertoast.showToast(
+                      //     msg: 'Coming soon',
+                      //     toastLength: Toast.LENGTH_SHORT,
+                      //     gravity: ToastGravity.BOTTOM,
+                      //   );
+                      //   return;
+                      // },
                     ),
                     const DividerLine(),
                     AccountTile(

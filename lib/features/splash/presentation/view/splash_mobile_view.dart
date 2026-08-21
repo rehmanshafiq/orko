@@ -78,10 +78,10 @@ class _SplashMobileViewState extends State<SplashMobileView>
     if (!mounted || _hasNavigated) return;
 
     _hasNavigated = true;
-    // if (!AppStorage.isOnboardingCompleted) {
-    //   AppNavigations.navigateToOnBoarding(context);
-    //   return;
-    // }
+    if (!AppStorage.isOnboardingCompleted) {
+      AppNavigations.navigateToOnBoarding(context);
+      return;
+    }
 
     // A real cached session, or an explicit guest choice, both land on home.
     if (userBloc.state is UserLoaded || AppStorage.isGuest) {
