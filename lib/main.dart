@@ -60,6 +60,14 @@ Future<void> main() async {
     liveCharging.initialize().then((_) => liveCharging.checkOnLaunch()),
   );
 
+  // Draw behind the status and navigation bars (edge-to-edge). Android 15+
+  // (targetSdk 35+) enforces this at the OS level, but enabling it here opts
+  // every Android version in consistently — the fix for Play Console's
+  // "Edge-to-edge may not display for all users" advisory. Content stays clear
+  // of the system bars because screens already wrap their bodies in SafeArea,
+  // and Material AppBars manage status-bar icon contrast automatically.
+  await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+
   // Lock orientation to portrait
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
