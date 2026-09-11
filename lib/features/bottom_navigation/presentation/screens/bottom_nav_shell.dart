@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
+import 'package:orko_hubco/core/constants/app_images.dart';
 import 'package:orko_hubco/core/utils/app_ui.dart';
 
 /// Shell screen that wraps the bottom navigation bar.
@@ -74,8 +75,9 @@ class BottomNavShell extends StatelessWidget {
                     isActive: navigationShell.currentIndex == 2,
                     onTap: () => _onTapBranch(2),
                   ),
-                  // Gap under the pinched "neck" of the bar outline.
-                  SizedBox(width: _NavBarBackgroundPainter.centerGap),
+                  // Centered, illuminated HUBCO green emblem. Purely
+                  // decorative — it is the brand emblem and does not route.
+                  _buildCenterLogo(context: context),
                   _buildNavItem(
                     context: context,
                     icon: Icons.alt_route_rounded,
@@ -154,10 +156,35 @@ class BottomNavShell extends StatelessWidget {
       ),
     );
   }
+
+  /// The centered HGL emblem: the original, full-colour HUBCO green wordmark,
+  /// shown plainly (no circle, background, border or glow) so it never reads as
+  /// a button. Both themes use tightly-cropped wordmarks sized to the same
+  /// height, so the logo looks the same size in light and dark — the dark asset
+  /// is transparent, and the light asset's white backdrop blends into the (also
+  /// white) light nav bar. Decorative only — it never routes.
+  Widget _buildCenterLogo({required BuildContext context}) {
+    final ui = AppUiColors.of(context);
+    final String logo =
+        ui.isLight ? AppImages.hubcoWordmarkLight : AppImages.hubcoWordmarkDark;
+
+    return Semantics(
+      label: 'HUBCO green',
+      image: true,
+      child: Center(
+        child: Image.asset(
+          logo,
+          height: 32.r,
+          fit: BoxFit.fitHeight,
+          filterQuality: FilterQuality.high,
+        ),
+      ),
+    );
+  }
 }
 
-/// Paints the nav bar background: two capsule lobes joined by a smooth
-/// concave "neck" at the horizontal center, matching the gooey pill design.
+/// Paints the nav bar background: a straight-edged rounded rectangle (gently
+/// softened corners, not a curved capsule).
 class _NavBarBackgroundPainter extends CustomPainter {
   final Color fill;
   final Color border;
@@ -168,16 +195,6 @@ class _NavBarBackgroundPainter extends CustomPainter {
     required this.border,
     required this.shadow,
   });
-
-  /// Total width of the pinched neck region at the bar's center.
-  static double get neckWidth => 56.w;
-
-  /// Spacer between the two icon pairs — narrower than the neck itself so the
-  /// groups sit closer together while the curve keeps its full sweep.
-  static double get centerGap => 36.w;
-
-  /// How far the top/bottom edges dip inward at the center.
-  static double get _neckDepth => 16.h;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -202,30 +219,12 @@ class _NavBarBackgroundPainter extends CustomPainter {
   }
 
   Path _buildPath(Size size) {
-    final w = size.width;
-    final h = size.height;
-    final r = h / 2;
-    final cx = w / 2;
-    final nw = neckWidth / 2;
-    final nd = _neckDepth;
-
+    // Straight vertical/horizontal edges with only a small corner radius, so
+    // the bar reads as a rectangle rather than a rounded capsule.
     return Path()
-      // Top edge, left lobe → neck dip → right lobe.
-      ..moveTo(r, 0)
-      ..lineTo(cx - nw, 0)
-      ..cubicTo(cx - nw * 0.45, 0, cx - nw * 0.55, nd, cx, nd)
-      ..cubicTo(cx + nw * 0.55, nd, cx + nw * 0.45, 0, cx + nw, 0)
-      ..lineTo(w - r, 0)
-      // Right rounded cap.
-      ..arcToPoint(Offset(w - r, h), radius: Radius.circular(r))
-      // Bottom edge, mirrored neck dip.
-      ..lineTo(cx + nw, h)
-      ..cubicTo(cx + nw * 0.45, h, cx + nw * 0.55, h - nd, cx, h - nd)
-      ..cubicTo(cx - nw * 0.55, h - nd, cx - nw * 0.45, h, cx - nw, h)
-      ..lineTo(r, h)
-      // Left rounded cap.
-      ..arcToPoint(Offset(r, 0), radius: Radius.circular(r))
-      ..close();
+      ..addRRect(
+        RRect.fromRectAndRadius(Offset.zero & size, const Radius.circular(40)),
+      );
   }
 
   @override

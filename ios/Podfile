@@ -41,11 +41,15 @@ post_install do |installer|
     flutter_additional_ios_build_settings(target)
 
     # permission_handler strips each permission's native implementation
-    # behind a `#if PERMISSION_X` guard unless explicitly enabled here.
-    # Notifications is the one this app actually requests.
+    # behind a `#if PERMISSION_X` guard (defaulting to 0) unless explicitly
+    # enabled here. This app requests notifications and camera (profile photo
+    # in profile_header.dart, QR scanning in barcode_scanner_service.dart);
+    # without PERMISSION_CAMERA=1 the camera strategy is compiled out and the
+    # iOS permission prompt never appears on a fresh install.
     target.build_configurations.each do |config|
       config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] ||= ['$(inherited)']
       config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] << 'PERMISSION_NOTIFICATIONS=1'
+      config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] << 'PERMISSION_CAMERA=1'
     end
 
     # Force every pod to match the Podfile platform. Recent Firebase pods

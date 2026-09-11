@@ -1,0 +1,633 @@
+<title>HUBCO App Atlas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<style>
+  :root {
+    /* light palette (green-biased neutrals) */
+    --bg: #F4F6F1;
+    --panel: #FFFFFF;
+    --panel-2: #EFF2EC;
+    --ink: #1A211C;
+    --muted: #5C665D;
+    --faint: #8A948B;
+    --line: #E0E6DD;
+    --line-strong: #CFD7CC;
+    --accent: #329748;        /* brand dark green (fills) */
+    --accent-ink: #237038;    /* readable green text on light */
+    --accent-bright: #6FAF2E; /* lime, used sparingly */
+    --accent-soft: #E6F1E2;   /* tinted chip bg */
+    --shadow: 0 1px 2px rgba(20,40,25,.05), 0 8px 24px rgba(20,40,25,.06);
+    --code-bg: #F2F4EE;
+    --code-ink: #2C5E3A;
+    --frame: #E9ECE6;
+    --frame-line: #CBD3C7;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #131614;
+      --panel: #1D211E;
+      --panel-2: #262b27;
+      --ink: #E9EDE6;
+      --muted: #9BA79C;
+      --faint: #6E7A6F;
+      --line: #2A302B;
+      --line-strong: #3A423B;
+      --accent: #3FA857;
+      --accent-ink: #8FCF4D;
+      --accent-bright: #8FCF4D;
+      --accent-soft: #1E2C21;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 30px rgba(0,0,0,.35);
+      --code-bg: #171C18;
+      --code-ink: #9AD37A;
+      --frame: #181C19;
+      --frame-line: #333B34;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #131614;
+    --panel: #1D211E;
+    --panel-2: #262b27;
+    --ink: #E9EDE6;
+    --muted: #9BA79C;
+    --faint: #6E7A6F;
+    --line: #2A302B;
+    --line-strong: #3A423B;
+    --accent: #3FA857;
+    --accent-ink: #8FCF4D;
+    --accent-bright: #8FCF4D;
+    --accent-soft: #1E2C21;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 30px rgba(0,0,0,.35);
+    --code-bg: #171C18;
+    --code-ink: #9AD37A;
+    --frame: #181C19;
+    --frame-line: #333B34;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; scroll-padding-top: 84px; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Lexend", system-ui, -apple-system, sans-serif;
+    font-weight: 400;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: inherit; }
+  code, .mono { font-family: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace; }
+
+  /* ---------- top bar ---------- */
+  .topbar {
+    position: sticky; top: 0; z-index: 50;
+    background: color-mix(in srgb, var(--bg) 86%, transparent);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line);
+  }
+  .topbar-inner {
+    max-width: 1180px; margin: 0 auto; padding: 10px 24px;
+    display: flex; align-items: center; gap: 16px;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: -.01em; }
+  .brand .dot { width: 22px; height: 22px; border-radius: 7px; background: linear-gradient(150deg, var(--accent-bright), var(--accent)); box-shadow: inset 0 0 0 1px rgba(255,255,255,.15); flex: none; }
+  .navchips { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: thin; margin-left: auto; }
+  .navchips::-webkit-scrollbar { height: 5px; }
+  .navchips::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 3px; }
+  .navchips a {
+    text-decoration: none; white-space: nowrap; font-size: 12.5px; color: var(--muted);
+    padding: 6px 11px; border-radius: 999px; font-weight: 500;
+  }
+  .navchips a:hover { color: var(--ink); background: var(--panel-2); }
+  .themebtn {
+    flex: none; border: 1px solid var(--line-strong); background: var(--panel); color: var(--muted);
+    width: 34px; height: 34px; border-radius: 9px; cursor: pointer; font-size: 15px; display: grid; place-items: center;
+  }
+  .themebtn:hover { color: var(--ink); border-color: var(--accent); }
+
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 24px; }
+
+  /* ---------- hero ---------- */
+  .hero { padding: 68px 0 44px; border-bottom: 1px solid var(--line); }
+  .eyebrow {
+    font-family: "JetBrains Mono", monospace; font-size: 12px; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--accent-ink); font-weight: 500; margin-bottom: 18px;
+  }
+  .hero h1 {
+    font-size: clamp(34px, 6vw, 60px); line-height: 1.02; letter-spacing: -.03em; font-weight: 700;
+    margin: 0 0 18px; text-wrap: balance; max-width: 16ch;
+  }
+  .hero p.lede { font-size: clamp(16px, 2.2vw, 19px); color: var(--muted); max-width: 62ch; margin: 0 0 30px; }
+  .statrow { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 26px; }
+  .stat {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 14px 18px;
+    min-width: 118px; box-shadow: var(--shadow);
+  }
+  .stat b { display: block; font-size: 26px; font-weight: 700; letter-spacing: -.02em; line-height: 1; font-variant-numeric: tabular-nums; }
+  .stat span { font-size: 12.5px; color: var(--muted); }
+  .stack { display: flex; flex-wrap: wrap; gap: 7px; }
+  .tech {
+    font-family: "JetBrains Mono", monospace; font-size: 11.5px; color: var(--muted);
+    border: 1px solid var(--line); border-radius: 7px; padding: 4px 9px; background: var(--panel);
+  }
+  .tech b { color: var(--accent-ink); font-weight: 600; }
+
+  /* ---------- callout ---------- */
+  .callout {
+    display: flex; gap: 13px; align-items: flex-start;
+    background: var(--accent-soft); border: 1px solid color-mix(in srgb, var(--accent) 25%, var(--line));
+    border-radius: 14px; padding: 16px 18px; margin: 34px 0 0; font-size: 14px;
+  }
+  .callout svg { flex: none; margin-top: 2px; color: var(--accent-ink); }
+  .callout b { color: var(--ink); }
+  .callout span { color: var(--muted); }
+  .callout code { background: color-mix(in srgb, var(--accent) 12%, transparent); color: var(--accent-ink); padding: 1px 6px; border-radius: 5px; font-size: 12.5px; }
+
+  /* ---------- section scaffolding ---------- */
+  section.mod { padding: 54px 0; border-bottom: 1px solid var(--line); scroll-margin-top: 76px; }
+  .mod-head { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; margin-bottom: 6px; }
+  .mod-idx { font-family: "JetBrains Mono", monospace; font-size: 13px; color: var(--accent-ink); font-weight: 500; }
+  .mod-head h2 { font-size: clamp(24px, 3.4vw, 33px); letter-spacing: -.02em; font-weight: 700; margin: 0; }
+  .mod-dir { font-family: "JetBrains Mono", monospace; font-size: 12.5px; color: var(--faint); }
+  .mod-purpose { color: var(--muted); max-width: 74ch; margin: 10px 0 30px; font-size: 15px; }
+
+  .subhead {
+    font-family: "JetBrains Mono", monospace; font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--faint); font-weight: 600; margin: 30px 0 16px; display: flex; align-items: center; gap: 10px;
+  }
+  .subhead::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+
+  /* ---------- screen cards ---------- */
+  .screens { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 18px; }
+  .screen {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 16px; overflow: hidden;
+    box-shadow: var(--shadow); display: flex; flex-direction: column;
+  }
+  .shot {
+    position: relative; aspect-ratio: 9 / 16; background: var(--frame);
+    display: grid; place-items: center; border-bottom: 1px solid var(--line);
+    background-image:
+      linear-gradient(color-mix(in srgb, var(--frame-line) 40%, transparent) 1px, transparent 1px),
+      linear-gradient(90deg, color-mix(in srgb, var(--frame-line) 40%, transparent) 1px, transparent 1px);
+    background-size: 22px 22px;
+  }
+  .shot .ph { text-align: center; color: var(--faint); padding: 10px; }
+  .shot .ph svg { opacity: .7; }
+  .shot .ph div { font-family: "JetBrains Mono", monospace; font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; margin-top: 8px; }
+  .shot .tag {
+    position: absolute; top: 10px; left: 10px; font-family: "JetBrains Mono", monospace; font-size: 10px;
+    background: color-mix(in srgb, var(--accent) 90%, black); color: #fff; padding: 3px 8px; border-radius: 6px; letter-spacing: .04em;
+  }
+  .shot .tag.sheet { background: var(--panel-2); color: var(--accent-ink); border: 1px solid var(--line-strong); }
+  .screen-body { padding: 13px 15px 16px; display: flex; flex-direction: column; gap: 7px; flex: 1; }
+  .screen-body h4 { margin: 0; font-size: 15px; font-weight: 600; letter-spacing: -.01em; }
+  .screen-body .path {
+    font-family: "JetBrains Mono", monospace; font-size: 11px; color: var(--code-ink);
+    background: var(--code-bg); border-radius: 6px; padding: 5px 7px; word-break: break-all; line-height: 1.45;
+  }
+  .screen-body p { margin: 2px 0 0; font-size: 13px; color: var(--muted); line-height: 1.5; }
+
+  /* ---------- logic file table ---------- */
+  .files { border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background: var(--panel); }
+  .frow { display: grid; grid-template-columns: minmax(220px, 42%) 1fr; gap: 0; border-top: 1px solid var(--line); }
+  .frow:first-child { border-top: none; }
+  .frow .fp { font-family: "JetBrains Mono", monospace; font-size: 11.5px; color: var(--code-ink); padding: 11px 15px; word-break: break-all; border-right: 1px solid var(--line); background: color-mix(in srgb, var(--code-bg) 55%, var(--panel)); }
+  .frow .fd { padding: 11px 15px; font-size: 13.5px; color: var(--muted); }
+  @media (max-width: 620px) {
+    .frow { grid-template-columns: 1fr; }
+    .frow .fp { border-right: none; border-bottom: 1px dashed var(--line); }
+  }
+
+  .badge { font-family: "JetBrains Mono", monospace; font-size: 10.5px; padding: 2px 7px; border-radius: 6px; background: var(--accent-soft); color: var(--accent-ink); border: 1px solid color-mix(in srgb, var(--accent) 20%, var(--line)); font-weight: 500; }
+
+  /* ---------- architecture / routes ---------- */
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+  @media (max-width: 820px) { .grid2 { grid-template-columns: 1fr; } }
+  .card {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 22px; box-shadow: var(--shadow);
+  }
+  .card h3 { margin: 0 0 14px; font-size: 17px; font-weight: 600; letter-spacing: -.01em; }
+  .layer { display: flex; align-items: center; gap: 12px; padding: 9px 0; border-top: 1px dashed var(--line); font-size: 14px; }
+  .layer:first-of-type { border-top: none; }
+  .layer .k { font-family: "JetBrains Mono", monospace; font-size: 11.5px; color: #fff; background: var(--accent); padding: 3px 9px; border-radius: 6px; min-width: 92px; text-align: center; flex: none; }
+  .layer .k.d2 { background: color-mix(in srgb, var(--accent) 72%, var(--ink)); }
+  .layer .k.d3 { background: color-mix(in srgb, var(--accent) 46%, var(--ink)); }
+  .layer .k.d4 { background: var(--muted); }
+  .layer span { color: var(--muted); }
+  .routes { display: flex; flex-direction: column; gap: 2px; }
+  .route { display: flex; gap: 12px; align-items: baseline; padding: 7px 0; border-top: 1px dashed var(--line); font-size: 13.5px; }
+  .route:first-child { border-top: none; }
+  .route .r { font-family: "JetBrains Mono", monospace; font-size: 12px; color: var(--accent-ink); min-width: 150px; flex: none; }
+  .route span { color: var(--muted); }
+
+  footer { padding: 40px 0 70px; color: var(--faint); font-size: 13px; }
+  footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+  footer .mono { font-size: 12px; }
+
+  .toc-note { color: var(--muted); font-size: 14px; margin: 0 0 26px; }
+</style>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><span class="dot"></span> HUBCO&nbsp;Atlas</div>
+    <nav class="navchips" id="navchips"></nav>
+    <button class="themebtn" id="themebtn" title="Toggle light / dark" aria-label="Toggle theme">◐</button>
+  </div>
+</div>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow">Feature &amp; File Reference · orko_hubco</div>
+    <h1>The HUBCO EV-charging app, mapped end to end.</h1>
+    <p class="lede">A living atlas of every feature module, user-facing screen, and the Dart file behind it — for the <b>orko_hubco</b> Flutter app (HUBCO EV charging network). Each screen has a slot for its screenshot; drop one in when you have it.</p>
+    <div class="statrow" id="statrow"></div>
+    <div class="stack" id="stack"></div>
+    <div class="callout">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"/></svg>
+      <div><b>Screenshots pending.</b> <span>Every screen below shows a placeholder frame. To fill it, replace the frame's <code>.shot</code> block with an <code>&lt;img&gt;</code> of the capture — the file path underneath tells you exactly which screen it is.</span></div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap" id="app"></main>
+
+<footer>
+  <div class="wrap">
+    <span>HUBCO Atlas · generated from source · orko_hubco @ branch v1_fixes-27Aug</span>
+    <span class="mono">472 .dart files · 14 modules · clean architecture</span>
+  </div>
+</footer>
+
+<script>
+/* ---------------- data ---------------- */
+const STATS = [
+  ["14", "feature modules"],
+  ["472", "Dart files"],
+  ["~40", "screens & flows"],
+  ["73", "use cases"],
+  ["22", "blocs / cubits"],
+  ["110", "widgets"],
+];
+const STACK = [
+  ["Flutter", "3.x / Dart 3"], ["State", "flutter_bloc"], ["Routing", "go_router"],
+  ["Network", "Dio + cert pinning"], ["DI", "get_it"], ["Backend", "Firebase"],
+  ["Maps", "Google Maps + Places"], ["Push", "FCM + local notifs"], ["Auth", "Phone · Google · Apple · Guest"],
+  ["Storage", "GetStorage + Secure Store"],
+];
+
+/* module list. screens: [name, file, desc, kind]  kind: "screen" | "sheet"
+   logic: [file, desc] */
+const MODULES = [
+  {
+    id: "splash", idx: "01", name: "Splash", dir: "lib/features/splash",
+    purpose: "Shows the branded HUBCO logo with a zoom-out animation on launch, then decides where to route: it loads any cached session, checks onboarding / guest / auth state, refreshes the cached user in the background, and honours notification deep-links from a cold start.",
+    screens: [
+      ["Animated Splash", "presentation/view/splash_mobile_view.dart", "Centered animated logo (light/dark variant), no interaction. After ~2s routes to onboarding, home, or login.", "screen"],
+    ],
+    logic: [
+      ["presentation/page/splash_page.dart", "Thin page wrapper hosting the mobile view."],
+      ["(shared) core/global_bloc/bloc/user_bloc.dart", "Drives routing via OnLoadCustomerFromCache + GetUserUseCase + AppStorage flags."],
+    ],
+  },
+  {
+    id: "onboarding", idx: "02", name: "Onboarding", dir: "lib/features/onboarding",
+    purpose: "A first-run, swipeable slideshow that introduces the app over full-bleed image slides. The user can page through, skip, or finish; completing marks onboarding done and sends them to registration.",
+    screens: [
+      ["Onboarding Slides", "presentation/view/onboarding_mobile_view.dart", "Full-screen PageView with parallax slides, animated page indicator, Next / Create Account button and a Skip link → /register.", "screen"],
+    ],
+    logic: [
+      ["presentation/bloc/onboarding_cubit.dart", "OnboardingCubit — loads slide items, tracks index, persists completion."],
+      ["data/datasources/local/onboarding_local_datasource_impl.dart", "Supplies onboarding items and stores the completed flag locally."],
+      ["domain/usecases/…", "get_onboarding_items_usecase · complete_onboarding_usecase."],
+    ],
+  },
+  {
+    id: "auth", idx: "03", name: "Auth", dir: "lib/features/auth",
+    purpose: "Handles account creation and sign-in (phone/password, Google, Apple on iOS, and guest mode), OTP verification, and password reset. Drives navigation into the app on success and manages the guest flag.",
+    screens: [
+      ["Login", "presentation/screens/login_screen.dart", "Phone (+92) + password form, Forgot Password, Sign In, Google / Apple / Guest buttons, and a Sign Up link → /home on success.", "screen"],
+      ["Register", "presentation/screens/register_screen.dart", "Full name, phone, email, password (live strength meter) + confirm, terms checkbox, Continue → /verify-otp.", "screen"],
+      ["Verify OTP", "presentation/screens/verify_otp_screen.dart", "Six-box OTP entry with paste/backspace handling, Verify button, and a 2-minute resend countdown.", "screen"],
+      ["Forgot Password", "presentation/widgets/forgot_password_sheet.dart", "Modal 3-step flow: enter email → verify 6-digit OTP (resend timer) → set new password.", "sheet"],
+    ],
+    logic: [
+      ["presentation/cubit/auth_cubit.dart", "AuthCubit — login, social login (Google/Apple), sign-up, OTP verify/resend."],
+      ["presentation/cubit/forgot_password_cubit.dart", "ForgotPasswordCubit — request-OTP / verify-OTP / reset-password steps."],
+      ["data/datasources/remote/auth_remote_datasource_impl.dart", "Remote auth API calls."],
+      ["data/datasources/local/auth_local_datasource_impl.dart", "Token / user cache behind AuthRepositoryImpl."],
+    ],
+  },
+  {
+    id: "map", idx: "04", name: "Map / Home", dir: "lib/features/map",
+    purpose: "The home screen: a Google Map of Pakistan showing HUBCO stations as green (active) / grey (inactive) pins with custom clustering, plus a Nearby Stations sheet. Users browse, filter, jump to their location, open station detail, and reach notifications.",
+    screens: [
+      ["Home Map", "presentation/view/home_mobile_view.dart", "Clustered station markers, top action bar (count · filter · notification bell), my-location + zoom controls, collapsible nearby-stations sheet.", "screen"],
+      ["Filter Results", "presentation/view/filter_mobile_view.dart", "Results screen with a vertical results sheet; tapping a result pops back and focuses that station on the home map.", "screen"],
+      ["Filters", "presentation/widgets/map_filters_bottom_sheet.dart", "Modal sheet: city, power output, price range, amenities, available-now — sourced from the filter-options API.", "sheet"],
+    ],
+    logic: [
+      ["presentation/cubit/map_cubit.dart", "MapCubit — loads stations (nearest API), owns applied StationFilters, requests location permission."],
+      ["data/datasources/remote/map_remote_datasource.dart", "Nearest + filter-options APIs."],
+      ["data/datasources/local/map_local_datasource.dart", "Bundled asset fallback (assets/data/hubco_locations.json)."],
+      ["domain/usecases/…", "get_hubco_locations_usecase · get_filter_options_usecase."],
+    ],
+  },
+  {
+    id: "search", idx: "05", name: "Search", dir: "lib/features/search",
+    purpose: "Lets users search stations by text — showing recent searches and popular stations when idle, and live results while typing. Tapping a result records it and opens the station detail page.",
+    screens: [
+      ["Search", "presentation/view/search_mobile_view.dart", "Search bar over a list toggling idle mode (recent + popular) and results mode (loading / empty / error / station cards) → /station-detail.", "screen"],
+    ],
+    logic: [
+      ["presentation/cubit/search_cubit.dart", "SearchCubit — query state, results/popular status, recent-search list, records taps."],
+      ["data/datasources/remote/search_remote_datasource.dart", "Search + popular-stations API."],
+      ["data/datasources/local/search_local_datasource.dart", "Recent-search persistence."],
+    ],
+  },
+  {
+    id: "charging", idx: "06", name: "Charging", dir: "lib/features/charging",
+    purpose: "Lets a driver inspect a charging hub in depth (banner, ports, amenities, hours, pricing, contact, reviews) and act on it — favourite, get directions, or start a booking after a vehicle-compatibility check. Also renders the live in-progress session and the post-session summary.",
+    screens: [
+      ["Station Detail", "presentation/view/charging_station_detail_mobile_view.dart", "Stretchy banner app-bar with favourite, meta row (distance/availability/rating), charger ports, amenities, hours, pricing, contact, reviews, pinned book/directions bar.", "screen"],
+      ["Live Charging Status", "presentation/view/charging_status_mobile_view.dart", "Circular charge gauge with %/status, metrics grid, booked-slot target card with a live HH:MM:SS countdown; polls ~10s, embeds inside the Bookings Active tab.", "screen"],
+      ["Write / Edit Review", "presentation/widgets/station_review_editor_sheet.dart", "Bottom sheet: 1–5 star picker + length-capped description; returns a ReviewDraft.", "sheet"],
+      ["Compatibility Gate", "presentation/widgets/charger_compatibility_gate.dart", "Pre-booking orchestrator: resolves the user's vehicle, checks charger compatibility, then navigates to Book Slot (hard-blocks on mismatch).", "sheet"],
+    ],
+    logic: [
+      ["presentation/bloc/charging_station_detail_bloc.dart", "ChargingStationDetailBloc — station detail, ports/amenities, favourite toggle, port selection."],
+      ["presentation/cubit/charging_status_cubit.dart", "ChargingStatusCubit — polls & models the live session, exposes completion signal."],
+      ["presentation/cubit/station_reviews_cubit.dart", "StationReviewsCubit — load/add/update/delete reviews per location."],
+      ["data/datasources/remote/charging_remote_datasource.dart", "Station detail, favourites, reviews, charger-compatibility API."],
+    ],
+  },
+  {
+    id: "booking", idx: "07", name: "Booking", dir: "lib/features/booking",
+    purpose: "The full slot-booking funnel for a hub — pick date, connector/port and 30-minute time slot(s), confirm and pay — then a success / confirmation summary with a downloadable receipt. Also manages existing bookings (Upcoming / Active / History) with reschedule, cancel, QR-scan-to-start, and the finished-session summary.",
+    screens: [
+      ["Book a Slot", "presentation/mobile/book_slot_mobile_view.dart", "Station info card, charger/port selector, date selector, available time-slot grid (out-of-hours greyed), bottom summary card to proceed.", "screen"],
+      ["Payment Method", "presentation/screens/payment_method_screen.dart", "Payment-method selection with subtotal / service fee / total.", "screen"],
+      ["Booking Confirmation", "presentation/mobile/booking_confirmation_mobile_view.dart", "Post-payment summary (ref, station, slot, payment) with download-receipt and return-to-bookings/home.", "screen"],
+      ["Booking Success", "presentation/mobile/booking_success_mobile_view.dart", "Post-create success: dynamic summary card, grace-window release note, receipt download; close → Home or Trip.", "screen"],
+      ["My Bookings", "presentation/view/my_bookings_mobile_view.dart", "Tabbed: Upcoming (modify/reschedule/cancel/scan-QR), Active (embeds live status), History (past/cancelled/no-show → summary).", "screen"],
+      ["Session Summary", "presentation/view/session_summary_mobile_view.dart", "Finished-session summary: energy, carbon offset, duration, amount; optional pay buttons + receipt download.", "screen"],
+      ["Session Receipt", "presentation/mobile/charging_session_receipt_mobile_view.dart", "Receipt for a completed session (from history) mirroring success layout, with PDF download.", "screen"],
+      ["Reschedule", "presentation/widgets/reschedule_sheet.dart", "Bottom sheet: pick a new date + 1–2 consecutive 30-min slots for an existing booking.", "sheet"],
+    ],
+    logic: [
+      ["presentation/cubit/booking_cubit.dart", "BookingCubit — book-slot flow (load slots, select date/port/slot, create booking)."],
+      ["presentation/cubit/my_bookings_cubit.dart", "MyBookingsCubit — Upcoming/Active/History, poll live sessions, cancel/reschedule/QR-verify."],
+      ["presentation/cubit/session_summary_cubit.dart", "SessionSummaryCubit — loads a finished session's summary/details by id."],
+      ["data/datasources/remote/booking_remote_datasource_impl.dart", "Slots, create/cancel/reschedule, my-bookings, live/charge-session, verify-QR, receipt-download."],
+      ["presentation/booked_stations_session.dart", "BookedStationsSession — in-memory registry of session-booked location ids (read by Trip planner)."],
+    ],
+  },
+  {
+    id: "trip", idx: "08", name: "Trip Planner", dir: "lib/features/trip",
+    purpose: "An EV route planner: enter start & destination, pick a vehicle and current battery level, and the app computes an optimized route with recommended enroute charging stops (arrival/departure SoC, charging time, cost, distance). Users view chargers along the way, launch navigation, pre-book stops, and save/edit trips.",
+    screens: [
+      ["Trip Planner", "presentation/view/trip_planner_mobile_view.dart", "Start/destination fields, vehicle dropdown, EV details, current-battery slider, Plan Trip → route map, Recommended vs All Stops tabs, stop cards, summary, Save / Start Journey.", "screen"],
+      ["Saved Trips", "presentation/view/saved_trips_view.dart", "List of saved trips newest-first (from→to, distance, cost, stop count, infeasible pill) with pull-to-refresh.", "screen"],
+      ["Saved Trip Detail", "presentation/view/saved_trip_detail_view.dart", "Single trip: summary + per-stop cards; app-bar Edit (planner edit mode) and Delete (confirm).", "screen"],
+      ["Place Search", "presentation/widgets/place_search_sheet.dart", "Google Places autocomplete sheet for start/destination; start also offers Use my current location.", "sheet"],
+      ["PHEV Notice", "presentation/widgets/phev_notice_dialog.dart", "Popup on Plan Trip for plug-in hybrids (plan only counts electric range); continue to proceed.", "sheet"],
+    ],
+    logic: [
+      ["presentation/bloc/trip_planner_bloc.dart", "TripPlannerBloc — location/vehicle/battery selection, planning, map markers, tabs, all-stations fetch, save/edit, navigation."],
+      ["data/datasources/remote/trip_remote_datasource_impl.dart", "plan · save (/trips/) · list · detail · delete · edit."],
+      ["domain/usecases/…", "plan · save · edit · get_saved_trips · get_saved_trip_detail · delete_saved_trip."],
+    ],
+  },
+  {
+    id: "vehicle", idx: "09", name: "Vehicle Garage", dir: "lib/features/vehicle",
+    purpose: "Manages the user's EV garage — the make/model catalog and the user's saved vehicles (battery capacity, range, connector type) that the trip planner consumes. Add from the catalog, create custom makes/models, or delete. It has no standalone page; its UI surfaces inside Profile → Vehicles.",
+    screens: [
+      ["Add Vehicle", "../profile/presentation/widgets/add_vehicle_dialog.dart", "Dialog: make/model dropdowns from the catalog, inline Other custom-make/model forms (connector, battery kWh, mileage), required registration number.", "sheet"],
+      ["Vehicles Tab", "../profile/presentation/widgets/vehicles_tab_body.dart", "Add New Vehicle button + the user's vehicle list (loading/failure/empty); handles add and delete.", "screen"],
+    ],
+    logic: [
+      ["presentation/cubit/vehicle_cubit.dart", "VehicleCubit — loads vehicles/makes/models; creates custom makes/models; adds & deletes vehicles."],
+      ["data/datasources/remote/vehicle_remote_datasource_impl.dart", "getMakes · getModels · addVehicle · createCustomMake · createCustomModel · getUserVehicles · deleteVehicle."],
+      ["domain/usecases/…", "7 use cases wrapping each repository call."],
+    ],
+  },
+  {
+    id: "profile", idx: "10", name: "Profile & Account", dir: "lib/features/profile",
+    purpose: "The account hub: identity (avatar, name, email) and lifetime charging stats, the vehicle garage, and account settings — edit profile, change email, notifications, privacy policy, appearance (theme), help/support, logout and account deletion. Guests get a limited view and sign-in prompts.",
+    screens: [
+      ["Profile", "presentation/view/profile_mobile_view.dart", "Sticky header + body switching Profile / Vehicles / Settings tabs; charging-stats grid (sessions, kWh, saved, CO₂).", "screen"],
+      ["Edit Profile", "presentation/screens/edit_profile_screen.dart", "Edit full name and phone, read-only email with a Change action; saves via edit_user_profile.", "screen"],
+      ["Change Email", "presentation/screens/change_email_screen.dart", "Two-step OTP: enter new email (sends code) → verify 6-digit OTP with resend timer.", "screen"],
+      ["Settings Tab", "presentation/widgets/settings_tab_body.dart", "Appearance (Light/Dark) switcher + Account card (Edit Profile, Notifications, Privacy & Security webview, Help & Support), Logout & Delete Account.", "screen"],
+      ["Help & Support", "presentation/page/help_support_page.dart", "Hub with two rows: FAQs and Admin Support (guest-gated).", "screen"],
+      ["FAQs", "presentation/page/faq_page.dart", "Static list of collapsible question / answer cards.", "screen"],
+      ["Admin Support", "presentation/page/admin_support_page.dart", "Raise a ticket: backend-driven category, description, up to 5 image attachments (jpg/png <2MB).", "screen"],
+    ],
+    logic: [
+      ["presentation/cubit/profile_cubit.dart", "ProfileCubit — loaded profile placeholder + selected main tab."],
+      ["presentation/cubit/charging_stats_cubit.dart", "ChargingStatsCubit — loads lifetime charging stats for the grid."],
+      ["presentation/utils/profile_actions.dart", "Shared helpers — sign-out, open edit-profile, cached-user read/refresh, snackbars."],
+      ["data/datasources/remote/profile_remote_datasource.dart", "getChargingStats."],
+    ],
+  },
+  {
+    id: "notifications", idx: "11", name: "Notifications", dir: "lib/features/notifications",
+    purpose: "In-app notification center: fetch, paginate and display server-side notifications, track unread counts, mark read / clear. Also manages per-channel push preferences and FCM device-token registration.",
+    screens: [
+      ["Notifications", "presentation/page/notifications_page.dart", "List (newest first) with pull-to-refresh, infinite scroll, mark-one-read and mark-all-read.", "screen"],
+      ["Notification Preferences", "presentation/page/notification_preferences_page.dart", "Per-row toggles with optimistic update (revert on failure); sign-in prompt for guests.", "screen"],
+    ],
+    logic: [
+      ["presentation/cubit/notifications_cubit.dart", "NotificationsCubit — list loading/pagination, unread count, mark-read, mark-all, clear-all."],
+      ["presentation/cubit/notification_preferences_cubit.dart", "NotificationPreferencesCubit — loads & PATCHes preference toggles optimistically."],
+      ["data/datasources/remote/notification_remote_datasource_impl.dart", "List / unread-count / mark-all / clear / preferences / device-token (Remote-Config endpoints)."],
+    ],
+  },
+  {
+    id: "support", idx: "12", name: "Support", dir: "lib/features/support",
+    purpose: "Lets users submit support tickets to the backend with a category, description and image attachments. The category list is backend-driven; tickets post via multipart upload with client-side validation of file type/size/count. Its UI lives under Profile (Help & Support · Admin Support).",
+    screens: [
+      ["Admin Support Form", "../profile/presentation/page/admin_support_page.dart", "Category picker, description, image attachments; guarded by an auth-required dialog.", "screen"],
+    ],
+    logic: [
+      ["presentation/cubit/support_ticket_cubit.dart", "SupportTicketCubit — loads categories and submits tickets, tracking category/submit status separately."],
+      ["data/datasources/remote/support_remote_datasource.dart", "cvp_support_ticket_categories (list) · cvp_support_ticket (multipart create)."],
+    ],
+  },
+  {
+    id: "remote_config", idx: "13", name: "Remote Config", dir: "lib/features/remote_config",
+    purpose: "Resolves the app's runtime configuration (API base URL, endpoint paths, feature flags) via a strict multi-layer fallback: Firebase Remote Config → GetStorage cache → bundled asset. Never fails on a single transient layer; the resolved config is cached in-memory and consumed by nearly every feature's datasource. No screens of its own.",
+    screens: [],
+    logic: [
+      ["data/services/remote_config_service.dart", "Singleton 3-layer fallback (initialize), persists last-known-good, exposes static config accessor."],
+      ["presentation/bloc/remote_config_bloc.dart", "RemoteConfigBloc — resolves on RemoteConfigLoadRequested; errors only when all layers fail."],
+      ["data/models/remote_config_model.dart", "Typed model of api_constants (base URL, endpoint map, support/notification endpoints)."],
+    ],
+  },
+  {
+    id: "bottom_navigation", idx: "14", name: "Bottom Navigation", dir: "lib/features/bottom_navigation",
+    purpose: "The app's tab shell using go_router's StatefulShellRoute.indexedStack, preserving each tab's independent navigation stack. Hosts Map (home), Bookings and Profile/Account tabs, plus tab-tap refresh-tick notifiers that reset sub-tabs and refresh the notification badge.",
+    screens: [
+      ["Nav Shell", "presentation/screens/bottom_nav_shell.dart", "Bottom-nav scaffold wrapping the tab branches; owns branch indices and ValueNotifier refresh ticks.", "screen"],
+      ["Settings (placeholder)", "presentation/screens/settings_screen.dart", "Static placeholder tab (Theme / Language / Notifications / About tiles); real settings live in Profile.", "screen"],
+    ],
+    logic: [
+      ["(routing) core/router/app_router.dart", "Navigation state is owned by the go_router shell — no dedicated bloc/datasource."],
+    ],
+  },
+];
+
+/* core layer inventory: [group, [ [file, desc], ... ] ] */
+const CORE = [
+  ["Network", [
+    ["core/network/api_client.dart", "Centralized Dio wrapper used by all features; wires interceptors + cert pinning."],
+    ["core/network/certificate_pinning.dart", "TLS pinning to CA intermediates in assets/certs/api_ca_bundle.pem."],
+    ["core/network/network_info.dart", "Connectivity abstraction (connectivity_plus) for online/offline checks."],
+    ["core/network/interceptors/auth_interceptor.dart", "Attaches the bearer auth token to requests."],
+    ["core/network/interceptors/app_headers_interceptor.dart", "Adds X-App-Version / X-Device-Type / X-Package-Name headers."],
+    ["core/network/interceptors/logging_interceptor.dart", "Debug-only HTTP logging with redaction (never in release)."],
+  ]],
+  ["Services", [
+    ["core/services/push_notification_service.dart", "All FCM wiring: permission, token lifecycle, foreground display, tap routing, background handler."],
+    ["core/services/live_charging/*", "8 files — foreground-service / iOS Live Activity live-charging notification (controller, task handler, fetcher, content, keys)."],
+    ["core/services/secure_store.dart", "Encrypted-at-rest storage (Keychain / EncryptedSharedPreferences) for tokens & PII."],
+    ["core/services/local_storage_service.dart", "Key-value storage over GetStorage; routes sensitive keys to SecureStore."],
+    ["core/services/analytics_service.dart", "Analytics seam over Firebase Analytics; exposes a go_router screen_view observer."],
+    ["core/services/google_auth_service.dart · apple_auth_service.dart", "Google / Apple sign-in wrappers returning {name, email}."],
+    ["core/services/google_places_service.dart", "Places autocomplete + details for location search."],
+    ["core/services/barcode_scanner_service.dart", "Booking QR scanner; sealed success / cancelled / permission-denied results."],
+  ]],
+  ["Routing & DI", [
+    ["core/router/app_router.dart", "Central GoRouter: routes, auth redirect guard, StatefulShellRoute.indexedStack shell."],
+    ["core/router/auth_notifier.dart", "Listenable that re-runs the redirect guard on login/logout/token-cleared."],
+    ["core/di/injection_container.dart", "get_it composition root — initDependencies() registers services, network, blocs, datasources, repositories."],
+  ]],
+  ["Theme & Foundation", [
+    ["core/theme/theme_cubit.dart", "Global light/dark theme cubit persisted via LocalStorageService (dark by default)."],
+    ["core/theme/app_material_theme.dart", "Material ThemeData aligned to the brand green palette."],
+    ["core/constants/app_colors.dart", "Brand color palette (HUBCO greens)."],
+    ["core/global_bloc/bloc/user_bloc.dart", "App-wide user/session bloc shared across features."],
+    ["core/error/failures.dart · exceptions.dart", "Failure hierarchy + exceptions for Either-based error handling."],
+    ["core/usecase/usecase.dart", "Base UseCase / NoParams contract used by all 73 use cases."],
+  ]],
+];
+
+const ROUTES = [
+  ["/splash", "Animated splash + session routing"],
+  ["/onboarding", "First-run slideshow"],
+  ["/login · /register", "Auth entry"],
+  ["/verify-otp", "OTP verification"],
+  ["/home", "Map (tab 0)"],
+  ["/account", "Profile (tab 1)"],
+  ["/bookings", "My Bookings (tab 2)"],
+  ["/trip", "Trip planner (tab 3)"],
+  ["/profile", "Charging status (tab 4)"],
+  ["/station-detail", "Hub detail (full-screen)"],
+  ["/book-slot → /payment-method", "Booking funnel"],
+  ["/booking-confirmation · /booking-success", "Booking outcome"],
+  ["/search · /filter-results · /notifications", "Modal stacks"],
+];
+
+const LAYERS = [
+  ["presentation", "d1", "Pages · views · screens · widgets · blocs / cubits"],
+  ["domain", "d2", "Entities · repositories (abstract) · use cases"],
+  ["data", "d3", "Models · datasources (remote/local) · repository impls"],
+  ["di", "d4", "Per-feature get_it registration module"],
+];
+
+/* ---------------- render ---------------- */
+const camSVG = '<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3z"/><circle cx="12" cy="13" r="3.5"/></svg>';
+const esc = s => s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+
+function renderHeader() {
+  document.getElementById("statrow").innerHTML = STATS.map(([n,l]) =>
+    `<div class="stat"><b>${n}</b><span>${l}</span></div>`).join("");
+  document.getElementById("stack").innerHTML = STACK.map(([k,v]) =>
+    `<span class="tech"><b>${k}</b> · ${esc(v)}</span>`).join("");
+  document.getElementById("navchips").innerHTML =
+    `<a href="#architecture">Architecture</a>` +
+    MODULES.map(m => `<a href="#${m.id}">${m.name}</a>`).join("") +
+    `<a href="#core">Core</a>`;
+}
+
+function screenCard(s) {
+  const [name, file, desc, kind] = s;
+  const tagClass = kind === "sheet" ? "tag sheet" : "tag";
+  const tagText = kind === "sheet" ? "sheet / dialog" : "screen";
+  return `<article class="screen">
+    <div class="shot">
+      <span class="${tagClass}">${tagText}</span>
+      <div class="ph">${camSVG}<div>screenshot</div></div>
+    </div>
+    <div class="screen-body">
+      <h4>${esc(name)}</h4>
+      <div class="path">${esc(file)}</div>
+      <p>${esc(desc)}</p>
+    </div>
+  </article>`;
+}
+
+function moduleSection(m) {
+  const screensBlock = m.screens.length
+    ? `<div class="subhead">Screens · ${m.screens.length}</div><div class="screens">${m.screens.map(screenCard).join("")}</div>`
+    : `<div class="subhead">Screens</div><p class="mod-purpose" style="margin:0">No user-facing screen — this module works behind the scenes.</p>`;
+  const logicBlock = `<div class="subhead">Key logic &amp; data files</div><div class="files">${
+    m.logic.map(([f,d]) => `<div class="frow"><div class="fp">${esc(f)}</div><div class="fd">${esc(d)}</div></div>`).join("")
+  }</div>`;
+  return `<section class="mod" id="${m.id}">
+    <div class="mod-head"><span class="mod-idx">${m.idx}</span><h2>${m.name}</h2><span class="mod-dir">${m.dir}/</span></div>
+    <p class="mod-purpose">${esc(m.purpose)}</p>
+    ${screensBlock}
+    ${logicBlock}
+  </section>`;
+}
+
+function architectureSection() {
+  return `<section class="mod" id="architecture">
+    <div class="mod-head"><span class="mod-idx">00</span><h2>Architecture &amp; Navigation</h2></div>
+    <p class="mod-purpose">Feature-first clean architecture. Each of the 14 modules under <code style="font-family:'JetBrains Mono',monospace;font-size:13px">lib/features/</code> owns its own presentation → domain → data → di stack, wired together through a single get_it container. Shared plumbing lives in <code style="font-family:'JetBrains Mono',monospace;font-size:13px">lib/core/</code>.</p>
+    <div class="grid2">
+      <div class="card">
+        <h3>Layers per feature</h3>
+        ${LAYERS.map(([k,c,d]) => `<div class="layer"><span class="k ${c}">${k}</span><span>${d}</span></div>`).join("")}
+      </div>
+      <div class="card">
+        <h3>Routes (go_router)</h3>
+        <div class="routes">${ROUTES.map(([r,d]) => `<div class="route"><span class="r">${esc(r)}</span><span>${esc(d)}</span></div>`).join("")}</div>
+      </div>
+    </div>
+  </section>`;
+}
+
+function coreSection() {
+  return `<section class="mod" id="core">
+    <div class="mod-head"><span class="mod-idx">★</span><h2>Core Layer</h2><span class="mod-dir">lib/core/</span></div>
+    <p class="mod-purpose">Cross-cutting infrastructure shared by every feature — networking, platform services, routing, DI, theming and foundational contracts.</p>
+    ${CORE.map(([group, files]) => `
+      <div class="subhead">${group}</div>
+      <div class="files">${files.map(([f,d]) => `<div class="frow"><div class="fp">${esc(f)}</div><div class="fd">${esc(d)}</div></div>`).join("")}</div>
+    `).join("")}
+  </section>`;
+}
+
+document.getElementById("app").innerHTML =
+  architectureSection() +
+  MODULES.map(moduleSection).join("") +
+  coreSection();
+renderHeader();
+
+/* theme toggle */
+(function(){
+  const btn = document.getElementById("themebtn");
+  let cur = null;
+  try { cur = localStorage.getItem("hubco-theme"); } catch(e){}
+  if (cur) document.documentElement.setAttribute("data-theme", cur);
+  btn.addEventListener("click", () => {
+    const isDark = document.documentElement.getAttribute("data-theme") === "dark"
+      || (!document.documentElement.getAttribute("data-theme") && matchMedia("(prefers-color-scheme: dark)").matches);
+    const next = isDark ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", next);
+    try { localStorage.setItem("hubco-theme", next); } catch(e){}
+  });
+})();
+</script>
