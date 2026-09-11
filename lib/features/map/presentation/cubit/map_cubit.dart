@@ -56,7 +56,7 @@ class MapCubit extends Cubit<MapState> {
         longitude: _lastLongitude ?? _defaultLongitude,
         radius: filters.radius,
         connectorTypes:
-            filters.connectorTypes.isEmpty ? null : filters.connectorTypes,
+        filters.connectorTypes.isEmpty ? null : filters.connectorTypes,
         amenityIds: filters.amenityIds.isEmpty ? null : filters.amenityIds,
         minPrice: filters.minPrice,
         maxPrice: filters.maxPrice,
@@ -67,14 +67,14 @@ class MapCubit extends Cubit<MapState> {
 
     if (isClosed) return;
     result.fold(
-      (failure) => emit(MapError(failure.message)),
-      (data) {
+          (failure) => emit(MapError(failure.message)),
+          (data) {
         final locations = data.stations;
         // "Available Now" has no API param — apply it client-side.
         final visible = filters.availableNow
             ? locations
-                .where((l) => l.availableConnectors > 0)
-                .toList(growable: false)
+            .where((l) => l.availableConnectors > 0)
+            .toList(growable: false)
             : locations;
         emit(MapLoaded(visible, usedAssetFallback: data.usedAssetFallback));
       },
@@ -95,16 +95,12 @@ class MapCubit extends Cubit<MapState> {
         return null;
       }
 
-      // Prefer last-known for a fast first map paint after install / cache
-      // clear. A cold high-accuracy fix can take a long time and used to leave
-      // the home map covered (or white) for minutes on first launch.
-      final lastKnown = await Geolocator.getLastKnownPosition();
-      if (lastKnown != null) return lastKnown;
-
+      // Never block the loader indefinitely on a cold GPS fix; fall back to the
+      // default location if a position can't be obtained in time.
       return await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.medium,
-          timeLimit: Duration(seconds: 5),
+          accuracy: LocationAccuracy.high,
+          timeLimit: Duration(seconds: 10),
         ),
       );
     } catch (e) {

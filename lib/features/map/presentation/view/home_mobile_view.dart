@@ -39,7 +39,7 @@ class HomeMobileView extends StatefulWidget {
   /// home map listens to this and animates its camera to the station's marker.
   /// Reset back to null once handled so the same station can be focused again.
   static final ValueNotifier<HubcoLocationEntity?> focusStationNotifier =
-      ValueNotifier<HubcoLocationEntity?>(null);
+  ValueNotifier<HubcoLocationEntity?>(null);
 
   @override
   State<HomeMobileView> createState() => _HomeMobileViewState();
@@ -91,17 +91,12 @@ class _HomeMobileViewState extends State<HomeMobileView> {
   GoogleMapController? _mapController;
   Brightness? _lastAppliedBrightness;
 
-  /// JSON style passed to [GoogleMap.style] so the first painted frame is already
-  /// themed. Relying only on [GoogleMapController.setMapStyle] leaves the SDK on
-  /// default (white) tiles until the async call lands — especially painful on
-  /// first install after the location permission dialog.
-  String? _styleForBrightness(Brightness brightness) =>
-      brightness == Brightness.dark ? _darkMapStyle : null;
-
   Future<void> _applyMapStyleForTheme(Brightness brightness) async {
     final controller = _mapController;
     if (controller == null) return;
-    await controller.setMapStyle(_styleForBrightness(brightness));
+    await controller.setMapStyle(
+      brightness == Brightness.dark ? _darkMapStyle : null,
+    );
   }
 
   /// True only after the dark style has been confirmed painted.
@@ -124,7 +119,7 @@ class _HomeMobileViewState extends State<HomeMobileView> {
   final Set<String> _selectedTypes = {};
 
   final Map<_ChargingStationMarkerKind, BitmapDescriptor> _chargingStationIcons =
-      {};
+  {};
 
   /// Custom green/grey cluster bubble bitmaps, cached by `${kind}_${count}`.
   final Map<String, BitmapDescriptor> _clusterIcons = {};
@@ -175,7 +170,7 @@ class _HomeMobileViewState extends State<HomeMobileView> {
     // Poll periodically; guests are skipped inside the refresh method.
     _unreadPollTimer = Timer.periodic(
       _unreadPollInterval,
-      (_) => _refreshUnreadCount(),
+          (_) => _refreshUnreadCount(),
     );
     HomeMobileView.focusStationNotifier.addListener(_onFocusStationRequested);
     // Refresh the badge every time the Map tab is tapped in the bottom nav.
@@ -224,8 +219,8 @@ class _HomeMobileViewState extends State<HomeMobileView> {
     final result = await sl<GetUnreadCountUseCase>()(const NoParams());
     if (!mounted) return;
     result.fold(
-      (_) {},
-      (count) {
+          (_) {},
+          (count) {
         if (count != _unreadCount) setState(() => _unreadCount = count);
       },
     );
@@ -239,7 +234,7 @@ class _HomeMobileViewState extends State<HomeMobileView> {
         context,
         feature: 'notifications',
         message:
-            'Please log in or create an account to view your notifications.',
+        'Please log in or create an account to view your notifications.',
       );
       return;
     }
@@ -261,9 +256,7 @@ class _HomeMobileViewState extends State<HomeMobileView> {
   Future<void> _onMapCreated(GoogleMapController controller) async {
     _mapController = controller;
 
-    // Stay covered until style + (optional) my-location layer are settled.
-    // Revealing here before permission/stations finish is what left a white
-    // GoogleMap surface on screen for a long time on first install.
+    // Cover → apply style → reveal. One-time setup on first load.
     if (mounted) setState(() => _mapReady = false);
     await Future.delayed(const Duration(milliseconds: 50));
     if (!mounted) return;
@@ -273,43 +266,16 @@ class _HomeMobileViewState extends State<HomeMobileView> {
     await _applyMapStyleForTheme(brightness);
     if (!mounted) return;
 
+    setState(() => _mapReady = true);
+
     // Locations may have already loaded before the map was created (the asset
     // loads fast, and the permission dialog can delay this callback). In that
     // case the camera move in [_onLocationsLoaded] was skipped because the
     // controller didn't exist yet — so position the camera now.
     unawaited(_moveCameraToLocations());
 
-    // Do NOT enable my-location here. Logs showed
-    // "Cannot enable MyLocation layer as location permissions are not granted"
-    // when the Maps SDK raced the permission dialog — leaving a blank white
-    // surface. My-location is enabled only after the first tile paint settle
-    // in [_onLocationsLoaded] / [_finishFirstMapPaint].
-    final waitingForStations = context.read<MapCubit>().state is MapLoading;
-    if (!waitingForStations) {
-      setState(() => _mapReady = true);
-      unawaited(_finishFirstMapPaint());
-    }
-  }
-
-  /// Nudges the camera so Android actually paints the first map tiles, then
-  /// enables the blue-dot layer under cover once permission is confirmed.
-  Future<void> _finishFirstMapPaint() async {
-    await _nudgeMapToForceTiles();
-    if (!mounted) return;
-    await _syncMapMyLocationLayer(revealIfCovered: true);
-  }
-
-  /// Tiny camera jiggle — forces the Maps SDK to request / composite tiles
-  /// after the platform view was created under a Flutter cover.
-  Future<void> _nudgeMapToForceTiles() async {
-    final controller = _mapController;
-    if (controller == null || !mounted) return;
-    try {
-      await controller.moveCamera(CameraUpdate.scrollBy(1, 1));
-      await controller.moveCamera(CameraUpdate.scrollBy(-1, -1));
-    } catch (_) {
-      // Controller may be disposed mid-transition; ignore.
-    }
+    // Blue dot: enable native layer once location permission is known/granted.
+    unawaited(_syncMapMyLocationLayer());
   }
 
   /// Animates the camera to the first-launch view: the whole of Pakistan,
@@ -359,12 +325,7 @@ class _HomeMobileViewState extends State<HomeMobileView> {
   /// single permission request on load; requesting here too races with it and
   /// throws `PermissionRequestInProgressException`, which can stall the location
   /// flow on first launch.
-  ///
-  /// Enabling the native my-location layer rebuilds the Android map surface and
-  /// flashes white default tiles (often for a long time on first install). When
-  /// [revealIfCovered] is true and the map was already visible, we keep the
-  /// cover up until the themed tiles settle again.
-  Future<void> _syncMapMyLocationLayer({bool revealIfCovered = true}) async {
+  Future<void> _syncMapMyLocationLayer() async {
     if (!mounted) return;
 
     try {
@@ -377,30 +338,7 @@ class _HomeMobileViewState extends State<HomeMobileView> {
       final permission = await Geolocator.checkPermission();
       final show = permission == LocationPermission.whileInUse ||
           permission == LocationPermission.always;
-      if (!mounted || show == _mapMyLocationEnabled) return;
-
-      final wasReady = _mapReady;
-      // Cover before flipping the flag when the map is already on screen —
-      // enabling my-location rebuilds the Android map surface to white tiles.
-      if (show && wasReady) {
-        setState(() {
-          _mapReady = false;
-          _mapMyLocationEnabled = true;
-        });
-      } else {
-        setState(() => _mapMyLocationEnabled = show);
-      }
-
-      if (show && wasReady && revealIfCovered) {
-        await Future.delayed(const Duration(milliseconds: 50));
-        if (!mounted) return;
-        await _applyMapStyleForTheme(Theme.of(context).brightness);
-        if (!mounted) return;
-        // Let the SDK paint styled tiles before removing the cover.
-        await Future.delayed(const Duration(milliseconds: 400));
-        if (!mounted) return;
-        setState(() => _mapReady = true);
-      }
+      if (mounted) setState(() => _mapMyLocationEnabled = show);
     } catch (_) {
       // Permission still being requested elsewhere; leave the layer as-is.
     }
@@ -435,26 +373,14 @@ class _HomeMobileViewState extends State<HomeMobileView> {
     // Step 5 ── Animate camera to first location. If the controller isn't ready
     // yet, [_onMapCreated] will run this once the map is created.
     await _moveCameraToLocations();
+
     if (!mounted) return;
 
-    await _applyMapStyleForTheme(Theme.of(context).brightness);
-    if (!mounted) return;
-
-    // Step 6 ── Let the (opaque, covered) map fetch first tiles. Previously we
-    // set AnimatedOpacity to 0 here which blocked tile loading on Android.
-    await Future.delayed(const Duration(milliseconds: 400));
-    if (!mounted) return;
-    await _nudgeMapToForceTiles();
-    if (!mounted) return;
-
-    // Step 7 ── Reveal the finished map (tiles should already be painted).
+    // Step 6 ── Reveal the now-dark map.
     setState(() => _mapReady = true);
 
-    // Step 8 ── Enable my-location only after reveal settle + permission is
-    // visible to the Maps SDK (avoids the blank-white surface race).
-    await Future.delayed(const Duration(milliseconds: 100));
-    if (!mounted) return;
-    await _syncMapMyLocationLayer(revealIfCovered: true);
+    // Map rebuild can drop the my-location layer; re-apply if still permitted.
+    unawaited(_syncMapMyLocationLayer());
   }
 
   /// Logical width/height of the station pin bitmap. Sized so the teardrop pin
@@ -470,7 +396,7 @@ class _HomeMobileViewState extends State<HomeMobileView> {
   /// in the head so charging stations stand out on the map at a glance.
   /// Cached after the first build.
   Future<Map<_ChargingStationMarkerKind, BitmapDescriptor?>>
-      _resolveChargingStationIcon() async {
+  _resolveChargingStationIcon() async {
     if (_chargingStationIcons.length ==
         _ChargingStationMarkerKind.values.length) {
       return {
@@ -525,7 +451,7 @@ class _HomeMobileViewState extends State<HomeMobileView> {
   Future<BitmapDescriptor> _buildStationPinBitmap({required Color color}) async {
     final dpr = mounted ? MediaQuery.devicePixelRatioOf(context) : 3.0;
     final size =
-        (_chargingStationMarkerSize * dpr).clamp(1.0, 512.0).toDouble();
+    (_chargingStationMarkerSize * dpr).clamp(1.0, 512.0).toDouble();
     final u = size / 60;
 
     final recorder = ui.PictureRecorder();
@@ -586,9 +512,9 @@ class _HomeMobileViewState extends State<HomeMobileView> {
     }
 
     final image = await recorder.endRecording().toImage(
-          size.round(),
-          size.round(),
-        );
+      size.round(),
+      size.round(),
+    );
     final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
     image.dispose();
 
@@ -684,9 +610,9 @@ class _HomeMobileViewState extends State<HomeMobileView> {
   /// same grid cell. Uses Web Mercator world coordinates so the result is
   /// deterministic and cheap (no per-marker screen-coordinate round trips).
   List<_StationCluster> _clusterStations(
-    List<HubcoLocationEntity> stations,
-    double zoom,
-  ) {
+      List<HubcoLocationEntity> stations,
+      double zoom,
+      ) {
     if (zoom >= _clusterBreakApartZoom) {
       return [
         for (final station in stations)
@@ -735,9 +661,9 @@ class _HomeMobileViewState extends State<HomeMobileView> {
   /// Repeatedly merges any pair of groups closer than
   /// [_clusterMergeDistancePx] at [zoom] until every marker has clear space.
   List<_StationCluster> _mergeOverlappingClusters(
-    List<_StationCluster> clusters,
-    double zoom,
-  ) {
+      List<_StationCluster> clusters,
+      double zoom,
+      ) {
     final scale = math.pow(2.0, zoom).toDouble();
     const minSepSq = _clusterMergeDistancePx * _clusterMergeDistancePx;
 
@@ -780,9 +706,9 @@ class _HomeMobileViewState extends State<HomeMobileView> {
   /// around the shared spot, spaced in screen px for the given [zoom].
   /// Returns adjusted positions keyed by station id.
   Map<int, LatLng> _fanOutOverlappingStations(
-    List<_StationCluster> clusters,
-    double zoom,
-  ) {
+      List<_StationCluster> clusters,
+      double zoom,
+      ) {
     final groups = <String, List<HubcoLocationEntity>>{};
     for (final cluster in clusters) {
       if (cluster.items.length != 1) continue;
@@ -913,7 +839,7 @@ class _HomeMobileViewState extends State<HomeMobileView> {
     // Estimated zoom that fits the group in the visible map band; used to
     // pick the camera update and to re-cluster without waiting for idle.
     final fitZoom = (maxLat - minLat < _clusterTapMinSpanDegrees &&
-            maxLng - minLng < _clusterTapMinSpanDegrees)
+        maxLng - minLng < _clusterTapMinSpanDegrees)
         ? _clusterTapMaxZoom
         : _zoomToFitBounds(minLat, maxLat, minLng, maxLng);
 
@@ -954,11 +880,11 @@ class _HomeMobileViewState extends State<HomeMobileView> {
   /// ([_projectToWorld]): at zoom `z` a world unit is `2^z` logical pixels,
   /// so the fitting zoom per axis is `log2(availablePx / worldSpan)`.
   double _zoomToFitBounds(
-    double minLat,
-    double maxLat,
-    double minLng,
-    double maxLng,
-  ) {
+      double minLat,
+      double maxLat,
+      double minLng,
+      double maxLng,
+      ) {
     final northEast = _projectToWorld(maxLat, maxLng);
     final southWest = _projectToWorld(minLat, minLng);
     final worldSpanX = (northEast.dx - southWest.dx).abs();
@@ -967,7 +893,7 @@ class _HomeMobileViewState extends State<HomeMobileView> {
     final screen = MediaQuery.sizeOf(context);
     final insets = _mapOverlayInsets();
     final availableW =
-        math.max(1.0, screen.width - 2 * _clusterTapBoundsPadding);
+    math.max(1.0, screen.width - 2 * _clusterTapBoundsPadding);
     final availableH = math.max(
       1.0,
       screen.height -
@@ -988,9 +914,9 @@ class _HomeMobileViewState extends State<HomeMobileView> {
 
   /// Returns (and caches) a cluster bubble bitmap for [kind] with [count].
   Future<BitmapDescriptor> _resolveClusterIcon(
-    _ChargingStationMarkerKind kind,
-    int count,
-  ) async {
+      _ChargingStationMarkerKind kind,
+      int count,
+      ) async {
     final key = '${kind.name}_$count';
     final cached = _clusterIcons[key];
     if (cached != null) return cached;
@@ -1057,9 +983,9 @@ class _HomeMobileViewState extends State<HomeMobileView> {
     );
 
     final image = await recorder.endRecording().toImage(
-          size.round(),
-          size.round(),
-        );
+      size.round(),
+      size.round(),
+    );
     final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
     image.dispose();
 
@@ -1103,11 +1029,7 @@ class _HomeMobileViewState extends State<HomeMobileView> {
       return;
     }
 
-    // Enable the blue-dot layer under cover so we don't blank the map.
-    if (!_mapMyLocationEnabled) {
-      await _syncMapMyLocationLayer();
-      if (!mounted) return;
-    }
+    if (mounted) setState(() => _mapMyLocationEnabled = true);
 
     try {
       final position = await Geolocator.getCurrentPosition();
@@ -1147,10 +1069,10 @@ class _HomeMobileViewState extends State<HomeMobileView> {
   }
 
   Marker _toMarker(
-    HubcoLocationEntity station,
-    BitmapDescriptor? icon, {
-    LatLng? position,
-  }) {
+      HubcoLocationEntity station,
+      BitmapDescriptor? icon, {
+        LatLng? position,
+      }) {
     return Marker(
       markerId: MarkerId(station.id.toString()),
       // [position] carries the fanned-out spot for co-located stations.
@@ -1229,48 +1151,46 @@ class _HomeMobileViewState extends State<HomeMobileView> {
             // Filters drive the "Results"/full-screen behaviour; only usable
             // when something is actually filtered.
             final filtersApplied =
-                !context.read<MapCubit>().currentFilters.isEmpty;
+            !context.read<MapCubit>().currentFilters.isEmpty;
             final sheetExpanded = _sheetExpanded && filtersApplied;
 
             return Stack(
               children: [
                 // ── Google Map ─────────────────────────────────────────────
-                // Keep the map at full opacity under the cover. Driving the
-                // platform view to opacity 0 (AnimatedOpacity) prevents Android
-                // Impeller/SurfaceProducer from loading tiles — when revealed
-                // the map stays blank white until something forces a redraw.
-                // Visibility is controlled only by the ColoredBox cover below.
-                GoogleMap(
-                  // Apply theme style on the first frame so the SDK never
-                  // paints default white tiles while setMapStyle is in flight.
-                  style: _styleForBrightness(Theme.of(context).brightness),
-                  // Pakistan is on screen from the very first frame, even
-                  // before stations load.
-                  initialCameraPosition: const CameraPosition(
-                    target: _pakistanCenter,
-                    zoom: _pakistanFallbackZoom,
-                  ),
-                  // Keep the first screen (and every later pan/zoom) locked to
-                  // Pakistan so neighbouring countries never take over.
-                  cameraTargetBounds: _pakistanCameraBounds,
-                  minMaxZoomPreference: MinMaxZoomPreference(_minZoom, null),
-                  onMapCreated: _onMapCreated,
-                  onCameraMove: (position) =>
+                // Fades in only after _mapReady is true (dark style confirmed).
+                AnimatedOpacity(
+                  opacity: _mapReady ? 1.0 : 0.0,
+                  duration: const Duration(milliseconds: 150),
+                  child: GoogleMap(
+                    // Pakistan is on screen from the very first frame, even
+                    // before stations load.
+                    initialCameraPosition: const CameraPosition(
+                      target: _pakistanCenter,
+                      zoom: _pakistanFallbackZoom,
+                    ),
+                    // Keep the first screen (and every later pan/zoom) locked to
+                    // Pakistan so neighbouring countries never take over.
+                    cameraTargetBounds: _pakistanCameraBounds,
+                    minMaxZoomPreference: MinMaxZoomPreference(_minZoom, null),
+                    onMapCreated: _onMapCreated,
+                    onCameraMove: (position) =>
                         _onCameraPositionChanged(position.zoom),
-                  onCameraIdle: _onCameraIdle,
-                  compassEnabled: false,
-                  mapToolbarEnabled: false,
-                  myLocationButtonEnabled: false,
-                  myLocationEnabled: _mapMyLocationEnabled,
-                  zoomControlsEnabled: false,
-                  buildingsEnabled: true,
-                  padding: _mapPadding,
-                  markers: _markers,                ),
+                    onCameraIdle: _onCameraIdle,
+                    compassEnabled: false,
+                    mapToolbarEnabled: false,
+                    myLocationButtonEnabled: false,
+                    myLocationEnabled: _mapMyLocationEnabled,
+                    zoomControlsEnabled: false,
+                    buildingsEnabled: true,
+                    padding: _mapPadding,
+                    markers: _markers,
+                  ),
+                ),
 
-                // ── Cover ──────────────────────────────────────────────────
+                // ── Black cover ────────────────────────────────────────────
                 // Sits above the map and below all UI. Visible whenever the
                 // map is not yet dark, hiding any white tile flash entirely.
-                if (!_mapReady || state is MapLoading)
+                if (!_mapReady)
                   Positioned.fill(
                     child: ColoredBox(color: ui.scaffoldBackground),
                   ),
@@ -1306,7 +1226,7 @@ class _HomeMobileViewState extends State<HomeMobileView> {
                             alignment: Alignment.bottomRight,
                             child: Padding(
                               padding:
-                                  const EdgeInsets.only(right: 16, bottom: 16),
+                              const EdgeInsets.only(right: 16, bottom: 16),
                               child: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
