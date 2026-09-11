@@ -18,16 +18,23 @@ import 'package:orko_hubco/core/utils/app_logger.dart';
 ///
 /// Only the keys in [secureKeys] are encrypted; everything else stays in the
 /// plain GetStorage box (theme, locale, onboarding flags, FCM tokens, …).
+///
+/// Android EncryptedSharedPreferences / Keystore can stall (especially on
+/// first install). We bound platform I/O and, once it times out, stop issuing
+/// further plugin calls for the rest of the process so auth flows cannot hang
+/// forever waiting on a stuck channel. The in-memory mirror still works for
+/// the current session.
 class SecureStore {
   SecureStore._();
 
   /// Shared singleton.
   static final SecureStore instance = SecureStore._();
 
-  /// EncryptedSharedPreferences / Keystore init can hang or ANR on some Android
-  /// devices (especially first install). Cap how long startup waits so the
-  /// native splash cannot stick for minutes.
+  /// Bound for Keystore / EncryptedSharedPreferences work during startup.
   static const Duration _initTimeout = Duration(seconds: 5);
+
+  /// Bound for individual persist operations after a successful login.
+  static const Duration _persistTimeout = Duration(seconds: 5);
 
   static const FlutterSecureStorage _secure = FlutterSecureStorage(
     aOptions: AndroidOptions(
@@ -51,26 +58,29 @@ class SecureStore {
   final Map<String, String> _mirror = {};
   bool _initialized = false;
 
+  /// When false, skip further EncryptedSharedPreferences calls — a prior
+  /// timeout almost certainly left a platform-channel call pending, and
+  /// awaiting another one would freeze login/logout indefinitely.
+  bool _platformAvailable = true;
+
   /// Loads secure values into the in-memory mirror and migrates any legacy
   /// plaintext values written by earlier app versions out of GetStorage.
   ///
   /// Call once in `main()` after `GetStorage.init()` and before `runApp()` /
   /// the first API call. Idempotent.
-  ///
-  /// On Android, EncryptedSharedPreferences master-key creation can stall on
-  /// first install. We bound that wait so launch can continue with an empty
-  /// mirror rather than freezing on the native splash.
   Future<void> init() async {
     if (_initialized) return;
 
     try {
       await _loadMirrorAndMigrate().timeout(_initTimeout);
     } on TimeoutException {
+      _platformAvailable = false;
       AppLogger.d(
         '[SecureStore] init timed out after ${_initTimeout.inSeconds}s; '
-        'continuing with empty mirror',
+        'continuing with in-memory store only for this session',
       );
     } catch (error, stackTrace) {
+      _platformAvailable = false;
       AppLogger.d('[SecureStore] init failed: $error\n$stackTrace');
     }
 
@@ -97,7 +107,7 @@ class SecureStore {
           legacy.isNotEmpty &&
           !_mirror.containsKey(key)) {
         _mirror[key] = legacy;
-        await _secure.write(key: key, value: legacy);
+        await _persistWrite(key, legacy);
       }
       // Remove any plaintext residue (including the empty strings older logout
       // code used to write).
@@ -110,23 +120,57 @@ class SecureStore {
   /// Synchronous read from the in-memory mirror. Returns null when absent.
   String? read(String key) => _mirror[key];
 
-  /// Persists [value] to the encrypted store and updates the mirror.
+  /// Updates the mirror immediately so auth/API can proceed, then best-effort
+  /// persists to the encrypted store without blocking the caller. A stuck
+  /// Android Keystore must never keep Google/phone login spinning forever.
   Future<void> write(String key, String value) async {
     _mirror[key] = value;
-    await _secure.write(key: key, value: value);
+    unawaited(_persistWrite(key, value));
   }
 
-  /// Removes [key] from the encrypted store and the mirror.
+  /// Removes [key] from the mirror immediately, then best-effort deletes from
+  /// the encrypted store.
   Future<void> delete(String key) async {
     _mirror.remove(key);
-    await _secure.delete(key: key);
+    unawaited(_persistDelete(key));
   }
 
   /// Clears every secret (call on logout).
   Future<void> clear() async {
     _mirror.clear();
+    if (!_platformAvailable) return;
     for (final key in secureKeys) {
-      await _secure.delete(key: key);
+      await _persistDelete(key);
+    }
+  }
+
+  Future<void> _persistWrite(String key, String value) async {
+    if (!_platformAvailable) return;
+    try {
+      await _secure.write(key: key, value: value).timeout(_persistTimeout);
+    } on TimeoutException {
+      _platformAvailable = false;
+      AppLogger.d(
+        '[SecureStore] write($key) timed out; disabling platform persist '
+        'for this session',
+      );
+    } catch (error, stackTrace) {
+      AppLogger.d('[SecureStore] write($key) failed: $error\n$stackTrace');
+    }
+  }
+
+  Future<void> _persistDelete(String key) async {
+    if (!_platformAvailable) return;
+    try {
+      await _secure.delete(key: key).timeout(_persistTimeout);
+    } on TimeoutException {
+      _platformAvailable = false;
+      AppLogger.d(
+        '[SecureStore] delete($key) timed out; disabling platform persist '
+        'for this session',
+      );
+    } catch (error, stackTrace) {
+      AppLogger.d('[SecureStore] delete($key) failed: $error\n$stackTrace');
     }
   }
 }
