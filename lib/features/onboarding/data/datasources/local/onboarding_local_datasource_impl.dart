@@ -10,22 +10,10 @@ class OnboardingLocalDataSourceImpl implements OnboardingLocalDataSource {
   Future<List<OnboardingItemEntity>> getOnboardingItems() async {
     return [
       OnboardingItemEntity(
-        imagePath: AppImages.onboardingLocateCharger,
-        title: 'Locate a ',
-        titleHighlight: 'Charger',
-        description: 'See live availability near you.',
-      ),
-      OnboardingItemEntity(
-        imagePath: AppImages.onboardingBookSession,
-        title: 'Book Your Charging\n',
-        titleHighlight: 'Session',
-        description: 'Reserve a slot in seconds.',
-      ),
-      OnboardingItemEntity(
-        imagePath: AppImages.onboardingPaySecurely,
-        title: 'Pay Securely with ',
-        titleHighlight: 'Ease',
-        description: 'Fast, secure in-app payments.',
+        imagePath: AppImages.onboardingCharging,
+        title: 'Charging Every\n',
+        titleHighlight: 'Journey',
+        description: '',
       ),
     ];
   }

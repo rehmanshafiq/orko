@@ -6,7 +6,6 @@ import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/utils/app_routing/app_navigations.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
 import 'package:orko_hubco/core/utils/widgets/image_view/app_image_view.dart';
-import 'package:orko_hubco/core/utils/widgets/primary_button_widget.dart';
 import 'package:orko_hubco/features/onboarding/domain/entities/onboarding_item_entity.dart';
 import 'package:orko_hubco/features/onboarding/presentation/bloc/onboarding_cubit.dart';
 import 'package:orko_hubco/features/onboarding/presentation/bloc/onboarding_state.dart';
@@ -65,19 +64,8 @@ class _OnboardingMobileViewState extends State<OnboardingMobileView>
     return fallback;
   }
 
-  Future<void> _onSkipOrGetStarted(BuildContext context) async {
+  Future<void> _onGetStarted(BuildContext context) async {
     await context.read<OnboardingCubit>().complete();
-  }
-
-  void _onPrimaryPressed(BuildContext context, OnboardingState state) {
-    if (state.isLastPage) {
-      _onSkipOrGetStarted(context);
-    } else {
-      _pageController.nextPage(
-        duration: const Duration(milliseconds: 350),
-        curve: Curves.easeOutCubic,
-      );
-    }
   }
 
   @override
@@ -139,7 +127,8 @@ class _OnboardingMobileViewState extends State<OnboardingMobileView>
                 ),
               ),
 
-              // Bottom controls: indicator + primary button + skip.
+              // Bottom control: single "Get Started" pill. Muted until the
+              // last slide is reached, then enabled.
               Align(
                 alignment: Alignment.bottomCenter,
                 child: SafeArea(
@@ -150,46 +139,11 @@ class _OnboardingMobileViewState extends State<OnboardingMobileView>
                       position: _entrySlide,
                       child: Padding(
                         padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 24.h),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            _PageIndicator(
-                              count: state.items.length,
-                              activeIndex: state.currentIndex,
-                            ),
-                            44.verticalSpace,
-                            PrimaryButtonWidget(
-                              text: state.isLastPage
-                                  ? 'Create Account'
-                                  : 'Next',
-                              buttonHeight: 54.h,
-                              gradientColors: const [
-                                AppColors.primaryDarkColor,
-                                AppColors.primaryDarkButtonColor,
-                              ],
-                              cornerRadius: 28.r,
-                              textColor: AppColors.whiteColor,
-                              fontSize: FontSizes.font16Sp,
-                              fontWeight: FontWeights.weight600,
-                              isEnabled: !state.isCompleting,
-                              onPress: state.isCompleting
-                                  ? null
-                                  : () => _onPrimaryPressed(context, state),
-                            ),
-                            4.verticalSpace,
-                            TextButton(
-                              onPressed: state.isCompleting
-                                  ? null
-                                  : () => _onSkipOrGetStarted(context),
-                              child: AppText(
-                                'Skip',
-                                color: AppColors.whiteColor
-                                    .withValues(alpha: 0.6),
-                                fontSize: FontSizes.font16Sp,
-                                fontWeight: FontWeights.weight500,
-                              ),
-                            ),
-                          ],
+                        child: _GetStartedBar(
+                          // Single onboarding screen: always actionable.
+                          isEnabled: !state.isCompleting,
+                          isBusy: state.isCompleting,
+                          onTap: () => _onGetStarted(context),
                         ),
                       ),
                     ),
@@ -262,7 +216,7 @@ class _OnboardingSlide extends StatelessWidget {
           child: SafeArea(
             top: false,
             child: Padding(
-              padding: EdgeInsets.fromLTRB(24.w, 0, 24.w, 200.h),
+              padding: EdgeInsets.fromLTRB(24.w, 0, 24.w, 140.h),
               child: Opacity(
                 opacity: contentOpacity,
                 child: Transform.translate(
@@ -291,13 +245,15 @@ class _OnboardingSlide extends StatelessWidget {
                           ],
                         ),
                       ),
-                      12.verticalSpace,
-                      AppText(
-                        item.description,
-                        color: AppColors.whiteColor.withValues(alpha: 0.7),
-                        fontSize: FontSizes.font16Sp,
-                        fontWeight: FontWeights.weight400,
-                      ),
+                      if (item.description.isNotEmpty) ...[
+                        12.verticalSpace,
+                        AppText(
+                          item.description,
+                          color: AppColors.whiteColor.withValues(alpha: 0.7),
+                          fontSize: FontSizes.font16Sp,
+                          fontWeight: FontWeights.weight400,
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -310,36 +266,83 @@ class _OnboardingSlide extends StatelessWidget {
   }
 }
 
-class _PageIndicator extends StatelessWidget {
-  const _PageIndicator({
-    required this.count,
-    required this.activeIndex,
+/// Bottom "Get Started" pill: a rounded, frosted bar with the label on the
+/// left and a circular arrow on the right. Rendered muted (non-interactive)
+/// until the final slide is reached, then enabled.
+class _GetStartedBar extends StatelessWidget {
+  const _GetStartedBar({
+    required this.isEnabled,
+    required this.isBusy,
+    required this.onTap,
   });
 
-  final int count;
-  final int activeIndex;
+  final bool isEnabled;
+  final bool isBusy;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final ui = AppUiColors.of(context);
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.start,
-      children: List.generate(count, (index) {
-        final isActive = index == activeIndex;
-        return AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOutCubic,
-          margin: const EdgeInsets.symmetric(horizontal: 4),
-          width: isActive ? 24 : 8,
-          height: 8,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(4),
-            color: isActive
-                ? ui.brandPrimary
-                : AppColors.whiteColor.withValues(alpha: 0.35),
+    final double opacity = isEnabled ? 1 : 0.45;
+
+    return AnimatedOpacity(
+      duration: const Duration(milliseconds: 250),
+      opacity: opacity,
+      child: Material(
+        color: AppColors.transparentColor,
+        borderRadius: BorderRadius.circular(40.r),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(40.r),
+          onTap: isEnabled ? onTap : null,
+          child: Container(
+            height: 64.h,
+            padding: EdgeInsets.fromLTRB(28.w, 8.h, 8.h, 8.h),
+            decoration: BoxDecoration(
+              color: AppColors.whiteColor.withValues(alpha: 0.10),
+              borderRadius: BorderRadius.circular(40.r),
+              border: Border.all(
+                color: AppColors.whiteColor.withValues(alpha: 0.16),
+              ),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: AppText(
+                    'Get Started',
+                    color: AppColors.whiteColor,
+                    fontSize: FontSizes.font16Sp,
+                    fontWeight: FontWeights.weight500,
+                  ),
+                ),
+                Container(
+                  width: 48.w,
+                  height: 48.h,
+                  decoration: const BoxDecoration(
+                    color: AppColors.thumbBarGreyColor,
+                    shape: BoxShape.circle,
+                  ),
+                  alignment: Alignment.center,
+                  child: isBusy
+                      ? SizedBox(
+                          width: 20.w,
+                          height: 20.w,
+                          child: const CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              AppColors.blackColor,
+                            ),
+                          ),
+                        )
+                      : Icon(
+                          Icons.arrow_forward,
+                          color: AppColors.blackColor,
+                          size: 22.sp,
+                        ),
+                ),
+              ],
+            ),
           ),
-        );
-      }),
+        ),
+      ),
     );
   }
 }

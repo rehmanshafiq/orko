@@ -14,6 +14,8 @@ class AppImages {
   static final String onboardingLocateCharger = '${imagePath}locate_charger.png';
   static final String onboardingBookSession = '${imagePath}book_session.png';
   static final String onboardingPaySecurely = '${imagePath}pay_securely.png';
+  /// Single full-bleed onboarding hero (EV charging port close-up).
+  static final String onboardingCharging = '${imagePath}onboarding_charging.jpeg';
   static final String icChargingStation = '${imagePath}ic_charging_station.png';
   static final String icChargingStationMarker =
       '${imagePath}ic_charging_station_marker.png';
