@@ -174,25 +174,17 @@ class _OnboardingSlide extends StatelessWidget {
     final t = delta.abs().clamp(0.0, 1.0);
     final contentOpacity = (1 - t).clamp(0.0, 1.0);
 
-    // Image drifts at a slower rate than the swipe (parallax).
-    final imageDx = -delta * 40;
-
     return Stack(
       fit: StackFit.expand,
       children: [
-        // Background photo.
-        Transform.translate(
-          offset: Offset(imageDx, 0),
-          child: Transform.scale(
-            scale: 1.06,
-            child: AppPngImageView(
-              appImagePath: item.imagePath,
-              width: double.infinity,
-              height: double.infinity,
-              fit: BoxFit.cover,
-              imageAlignment: Alignment.center,
-            ),
-          ),
+        // Full-bleed background photo (fills the screen width and height,
+        // cropping as needed while preserving aspect ratio).
+        AppPngImageView(
+          appImagePath: item.imagePath,
+          width: double.infinity,
+          height: double.infinity,
+          fit: BoxFit.cover,
+          imageAlignment: Alignment.center,
         ),
 
         // Scrim to keep the headline legible over the photo.
