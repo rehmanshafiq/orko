@@ -95,12 +95,16 @@ class MapCubit extends Cubit<MapState> {
         return null;
       }
 
-      // Never block the loader indefinitely on a cold GPS fix; fall back to the
-      // default location if a position can't be obtained in time.
+      // Prefer last-known for a fast first map paint after install / cache
+      // clear. A cold high-accuracy fix can take a long time and used to leave
+      // the home map covered (or white) for minutes on first launch.
+      final lastKnown = await Geolocator.getLastKnownPosition();
+      if (lastKnown != null) return lastKnown;
+
       return await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.high,
-          timeLimit: Duration(seconds: 10),
+          accuracy: LocationAccuracy.medium,
+          timeLimit: Duration(seconds: 5),
         ),
       );
     } catch (e) {

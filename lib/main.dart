@@ -1,12 +1,16 @@
 import 'dart:async';
+import 'dart:io' show Platform;
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:google_maps_flutter_android/google_maps_flutter_android.dart';
+import 'package:google_maps_flutter_platform_interface/google_maps_flutter_platform_interface.dart';
 import 'package:orko_hubco/core/di/injection_container.dart';
 import 'package:orko_hubco/core/network/certificate_pinning.dart';
 import 'package:orko_hubco/core/router/app_router.dart';
@@ -19,8 +23,31 @@ import 'package:orko_hubco/features/remote_config/data/services/remote_config_se
 
 import 'firebase_options.dart';
 
+/// Android Google Maps + Impeller often paints a blank white SurfaceProducer
+/// view on first launch unless the latest renderer / hybrid composition is
+/// requested before any [GoogleMap] is created.
+Future<void> _configureGoogleMapsForAndroid() async {
+  if (kIsWeb || !Platform.isAndroid) return;
+
+  final mapsImplementation = GoogleMapsFlutterPlatform.instance;
+  if (mapsImplementation is! GoogleMapsFlutterAndroid) return;
+
+  // Hybrid composition is more reliable with Impeller than the default
+  // TextureLayer / SurfaceProducer path (blank white map after permission).
+  mapsImplementation.useAndroidViewSurface = true;
+
+  try {
+    await mapsImplementation.initializeWithRenderer(AndroidMapRenderer.latest);
+    await mapsImplementation.warmup();
+  } catch (_) {
+    // Already initialized (hot restart) — safe to ignore.
+  }
+}
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  await _configureGoogleMapsForAndroid();
 
   // Initialize local storage
   await GetStorage.init();

@@ -1,190 +1,212 @@
-import 'dart:async';
 import 'dart:convert';
-import 'package:orko_hubco/core/utils/app_logger.dart';
 
-import 'package:firebase_remote_config/firebase_remote_config.dart';
-import 'package:flutter/foundation.dart';
+// import 'package:firebase_remote_config/firebase_remote_config.dart';
+// import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show rootBundle;
-import 'package:get_storage/get_storage.dart';
-import 'package:orko_hubco/core/constants/storage_constants.dart';
+// import 'package:get_storage/get_storage.dart';
+// import 'package:orko_hubco/core/constants/storage_constants.dart';
+import 'package:orko_hubco/core/utils/app_logger.dart';
 import 'package:orko_hubco/features/remote_config/data/models/remote_config_model.dart';
 
-/// Singleton service that resolves the app's [RemoteConfigModel] using a
-/// multi-layer strategy:
+/// Singleton that resolves [RemoteConfigModel] without blocking app launch.
 ///
-/// **Cold start (`initialize`):** local sources first so first paint is never
-/// blocked on the network:
-/// 1. GetStorage cache (`remote_config_cache`) → last known good value.
-/// 2. Bundled asset (`assets/data/remote_config.json`) → guaranteed default.
-/// 3. Firebase Remote Config is refreshed in the background and written back
-///    to cache when it succeeds.
-///
-/// **Forced refresh (`forceRefresh: true`):** Firebase first, then cache, then
-/// asset — same as the historical strict fallback order.
-///
-/// The service never throws for transient failures of an individual layer; it
-/// only fails if EVERY layer fails. The last successfully resolved config is
-/// kept in memory for the lifetime of the session.
+/// TEMP: Firebase Remote Config fetch is commented out. Config is loaded only
+/// from the bundled [assets/data/remote_config.json]. Re-enable the Firebase
+/// paths below when server-driven config is needed again.
 class RemoteConfigService {
   RemoteConfigService._();
 
-  /// Shared singleton instance.
   static final RemoteConfigService instance = RemoteConfigService._();
 
-  /// Firebase Remote Config parameter key holding the inner `api_constants`
+  /// Firebase Remote Config parameter that holds the inner `api_constants`
   /// object as a JSON string.
-  static const String _firebaseKey = 'api_constants';
+  // static const String _firebaseKey = 'api_constants';
 
-  /// Bundled fallback asset path.
+  /// Bundled default — currently the only config source.
   static const String _assetPath = 'assets/data/remote_config.json';
 
-  /// In-memory cache, exposed via the static [config] accessor.
+  /// Live config for the session. Datasources read this via [config].
   static RemoteConfigModel? config;
 
-  final GetStorage _storage = GetStorage();
-  FirebaseRemoteConfig? _remoteConfig;
-  bool _backgroundRefreshInFlight = false;
+  // final GetStorage _storage = GetStorage();
+  // FirebaseRemoteConfig? _remoteConfig;
+  // bool _backgroundRefreshInFlight = false;
 
-  /// Resolves the configuration.
+  /// Resolves config for startup (or a forced refresh).
   ///
-  /// Returns the cached in-memory config on subsequent calls within the same
-  /// session unless [forceRefresh] is `true`.
-  ///
-  /// Throws [StateError] only when ALL fallback layers fail.
+  /// Currently always loads from [assets/data/remote_config.json].
   Future<RemoteConfigModel> initialize({bool forceRefresh = false}) async {
     if (config != null && !forceRefresh) {
       return config!;
     }
 
-    // Cold start: prefer disk/asset so main() can call runApp without waiting
-    // on Firebase (which has a multi-second fetch timeout and is especially
-    // slow on first install with no prior cache).
-    if (!forceRefresh) {
-      final local = _readFromCache() ?? await _readFromAsset();
-      if (local != null) {
-        config = local;
-        unawaited(_refreshFromFirebaseInBackground());
-        return local;
-      }
-    }
-
-    // Forced refresh, or no local source available.
-    final fromFirebase = await _fetchFromFirebase();
-    if (fromFirebase != null) {
-      config = fromFirebase;
-      return fromFirebase;
-    }
-
-    final fromCache = _readFromCache();
-    if (fromCache != null) {
-      config = fromCache;
-      return fromCache;
-    }
-
+    // ── Local-only: always use the bundled asset ─────────────────────────
     final fromAsset = await _readFromAsset();
     if (fromAsset != null) {
       config = fromAsset;
+      AppLogger.d(
+        '[RemoteConfig] Using bundled asset only '
+        '(Firebase fetch commented out)',
+      );
+      // unawaited(_refreshFromFirebaseInBackground());
       return fromAsset;
     }
 
+    // // ── Forced refresh / Firebase path (disabled) ───────────────────────
+    // final fromFirebase = await _fetchFromFirebase();
+    // if (fromFirebase != null) {
+    //   config = fromFirebase;
+    //   return fromFirebase;
+    // }
+    //
+    // final localFallback = await _resolveLocalConfig();
+    // if (localFallback != null) {
+    //   config = localFallback;
+    //   return localFallback;
+    // }
+
     throw StateError(
-      'RemoteConfigService: all fallback layers failed to resolve config.',
+      'RemoteConfigService: failed to load assets/data/remote_config.json.',
     );
   }
 
-  /// Best-effort Firebase refresh after a local config was already applied.
-  Future<void> _refreshFromFirebaseInBackground() async {
-    if (_backgroundRefreshInFlight) return;
-    _backgroundRefreshInFlight = true;
-    try {
-      final fromFirebase = await _fetchFromFirebase();
-      if (fromFirebase != null) {
-        config = fromFirebase;
-      }
-    } finally {
-      _backgroundRefreshInFlight = false;
-    }
-  }
+  // /// Cache first, then bundled [assets/data/remote_config.json].
+  // Future<RemoteConfigModel?> _resolveLocalConfig() async {
+  //   final fromCache = _readFromCache();
+  //   if (fromCache != null) return fromCache;
+  //
+  //   final fromAsset = await _readFromAsset();
+  //   if (fromAsset != null) {
+  //     _writeToCache(fromAsset);
+  //     AppLogger.d(
+  //       '[RemoteConfig] Seeded cache from assets/data/remote_config.json',
+  //     );
+  //     return fromAsset;
+  //   }
+  //   return null;
+  // }
 
-  // ── Layer 1 ───────────────────────────────────────────────────────────
+  // /// Fetches Firebase after a local config is already active, then swaps it in.
+  // Future<void> _refreshFromFirebaseInBackground() async {
+  //   if (_backgroundRefreshInFlight) return;
+  //   _backgroundRefreshInFlight = true;
+  //   try {
+  //     final fromFirebase = await _fetchFromFirebase();
+  //     if (fromFirebase == null) {
+  //       AppLogger.d(
+  //         '[RemoteConfig] Background fetch returned nothing; '
+  //         'keeping local/asset config',
+  //       );
+  //       return;
+  //     }
+  //     config = fromFirebase;
+  //     AppLogger.d('[RemoteConfig] In-memory config updated from server');
+  //   } finally {
+  //     _backgroundRefreshInFlight = false;
+  //   }
+  // }
 
-  Future<RemoteConfigModel?> _fetchFromFirebase() async {
-    try {
-      final remoteConfig = _remoteConfig ??= FirebaseRemoteConfig.instance;
+  // // ── Firebase ────────────────────────────────────────────────────────────
+  //
+  // Future<RemoteConfigModel?> _fetchFromFirebase() async {
+  //   try {
+  //     final remoteConfig = _remoteConfig ??= FirebaseRemoteConfig.instance;
+  //
+  //     await remoteConfig.setConfigSettings(
+  //       RemoteConfigSettings(
+  //         fetchTimeout: const Duration(seconds: 15),
+  //         minimumFetchInterval:
+  //             kReleaseMode ? const Duration(hours: 1) : Duration.zero,
+  //       ),
+  //     );
+  //
+  //     await _seedFirebaseDefaults(remoteConfig);
+  //
+  //     final activated = await remoteConfig.fetchAndActivate();
+  //     AppLogger.d('[RemoteConfig] fetchAndActivate() → activated: $activated');
+  //
+  //     final raw = remoteConfig.getString(_firebaseKey);
+  //     AppLogger.d(
+  //       '[RemoteConfig] Firebase raw response for "$_firebaseKey": $raw',
+  //     );
+  //
+  //     if (raw.trim().isEmpty) {
+  //       AppLogger.d('[RemoteConfig] Firebase key "$_firebaseKey" is empty.');
+  //       return null;
+  //     }
+  //
+  //     final decoded = jsonDecode(raw);
+  //     if (decoded is! Map) {
+  //       AppLogger.d('[RemoteConfig] Firebase value is not a JSON object.');
+  //       return null;
+  //     }
+  //
+  //     final model = RemoteConfigModel(
+  //       apiConstants: ApiConstants.fromJson(
+  //         Map<String, dynamic>.from(decoded),
+  //       ),
+  //     );
+  //
+  //     _writeToCache(model);
+  //     AppLogger.d('[RemoteConfig] Loaded from Firebase Remote Config');
+  //     return model;
+  //   } catch (error, stackTrace) {
+  //     AppLogger.d('[RemoteConfig] Firebase fetch failed: $error\n$stackTrace');
+  //     return null;
+  //   }
+  // }
+  //
+  // Future<void> _seedFirebaseDefaults(FirebaseRemoteConfig remoteConfig) async {
+  //   try {
+  //     final raw = await rootBundle.loadString(_assetPath);
+  //     final decoded = jsonDecode(raw);
+  //     if (decoded is! Map) return;
+  //
+  //     final apiConstants = decoded['api_constants'];
+  //     if (apiConstants is! Map) return;
+  //
+  //     await remoteConfig.setDefaults(<String, dynamic>{
+  //       _firebaseKey: jsonEncode(Map<String, dynamic>.from(apiConstants)),
+  //     });
+  //   } catch (error) {
+  //     AppLogger.d('[RemoteConfig] Failed to seed Firebase defaults: $error');
+  //   }
+  // }
 
-      await remoteConfig.setConfigSettings(
-        RemoteConfigSettings(
-          fetchTimeout: const Duration(seconds: 15),
-          minimumFetchInterval:
-              kReleaseMode ? const Duration(hours: 1) : Duration.zero,
-        ),
-      );
+  // // ── GetStorage cache ────────────────────────────────────────────────────
+  //
+  // RemoteConfigModel? _readFromCache() {
+  //   try {
+  //     final raw = _storage.read<String>(StorageConstants.remoteConfigCache);
+  //     if (raw == null || raw.trim().isEmpty) {
+  //       return null;
+  //     }
+  //
+  //     final decoded = jsonDecode(raw);
+  //     if (decoded is! Map) {
+  //       return null;
+  //     }
+  //
+  //     AppLogger.d('[RemoteConfig] Loaded from GetStorage cache.');
+  //     return RemoteConfigModel.fromJson(Map<String, dynamic>.from(decoded));
+  //   } catch (error) {
+  //     AppLogger.d('[RemoteConfig] Cache read failed: $error');
+  //     return null;
+  //   }
+  // }
+  //
+  // void _writeToCache(RemoteConfigModel model) {
+  //   try {
+  //     _storage.write(
+  //       StorageConstants.remoteConfigCache,
+  //       jsonEncode(model.toJson()),
+  //     );
+  //   } catch (error) {
+  //     AppLogger.d('[RemoteConfig] Cache write failed: $error');
+  //   }
+  // }
 
-      final activated = await remoteConfig.fetchAndActivate();
-      AppLogger.d('[RemoteConfig] fetchAndActivate() → activated: $activated');
-
-      final raw = remoteConfig.getString(_firebaseKey);
-      AppLogger.d('[RemoteConfig] Firebase raw response for "$_firebaseKey": $raw');
-
-      if (raw.trim().isEmpty) {
-        AppLogger.d('[RemoteConfig] Firebase key "$_firebaseKey" is empty.');
-        return null;
-      }
-
-      final decoded = jsonDecode(raw);
-      if (decoded is! Map) {
-        AppLogger.d('[RemoteConfig] Firebase value is not a JSON object.');
-        return null;
-      }
-
-      // Firebase stores the inner `api_constants` object directly.
-      final model = RemoteConfigModel(
-        apiConstants: ApiConstants.fromJson(Map<String, dynamic>.from(decoded)),
-      );
-
-      _writeToCache(model);
-      AppLogger.d('[RemoteConfig] Loaded from Firebase Remote Config');
-      return model;
-    } catch (error, stackTrace) {
-      AppLogger.d('[RemoteConfig] Firebase fetch failed: $error\n$stackTrace');
-      return null;
-    }
-  }
-
-  // ── Layer 2 ───────────────────────────────────────────────────────────
-
-  RemoteConfigModel? _readFromCache() {
-    try {
-      final raw = _storage.read<String>(StorageConstants.remoteConfigCache);
-      if (raw == null || raw.trim().isEmpty) {
-        return null;
-      }
-
-      final decoded = jsonDecode(raw);
-      if (decoded is! Map) {
-        return null;
-      }
-
-      AppLogger.d('[RemoteConfig] Loaded from GetStorage cache.');
-      return RemoteConfigModel.fromJson(Map<String, dynamic>.from(decoded));
-    } catch (error) {
-      AppLogger.d('[RemoteConfig] Cache read failed: $error');
-      return null;
-    }
-  }
-
-  void _writeToCache(RemoteConfigModel model) {
-    try {
-      _storage.write(
-        StorageConstants.remoteConfigCache,
-        jsonEncode(model.toJson()),
-      );
-    } catch (error) {
-      AppLogger.d('[RemoteConfig] Cache write failed: $error');
-    }
-  }
-
-  // ── Layer 3 ───────────────────────────────────────────────────────────
+  // ── Bundled asset ───────────────────────────────────────────────────────
 
   Future<RemoteConfigModel?> _readFromAsset() async {
     try {
@@ -194,7 +216,9 @@ class RemoteConfigService {
         return null;
       }
 
-      AppLogger.d('[RemoteConfig] Loaded from bundled asset.');
+      AppLogger.d(
+        '[RemoteConfig] Loaded from bundled asset ($_assetPath).',
+      );
       return RemoteConfigModel.fromJson(Map<String, dynamic>.from(decoded));
     } catch (error) {
       AppLogger.d('[RemoteConfig] Asset read failed: $error');

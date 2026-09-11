@@ -91,12 +91,17 @@ class _HomeMobileViewState extends State<HomeMobileView> {
   GoogleMapController? _mapController;
   Brightness? _lastAppliedBrightness;
 
+  /// JSON style passed to [GoogleMap.style] so the first painted frame is already
+  /// themed. Relying only on [GoogleMapController.setMapStyle] leaves the SDK on
+  /// default (white) tiles until the async call lands — especially painful on
+  /// first install after the location permission dialog.
+  String? _styleForBrightness(Brightness brightness) =>
+      brightness == Brightness.dark ? _darkMapStyle : null;
+
   Future<void> _applyMapStyleForTheme(Brightness brightness) async {
     final controller = _mapController;
     if (controller == null) return;
-    await controller.setMapStyle(
-      brightness == Brightness.dark ? _darkMapStyle : null,
-    );
+    await controller.setMapStyle(_styleForBrightness(brightness));
   }
 
   /// True only after the dark style has been confirmed painted.
@@ -256,7 +261,9 @@ class _HomeMobileViewState extends State<HomeMobileView> {
   Future<void> _onMapCreated(GoogleMapController controller) async {
     _mapController = controller;
 
-    // Cover → apply style → reveal. One-time setup on first load.
+    // Stay covered until style + (optional) my-location layer are settled.
+    // Revealing here before permission/stations finish is what left a white
+    // GoogleMap surface on screen for a long time on first install.
     if (mounted) setState(() => _mapReady = false);
     await Future.delayed(const Duration(milliseconds: 50));
     if (!mounted) return;
@@ -266,16 +273,43 @@ class _HomeMobileViewState extends State<HomeMobileView> {
     await _applyMapStyleForTheme(brightness);
     if (!mounted) return;
 
-    setState(() => _mapReady = true);
-
     // Locations may have already loaded before the map was created (the asset
     // loads fast, and the permission dialog can delay this callback). In that
     // case the camera move in [_onLocationsLoaded] was skipped because the
     // controller didn't exist yet — so position the camera now.
     unawaited(_moveCameraToLocations());
 
-    // Blue dot: enable native layer once location permission is known/granted.
-    unawaited(_syncMapMyLocationLayer());
+    // Do NOT enable my-location here. Logs showed
+    // "Cannot enable MyLocation layer as location permissions are not granted"
+    // when the Maps SDK raced the permission dialog — leaving a blank white
+    // surface. My-location is enabled only after the first tile paint settle
+    // in [_onLocationsLoaded] / [_finishFirstMapPaint].
+    final waitingForStations = context.read<MapCubit>().state is MapLoading;
+    if (!waitingForStations) {
+      setState(() => _mapReady = true);
+      unawaited(_finishFirstMapPaint());
+    }
+  }
+
+  /// Nudges the camera so Android actually paints the first map tiles, then
+  /// enables the blue-dot layer under cover once permission is confirmed.
+  Future<void> _finishFirstMapPaint() async {
+    await _nudgeMapToForceTiles();
+    if (!mounted) return;
+    await _syncMapMyLocationLayer(revealIfCovered: true);
+  }
+
+  /// Tiny camera jiggle — forces the Maps SDK to request / composite tiles
+  /// after the platform view was created under a Flutter cover.
+  Future<void> _nudgeMapToForceTiles() async {
+    final controller = _mapController;
+    if (controller == null || !mounted) return;
+    try {
+      await controller.moveCamera(CameraUpdate.scrollBy(1, 1));
+      await controller.moveCamera(CameraUpdate.scrollBy(-1, -1));
+    } catch (_) {
+      // Controller may be disposed mid-transition; ignore.
+    }
   }
 
   /// Animates the camera to the first-launch view: the whole of Pakistan,
@@ -325,7 +359,12 @@ class _HomeMobileViewState extends State<HomeMobileView> {
   /// single permission request on load; requesting here too races with it and
   /// throws `PermissionRequestInProgressException`, which can stall the location
   /// flow on first launch.
-  Future<void> _syncMapMyLocationLayer() async {
+  ///
+  /// Enabling the native my-location layer rebuilds the Android map surface and
+  /// flashes white default tiles (often for a long time on first install). When
+  /// [revealIfCovered] is true and the map was already visible, we keep the
+  /// cover up until the themed tiles settle again.
+  Future<void> _syncMapMyLocationLayer({bool revealIfCovered = true}) async {
     if (!mounted) return;
 
     try {
@@ -338,7 +377,30 @@ class _HomeMobileViewState extends State<HomeMobileView> {
       final permission = await Geolocator.checkPermission();
       final show = permission == LocationPermission.whileInUse ||
           permission == LocationPermission.always;
-      if (mounted) setState(() => _mapMyLocationEnabled = show);
+      if (!mounted || show == _mapMyLocationEnabled) return;
+
+      final wasReady = _mapReady;
+      // Cover before flipping the flag when the map is already on screen —
+      // enabling my-location rebuilds the Android map surface to white tiles.
+      if (show && wasReady) {
+        setState(() {
+          _mapReady = false;
+          _mapMyLocationEnabled = true;
+        });
+      } else {
+        setState(() => _mapMyLocationEnabled = show);
+      }
+
+      if (show && wasReady && revealIfCovered) {
+        await Future.delayed(const Duration(milliseconds: 50));
+        if (!mounted) return;
+        await _applyMapStyleForTheme(Theme.of(context).brightness);
+        if (!mounted) return;
+        // Let the SDK paint styled tiles before removing the cover.
+        await Future.delayed(const Duration(milliseconds: 400));
+        if (!mounted) return;
+        setState(() => _mapReady = true);
+      }
     } catch (_) {
       // Permission still being requested elsewhere; leave the layer as-is.
     }
@@ -373,14 +435,26 @@ class _HomeMobileViewState extends State<HomeMobileView> {
     // Step 5 ── Animate camera to first location. If the controller isn't ready
     // yet, [_onMapCreated] will run this once the map is created.
     await _moveCameraToLocations();
-
     if (!mounted) return;
 
-    // Step 6 ── Reveal the now-dark map.
+    await _applyMapStyleForTheme(Theme.of(context).brightness);
+    if (!mounted) return;
+
+    // Step 6 ── Let the (opaque, covered) map fetch first tiles. Previously we
+    // set AnimatedOpacity to 0 here which blocked tile loading on Android.
+    await Future.delayed(const Duration(milliseconds: 400));
+    if (!mounted) return;
+    await _nudgeMapToForceTiles();
+    if (!mounted) return;
+
+    // Step 7 ── Reveal the finished map (tiles should already be painted).
     setState(() => _mapReady = true);
 
-    // Map rebuild can drop the my-location layer; re-apply if still permitted.
-    unawaited(_syncMapMyLocationLayer());
+    // Step 8 ── Enable my-location only after reveal settle + permission is
+    // visible to the Maps SDK (avoids the blank-white surface race).
+    await Future.delayed(const Duration(milliseconds: 100));
+    if (!mounted) return;
+    await _syncMapMyLocationLayer(revealIfCovered: true);
   }
 
   /// Logical width/height of the station pin bitmap. Sized so the teardrop pin
@@ -1029,7 +1103,11 @@ class _HomeMobileViewState extends State<HomeMobileView> {
       return;
     }
 
-    if (mounted) setState(() => _mapMyLocationEnabled = true);
+    // Enable the blue-dot layer under cover so we don't blank the map.
+    if (!_mapMyLocationEnabled) {
+      await _syncMapMyLocationLayer();
+      if (!mounted) return;
+    }
 
     try {
       final position = await Geolocator.getCurrentPosition();
@@ -1157,40 +1235,42 @@ class _HomeMobileViewState extends State<HomeMobileView> {
             return Stack(
               children: [
                 // ── Google Map ─────────────────────────────────────────────
-                // Fades in only after _mapReady is true (dark style confirmed).
-                AnimatedOpacity(
-                  opacity: _mapReady ? 1.0 : 0.0,
-                  duration: const Duration(milliseconds: 150),
-                  child: GoogleMap(
-                    // Pakistan is on screen from the very first frame, even
-                    // before stations load.
-                    initialCameraPosition: const CameraPosition(
-                      target: _pakistanCenter,
-                      zoom: _pakistanFallbackZoom,
-                    ),
-                    // Keep the first screen (and every later pan/zoom) locked to
-                    // Pakistan so neighbouring countries never take over.
-                    cameraTargetBounds: _pakistanCameraBounds,
-                    minMaxZoomPreference: MinMaxZoomPreference(_minZoom, null),
-                    onMapCreated: _onMapCreated,
-                    onCameraMove: (position) =>
-                        _onCameraPositionChanged(position.zoom),
-                    onCameraIdle: _onCameraIdle,
-                    compassEnabled: false,
-                    mapToolbarEnabled: false,
-                    myLocationButtonEnabled: false,
-                    myLocationEnabled: _mapMyLocationEnabled,
-                    zoomControlsEnabled: false,
-                    buildingsEnabled: true,
-                    padding: _mapPadding,
-                    markers: _markers,
+                // Keep the map at full opacity under the cover. Driving the
+                // platform view to opacity 0 (AnimatedOpacity) prevents Android
+                // Impeller/SurfaceProducer from loading tiles — when revealed
+                // the map stays blank white until something forces a redraw.
+                // Visibility is controlled only by the ColoredBox cover below.
+                GoogleMap(
+                  // Apply theme style on the first frame so the SDK never
+                  // paints default white tiles while setMapStyle is in flight.
+                  style: _styleForBrightness(Theme.of(context).brightness),
+                  // Pakistan is on screen from the very first frame, even
+                  // before stations load.
+                  initialCameraPosition: const CameraPosition(
+                    target: _pakistanCenter,
+                    zoom: _pakistanFallbackZoom,
                   ),
-                ),
+                  // Keep the first screen (and every later pan/zoom) locked to
+                  // Pakistan so neighbouring countries never take over.
+                  cameraTargetBounds: _pakistanCameraBounds,
+                  minMaxZoomPreference: MinMaxZoomPreference(_minZoom, null),
+                  onMapCreated: _onMapCreated,
+                  onCameraMove: (position) =>
+                        _onCameraPositionChanged(position.zoom),
+                  onCameraIdle: _onCameraIdle,
+                  compassEnabled: false,
+                  mapToolbarEnabled: false,
+                  myLocationButtonEnabled: false,
+                  myLocationEnabled: _mapMyLocationEnabled,
+                  zoomControlsEnabled: false,
+                  buildingsEnabled: true,
+                  padding: _mapPadding,
+                  markers: _markers,                ),
 
-                // ── Black cover ────────────────────────────────────────────
+                // ── Cover ──────────────────────────────────────────────────
                 // Sits above the map and below all UI. Visible whenever the
                 // map is not yet dark, hiding any white tile flash entirely.
-                if (!_mapReady)
+                if (!_mapReady || state is MapLoading)
                   Positioned.fill(
                     child: ColoredBox(color: ui.scaffoldBackground),
                   ),
