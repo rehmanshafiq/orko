@@ -41,8 +41,9 @@ Future<void> main() async {
   // Register the FCM background/terminated handler before runApp.
   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
-  // Warm the remote config (Firebase → GetStorage → asset fallback).
-  // Never throws for individual layer failures; safe to await at startup.
+  // Resolve remote config from local cache/asset first (instant), then refresh
+  // Firebase in the background. Awaiting Firebase here used to keep Android on
+  // the native splash for the full fetch timeout on first install / slow nets.
   await RemoteConfigService.instance.initialize();
 
   // Initialize all dependencies

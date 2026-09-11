@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:orko_hubco/core/utils/app_logger.dart';
 
@@ -8,12 +9,18 @@ import 'package:get_storage/get_storage.dart';
 import 'package:orko_hubco/core/constants/storage_constants.dart';
 import 'package:orko_hubco/features/remote_config/data/models/remote_config_model.dart';
 
-/// Singleton service that resolves the app's [RemoteConfigModel] using a strict
-/// multi-layer fallback strategy:
+/// Singleton service that resolves the app's [RemoteConfigModel] using a
+/// multi-layer strategy:
 ///
-/// 1. Firebase Remote Config (`fetchAndActivate`)  → persisted to GetStorage.
-/// 2. GetStorage cache (`remote_config_cache`)     → last known good value.
-/// 3. Bundled asset (`assets/data/remote_config.json`) → guaranteed default.
+/// **Cold start (`initialize`):** local sources first so first paint is never
+/// blocked on the network:
+/// 1. GetStorage cache (`remote_config_cache`) → last known good value.
+/// 2. Bundled asset (`assets/data/remote_config.json`) → guaranteed default.
+/// 3. Firebase Remote Config is refreshed in the background and written back
+///    to cache when it succeeds.
+///
+/// **Forced refresh (`forceRefresh: true`):** Firebase first, then cache, then
+/// asset — same as the historical strict fallback order.
 ///
 /// The service never throws for transient failures of an individual layer; it
 /// only fails if EVERY layer fails. The last successfully resolved config is
@@ -36,12 +43,12 @@ class RemoteConfigService {
 
   final GetStorage _storage = GetStorage();
   FirebaseRemoteConfig? _remoteConfig;
+  bool _backgroundRefreshInFlight = false;
 
-  /// Resolves the configuration following the strict fallback order.
+  /// Resolves the configuration.
   ///
   /// Returns the cached in-memory config on subsequent calls within the same
-  /// session unless [forceRefresh] is `true`, avoiding redundant Firebase
-  /// fetches.
+  /// session unless [forceRefresh] is `true`.
   ///
   /// Throws [StateError] only when ALL fallback layers fail.
   Future<RemoteConfigModel> initialize({bool forceRefresh = false}) async {
@@ -49,21 +56,31 @@ class RemoteConfigService {
       return config!;
     }
 
-    // ── Step 1: Firebase Remote Config ──────────────────────────────────
+    // Cold start: prefer disk/asset so main() can call runApp without waiting
+    // on Firebase (which has a multi-second fetch timeout and is especially
+    // slow on first install with no prior cache).
+    if (!forceRefresh) {
+      final local = _readFromCache() ?? await _readFromAsset();
+      if (local != null) {
+        config = local;
+        unawaited(_refreshFromFirebaseInBackground());
+        return local;
+      }
+    }
+
+    // Forced refresh, or no local source available.
     final fromFirebase = await _fetchFromFirebase();
     if (fromFirebase != null) {
       config = fromFirebase;
       return fromFirebase;
     }
 
-    // ── Step 2: GetStorage cache ────────────────────────────────────────
     final fromCache = _readFromCache();
     if (fromCache != null) {
       config = fromCache;
       return fromCache;
     }
 
-    // ── Step 3: Bundled asset (last resort) ─────────────────────────────
     final fromAsset = await _readFromAsset();
     if (fromAsset != null) {
       config = fromAsset;
@@ -73,6 +90,20 @@ class RemoteConfigService {
     throw StateError(
       'RemoteConfigService: all fallback layers failed to resolve config.',
     );
+  }
+
+  /// Best-effort Firebase refresh after a local config was already applied.
+  Future<void> _refreshFromFirebaseInBackground() async {
+    if (_backgroundRefreshInFlight) return;
+    _backgroundRefreshInFlight = true;
+    try {
+      final fromFirebase = await _fetchFromFirebase();
+      if (fromFirebase != null) {
+        config = fromFirebase;
+      }
+    } finally {
+      _backgroundRefreshInFlight = false;
+    }
   }
 
   // ── Layer 1 ───────────────────────────────────────────────────────────

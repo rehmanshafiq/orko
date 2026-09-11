@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:orko_hubco/core/constants/storage_constants.dart';
+import 'package:orko_hubco/core/utils/app_logger.dart';
 
 /// Encrypted-at-rest storage for security-sensitive values — auth tokens and
 /// user PII — backed by the iOS Keychain / Android EncryptedSharedPreferences
@@ -21,8 +24,17 @@ class SecureStore {
   /// Shared singleton.
   static final SecureStore instance = SecureStore._();
 
+  /// EncryptedSharedPreferences / Keystore init can hang or ANR on some Android
+  /// devices (especially first install). Cap how long startup waits so the
+  /// native splash cannot stick for minutes.
+  static const Duration _initTimeout = Duration(seconds: 5);
+
   static const FlutterSecureStorage _secure = FlutterSecureStorage(
-    aOptions: AndroidOptions(encryptedSharedPreferences: true),
+    aOptions: AndroidOptions(
+      encryptedSharedPreferences: true,
+      // Corrupted master keys otherwise leave reads hanging / failing forever.
+      resetOnError: true,
+    ),
     iOptions: IOSOptions(
       accessibility: KeychainAccessibility.first_unlock_this_device,
     ),
@@ -44,16 +56,34 @@ class SecureStore {
   ///
   /// Call once in `main()` after `GetStorage.init()` and before `runApp()` /
   /// the first API call. Idempotent.
+  ///
+  /// On Android, EncryptedSharedPreferences master-key creation can stall on
+  /// first install. We bound that wait so launch can continue with an empty
+  /// mirror rather than freezing on the native splash.
   Future<void> init() async {
     if (_initialized) return;
 
+    try {
+      await _loadMirrorAndMigrate().timeout(_initTimeout);
+    } on TimeoutException {
+      AppLogger.d(
+        '[SecureStore] init timed out after ${_initTimeout.inSeconds}s; '
+        'continuing with empty mirror',
+      );
+    } catch (error, stackTrace) {
+      AppLogger.d('[SecureStore] init failed: $error\n$stackTrace');
+    }
+
+    _initialized = true;
+  }
+
+  Future<void> _loadMirrorAndMigrate() async {
     for (final key in secureKeys) {
       final value = await _secure.read(key: key);
       if (value != null && value.isNotEmpty) _mirror[key] = value;
     }
 
     await _migrateLegacyPlaintext();
-    _initialized = true;
   }
 
   /// One-time upgrade path: move any secret still sitting in the unencrypted
