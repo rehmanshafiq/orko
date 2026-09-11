@@ -857,7 +857,6 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       case DioExceptionType.connectionTimeout:
       case DioExceptionType.sendTimeout:
       case DioExceptionType.receiveTimeout:
-      case DioExceptionType.transformTimeout:
         return 'The request timed out. Please check your internet connection '
             'and try again.';
       case DioExceptionType.connectionError:
