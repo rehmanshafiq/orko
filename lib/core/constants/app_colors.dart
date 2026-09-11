@@ -62,6 +62,8 @@ class AppColors {
   static const searchBackgroundColor = Color(0xFF23262D);
   static const iconGlassBackgroundColor = Color(0xFF4F5D6D);
   static const iconInnerColor = Color(0xFF4D4D52);
+  /// Onboarding "Get Started" circular arrow background (cool grey).
+  static const onboardingArrowBgColor = Color(0xFFAAABAD);
 }
 
 /// Surfaces and typography that follow [ThemeData.brightness], built from [AppColors] only.

@@ -57,8 +57,7 @@ class _OnboardingMobileViewState extends State<OnboardingMobileView>
   /// Current page as a continuous double for swipe-linked animations. Falls
   /// back to [fallback] before the PageView has been laid out.
   double _pageOffset(double fallback) {
-    if (_pageController.hasClients &&
-        _pageController.position.haveDimensions) {
+    if (_pageController.hasClients && _pageController.position.haveDimensions) {
       return _pageController.page ?? fallback;
     }
     return fallback;
@@ -297,10 +296,10 @@ class _GetStartedBar extends StatelessWidget {
             height: 64.h,
             padding: EdgeInsets.fromLTRB(28.w, 8.h, 8.h, 8.h),
             decoration: BoxDecoration(
-              color: AppColors.whiteColor.withValues(alpha: 0.10),
+              color: AppColors.blackColor,
               borderRadius: BorderRadius.circular(40.r),
               border: Border.all(
-                color: AppColors.whiteColor.withValues(alpha: 0.16),
+                color: AppColors.blackColor,
               ),
             ),
             child: Row(
@@ -308,7 +307,7 @@ class _GetStartedBar extends StatelessWidget {
                 Expanded(
                   child: AppText(
                     'Get Started',
-                    color: AppColors.whiteColor,
+                    color: AppColors.onboardingArrowBgColor,
                     fontSize: FontSizes.font16Sp,
                     fontWeight: FontWeights.weight500,
                   ),
@@ -317,7 +316,7 @@ class _GetStartedBar extends StatelessWidget {
                   width: 48.w,
                   height: 48.h,
                   decoration: const BoxDecoration(
-                    color: AppColors.thumbBarGreyColor,
+                    color: AppColors.onboardingArrowBgColor,
                     shape: BoxShape.circle,
                   ),
                   alignment: Alignment.center,
@@ -336,6 +335,7 @@ class _GetStartedBar extends StatelessWidget {
                           Icons.arrow_forward,
                           color: AppColors.blackColor,
                           size: 22.sp,
+                          weight: 700,
                         ),
                 ),
               ],
