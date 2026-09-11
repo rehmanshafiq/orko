@@ -1,6 +1,8 @@
 import 'dart:async';
 
+import 'package:flutter/services.dart' show PlatformException;
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:orko_hubco/core/utils/app_logger.dart';
 import 'package:orko_hubco/core/di/injection_container.dart';
 import 'package:orko_hubco/core/services/analytics_service.dart';
 import 'package:orko_hubco/core/services/analytics_user_properties.dart';
@@ -101,7 +103,12 @@ class AuthCubit extends Cubit<AuthState> {
     final GoogleAccountInfo? account;
     try {
       account = await _googleAuthService.signIn();
-    } catch (_) {
+    } catch (e, s) {
+      AppLogger.d('Google sign-in failed: $e');
+      if (e is PlatformException) {
+        AppLogger.d('  code=${e.code} message=${e.message} details=${e.details}');
+      }
+      AppLogger.d('$s');
       _analytics.logEvent('login_failed', parameters: {
         'method': 'google',
         'error_reason': 'sign_in_exception',
