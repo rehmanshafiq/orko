@@ -13,34 +13,67 @@ class ChargingStationBannerWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ui = AppUiColors.of(context);
     final url = bannerImage?.trim() ?? '';
     return Stack(
       fit: StackFit.expand,
       children: [
-        if (url.isEmpty)
-          const _AssetBanner()
-        else
-          CachedNetworkImage(
-            imageUrl: url,
-            fit: BoxFit.cover,
-            alignment: Alignment.center,
-            placeholder: (_, __) => const _AssetBanner(),
-            errorWidget: (_, __, ___) => const _AssetBanner(),
-          ),
-        DecoratedBox(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                AppColors.blackColor.withValues(alpha: ui.isLight ? 0.15 : 0.25),
-                AppColors.blackColor.withValues(alpha: ui.isLight ? 0.45 : 0.72),
-              ],
-            ),
-          ),
+        CachedNetworkImage(
+          imageUrl: url,
+          fit: BoxFit.cover,
+          alignment: Alignment.center,
+          placeholder: (_, __) => const _ShimmerBanner(),
+          errorWidget: (_, __, ___) => const _AssetBanner(),
         ),
       ],
+    );
+  }
+}
+
+/// Animated shimmer shown while the network banner is loading. Uses the shared
+/// shimmer palette and a looping gradient sweep — no external package needed.
+class _ShimmerBanner extends StatefulWidget {
+  const _ShimmerBanner();
+
+  @override
+  State<_ShimmerBanner> createState() => _ShimmerBannerState();
+}
+
+class _ShimmerBannerState extends State<_ShimmerBanner>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1200),
+  )..repeat();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, _) {
+        // Sweep the highlight from off-screen left to off-screen right.
+        final double t = _controller.value;
+        final double dx = -1.0 + 3.0 * t;
+        return DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment(dx - 1.0, 0),
+              end: Alignment(dx + 1.0, 0),
+              colors: const [
+                AppColors.shimmerGreyColor,
+                AppColors.shimmerHighlightColor,
+                AppColors.shimmerGreyColor,
+              ],
+              stops: const [0.35, 0.5, 0.65],
+            ),
+          ),
+        );
+      },
     );
   }
 }
