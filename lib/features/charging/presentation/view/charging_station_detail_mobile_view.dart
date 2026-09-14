@@ -169,6 +169,7 @@ class ChargingStationDetailMobileView extends StatelessWidget {
                           ],
                           background: ChargingStationBannerWidget(
                             bannerImage: state.bannerImage,
+                            isLoading: state.isLoading,
                           ),
                         ),
                       ),

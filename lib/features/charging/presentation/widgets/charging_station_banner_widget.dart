@@ -5,15 +5,28 @@ import 'package:orko_hubco/core/constants/app_images.dart';
 
 /// Banner only — [SliverAppBar] + [FlexibleSpaceBar] drive collapse / parallax.
 class ChargingStationBannerWidget extends StatelessWidget {
-  const ChargingStationBannerWidget({super.key, this.bannerImage});
+  const ChargingStationBannerWidget({
+    super.key,
+    this.bannerImage,
+    this.isLoading = false,
+  });
 
   /// Station banner URL from the detail API (`banner_image` key). When null or
-  /// empty the bundled asset is shown instead.
+  /// empty the bundled asset is shown instead — unless [isLoading] is true, in
+  /// which case the shimmer is shown while the URL is still being fetched.
   final String? bannerImage;
+
+  /// Whether the detail request that provides [bannerImage] is still in flight.
+  final bool isLoading;
 
   @override
   Widget build(BuildContext context) {
     final url = bannerImage?.trim() ?? '';
+    // No URL yet: shimmer while the detail request is loading, otherwise fall
+    // back to the bundled asset (station genuinely has no banner).
+    if (url.isEmpty) {
+      return isLoading ? const _ShimmerBanner() : const _AssetBanner();
+    }
     return Stack(
       fit: StackFit.expand,
       children: [
