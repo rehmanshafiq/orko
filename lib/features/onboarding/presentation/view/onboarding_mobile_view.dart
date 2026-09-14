@@ -370,7 +370,6 @@ class _GetStartedBarState extends State<_GetStartedBar>
           if (_maxDrag < 0) _maxDrag = 0;
 
           return GestureDetector(
-            onTap: _interactive ? _complete : null,
             onHorizontalDragUpdate: _interactive ? _onDragUpdate : null,
             onHorizontalDragEnd: _interactive ? _onDragEnd : null,
             child: Container(
@@ -465,7 +464,7 @@ class _GetStartedBarState extends State<_GetStartedBar>
           : Icon(
               Icons.arrow_forward,
               color: AppColors.blackColor,
-              size: 22.sp,
+              size: 26.sp,
               weight: 700,
             ),
     );
