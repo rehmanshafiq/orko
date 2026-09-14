@@ -6,7 +6,7 @@ class AppImages {
   /// Tightly-cropped HUBCO green wordmarks (no surrounding padding) so both
   /// themes render at a matching visual size in the bottom nav emblem.
   static final String hubcoWordmarkDark = '${imagePath}hubco_logo_dark.png';
-  static final String hubcoWordmarkLight = '${imagePath}hubco_logo_light.png';
+  static final String hubcoWordmarkLight = '${imagePath}hubco_logo_light.jpeg';
   static final String onboarding1 = '${imagePath}onboarding_1.png';
   static final String onboarding2 = '${imagePath}onboarding_2.png';
   static final String onboarding3 = '${imagePath}onboarding_3.png';
