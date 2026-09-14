@@ -236,7 +236,7 @@ class _OnboardingSlide extends StatelessWidget {
                             TextSpan(
                               text: item.titleHighlight,
                               style: TextStyle(
-                                fontWeight: FontWeights.weight700,
+                                fontWeight: FontWeights.weight400,
                               ),
                             ),
                           ],
@@ -263,10 +263,12 @@ class _OnboardingSlide extends StatelessWidget {
   }
 }
 
-/// Bottom "Get Started" pill: a rounded, frosted bar with the label on the
-/// left and a circular arrow on the right. Rendered muted (non-interactive)
-/// until the final slide is reached, then enabled.
-class _GetStartedBar extends StatelessWidget {
+/// Bottom "Get Started" control: a rounded, black pill with a draggable
+/// circular thumb. The user swipes the thumb from left to right to continue.
+/// If released before the threshold the thumb springs back; past it, the
+/// swipe completes and [onTap] fires. A tap anywhere also completes it.
+/// Rendered muted (non-interactive) while [isEnabled] is false.
+class _GetStartedBar extends StatefulWidget {
   const _GetStartedBar({
     required this.isEnabled,
     required this.isBusy,
@@ -278,69 +280,194 @@ class _GetStartedBar extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
+  State<_GetStartedBar> createState() => _GetStartedBarState();
+}
+
+class _GetStartedBarState extends State<_GetStartedBar>
+    with TickerProviderStateMixin {
+  /// Thumb travel as a fraction of the track (0 = start, 1 = fully swiped).
+  late final AnimationController _thumb;
+
+  /// Drives the looping shimmer sweep over the label as a swipe affordance.
+  late final AnimationController _shimmer;
+
+  /// Horizontal distance the thumb can travel, measured at layout time.
+  double _maxDrag = 0;
+
+  /// Latches once the swipe has completed so it fires [onTap] only once.
+  bool _completed = false;
+
+  /// Fraction of the track that counts as a completed swipe.
+  static const double _completeThreshold = 0.8;
+
+  @override
+  void initState() {
+    super.initState();
+    _thumb = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 240),
+    );
+    _shimmer = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1600),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _thumb.dispose();
+    _shimmer.dispose();
+    super.dispose();
+  }
+
+  bool get _interactive =>
+      widget.isEnabled && !widget.isBusy && !_completed;
+
+  void _onDragUpdate(DragUpdateDetails details) {
+    if (_maxDrag <= 0) return;
+    _thumb.value =
+        (_thumb.value + details.primaryDelta! / _maxDrag).clamp(0.0, 1.0);
+  }
+
+  void _onDragEnd(DragEndDetails details) {
+    if (_thumb.value >= _completeThreshold) {
+      _complete();
+    } else {
+      _thumb.animateTo(
+        0,
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOut,
+      );
+    }
+  }
+
+  void _complete() {
+    if (_completed) return;
+    _completed = true;
+    _shimmer.stop();
+    _thumb
+        .animateTo(
+          1,
+          duration: const Duration(milliseconds: 160),
+          curve: Curves.easeOut,
+        )
+        .whenComplete(widget.onTap);
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final double opacity = isEnabled ? 1 : 0.45;
+    final double opacity = widget.isEnabled ? 1 : 0.45;
+    final double height = 64.h;
+    final double thumbSize = 48.w;
+    final double pad = 8.w;
 
     return AnimatedOpacity(
       duration: const Duration(milliseconds: 250),
       opacity: opacity,
-      child: Material(
-        color: AppColors.transparentColor,
-        borderRadius: BorderRadius.circular(40.r),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(40.r),
-          onTap: isEnabled ? onTap : null,
-          child: Container(
-            height: 64.h,
-            padding: EdgeInsets.fromLTRB(28.w, 8.h, 8.h, 8.h),
-            decoration: BoxDecoration(
-              color: AppColors.blackColor,
-              borderRadius: BorderRadius.circular(40.r),
-              border: Border.all(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          _maxDrag = constraints.maxWidth - thumbSize - pad * 2;
+          if (_maxDrag < 0) _maxDrag = 0;
+
+          return GestureDetector(
+            onTap: _interactive ? _complete : null,
+            onHorizontalDragUpdate: _interactive ? _onDragUpdate : null,
+            onHorizontalDragEnd: _interactive ? _onDragEnd : null,
+            child: Container(
+              height: height,
+              decoration: BoxDecoration(
                 color: AppColors.blackColor,
+                borderRadius: BorderRadius.circular(40.r),
+                border: Border.all(color: AppColors.blackColor),
+              ),
+              child: AnimatedBuilder(
+                animation: Listenable.merge([_thumb, _shimmer]),
+                builder: (context, _) {
+                  final double t = _thumb.value;
+                  return Stack(
+                    alignment: Alignment.centerLeft,
+                    children: [
+                      // Label centered in the space to the right of the thumb;
+                      // fades out as the thumb advances.
+                      Positioned(
+                        left: thumbSize + pad,
+                        right: pad,
+                        top: 0,
+                        bottom: 0,
+                        child: Opacity(
+                          opacity: (1 - t * 1.6).clamp(0.0, 1.0),
+                          child: Center(child: _shimmerLabel()),
+                        ),
+                      ),
+
+                      // Draggable thumb.
+                      Positioned(
+                        left: pad + t * _maxDrag,
+                        child: _thumbCircle(thumbSize),
+                      ),
+                    ],
+                  );
+                },
               ),
             ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: AppText(
-                    'Get Started',
-                    color: AppColors.onboardingArrowBgColor,
-                    fontSize: FontSizes.font16Sp,
-                    fontWeight: FontWeights.weight500,
-                  ),
-                ),
-                Container(
-                  width: 48.w,
-                  height: 48.h,
-                  decoration: const BoxDecoration(
-                    color: AppColors.onboardingArrowBgColor,
-                    shape: BoxShape.circle,
-                  ),
-                  alignment: Alignment.center,
-                  child: isBusy
-                      ? SizedBox(
-                          width: 20.w,
-                          height: 20.w,
-                          child: const CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              AppColors.blackColor,
-                            ),
-                          ),
-                        )
-                      : Icon(
-                          Icons.arrow_forward,
-                          color: AppColors.blackColor,
-                          size: 22.sp,
-                          weight: 700,
-                        ),
-                ),
-              ],
-            ),
-          ),
-        ),
+          );
+        },
       ),
+    );
+  }
+
+  /// "Get Started" label with a light sweep moving across it left-to-right.
+  Widget _shimmerLabel() {
+    final double v = _shimmer.value; // 0..1
+    final double center = -1.2 + v * 2.4; // sweep from left off-screen to right
+    return ShaderMask(
+      blendMode: BlendMode.srcIn,
+      shaderCallback: (bounds) {
+        return LinearGradient(
+          begin: Alignment(center - 0.35, 0),
+          end: Alignment(center + 0.35, 0),
+          colors: const [
+            AppColors.onboardingArrowBgColor,
+            AppColors.whiteColor,
+            AppColors.onboardingArrowBgColor,
+          ],
+        ).createShader(bounds);
+      },
+      child: AppText(
+        'Get Started',
+        color: AppColors.whiteColor,
+        fontSize: FontSizes.font16Sp,
+        fontWeight: FontWeights.weight500,
+      ),
+    );
+  }
+
+  Widget _thumbCircle(double size) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: const BoxDecoration(
+        color: AppColors.onboardingArrowBgColor,
+        shape: BoxShape.circle,
+      ),
+      alignment: Alignment.center,
+      child: widget.isBusy
+          ? SizedBox(
+              width: 20.w,
+              height: 20.w,
+              child: const CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  AppColors.blackColor,
+                ),
+              ),
+            )
+          : Icon(
+              Icons.arrow_forward,
+              color: AppColors.blackColor,
+              size: 22.sp,
+              weight: 700,
+            ),
     );
   }
 }
