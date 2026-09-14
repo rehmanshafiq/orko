@@ -178,15 +178,34 @@ class _OnboardingSlide extends StatelessWidget {
       fit: StackFit.expand,
       children: [
         // Full-bleed background photo. The source art is authored at a 9:16
-        // aspect ratio (1536 x 2731). BoxFit.cover fills the screen without
-        // distortion, cropping the overflow rather than stretching the image.
-        AppPngImageView(
-          appImagePath: item.imagePath,
-          width: double.infinity,
-          height: double.infinity,
-          fit: BoxFit.cover,
-          imageAlignment: Alignment.center,
+        // aspect ratio (1536 x 2731). Phone screens are taller than 9:16, so
+        // BoxFit.cover fills the whole screen (no black gaps) without
+        // distortion; top-alignment keeps the tree and connectors in view and
+        // trims only a little from the sides/base.
+        Positioned.fill(
+          child: AppPngImageView(
+            appImagePath: item.imagePath,
+            width: double.infinity,
+            height: double.infinity,
+            fit: BoxFit.fitWidth,
+            imageAlignment: Alignment.topCenter,
+          ),
         ),
+
+        // Scrim to keep the headline legible and to blend the base of the
+        // photo into the black background.
+        // const DecoratedBox(
+        //   decoration: BoxDecoration(
+        //     gradient: LinearGradient(
+        //       begin: Alignment.center,
+        //       end: Alignment.bottomCenter,
+        //       colors: [
+        //         AppColors.transparentColor,
+        //         AppColors.blackColor,
+        //       ],
+        //     ),
+        //   ),
+        // ),
 
         // Headline + description, sitting above the bottom controls.
         Align(
@@ -194,7 +213,7 @@ class _OnboardingSlide extends StatelessWidget {
           child: SafeArea(
             top: false,
             child: Padding(
-              padding: EdgeInsets.fromLTRB(24.w, 0, 24.w, 120.h),
+              padding: EdgeInsets.fromLTRB(24.w, 0, 24.w, 110.h),
               child: Opacity(
                 opacity: contentOpacity,
                 child: Transform.translate(
