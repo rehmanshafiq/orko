@@ -177,8 +177,9 @@ class _OnboardingSlide extends StatelessWidget {
     return Stack(
       fit: StackFit.expand,
       children: [
-        // Full-bleed background photo (fills the screen width and height,
-        // cropping as needed while preserving aspect ratio).
+        // Full-bleed background photo. The source art is authored at a 9:16
+        // aspect ratio (1536 x 2731). BoxFit.cover fills the screen without
+        // distortion, cropping the overflow rather than stretching the image.
         AppPngImageView(
           appImagePath: item.imagePath,
           width: double.infinity,
@@ -187,27 +188,13 @@ class _OnboardingSlide extends StatelessWidget {
           imageAlignment: Alignment.center,
         ),
 
-        // Scrim to keep the headline legible over the photo.
-        const DecoratedBox(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.center,
-              end: Alignment.bottomCenter,
-              colors: [
-                AppColors.transparentColor,
-                AppColors.blackColor,
-              ],
-            ),
-          ),
-        ),
-
         // Headline + description, sitting above the bottom controls.
         Align(
           alignment: Alignment.bottomLeft,
           child: SafeArea(
             top: false,
             child: Padding(
-              padding: EdgeInsets.fromLTRB(24.w, 0, 24.w, 140.h),
+              padding: EdgeInsets.fromLTRB(24.w, 0, 24.w, 120.h),
               child: Opacity(
                 opacity: contentOpacity,
                 child: Transform.translate(
