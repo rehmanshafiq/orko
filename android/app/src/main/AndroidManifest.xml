@@ -38,6 +38,23 @@
         <meta-data
             android:name="com.orko_hubco.live_charging.NOTIFICATION_ICON"
             android:resource="@drawable/ic_notification" />
+        <!-- Android for Cars App Library: minimum Car API level this app targets. -->
+        <meta-data
+            android:name="androidx.car.app.minCarApiLevel"
+            android:value="1" />
+        <!-- Android Auto entry point. The car host binds this service; it hosts
+             native Car App templates only — no Flutter UI is rendered in the car.
+             Uses the POI (Point of Interest) category: Google deprecated the
+             explicit CHARGING/PARKING categories and now requires EV-charging and
+             parking apps to declare the broader POI category. -->
+        <service
+            android:name=".auto.OrkoCarAppService"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="androidx.car.app.CarAppService" />
+                <category android:name="androidx.car.app.category.POI" />
+            </intent-filter>
+        </service>
         <activity
             android:name=".MainActivity"
             android:exported="true"

@@ -1,0 +1,163 @@
+package com.orko_hubco.mobile.orko_hubco.auto.screens
+
+import androidx.car.app.CarContext
+import androidx.car.app.Screen
+import androidx.car.app.model.Action
+import androidx.car.app.model.CarColor
+import androidx.car.app.model.Pane
+import androidx.car.app.model.PaneTemplate
+import androidx.car.app.model.Row
+import androidx.car.app.model.Template
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
+import com.orko_hubco.mobile.orko_hubco.auto.bridge.FlutterAutoBridge
+import com.orko_hubco.mobile.orko_hubco.auto.model.AutoStationDetail
+import com.orko_hubco.mobile.orko_hubco.auto.util.CarNavigation
+import com.orko_hubco.mobile.orko_hubco.auto.util.ErrorScreens
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
+
+/**
+ * Station details in a driver-safe [PaneTemplate], backed by live data via
+ * [FlutterAutoBridge]. Shows address, open/closed + hours, connectors and price,
+ * plus a Navigate action (wired to a maps intent in Phase 6).
+ */
+class StationDetailScreen(
+    carContext: CarContext,
+    private val bridge: FlutterAutoBridge,
+    private val stationId: String,
+    private val lat: Double,
+    private val lng: Double,
+    private val name: String,
+) : Screen(carContext), DefaultLifecycleObserver {
+
+    private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
+    private var loadJob: Job? = null
+
+    private var loading = true
+    private var errorCode: String? = null
+    private var detail: AutoStationDetail? = null
+
+    init {
+        lifecycle.addObserver(this)
+    }
+
+    override fun onStart(owner: LifecycleOwner) {
+        load()
+    }
+
+    override fun onDestroy(owner: LifecycleOwner) {
+        scope.cancel()
+    }
+
+    private fun load() {
+        loadJob?.cancel()
+        loading = true
+        errorCode = null
+        invalidate()
+        loadJob = scope.launch {
+            val result = bridge.getStationDetail(stationId, lat, lng)
+            if (result["ok"] == true) {
+                detail = AutoStationDetail.from(result)
+                errorCode = if (detail == null) "server" else null
+            } else {
+                val code = result["error"] as? String ?: "server"
+                if (code == "auth") {
+                    loading = false
+                    screenManager.push(SignInRequiredScreen(carContext, bridge))
+                    return@launch
+                }
+                errorCode = code
+            }
+            loading = false
+            invalidate()
+        }
+    }
+
+    override fun onGetTemplate(): Template {
+        val title = name.ifEmpty { detail?.name ?: "Station" }
+
+        if (loading) {
+            return PaneTemplate.Builder(Pane.Builder().setLoading(true).build())
+                .setTitle(title)
+                .setHeaderAction(Action.BACK)
+                .build()
+        }
+
+        errorCode?.let {
+            return ErrorScreens.forCode(carContext, it, title, Action.BACK) { load() }
+        }
+
+        val d = detail
+            ?: return ErrorScreens.forCode(carContext, "server", title, Action.BACK) { load() }
+
+        val pane = Pane.Builder()
+
+        // Build candidate rows in priority order, then cap to the pane row limit
+        // (strict head units allow only a handful of rows on a PaneTemplate).
+        val rows = mutableListOf<Row>()
+
+        val statusText = buildString {
+            append(if (d.open) "Open" else "Closed")
+            if (d.hoursLabel.isNotEmpty()) append(" · ${d.hoursLabel}")
+        }
+        rows.add(Row.Builder().setTitle("Status").addText(statusText).build())
+
+        if (d.address.isNotBlank()) {
+            rows.add(Row.Builder().setTitle("Address").addText(d.address).build())
+        }
+
+        d.connectors.forEach { c ->
+            val detailText = listOf(c.state, c.priceLabel)
+                .filter { it.isNotBlank() }
+                .joinToString(" · ")
+            rows.add(
+                Row.Builder()
+                    .setTitle(c.header)
+                    .addText(detailText.ifEmpty { "—" })
+                    .build()
+            )
+        }
+
+        d.averageRating?.takeIf { it > 0 }?.let { rating ->
+            rows.add(
+                Row.Builder()
+                    .setTitle("Rating")
+                    .addText(String.format("%.1f", rating))
+                    .build()
+            )
+        }
+
+        rows.take(MAX_PANE_ROWS).forEach { pane.addRow(it) }
+
+        pane.addAction(
+            Action.Builder()
+                .setTitle("Navigate")
+                .setBackgroundColor(CarColor.PRIMARY)
+                .setOnClickListener { onNavigate(d) }
+                .build()
+        )
+
+        return PaneTemplate.Builder(pane.build())
+            .setTitle(title)
+            .setHeaderAction(Action.BACK)
+            .build()
+    }
+
+    private fun onNavigate(d: AutoStationDetail) {
+        // Prefer the detail's own coordinates; fall back to the ones passed in.
+        val navLat = d.lat ?: lat
+        val navLng = d.lng ?: lng
+        val label = name.ifEmpty { d.name }
+        CarNavigation.navigateTo(carContext, navLat, navLng, label)
+    }
+
+    companion object {
+        // Conservative cap for strict head units' PaneTemplate row limit.
+        private const val MAX_PANE_ROWS = 4
+    }
+}

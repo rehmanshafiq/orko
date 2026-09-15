@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Android Auto host allowlist override point.
+
+  The release HostValidator (OrkoCarAppService.createHostValidator) uses the Car
+  App Library's maintained array `androidx.car.app.R.array.hosts_allowlist_sample`,
+  which already covers the signed Android Auto / Android Automotive hosts and is
+  kept current by the library. This local array exists ONLY as a documented place
+  to add EXTRA trusted hosts (e.g. an OEM head unit) if that is ever required —
+  in which case also pass `R.array.hosts_allowlist` to `addAllowedHosts(...)`.
+
+  Leave it empty otherwise. Never add a wildcard/allow-all entry here.
+-->
+<resources>
+    <string-array name="hosts_allowlist" />
+</resources>

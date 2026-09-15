@@ -30,6 +30,13 @@
 # ── Keep annotations used for JSON / keep enums intact ───────────────────────
 -keepclassmembers enum * { *; }
 
+# ── Android for Cars App Library (Android Auto) ──────────────────────────────
+# Templates/host stubs are reached reflectively by the car host; keep them and
+# the app's own car-app classes intact under R8.
+-keep class androidx.car.app.** { *; }
+-dontwarn androidx.car.app.**
+-keep class com.orko_hubco.mobile.orko_hubco.auto.** { *; }
+
 # ── Suppress notes for optional desugar / kotlin metadata ────────────────────
 -dontwarn kotlin.**
 -dontwarn org.jetbrains.annotations.**

@@ -87,4 +87,14 @@ dependencies {
     // Backports java.time (and other Java 8+ APIs) to minSdk 23 — required by
     // flutter_local_notifications.
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
+
+    // Android for Cars App Library (Android Auto). `app` provides the template
+    // model + Screen/Session APIs; `app-projected` is the Android-Auto (phone-
+    // projected) host runtime. Pinned to the current stable line (1.4.0).
+    implementation("androidx.car.app:app:1.4.0")
+    implementation("androidx.car.app:app-projected:1.4.0")
+
+    // Coroutines — used only by the Android Auto bridge to await MethodChannel
+    // round-trips to the cached FlutterEngine off the car host's callbacks.
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
 }
