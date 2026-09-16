@@ -2,6 +2,7 @@ package com.orko_hubco.mobile.orko_hubco.auto.screens
 
 import androidx.car.app.CarContext
 import androidx.car.app.Screen
+import androidx.car.app.constraints.ConstraintManager
 import androidx.car.app.model.Action
 import androidx.car.app.model.ActionStrip
 import androidx.car.app.model.ItemList
@@ -101,7 +102,33 @@ class NearbyStationsScreen(
         }
 
         val list = ItemList.Builder()
-        stations.take(MAX_ROWS).forEach { st ->
+
+        // Entry points to the other flows live as rows (a ListTemplate action
+        // strip allows only one custom-title action, which is Refresh).
+        list.addItem(
+            Row.Builder()
+                .setTitle("Active charging")
+                .addText("Live charging status")
+                .setBrowsable(true)
+                .setOnClickListener {
+                    screenManager.push(ChargingStatusScreen(carContext, bridge))
+                }
+                .build()
+        )
+        list.addItem(
+            Row.Builder()
+                .setTitle("My trips")
+                .addText("Saved trips")
+                .setBrowsable(true)
+                .setOnClickListener {
+                    screenManager.push(SavedTripsScreen(carContext, bridge))
+                }
+                .build()
+        )
+
+        // Reserve the two rows above; fill the rest with nearest stations.
+        val stationCap = (rowLimit() - 2).coerceAtLeast(1)
+        stations.take(stationCap).forEach { st ->
             list.addItem(
                 Row.Builder()
                     .setTitle(st.name.ifEmpty { "Charging station" })
@@ -120,6 +147,13 @@ class NearbyStationsScreen(
             .build()
     }
 
+    private fun rowLimit(): Int = try {
+        carContext.getCarService(ConstraintManager::class.java)
+            .getContentLimit(ConstraintManager.CONTENT_LIMIT_TYPE_LIST)
+    } catch (e: Exception) {
+        MAX_ROWS
+    }
+
     private fun subtitle(st: AutoStation): CharSequence {
         val parts = mutableListOf<String>()
         st.distanceKm?.let { parts.add(String.format("%.1f km", it)) }
@@ -133,26 +167,13 @@ class NearbyStationsScreen(
     }
 
     private fun actionStrip(): ActionStrip {
+        // A ListTemplate action strip permits at most one custom-title action.
         val refresh = Action.Builder()
             .setTitle("Refresh")
             .setOnClickListener { load() }
             .build()
-        val charging = Action.Builder()
-            .setTitle("Charging")
-            .setOnClickListener {
-                screenManager.push(ChargingStatusScreen(carContext, bridge))
-            }
-            .build()
-        val trips = Action.Builder()
-            .setTitle("My Trips")
-            .setOnClickListener {
-                screenManager.push(SavedTripsScreen(carContext, bridge))
-            }
-            .build()
         return ActionStrip.Builder()
             .addAction(refresh)
-            .addAction(charging)
-            .addAction(trips)
             .build()
     }
 

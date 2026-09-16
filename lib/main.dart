@@ -10,6 +10,7 @@ import 'package:get_storage/get_storage.dart';
 import 'package:orko_hubco/core/di/injection_container.dart';
 import 'package:orko_hubco/core/network/certificate_pinning.dart';
 import 'package:orko_hubco/core/router/app_router.dart';
+import 'package:orko_hubco/core/services/android_auto/android_auto_bridge.dart';
 import 'package:orko_hubco/core/services/live_charging/live_charging_notification_controller.dart';
 import 'package:orko_hubco/core/services/push_notification_service.dart';
 import 'package:orko_hubco/core/services/secure_store.dart';
@@ -18,6 +19,14 @@ import 'package:orko_hubco/core/theme/theme_cubit.dart';
 import 'package:orko_hubco/features/remote_config/data/services/remote_config_service.dart';
 
 import 'firebase_options.dart';
+
+/// Dedicated Dart entrypoint for the Android Auto car app's cached FlutterEngine
+/// (see FlutterAutoBridge.kt). Runs independently of [main] on its own engine;
+/// it does NOT touch the phone app's startup path. Declared here in the root
+/// library so the VM can resolve it by name from native, and so the bridge
+/// library is pulled into compilation.
+@pragma('vm:entry-point')
+void androidAutoMain() => startAndroidAutoBridge();
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();

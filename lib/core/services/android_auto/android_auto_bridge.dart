@@ -37,10 +37,13 @@ import 'package:orko_hubco/firebase_options.dart';
 /// SECURITY: the access token never crosses the channel — it stays inside
 /// [SecureStore]/[ApiClient] here. Only sanitized display maps are returned.
 ///
-/// Must be a top-level function annotated `@pragma('vm:entry-point')` so it
-/// survives tree-shaking / AOT and can be looked up by name from Kotlin.
-@pragma('vm:entry-point')
-void androidAutoMain() {
+/// Wires up the Android Auto MethodChannel on the car engine's isolate.
+///
+/// Called from the top-level `androidAutoMain` entrypoint declared in
+/// `lib/main.dart` (the root library is always compiled and its entrypoints are
+/// resolvable by name from native; an orphan library here would not be compiled
+/// into the app at all).
+void startAndroidAutoBridge() {
   WidgetsFlutterBinding.ensureInitialized();
   // Register plugins in this engine's isolate (dio/secure_storage/geolocator/…).
   DartPluginRegistrant.ensureInitialized();
