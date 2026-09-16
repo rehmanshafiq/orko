@@ -37,6 +37,9 @@ class FlutterAutoBridge(context: Context) {
     companion object {
         private const val CHANNEL = "orko/android_auto"
         private const val ENTRYPOINT = "androidAutoMain"
+        // The Dart library that declares androidAutoMain (package: URI).
+        private const val ENTRYPOINT_LIBRARY =
+            "package:orko_hubco/core/services/android_auto/android_auto_bridge.dart"
         private val ERROR_SERVER: Map<String, Any?> =
             mapOf("ok" to false, "error" to "server")
     }
@@ -54,7 +57,14 @@ class FlutterAutoBridge(context: Context) {
         loader.ensureInitializationComplete(appContext, null)
 
         val e = FlutterEngine(appContext)
-        val entrypoint = DartExecutor.DartEntrypoint(loader.findAppBundlePath(), ENTRYPOINT)
+        // The entrypoint lives in android_auto_bridge.dart, NOT lib/main.dart, so
+        // the library URI must be supplied — otherwise the VM looks in the default
+        // (main) library and fails with "Could not resolve main entrypoint function".
+        val entrypoint = DartExecutor.DartEntrypoint(
+            loader.findAppBundlePath(),
+            ENTRYPOINT_LIBRARY,
+            ENTRYPOINT,
+        )
         e.dartExecutor.executeDartEntrypoint(entrypoint)
         engine = e
         channel = MethodChannel(e.dartExecutor.binaryMessenger, CHANNEL)

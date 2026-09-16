@@ -2,6 +2,10 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <!-- Required by the Android for Cars host for apps declaring the POI
+         category: without it the CAR.VALIDATOR rejects the app
+         ("Uses for TEMPLATE not defined") and it never appears in the car. -->
+    <uses-permission android:name="androidx.car.app.MAP_TEMPLATES" />
     <uses-permission android:name="android.permission.CAMERA" />
     <!-- Android 13+ runtime notification permission (requested at runtime). -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
@@ -42,6 +46,12 @@
         <meta-data
             android:name="androidx.car.app.minCarApiLevel"
             android:value="1" />
+        <!-- Declares that this app "uses template" so the car host recognises it
+             as a Car App Library app. Without this the validator rejects it with
+             "Uses for TEMPLATE not defined" and it never shows in the car. -->
+        <meta-data
+            android:name="com.google.android.gms.car.application"
+            android:resource="@xml/automotive_app_desc" />
         <!-- Android Auto entry point. The car host binds this service; it hosts
              native Car App templates only — no Flutter UI is rendered in the car.
              Uses the POI (Point of Interest) category: Google deprecated the

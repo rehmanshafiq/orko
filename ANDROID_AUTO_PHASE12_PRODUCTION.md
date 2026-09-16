@@ -36,16 +36,29 @@
 
 | # | Item | Status | Owner |
 |---|---|---|---|
-| B1 | Upload the release AAB to a test track (internal/closed) | 🔲 | Release mgr |
-| B2 | Declare Android Auto support in the Play Console (App content → Cars) | 🔲 | Release mgr |
-| B3 | Select the appropriate **POI** car-app category (Charging/Parking are deprecated) | 🔲 | Release mgr |
-| B4 | Complete the **Cars app quality** questionnaire | 🔲 | Release mgr / QA |
-| B5 | Submit for Google's **Android Auto review** and track approval | 🔲 | Release mgr |
-| B6 | After approval, promote to production track | 🔲 | Release mgr |
+| B1 | Upload the release AAB to a test track (internal/closed) — done | ✅ | User uploaded to internal + closed testing |
+| B2 | **Android Auto has NO Play Console declaration/toggle.** It is phone-projected, not a form factor. Support is declared entirely by the manifest (`CarAppService` + POI `<category>`), which the AAB already carries. Nothing to fill in. | ✅ | Manifest |
+| B3 | ~~Select POI category in the console~~ — **NOT a console step.** Declared in the **manifest** (`androidx.car.app.category.POI`, done). No category dropdown exists for Car App Library apps. | ✅ | Manifest |
+| B4 | ⚠️ Do **NOT** add "Android Automotive OS" under Advanced settings → Form factors. AAOS is the car's *embedded* OS — a different form factor needing a different build. This project is Android Auto (projection) only. | ✅ | — |
+| B5 | Google **automatically** reviews the car app against **Car app quality** guidelines once the POI AAB is rolled out (no form triggers it). **Non-blocking on internal/closed**, **blocking on open/production**. Result by email to the developer account; a review status may also appear on the release/publishing overview. | 🔲 | Release mgr / QA |
+| B6 | After approval, promote to production track (remove any rejected artifacts before resubmitting) | 🔲 | Release mgr |
 
-> Note: Android Auto apps are gated by Google review; the car experience will not
-> be visible to end users until B5 is approved. During development it is testable
-> via DHU with Android Auto "Unknown sources" enabled (see §C).
+> How the declaration actually works (Car App Library / templated Android Auto app):
+> support is declared **only** by the **`CarAppService` + POI `<category>`
+> intent-filter in the manifest**. There is **no "App content → Cars" form and no
+> "Form factors → Android Auto" opt-in** — Android Auto is not a Play Console form
+> factor (the Form-factors list offers Android *Automotive* OS, TV, Wear OS,
+> Play Games on PC — NOT Android Auto). Publishing the POI AAB is the entire
+> declaration; Google reviews it automatically.
+>
+> During development the car app is testable via DHU with Android Auto "Unknown
+> sources" enabled (see §C) — no review needed for that.
+>
+> ⚠️ POI review consideration: Google's POI guidance expects a map-based experience
+> and lists `<uses-permission android:name="androidx.car.app.MAP_TEMPLATES"/>` for
+> the map templates. This app currently uses List/Pane/Message templates only (no
+> in-car map), which is functionally valid but may draw review feedback for a POI
+> app. If needed, v2 can adopt `PlaceListMapTemplate` + add that permission (see §F).
 
 ---
 

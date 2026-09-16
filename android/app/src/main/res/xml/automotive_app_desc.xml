@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Declares to the Android for Cars host that this app provides a Car App Library
+  "template" experience. Without this "uses" declaration the host validator
+  rejects the app with "Package DENIED; Uses for TEMPLATE not defined" and it
+  never appears in the car launcher. Referenced from AndroidManifest via the
+  com.google.android.gms.car.application meta-data.
+-->
+<automotiveApp>
+    <uses name="template" />
+</automotiveApp>
