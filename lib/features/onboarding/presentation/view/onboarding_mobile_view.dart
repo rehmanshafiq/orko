@@ -230,7 +230,7 @@ class _OnboardingSlide extends StatelessWidget {
           child: SafeArea(
             top: false,
             child: Padding(
-              padding: EdgeInsets.fromLTRB(24.w, 0, 24.w, 110.h),
+              padding: EdgeInsets.fromLTRB(24.w, 0, 24.w, 100.h),
               child: Opacity(
                 opacity: contentOpacity,
                 child: Transform.translate(
