@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
+import 'package:orko_hubco/core/constants/app_images.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/utils/app_routing/app_navigations.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
@@ -137,7 +138,7 @@ class _OnboardingMobileViewState extends State<OnboardingMobileView>
                     child: SlideTransition(
                       position: _entrySlide,
                       child: Padding(
-                        padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 24.h),
+                        padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 6.h),
                         child: _GetStartedBar(
                           // Single onboarding screen: always actionable.
                           isEnabled: !state.isCompleting,
@@ -206,6 +207,22 @@ class _OnboardingSlide extends StatelessWidget {
         //     ),
         //   ),
         // ),
+
+        // HUBCO green wordmark pinned to the top right.
+        Align(
+          alignment: Alignment.topRight,
+          child: SafeArea(
+            bottom: false,
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(0, 24.h, 20.w, 0),
+              child: AppPngImageView(
+                appImagePath: AppImages.hubcoWordmarkDark,
+                width: 96.w,
+                fit: BoxFit.contain,
+              ),
+            ),
+          ),
+        ),
 
         // Headline + description, sitting above the bottom controls.
         Align(
@@ -375,9 +392,11 @@ class _GetStartedBarState extends State<_GetStartedBar>
             child: Container(
               height: height,
               decoration: BoxDecoration(
-                color: AppColors.blackColor,
+                color: AppColors.blackColor.withValues(alpha: 0.5),
                 borderRadius: BorderRadius.circular(40.r),
-                border: Border.all(color: AppColors.blackColor),
+                border: Border.all(
+                  color: AppColors.blackColor.withValues(alpha: 0.5),
+                ),
               ),
               child: AnimatedBuilder(
                 animation: Listenable.merge([_thumb, _shimmer]),
@@ -386,11 +405,11 @@ class _GetStartedBarState extends State<_GetStartedBar>
                   return Stack(
                     alignment: Alignment.centerLeft,
                     children: [
-                      // Label centered in the space to the right of the thumb;
-                      // fades out as the thumb advances.
+                      // Label centered across the full bar; fades out as the
+                      // thumb advances.
                       Positioned(
-                        left: thumbSize + pad,
-                        right: pad,
+                        left: 0,
+                        right: 0,
                         top: 0,
                         bottom: 0,
                         child: Opacity(

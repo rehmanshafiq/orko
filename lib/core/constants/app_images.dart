@@ -7,6 +7,11 @@ class AppImages {
   /// themes render at a matching visual size in the bottom nav emblem.
   static final String hubcoWordmarkDark = '${imagePath}hubco_logo_dark.png';
   static final String hubcoWordmarkLight = '${imagePath}hubco_logo_light.jpeg';
+  /// Transparent HUBCO green wordmark with a black "HUBCO" (for light/photo
+  /// backgrounds where a white wordmark would disappear). Cleaned so the
+  /// baked-in white background is fully transparent.
+  static final String hubcoWordmarkLightPng =
+      '${imagePath}hubco_logo_green.png';
   static final String onboarding1 = '${imagePath}onboarding_1.png';
   static final String onboarding2 = '${imagePath}onboarding_2.png';
   static final String onboarding3 = '${imagePath}onboarding_3.png';
