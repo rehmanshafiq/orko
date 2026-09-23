@@ -18,13 +18,35 @@ data class AutoStationDetail(
     val lat: Double?,
     val lng: Double?,
 ) {
-    /** Human hours label, e.g. "09:00 - 21:00", or empty when unknown. */
+    /** Human hours label, e.g. "9:00 AM - 10:00 PM", "24 hours", or empty. */
     val hoursLabel: String
-        get() = if (openingTime.isNotBlank() && closingTime.isNotBlank()) {
-            "$openingTime - $closingTime"
-        } else {
-            ""
+        get() {
+            if (openingTime.isBlank() || closingTime.isBlank()) return ""
+            if (isAllDay(openingTime, closingTime)) return "24 hours"
+            return "${to12Hour(openingTime)} - ${to12Hour(closingTime)}"
         }
+
+    /** Converts "HH:mm[:ss]" to a 12-hour clock label, e.g. "22:00:00" → "10:00 PM". */
+    private fun to12Hour(raw: String): String {
+        val parts = raw.trim().split(":")
+        val h = parts.getOrNull(0)?.toIntOrNull() ?: return raw.trim()
+        val m = parts.getOrNull(1)?.toIntOrNull() ?: 0
+        val period = if (h < 12) "AM" else "PM"
+        val hour12 = (h % 12).let { if (it == 0) 12 else it }
+        return String.format("%d:%02d %s", hour12, m, period)
+    }
+
+    /** True when the open/close times span the whole day (e.g. 00:00–23:59). */
+    private fun isAllDay(open: String, close: String): Boolean {
+        val o = open.trim()
+        val c = close.trim()
+        val opensAtMidnight = o == "00:00" || o == "0:00" ||
+            o.startsWith("00:00:00")
+        val closesEndOfDay = c == "23:59" || c == "24:00" ||
+            c.startsWith("23:59:59") || c.startsWith("24:00:00") ||
+            c.startsWith("00:00:00") || c == "00:00"
+        return opensAtMidnight && closesEndOfDay
+    }
 
     companion object {
         fun from(result: Map<String, Any?>): AutoStationDetail? {
