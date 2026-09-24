@@ -2,6 +2,7 @@ package com.orko_hubco.mobile.orko_hubco.auto.screens
 
 import androidx.car.app.CarContext
 import androidx.car.app.Screen
+import androidx.car.app.constraints.ConstraintManager
 import androidx.car.app.model.Action
 import androidx.car.app.model.CarColor
 import androidx.car.app.model.Pane
@@ -111,16 +112,30 @@ class StationDetailScreen(
             rows.add(Row.Builder().setTitle("Address").addText(d.address).build())
         }
 
-        d.connectors.forEach { c ->
-            val detailText = listOf(c.state, c.priceLabel)
-                .filter { it.isNotBlank() }
-                .joinToString(" · ")
-            rows.add(
-                Row.Builder()
-                    .setTitle(c.header)
-                    .addText(detailText.ifEmpty { "—" })
-                    .build()
-            )
+        // Pricing as its own section (uniform across connectors).
+        val price = d.connectors.firstNotNullOfOrNull { it.priceDisplay.ifBlank { null } }
+        if (price != null) {
+            rows.add(Row.Builder().setTitle("Pricing").addText(price).build())
+        }
+
+        if (d.contactNumbers.isNotEmpty()) {
+            val contactRow = Row.Builder().setTitle("Contact No.")
+            // Each number on its own line (row text lines are capped by the host).
+            d.contactNumbers.take(MAX_ROW_TEXT_LINES).forEach { contactRow.addText(it) }
+            rows.add(contactRow.build())
+        }
+
+        if (d.connectors.isNotEmpty()) {
+            // Section heading for the charger list; each port shows only its state.
+            rows.add(Row.Builder().setTitle("Charger Ports").build())
+            d.connectors.forEach { c ->
+                rows.add(
+                    Row.Builder()
+                        .setTitle(c.header)
+                        .addText(c.stateDisplay.ifBlank { "—" })
+                        .build()
+                )
+            }
         }
 
         d.averageRating?.takeIf { it > 0 }?.let { rating ->
@@ -132,7 +147,7 @@ class StationDetailScreen(
             )
         }
 
-        rows.take(MAX_PANE_ROWS).forEach { pane.addRow(it) }
+        rows.take(paneRowLimit()).forEach { pane.addRow(it) }
 
         pane.addAction(
             Action.Builder()
@@ -148,6 +163,13 @@ class StationDetailScreen(
             .build()
     }
 
+    private fun paneRowLimit(): Int = try {
+        carContext.getCarService(ConstraintManager::class.java)
+            .getContentLimit(ConstraintManager.CONTENT_LIMIT_TYPE_PANE)
+    } catch (e: Exception) {
+        MAX_PANE_ROWS
+    }
+
     private fun onNavigate(d: AutoStationDetail) {
         // Prefer the detail's own coordinates; fall back to the ones passed in.
         val navLat = d.lat ?: lat
@@ -157,7 +179,9 @@ class StationDetailScreen(
     }
 
     companion object {
-        // Conservative cap for strict head units' PaneTemplate row limit.
+        // Fallback pane row cap if the host's ConstraintManager is unavailable.
         private const val MAX_PANE_ROWS = 4
+        // Row text lines a template row allows (host renders up to 2).
+        private const val MAX_ROW_TEXT_LINES = 2
     }
 }

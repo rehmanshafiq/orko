@@ -18,6 +18,19 @@ data class AutoStationDetail(
     val lat: Double?,
     val lng: Double?,
 ) {
+    /**
+     * Contact number(s), each normalized with a leading 0. The backend may pack
+     * more than one number separated by a literal "\n", a real newline, or a
+     * comma/semicolon — each is returned as its own entry so they can render on
+     * separate lines.
+     */
+    val contactNumbers: List<String>
+        get() = contactNumber
+            .split("\\n", "\n", ",", ";")
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+            .map { if (it.startsWith("0") || it.startsWith("+")) it else "0$it" }
+
     /** Human hours label, e.g. "9:00 AM - 10:00 PM", "24 hours", or empty. */
     val hoursLabel: String
         get() {
@@ -87,6 +100,17 @@ data class AutoConnector(
             if (powerKw.isNotBlank()) parts.add("$powerKw kW")
             return parts.joinToString(" ").ifEmpty { "Connector" }
         }
+
+    /** Display state: the backend's "Charging" is shown as "Occupied". */
+    val stateDisplay: String
+        get() = if (state.trim().equals("charging", ignoreCase = true)) "Occupied" else state
+
+    /** Price shown as "PKR 120 per kWh" (raw label uses a "/kwh" suffix). */
+    val priceDisplay: String
+        get() = priceLabel
+            .replace(Regex("/\\s*kwh", RegexOption.IGNORE_CASE), " per kWh")
+            .replace(Regex("/\\s*kw\\b", RegexOption.IGNORE_CASE), " per kW")
+            .trim()
 
     companion object {
         fun from(m: Map<*, *>): AutoConnector = AutoConnector(
