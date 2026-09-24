@@ -290,22 +290,6 @@ class NearbyStationsScreen(
                 }
                 .build()
         )
-        .addAction(
-            Action.Builder()
-                // Icon-only: the strip is capped at four actions and a glyph is
-                // faster to hit than a word at a glance. The host tints it.
-                .setIcon(
-                    CarIcon.Builder(
-                        IconCompat.createWithResource(carContext, R.drawable.ic_car_refresh)
-                    ).build()
-                )
-                .setOnClickListener {
-                    // An explicit tap re-queries from the freshest fix we hold.
-                    location = locationSource.lastKnown() ?: location
-                    load()
-                }
-                .build()
-        )
         .build()
 
     /**
