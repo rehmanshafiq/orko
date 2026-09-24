@@ -13,51 +13,200 @@ class _Faq {
   final String answer;
 }
 
+/// A titled group of FAQs (e.g. "Getting Started").
+class _FaqSection {
+  const _FaqSection(this.title, this.faqs);
+
+  final String title;
+  final List<_Faq> faqs;
+}
+
 /// The frequently-asked questions shown on the FAQs screen.
-const List<_Faq> _faqs = [
-  _Faq(
-    'How do I start a charging session?',
-    'Open the HGL app, scan the QR code on the charger or select it from the '
-        'map, choose your connector, and tap Start. You can monitor progress '
-        'and stop the session anytime from the app.',
-  ),
-  _Faq(
-    'Which vehicles are compatible with HUBCO Green chargers?',
-    'HUBCO Green chargers support all EVs using standard CCS2, Type 2 (AC) and '
-        'GB/T connectors. Check your vehicle\'s connector type against the one '
-        'listed at each station before charging.',
-  ),
-  _Faq(
-    'How much does charging cost?',
-    'Pricing is shown per kWh on each charger\'s details before you start. Your '
-        'final cost depends on the energy delivered and is itemised in the app '
-        'once the session ends.',
-  ),
-  _Faq(
-    'Do I need the HGL app to charge?',
-    'Yes. The HGL app is required to authenticate, start and pay for a charging '
-        'session at HUBCO Green chargers.',
-  ),
-  _Faq(
-    'How do I find the nearest station?',
-    'Open the map on the home screen to see nearby stations, or use the filters '
-        'to find available chargers by connector type and status.',
-  ),
-  _Faq(
-    'Can I reserve a charging slot in advance?',
-    'Yes. Select a station and use Pre-book to reserve a slot ahead of time, '
-        'subject to availability at that location.',
-  ),
-  _Faq(
-    'How can I host a HUBCO Green charger at my site?',
-    'Reach out to our team through Admin Support with your site details, and '
-        'we\'ll guide you through the hosting and installation process.',
-  ),
-  _Faq(
-    'Who do I contact for support?',
-    'Use the Admin Support option to get in touch with the ORKO team for any '
-        'account, billing or charging issues.',
-  ),
+const List<_FaqSection> _sections = [
+  _FaqSection('Getting Started', [
+    _Faq(
+      'Can I use the HUBCO Green App without creating an account?',
+      'Users can browse charging station locations and availability without an '
+          'account. However, booking a charging session and accessing charging '
+          'history require registration.',
+    ),
+    _Faq(
+      'What features does the HUBCO Green App offer?',
+      'The HUBCO Green App brings everything you need for a seamless EV charging '
+          'experience in one place:\n'
+          '• Locate charging stations with real-time availability\n'
+          '• Book charging sessions\n'
+          '• Monitor charging progress\n'
+          '• View charging history and receipts\n'
+          '• Make secure in-app payments\n'
+          '• Plan long-distance trips with optimized charging stops',
+    ),
+    _Faq(
+      'I forgot my password. How can I reset it?',
+      'Select Forgot Password on the login screen and follow the verification '
+          'process.',
+    ),
+    _Faq(
+      'How do I update my vehicle details?',
+      'Go to My Account > My Vehicles, select the vehicle, and update the '
+          'required information.',
+    ),
+    _Faq(
+      'Is there an option to add multiple vehicles?',
+      'Yes. Users can add multiple vehicles to their account, provided these are '
+          "compatible with HUBCO Green's CCS2 chargers.",
+    ),
+    _Faq(
+      'What should I do if the app crashes or freezes?',
+      'Restart the application and ensure you are using the latest version. If '
+          'the issue persists, contact HUBCO Green Customer Support.',
+    ),
+  ]),
+  _FaqSection('Finding a Charger', [
+    _Faq(
+      'How do I find a charging station?',
+      'Use the Map to locate nearby HUBCO Green charging stations. You can search '
+          'by location, browse available chargers, and view station details.',
+    ),
+    _Faq(
+      'Can I check charger availability before I arrive?',
+      'Yes. The app provides real-time charger availability to help you plan '
+          'charging.',
+    ),
+  ]),
+  _FaqSection('Planning a Trip', [
+    _Faq(
+      'Can I plan a trip using the HUBCO Green App?',
+      'Yes. The Trip Planning feature helps you identify charging stations along '
+          'your route and allows you to pre-book charging slots.',
+    ),
+    _Faq(
+      'How does Trip Planning work?',
+      'The Trip Planning feature calculates your route and recommends suitable '
+          'HUBCO Green charging stations based on your destination and the '
+          'charging network.',
+    ),
+  ]),
+  _FaqSection('Booking a Charging Session', [
+    _Faq(
+      'How do I book a charging slot?',
+      'Register on the HUBCO Green App, add your vehicle, choose a charging '
+          'station, select an available charger and time slot, and confirm your '
+          'booking.\n\n'
+          'Bookings can be made up to 24 hours in advance and modified up to 1 '
+          'hour before the scheduled session.\n\n'
+          'Walk-in charging is also available, subject to charger availability.',
+    ),
+    _Faq(
+      'Is booking mandatory?',
+      'Booking is recommended but not mandatory. Booking in advance helps ensure '
+          'a charger is available at your preferred time. If a charger is '
+          'available when you arrive at the station, you can simply start your '
+          'charging session without a prior booking.',
+    ),
+    _Faq(
+      'What happens if I arrive late for my booking?',
+      'Your booking will be held for 10 minutes from the booking time. After '
+          'that, it will be released and any subsequent charging will be treated '
+          'as a walk-in.',
+    ),
+    _Faq(
+      'What happens if all chargers are occupied?',
+      'The app displays real-time availability. You may wait or select another '
+          'nearby charging station.',
+    ),
+  ]),
+  _FaqSection('At the Charging Station', [
+    _Faq(
+      'How do I get to my booked charging station?',
+      'Simply tap Start Journey to navigate to the station. Upon arrival, the '
+          'station operator will verify your booking ID and vehicle registration '
+          'number and initiate your charging session.',
+    ),
+    _Faq(
+      'How can I monitor my charging status?',
+      'You can monitor your charging session in real time through the HUBCO '
+          "Green App, even when you're away from your vehicle. Once charging is "
+          "complete, you'll receive a notification through the app.",
+    ),
+    _Faq(
+      'Can I leave my vehicle while charging?',
+      'Yes. You can monitor the charging session remotely through the app. '
+          'Please return once charging is complete.',
+    ),
+    _Faq(
+      'What charging information can I see during the session?',
+      '• Charging status\n'
+          '• Estimated time remaining\n'
+          '• Session duration\n'
+          '• Energy delivered (kWh)',
+    ),
+    _Faq(
+      'How long does DC fast charging take?',
+      'Charging time depends on the charger rating, vehicle and battery '
+          'condition. Most EVs charge from 20% to 80% in approximately 30–45 '
+          'minutes.',
+    ),
+  ]),
+  _FaqSection('Payments & Receipts', [
+    _Faq(
+      'What payment methods are accepted?',
+      'All HUBCO Green charging stations support multiple payment options for '
+          'your convenience. You can pay securely through the HUBCO Green App '
+          'using online payment or make your payment at the charging station '
+          'using a POS terminal or cash.',
+    ),
+    _Faq(
+      'Can I save my preferred payment method?',
+      'Yes. You can save and manage your preferred payment method for a faster '
+          'checkout experience.\n\n'
+          'Payment information is used only to process transactions, issue '
+          'receipts, manage refunds or billing queries, and meet financial record '
+          "requirements. HUBCO Green does not store customers' bank account "
+          'information.',
+    ),
+    _Faq(
+      'Will I receive a receipt for my charging session?',
+      'Yes. Once payment is completed, a digital receipt is automatically '
+          'generated and saved in the History section of the app. You can access '
+          'and download your receipt anytime for your records.',
+    ),
+    _Faq(
+      'How can I request a refund?',
+      'You can submit your query through the HUBCO Green App or contact our '
+          'Customer Support team via our official email address or helpline. Our '
+          'team will review your request and guide you through the next steps.\n\n'
+          'Please note that refunds cannot be processed directly at the charging '
+          'station.',
+    ),
+    _Faq(
+      'Will walk-in charging appear in my history?',
+      'Yes. At HUBCO Green charging stations, our operators are encouraged to '
+          'record the vehicle details of all walk-in charging sessions in the '
+          'system. If you are a registered HUBCO Green App user, your walk-in '
+          'charging session will appear in the History section of the app, even '
+          'if you did not book a charging slot in advance. This allows you to '
+          'conveniently track your past charging sessions and access or download '
+          'your receipts.',
+    ),
+  ]),
+  _FaqSection('Safety', [
+    _Faq(
+      'Can I charge my NEV in rain?',
+      'Yes. HUBCO Green charging stations are designed to operate safely in a '
+          'variety of weather conditions, including rain. However, in the event '
+          'of extreme weather or if conditions pose a safety risk, charging '
+          'services may be temporarily suspended. In such cases, please contact '
+          'HUBCO Green Customer Support.',
+    ),
+  ]),
+  _FaqSection('Customer Support', [
+    _Faq(
+      'How can I report an issue or provide feedback?',
+      'Contact HUBCO Green Customer Support via the app, email, station manager '
+          'or helpline. HUBCO Green team will be happy to assist you.',
+    ),
+  ]),
 ];
 
 /// Full-screen FAQ list: each question is a collapsible card.
@@ -90,10 +239,22 @@ class FaqPage extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              16.verticalSpace,
-              for (var i = 0; i < _faqs.length; i++) ...[
-                if (i > 0) 10.verticalSpace,
-                _FaqTile(faq: _faqs[i], initiallyExpanded: i == 0),
+              for (var s = 0; s < _sections.length; s++) ...[
+                (s == 0 ? 16 : 24).verticalSpace,
+                AppText(
+                  _sections[s].title,
+                  color: ui.textSecondary,
+                  fontSize: FontSizes.font15Sp,
+                  fontWeight: FontWeights.weight700,
+                ),
+                10.verticalSpace,
+                for (var i = 0; i < _sections[s].faqs.length; i++) ...[
+                  if (i > 0) 10.verticalSpace,
+                  _FaqTile(
+                    faq: _sections[s].faqs[i],
+                    initiallyExpanded: s == 0 && i == 0,
+                  ),
+                ],
               ],
               24.verticalSpace,
             ],
