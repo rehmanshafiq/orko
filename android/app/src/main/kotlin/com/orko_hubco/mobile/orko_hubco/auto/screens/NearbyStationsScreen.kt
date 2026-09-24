@@ -172,8 +172,10 @@ class NearbyStationsScreen(
     /** Shared base: everything that is identical across loading and loaded. */
     private fun mapTemplate(): PlaceListMapTemplate.Builder {
         val builder = PlaceListMapTemplate.Builder()
+            // Title only, no header action: the template requires one or the
+            // other, and the app icon just repeats the launcher badge the car
+            // already shows in its status bar.
             .setTitle(TITLE)
-            .setHeaderAction(Action.APP_ICON)
             .setActionStrip(actionStrip())
             // The blue "you are here" dot is drawn by the host; it needs the
             // location permission the phone app already requests.
