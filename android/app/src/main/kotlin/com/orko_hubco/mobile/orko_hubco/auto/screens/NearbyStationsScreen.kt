@@ -1,18 +1,27 @@
 package com.orko_hubco.mobile.orko_hubco.auto.screens
 
+import android.location.Location
 import androidx.car.app.CarContext
 import androidx.car.app.Screen
 import androidx.car.app.constraints.ConstraintManager
 import androidx.car.app.model.Action
 import androidx.car.app.model.ActionStrip
+import androidx.car.app.model.CarColor
+import androidx.car.app.model.CarLocation
+import androidx.car.app.model.Distance
+import androidx.car.app.model.DistanceSpan
 import androidx.car.app.model.ItemList
-import androidx.car.app.model.ListTemplate
+import androidx.car.app.model.Metadata
+import androidx.car.app.model.Place
+import androidx.car.app.model.PlaceListMapTemplate
+import androidx.car.app.model.PlaceMarker
 import androidx.car.app.model.Row
 import androidx.car.app.model.Template
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import com.orko_hubco.mobile.orko_hubco.auto.bridge.FlutterAutoBridge
 import com.orko_hubco.mobile.orko_hubco.auto.model.AutoStation
+import com.orko_hubco.mobile.orko_hubco.auto.util.CarLocationSource
 import com.orko_hubco.mobile.orko_hubco.auto.util.ErrorScreens
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -22,11 +31,24 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 
 /**
- * Root authenticated screen: a driver-safe list of nearby charging stations,
- * ordered by distance, backed by live data via [FlutterAutoBridge].
+ * Root authenticated screen: nearby charging stations as pins on the car's map
+ * surface, backed by live data via [FlutterAutoBridge].
+ *
+ * MAP SURFACE: this is a [PlaceListMapTemplate]. The *host* draws the map and the
+ * markers — a template app never touches the Maps SDK. Each station is one [Row]
+ * carrying [Metadata] with a [Place]; the host drops a [PlaceMarker] for it and
+ * keeps marker and row selection in sync, so tapping either the pin or the row
+ * runs the row's click listener and pushes [StationDetailScreen].
+ *
+ * The navigation-category templates (NavigationTemplate, MapTemplate,
+ * MapWithContentTemplate) are deliberately NOT used: they require the app to
+ * render its own map onto a host-provided Surface and are restricted to apps in
+ * the NAVIGATION category. This app is a POI app, so PlaceListMapTemplate is the
+ * only way to get pins onto a host-drawn map.
  *
  * Reloads whenever the screen becomes visible (so returning from a pushed screen
- * re-queries). All data comes through the bridge — no direct backend access.
+ * re-queries), when the driver has moved far enough for the pins to be stale, and
+ * on Refresh. All data comes through the bridge — no direct backend access.
  */
 class NearbyStationsScreen(
     carContext: CarContext,
@@ -34,22 +56,48 @@ class NearbyStationsScreen(
 ) : Screen(carContext), DefaultLifecycleObserver {
 
     private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
+    private val locationSource = CarLocationSource(carContext)
     private var loadJob: Job? = null
 
     private var loading = true
     private var errorCode: String? = null
     private var stations: List<AutoStation> = emptyList()
 
+    /** Last fix we have; anchors the map and drives the staleness check. */
+    private var location: Location? = null
+
+    /** Where the currently displayed markers were queried from. */
+    private var queriedFrom: Location? = null
+
     init {
         lifecycle.addObserver(this)
     }
 
     override fun onStart(owner: LifecycleOwner) {
+        location = locationSource.lastKnown() ?: location
         load()
+        locationSource.start(::onLocationChanged)
+    }
+
+    override fun onStop(owner: LifecycleOwner) {
+        locationSource.stop()
     }
 
     override fun onDestroy(owner: LifecycleOwner) {
+        locationSource.stop()
         scope.cancel()
+    }
+
+    /**
+     * Re-queries only once the driver has left the area the pins were fetched
+     * for. Deliberately does not invalidate on every fix: the host caps how often
+     * a screen may push templates, and a moving car would otherwise exhaust that
+     * budget redrawing identical markers.
+     */
+    private fun onLocationChanged(fix: Location) {
+        location = fix
+        val from = queriedFrom
+        if (from == null || from.distanceTo(fix) >= RELOAD_DISTANCE_M) load()
     }
 
     private fun load() {
@@ -57,16 +105,21 @@ class NearbyStationsScreen(
         loading = true
         errorCode = null
         invalidate()
+        val from = location
         loadJob = scope.launch {
-            val result = bridge.getNearbyStations()
+            val result = bridge.getNearbyStations(from?.latitude, from?.longitude)
             val ok = result["ok"] == true
             if (ok) {
+                // Defensive sort: markers are labelled 1..N by distance, so the
+                // pin numbering has to match the row order the host shows.
                 stations = AutoStation.listFrom(result)
+                    .sortedBy { it.distanceKm ?: Double.MAX_VALUE }
+                queriedFrom = from
                 errorCode = null
             } else {
                 val code = result["error"] as? String ?: "server"
                 if (code == "auth") {
-                    // Signed out: route to the sign-in prompt instead of a list.
+                    // Signed out: route to the sign-in prompt instead of a map.
                     loading = false
                     screenManager.push(SignInRequiredScreen(carContext, bridge))
                     return@launch
@@ -80,11 +133,7 @@ class NearbyStationsScreen(
 
     override fun onGetTemplate(): Template {
         if (loading) {
-            return ListTemplate.Builder()
-                .setLoading(true)
-                .setTitle(TITLE)
-                .setHeaderAction(Action.APP_ICON)
-                .build()
+            return mapTemplate().setLoading(true).build()
         }
 
         errorCode?.let {
@@ -102,79 +151,145 @@ class NearbyStationsScreen(
         }
 
         val list = ItemList.Builder()
-
-        // Entry points to the other flows live as rows (a ListTemplate action
-        // strip allows only one custom-title action, which is Refresh).
-        list.addItem(
-            Row.Builder()
-                .setTitle("Active charging")
-                .addText("Live charging status")
-                .setBrowsable(true)
-                .setOnClickListener {
-                    screenManager.push(ChargingStatusScreen(carContext, bridge))
-                }
-                .build()
-        )
-        list.addItem(
-            Row.Builder()
-                .setTitle("My trips")
-                .addText("Saved trips")
-                .setBrowsable(true)
-                .setOnClickListener {
-                    screenManager.push(SavedTripsScreen(carContext, bridge))
-                }
-                .build()
-        )
-
-        // Reserve the two rows above; fill the rest with nearest stations.
-        val stationCap = (rowLimit() - 2).coerceAtLeast(1)
-        stations.take(stationCap).forEach { st ->
-            list.addItem(
-                Row.Builder()
-                    .setTitle(st.name.ifEmpty { "Charging station" })
-                    .addText(subtitle(st))
-                    .setBrowsable(true)
-                    .setOnClickListener { openDetail(st) }
-                    .build()
-            )
+        // No clustering exists in the template model, and the host hard-caps how
+        // many places it will draw, so the nearest N win and the rest are hidden.
+        stations.take(markerLimit()).forEachIndexed { index, st ->
+            list.addItem(stationRow(index, st))
         }
 
-        return ListTemplate.Builder()
-            .setSingleList(list.build())
+        return mapTemplate().setItemList(list.build()).build()
+    }
+
+    /** Shared base: everything that is identical across loading and loaded. */
+    private fun mapTemplate(): PlaceListMapTemplate.Builder {
+        val builder = PlaceListMapTemplate.Builder()
             .setTitle(TITLE)
             .setHeaderAction(Action.APP_ICON)
             .setActionStrip(actionStrip())
-            .build()
+            // The blue "you are here" dot is drawn by the host; it needs the
+            // location permission the phone app already requests.
+            .setCurrentLocationEnabled(locationSource.hasPermission())
+
+        // Anchoring centres the map on the driver and is rendered distinctly
+        // from the station pins.
+        location?.let {
+            builder.setAnchor(
+                Place.Builder(CarLocation.create(it.latitude, it.longitude)).build()
+            )
+        }
+        return builder
     }
 
-    private fun rowLimit(): Int = try {
-        carContext.getCarService(ConstraintManager::class.java)
-            .getContentLimit(ConstraintManager.CONTENT_LIMIT_TYPE_LIST)
-    } catch (e: Exception) {
-        MAX_ROWS
+    /**
+     * One station as a row + its map pin. The [Metadata]'s [Place] is what turns
+     * the row into a marker; the row's click listener is what the host runs when
+     * the driver taps either one.
+     */
+    private fun stationRow(index: Int, st: AutoStation): Row {
+        val place = Place.Builder(
+            CarLocation.create(st.lat ?: 0.0, st.lng ?: 0.0)
+        ).setMarker(
+            PlaceMarker.Builder()
+                // Marker labels are capped at 3 characters by the library, so the
+                // pin carries the rank and the row carries the name.
+                .setLabel((index + 1).toString())
+                .setColor(markerColor(st))
+                .build()
+        ).build()
+
+        val row = Row.Builder()
+            .setTitle(st.name.ifEmpty { "Charging station" })
+            .setBrowsable(true)
+            .setMetadata(Metadata.Builder().setPlace(place).build())
+            .setOnClickListener { openDetail(st) }
+
+        // ROW_CONSTRAINTS_SIMPLE allows two text lines on this template: status
+        // first, address second.
+        row.addText(statusLine(st))
+        if (st.address.isNotBlank()) row.addText(st.address)
+        return row.build()
     }
 
-    private fun subtitle(st: AutoStation): CharSequence {
+    /** Green when something is free to plug into, red when nothing is. */
+    private fun markerColor(st: AutoStation): CarColor {
+        val free = st.availableConnectors
+        return when {
+            free != null && free > 0 -> CarColor.GREEN
+            free != null -> CarColor.RED
+            st.available -> CarColor.GREEN
+            else -> CarColor.DEFAULT
+        }
+    }
+
+    /**
+     * "3.1 km · 1/2 · DC". The distance is a [DistanceSpan] rather than a
+     * formatted string so the host renders it in the driver's own unit system.
+     */
+    private fun statusLine(st: AutoStation): CharSequence {
         val parts = mutableListOf<String>()
-        st.distanceKm?.let { parts.add(String.format("%.1f km", it)) }
+        val km = st.distanceKm
+        if (km != null) parts.add(DISTANCE_PLACEHOLDER)
         if (st.numberOfConnectors != null) {
             parts.add("${st.availableConnectors ?: 0}/${st.numberOfConnectors}")
         }
         if (st.connectorTypes.isNotEmpty()) {
             parts.add(st.connectorTypes.joinToString("/"))
         }
-        return parts.joinToString(" · ").ifEmpty { st.address }
+        if (parts.isEmpty()) return st.address
+
+        val text = android.text.SpannableString(parts.joinToString(" · "))
+        if (km != null) {
+            text.setSpan(
+                DistanceSpan.create(Distance.create(km, Distance.UNIT_KILOMETERS_P1)),
+                0,
+                DISTANCE_PLACEHOLDER.length,
+                android.text.Spanned.SPAN_INCLUSIVE_EXCLUSIVE,
+            )
+        }
+        return text
     }
 
-    private fun actionStrip(): ActionStrip {
-        // A ListTemplate action strip permits at most one custom-title action.
-        val refresh = Action.Builder()
-            .setTitle("Refresh")
-            .setOnClickListener { load() }
-            .build()
-        return ActionStrip.Builder()
-            .addAction(refresh)
-            .build()
+    /**
+     * The other flows live in the action strip now that the list is map-backed.
+     * A map template's strip allows up to four actions with custom titles
+     * (ACTIONS_CONSTRAINTS_NAVIGATION), unlike a ListTemplate's single one.
+     */
+    private fun actionStrip(): ActionStrip = ActionStrip.Builder()
+        .addAction(
+            Action.Builder()
+                .setTitle("Charging")
+                .setOnClickListener {
+                    screenManager.push(ChargingStatusScreen(carContext, bridge))
+                }
+                .build()
+        )
+        .addAction(
+            Action.Builder()
+                .setTitle("Trips")
+                .setOnClickListener {
+                    screenManager.push(SavedTripsScreen(carContext, bridge))
+                }
+                .build()
+        )
+        .addAction(
+            Action.Builder()
+                .setTitle("Refresh")
+                .setOnClickListener {
+                    // An explicit tap re-queries from the freshest fix we hold.
+                    location = locationSource.lastKnown() ?: location
+                    load()
+                }
+                .build()
+        )
+        .build()
+
+    /** How many pins the head unit will draw; strict units allow only a few. */
+    private fun markerLimit(): Int = try {
+        carContext.getCarService(ConstraintManager::class.java)
+            .getContentLimit(ConstraintManager.CONTENT_LIMIT_TYPE_PLACE_LIST)
+            .coerceAtLeast(1)
+    } catch (e: Exception) {
+        MAX_MARKERS
     }
 
     private fun openDetail(st: AutoStation) {
@@ -192,7 +307,11 @@ class NearbyStationsScreen(
 
     companion object {
         private const val TITLE = "Nearby stations"
-        // Head units cap list items; show the nearest handful, no heavy paging.
-        private const val MAX_ROWS = 6
+        // Fallback when the host does not report a place-list limit.
+        private const val MAX_MARKERS = 6
+        // Metres the driver must travel before the pins are re-queried.
+        private const val RELOAD_DISTANCE_M = 500f
+        // Stand-in text the host replaces with the localised distance.
+        private const val DISTANCE_PLACEHOLDER = "  "
     }
 }
