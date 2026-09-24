@@ -83,7 +83,13 @@ class StationDetailScreen(
         val title = name.ifEmpty { detail?.name ?: "Station" }
 
         if (loading) {
-            return PaneTemplate.Builder(Pane.Builder().setLoading(true).build())
+            // Navigate is offered before the detail fetch finishes: the row that
+            // pushed this screen already supplied the coordinates, so a driver
+            // who only wants directions never waits on the network. A Pane's
+            // "empty while loading" rule counts rows only, so the action is legal.
+            val pane = Pane.Builder().setLoading(true)
+            navigateAction()?.let { pane.addAction(it) }
+            return PaneTemplate.Builder(pane.build())
                 .setTitle(title)
                 .setHeaderAction(Action.BACK)
                 .build()
@@ -149,13 +155,7 @@ class StationDetailScreen(
 
         rows.take(paneRowLimit()).forEach { pane.addRow(it) }
 
-        pane.addAction(
-            Action.Builder()
-                .setTitle("Navigate")
-                .setBackgroundColor(CarColor.PRIMARY)
-                .setOnClickListener { onNavigate(d) }
-                .build()
-        )
+        navigateAction()?.let { pane.addAction(it) }
 
         return PaneTemplate.Builder(pane.build())
             .setTitle(title)
@@ -170,12 +170,24 @@ class StationDetailScreen(
         MAX_PANE_ROWS
     }
 
-    private fun onNavigate(d: AutoStationDetail) {
+    /**
+     * The Navigate action, or null when we have no usable coordinates yet —
+     * handing a geo intent 0,0 would send the driver to the Atlantic.
+     */
+    private fun navigateAction(): Action? {
+        val d = detail
         // Prefer the detail's own coordinates; fall back to the ones passed in.
-        val navLat = d.lat ?: lat
-        val navLng = d.lng ?: lng
-        val label = name.ifEmpty { d.name }
-        CarNavigation.navigateTo(carContext, navLat, navLng, label)
+        val navLat = d?.lat ?: lat
+        val navLng = d?.lng ?: lng
+        if (navLat == 0.0 && navLng == 0.0) return null
+        val label = name.ifEmpty { d?.name.orEmpty() }
+        return Action.Builder()
+            .setTitle("Navigate")
+            .setBackgroundColor(CarColor.PRIMARY)
+            .setOnClickListener {
+                CarNavigation.navigateTo(carContext, navLat, navLng, label)
+            }
+            .build()
     }
 
     companion object {

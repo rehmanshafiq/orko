@@ -7,6 +7,7 @@ import androidx.car.app.constraints.ConstraintManager
 import androidx.car.app.model.Action
 import androidx.car.app.model.ActionStrip
 import androidx.car.app.model.CarColor
+import androidx.car.app.model.CarIcon
 import androidx.car.app.model.CarLocation
 import androidx.car.app.model.Distance
 import androidx.car.app.model.DistanceSpan
@@ -17,11 +18,15 @@ import androidx.car.app.model.PlaceListMapTemplate
 import androidx.car.app.model.PlaceMarker
 import androidx.car.app.model.Row
 import androidx.car.app.model.Template
+import androidx.car.app.versioning.CarAppApiLevels
+import androidx.core.graphics.drawable.IconCompat
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
+import com.orko_hubco.mobile.orko_hubco.R
 import com.orko_hubco.mobile.orko_hubco.auto.bridge.FlutterAutoBridge
 import com.orko_hubco.mobile.orko_hubco.auto.model.AutoStation
 import com.orko_hubco.mobile.orko_hubco.auto.util.CarLocationSource
+import com.orko_hubco.mobile.orko_hubco.auto.util.CarNavigation
 import com.orko_hubco.mobile.orko_hubco.auto.util.ErrorScreens
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -36,9 +41,13 @@ import kotlinx.coroutines.launch
  *
  * MAP SURFACE: this is a [PlaceListMapTemplate]. The *host* draws the map and the
  * markers — a template app never touches the Maps SDK. Each station is one [Row]
- * carrying [Metadata] with a [Place]; the host drops a [PlaceMarker] for it and
- * keeps marker and row selection in sync, so tapping either the pin or the row
- * runs the row's click listener and pushes [StationDetailScreen].
+ * carrying [Metadata] with a [Place]; the host drops a [PlaceMarker] for it.
+ *
+ * PINS ARE NOT TAP TARGETS. [Place], [PlaceMarker] and [Metadata] expose no
+ * listener of any kind, and the host forwards no map input to a POI app, so a
+ * marker cannot be clicked — it is a visual index into the list, nothing more.
+ * The numeric marker labels exist for exactly that reason: pin "2" is row 2. The
+ * row is the only tap target the library gives us.
  *
  * The navigation-category templates (NavigationTemplate, MapTemplate,
  * MapWithContentTemplate) are deliberately NOT used: they require the app to
@@ -182,8 +191,8 @@ class NearbyStationsScreen(
 
     /**
      * One station as a row + its map pin. The [Metadata]'s [Place] is what turns
-     * the row into a marker; the row's click listener is what the host runs when
-     * the driver taps either one.
+     * the row into a marker; the click listener belongs to the row alone, since
+     * the host never reports marker taps back to the app.
      */
     private fun stationRow(index: Int, st: AutoStation): Row {
         val place = Place.Builder(
@@ -197,9 +206,15 @@ class NearbyStationsScreen(
                 .build()
         ).build()
 
+        val rowAction = navigateAction(st)
+
         val row = Row.Builder()
             .setTitle(st.name.ifEmpty { "Charging station" })
-            .setBrowsable(true)
+            // Browsable draws the chevron, but Row.build() rejects a browsable
+            // row that also carries an action ("A browsable row must not have a
+            // secondary action set"). The two are mutually exclusive, so the
+            // chevron yields to the directions button when that is in play.
+            .setBrowsable(rowAction == null)
             .setMetadata(Metadata.Builder().setPlace(place).build())
             .setOnClickListener { openDetail(st) }
 
@@ -207,6 +222,8 @@ class NearbyStationsScreen(
         // first, address second.
         row.addText(statusLine(st))
         if (st.address.isNotBlank()) row.addText(st.address)
+
+        rowAction?.let { row.addAction(it) }
         return row.build()
     }
 
@@ -273,7 +290,13 @@ class NearbyStationsScreen(
         )
         .addAction(
             Action.Builder()
-                .setTitle("Refresh")
+                // Icon-only: the strip is capped at four actions and a glyph is
+                // faster to hit than a word at a glance. The host tints it.
+                .setIcon(
+                    CarIcon.Builder(
+                        IconCompat.createWithResource(carContext, R.drawable.ic_car_refresh)
+                    ).build()
+                )
                 .setOnClickListener {
                     // An explicit tap re-queries from the freshest fix we hold.
                     location = locationSource.lastKnown() ?: location
@@ -282,6 +305,35 @@ class NearbyStationsScreen(
                 .build()
         )
         .build()
+
+    /**
+     * EXPERIMENT (see [ROW_NAVIGATE_ACTION]): a one-tap directions button on the
+     * row itself, or null when it is off, the host is too old, or the station has
+     * no coordinates to navigate to. This template's rows declare
+     * maxActionsExclusive = 0, which nothing validates — whether the host draws
+     * the button is a matter of observed behaviour, not the API contract.
+     */
+    private fun navigateAction(st: AutoStation): Action? {
+        if (!ROW_NAVIGATE_ACTION || carAppApiLevel() < CarAppApiLevels.LEVEL_6) return null
+        val lat = st.lat ?: return null
+        val lng = st.lng ?: return null
+        if (lat == 0.0 && lng == 0.0) return null
+        return Action.Builder()
+            .setIcon(
+                CarIcon.Builder(
+                    IconCompat.createWithResource(carContext, R.drawable.ic_car_navigate)
+                ).build()
+            )
+            .setOnClickListener { CarNavigation.navigateTo(carContext, lat, lng, st.name) }
+            .build()
+    }
+
+    /** Host's Car API level, or the floor when the host has not reported one. */
+    private fun carAppApiLevel(): Int = try {
+        carContext.carAppApiLevel
+    } catch (e: Exception) {
+        CarAppApiLevels.LEVEL_1
+    }
 
     /** How many pins the head unit will draw; strict units allow only a few. */
     private fun markerLimit(): Int = try {
@@ -313,5 +365,10 @@ class NearbyStationsScreen(
         private const val RELOAD_DISTANCE_M = 500f
         // Stand-in text the host replaces with the localised distance.
         private const val DISTANCE_PLACEHOLDER = "  "
+        // Per-row directions button. Unsupported on paper (list rows declare
+        // zero actions in every library version through 1.7.0) but unvalidated,
+        // so it is a host-behaviour question. Flip to false if a head unit
+        // rejects or drops the template.
+        private const val ROW_NAVIGATE_ACTION = true
     }
 }
