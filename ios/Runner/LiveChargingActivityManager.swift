@@ -10,14 +10,18 @@ import UIKit
 /// AppDelegate — so the Runner target builds unchanged until this file is added.
 extension AppDelegate {
     func setupLiveChargingChannel() {
-        guard let controller = window?.rootViewController as? FlutterViewController
-        else {
-            NSLog("[LiveActivity] channel NOT registered: root view controller is not a FlutterViewController")
+        // Live Activities are a PHONE concern: this channel is bound to the
+        // phone engine's messenger only, never the CarPlay engine's, even when
+        // both engines are alive. The messenger is captured at plugin
+        // registration (see FlutterEngineHolder) rather than read from
+        // `window?.rootViewController`, which is nil under the scene lifecycle.
+        guard let messenger = FlutterEngineHolder.shared.phoneMessenger else {
+            NSLog("[LiveActivity] channel NOT registered: phone engine messenger unavailable")
             return
         }
         let channel = FlutterMethodChannel(
             name: "orko/live_charging_activity",
-            binaryMessenger: controller.binaryMessenger
+            binaryMessenger: messenger
         )
         NSLog("[LiveActivity] channel registered")
         channel.setMethodCallHandler { call, result in

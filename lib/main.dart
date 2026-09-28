@@ -28,6 +28,12 @@ import 'firebase_options.dart';
 @pragma('vm:entry-point')
 void androidAutoMain() => startAndroidAutoBridge();
 
+/// Dedicated Dart entrypoint for the CarPlay scene's FlutterEngine (see
+/// FlutterAutoBridge.swift). Same body as [androidAutoMain]: the car bridge and
+/// its `orko/android_auto` channel contract are shared by both platforms.
+@pragma('vm:entry-point')
+void carPlayMain() => startAndroidAutoBridge();
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
