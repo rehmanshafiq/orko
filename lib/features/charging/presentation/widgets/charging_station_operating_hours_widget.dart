@@ -44,6 +44,13 @@ class _ChargingStationOperatingHoursWidgetState extends State<ChargingStationOpe
       );
     }
 
+    // Open round the clock every day: a single summary row replaces the
+    // grouped rows and the full-week breakdown, which would only repeat it.
+    final openAllWeek = info.days.length == 7 &&
+        info.days.every(
+          (d) => !d.isClosed && _range(d.openingTime, d.closingTime) == '24 hrs',
+        );
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -51,6 +58,9 @@ class _ChargingStationOperatingHoursWidgetState extends State<ChargingStationOpe
           _TodayStatus(ui: ui, today: info.today!),
           12.verticalSpace,
         ],
+        if (openAllWeek)
+          _HoursRow(ui: ui, label: 'Monday - Sunday', value: '24 hrs')
+        else ...[
         for (var i = 0; i < info.grouped.length; i++) ...[
           if (i > 0) 8.verticalSpace,
           _HoursRow(
@@ -102,6 +112,7 @@ class _ChargingStationOperatingHoursWidgetState extends State<ChargingStationOpe
               ),
             ],
           ],
+        ],
         ],
       ],
     );
