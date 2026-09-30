@@ -108,8 +108,6 @@ class _BookSlotMobileViewState extends State<BookSlotMobileView> {
                 listener: _onSubmitStatusChanged,
                 builder: (context, state) {
                   final cubit = context.read<BookingCubit>();
-                  final screenW = MediaQuery.sizeOf(context).width;
-                  final buttonW = screenW - 32.w - 24.w;
 
                   return SingleChildScrollView(
                     padding: AppUtils.horizontal16Padding,
@@ -164,7 +162,7 @@ class _BookSlotMobileViewState extends State<BookSlotMobileView> {
                         ),
                         4.verticalSpace,
                         AppText(
-                          'Each slot is 30 min — select 2 consecutive slots '
+                          'Each slot is 30 min, select 2 consecutive slots '
                           'for a 1-hour booking.',
                           color: ui.textSecondary,
                           fontSize: FontSizes.font11Sp,
@@ -182,7 +180,9 @@ class _BookSlotMobileViewState extends State<BookSlotMobileView> {
                         ),
                         24.verticalSpace,
                         SummaryBottomCard(
-                          buttonWidth: buttonW,
+                          // Fill the padded content width so the button is
+                          // centred on screen.
+                          buttonWidth: double.infinity,
                           isContinueEnabled: state.canContinue,
                           onContinueToPayment: () => _onContinue(context, cubit),
                         ),
