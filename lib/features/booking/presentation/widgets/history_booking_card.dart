@@ -128,8 +128,8 @@ class HistoryBookingCard extends StatelessWidget {
   }
 }
 
-/// Small pill marking how the session started: a walk-in (no booking) or a
-/// booked session (reserved beforehand).
+/// Plain label (no outline) marking how the session started: a walk-in (no
+/// booking) or a booked session (reserved beforehand).
 class _SessionTypeBadge extends StatelessWidget {
   const _SessionTypeBadge({required this.ui, required this.isWalkIn});
 
@@ -138,18 +138,11 @@ class _SessionTypeBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20.r),
-        border: Border.all(width: 1.w, color: ui.textMuted),
-      ),
-      child: AppText(
-        isWalkIn ? 'Walk-in' : 'Booked session',
-        color: ui.textMuted,
-        fontSize: FontSizes.font10Sp,
-        fontWeight: FontWeights.weight600,
-      ),
+    return AppText(
+      isWalkIn ? 'Walk-in' : 'Booked session',
+      color: ui.textMuted,
+      fontSize: FontSizes.font10Sp,
+      fontWeight: FontWeights.weight600,
     );
   }
 }
@@ -170,15 +163,13 @@ class _StatusBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ui = AppUiColors.of(context);
-    // Cancelled bookings use the remove/error accent; no-shows get the yellow
-    // accent; in-progress sessions get brand-primary; completed/other use the
-    // secondary accent.
+    // Cancelled bookings use the remove/error accent; no-shows get a light
+    // gray outline; in-progress sessions get brand-primary; completed/other
+    // use the secondary accent.
     final accent = isCancelled
         ? AppColors.removeColor
         : isNoShow
-            ? (ui.isLight
-                ? AppColors.slotBusyYellowColor
-                : AppColors.noShowBadgeOutlineColor)
+            ? ui.noShowBadgeOutline
             : (isInProgress ? ui.brandPrimary : ui.brandSecondary);
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 5.h),

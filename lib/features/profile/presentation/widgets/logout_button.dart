@@ -39,7 +39,7 @@ class LogoutButton extends StatelessWidget {
                     'Logout',
                     color: AppColors.removeColor,
                     fontSize: FontSizes.font14Sp,
-                    fontWeight: FontWeights.weight600,
+                    fontWeight: FontWeights.weight400,
                   ),
           );
         },

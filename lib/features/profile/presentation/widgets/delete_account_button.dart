@@ -106,13 +106,13 @@ class _DeleteAccountButtonState extends State<DeleteAccountButton> {
               icon: Icon(
                 Icons.delete_outline_rounded,
                 color: AppColors.removeColor,
-                size: 18.r,
+                size: 16.r,
               ),
               label: AppText(
                 'Delete Account',
                 color: AppColors.removeColor,
                 fontSize: FontSizes.font14Sp,
-                fontWeight: FontWeights.weight600,
+                fontWeight: FontWeights.weight400,
               ),
             ),
     );

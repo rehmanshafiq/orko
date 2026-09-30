@@ -120,7 +120,7 @@ class UpcomingBookingCard extends StatelessWidget {
               ),
               // Approved bookings don't need a badge — the Scan QR/Modify
               // actions already imply it. Pending/Cancelled/No Show keep
-              // theirs; no-shows get a yellow outline to stand out from
+              // theirs; no-shows get a light gray outline to stand out from
               // cancelled ones.
               if (!booking.isApproved) ...[
                 8.horizontalSpace,
@@ -128,7 +128,7 @@ class UpcomingBookingCard extends StatelessWidget {
                   ui: ui,
                   label: _statusLabel,
                   outlineColor: booking.isNoShow
-                      ? ui.isLight ? AppColors.slotBusyYellowColor : AppColors.noShowBadgeOutlineColor
+                      ? ui.noShowBadgeOutline
                       : null,
                 ),
               ],

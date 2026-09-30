@@ -152,6 +152,10 @@ class AppUiColors {
       ? AppColors.hintColor
       : AppColors.greyBorderColor;
 
+  /// Light gray outline for "No Show" booking status badges.
+  Color get noShowBadgeOutline =>
+      isLight ? AppColors.thumbBarGreyColor : AppColors.iconsGreyColor;
+
   Color get navInactive => isLight
       ? AppColors.greyColor
       : AppColors.whiteColor.withValues(alpha: 0.68);
