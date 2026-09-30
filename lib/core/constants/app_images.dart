@@ -26,7 +26,7 @@ class AppImages {
       '${imagePath}ic_charging_station_marker.png';
   /// Wide hero for charging hub detail (EV chargers at night).
   static final String chargingStationBanner =
-      '${imagePath}charging_station_banner.png';
+      '${imagePath}default_banner.jpg';
   static final String nawaTextIcon = '${iconPath}nawa_text_icon.svg';
   static final String icVisa = '${iconPath}ic_visa.png';
   static final String icEasypaisa = '${iconPath}ic_easypaisa.png';
