@@ -86,17 +86,6 @@ class FilterResultsSheetWidget extends StatelessWidget {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Align(
-                child: Container(
-                  height: 3.h,
-                  width: 66.w,
-                  decoration: BoxDecoration(
-                    color: ui.textSecondary.withValues(alpha: 0.65),
-                    borderRadius: BorderRadius.circular(10.r),
-                  ),
-                ),
-              ),
-              12.verticalSpace,
               AppText(
                 'Results',
                 color: ui.textPrimary,

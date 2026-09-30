@@ -109,17 +109,6 @@ class HomeBottomSheetWidget extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Align(
-            child: Container(
-              height: 3.h,
-              width: 66.w,
-              decoration: BoxDecoration(
-                color: ui.textSecondary.withValues(alpha: 0.65),
-                borderRadius: BorderRadius.circular(10.r),
-              ),
-            ),
-          ),
-          12.verticalSpace,
           Row(
             children: [
               Expanded(
