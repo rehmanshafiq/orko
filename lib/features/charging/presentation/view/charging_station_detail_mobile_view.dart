@@ -242,14 +242,8 @@ class ChargingStationDetailMobileView extends StatelessWidget {
                                 else
                                   ChargingStationPortsListWidget(
                                     ports: state.ports,
-                                    selectedPortIndex: state.selectedPortIndex,
-                                    onAvailablePortTap: (i) => context
-                                        .read<ChargingStationDetailBloc>()
-                                        .add(ChargingStationDetailPortSelected(i)),
                                   ),
-                                4.verticalSpace,
-                                const Divider(),
-                                4.verticalSpace,
+                                8.verticalSpace,
                                 const ChargingStationSectionTitleWidget(
                                   title: 'Amenities',
                                 ),

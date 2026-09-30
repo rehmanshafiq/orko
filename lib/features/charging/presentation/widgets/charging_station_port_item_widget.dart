@@ -11,79 +11,62 @@ class ChargingStationPortItemWidget extends StatelessWidget {
   const ChargingStationPortItemWidget({
     super.key,
     required this.port,
-    required this.isSelected,
-    required this.onTap,
     required this.iconSize,
     required this.iconGap,
   });
 
   final ChargerPortModel port;
-  final bool isSelected;
-  final VoidCallback? onTap;
   final double iconSize;
   final double iconGap;
 
   @override
   Widget build(BuildContext context) {
     final ui = AppUiColors.of(context);
-    return Material(
-      color: AppColors.transparentColor,
-      child: InkWell(
-        onTap: onTap,
-        splashColor: ui.textPrimary.withValues(alpha: 0.06),
-        highlightColor: ui.textPrimary.withValues(alpha: 0.04),
-        child: Container(
-          width: double.infinity,
-          padding: EdgeInsets.symmetric(vertical: 8.h, horizontal: 10.w),
-          decoration: BoxDecoration(
-            color: isSelected ? ui.innerRowBg : AppColors.transparentColor,
-            borderRadius: BorderRadius.circular(8.r),
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(vertical: 8.h, horizontal: 10.w),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          ChargingStationPortIconWidget(
+            diameter: iconSize,
           ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              ChargingStationPortIconWidget(
-                diameter: iconSize,
-              ),
-                8.horizontalSpace,
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Expanded(
-                            child: AppText(
-                              port.label,
-                              color: ui.textPrimary,
-                              fontSize: FontSizes.font12Sp,
-                              fontWeight: FontWeights.weight600,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          6.verticalSpace,
-                          // AppText(
-                          //   port.price,
-                          //   color: ui.textSecondary,
-                          //   fontSize: FontSizes.font11Sp,
-                          //   fontWeight: FontWeights.weight400,
-                          // ),
-                          8.horizontalSpace,
-                          ChargingStationPortStatusChipWidget(
-                            available: port.available,
-                          ),
-                        ],
+          8.horizontalSpace,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: AppText(
+                        port.label,
+                        color: ui.textPrimary,
+                        fontSize: FontSizes.font12Sp,
+                        fontWeight: FontWeights.weight600,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-
-                    ],
-                  ),
+                    ),
+                    6.verticalSpace,
+                    // AppText(
+                    //   port.price,
+                    //   color: ui.textSecondary,
+                    //   fontSize: FontSizes.font11Sp,
+                    //   fontWeight: FontWeights.weight400,
+                    // ),
+                    8.horizontalSpace,
+                    ChargingStationPortStatusChipWidget(
+                      available: port.available,
+                    ),
+                  ],
                 ),
-            ],
+              ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
