@@ -129,9 +129,8 @@ class _SummaryBodyState extends State<_SummaryBody> {
   /// receipt button shows at the bottom.
   bool _paidAtStation = false;
 
-  /// The close icon is hidden on the live-session flow until the user has paid
-  /// at the station; on other flows (History) it's always available.
-  bool get _showCloseIcon => !widget.showPaymentButtons || _paidAtStation;
+  /// The close icon is always available.
+  bool get _showCloseIcon => true;
 
   void _onPaidAtStation(_StationPaymentMethod method) {
     if (_paidAtStation) return;
@@ -192,14 +191,15 @@ class _SummaryBodyState extends State<_SummaryBody> {
                 fontSize: FontSizes.font13Sp,
                 fontWeight: FontWeights.weight500,
               ),
-              if (widget.showPaymentButtons) ...[
-                16.verticalSpace,
-                _PaymentButtons(
-                  ui: ui,
-                  disabled: _paidAtStation,
-                  onPaidAtStation: _onPaidAtStation,
-                ),
-              ],
+              // Pay at Station / Pay in App buttons commented out.
+              // if (widget.showPaymentButtons) ...[
+              //   16.verticalSpace,
+              //   _PaymentButtons(
+              //     ui: ui,
+              //     disabled: _paidAtStation,
+              //     onPaidAtStation: _onPaidAtStation,
+              //   ),
+              // ],
               20.verticalSpace,
               _StatCard(
                 ui: ui,
@@ -240,15 +240,13 @@ class _SummaryBodyState extends State<_SummaryBody> {
             ],
           ),
         ),
-        // The receipt is always available from History (a past, settled
-        // session); on the live-session flow it appears once paid at station.
-        if (_paidAtStation || !widget.showPaymentButtons)
-          Padding(
-            padding: AppUtils.horizontal16Padding.add(
-              EdgeInsets.only(bottom: 12.h, top: 8.h),
-            ),
-            child: SessionReceiptDownloadButton(sessionId: detail.id),
+        // The download receipt button is always shown.
+        Padding(
+          padding: AppUtils.horizontal16Padding.add(
+            EdgeInsets.only(bottom: 12.h, top: 8.h),
           ),
+          child: SessionReceiptDownloadButton(sessionId: detail.id),
+        ),
         // Padding(
         //   padding: AppUtils.horizontal16Padding.add(
         //     EdgeInsets.only(bottom: 12.h, top: 8.h),

@@ -208,13 +208,13 @@ class _OnboardingSlide extends StatelessWidget {
         //   ),
         // ),
 
-        // HUBCO green wordmark pinned to the top right.
+        // HUBCO green wordmark pinned to the top center.
         Align(
-          alignment: Alignment.topRight,
+          alignment: Alignment.topCenter,
           child: SafeArea(
             bottom: false,
             child: Padding(
-              padding: EdgeInsets.fromLTRB(0, 24.h, 20.w, 0),
+              padding: EdgeInsets.only(top: 24.h),
               child: AppPngImageView(
                 appImagePath: AppImages.hubcoWordmarkDark,
                 width: 96.w,
@@ -224,22 +224,23 @@ class _OnboardingSlide extends StatelessWidget {
           ),
         ),
 
-        // Headline + description, sitting above the bottom controls.
+        // Headline + description, sitting at the top center under the logo.
         Align(
-          alignment: Alignment.bottomLeft,
+          alignment: Alignment.topCenter,
           child: SafeArea(
-            top: false,
+            bottom: false,
             child: Padding(
-              padding: EdgeInsets.fromLTRB(24.w, 0, 24.w, 100.h),
+              padding: EdgeInsets.fromLTRB(24.w, 90.h, 24.w, 0),
               child: Opacity(
                 opacity: contentOpacity,
                 child: Transform.translate(
                   offset: Offset(0, t * 20),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Text.rich(
+                        textAlign: TextAlign.center,
                         TextSpan(
                           text: item.title,
                           style: TextStyle(
@@ -266,6 +267,7 @@ class _OnboardingSlide extends StatelessWidget {
                           color: AppColors.whiteColor.withValues(alpha: 0.7),
                           fontSize: FontSizes.font16Sp,
                           fontWeight: FontWeights.weight400,
+                          textAlign: TextAlign.center,
                         ),
                       ],
                     ],
