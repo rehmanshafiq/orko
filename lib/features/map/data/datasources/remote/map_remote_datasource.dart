@@ -2,6 +2,7 @@ import 'package:orko_hubco/core/utils/app_logger.dart';
 
 import 'package:dio/dio.dart';
 import 'package:orko_hubco/core/error/exceptions.dart';
+import 'package:orko_hubco/core/utils/hidden_stations.dart';
 import 'package:orko_hubco/core/network/api_client.dart';
 import 'package:orko_hubco/features/map/data/models/hubco_location_model.dart';
 import 'package:orko_hubco/features/map/data/models/station_filter_options_model.dart';
@@ -96,6 +97,7 @@ class MapRemoteDataSourceImpl implements MapRemoteDataSource {
             return stations
                 .whereType<Map<String, dynamic>>()
                 .map(HubcoLocationModel.fromNearestJson)
+                .where((s) => !HiddenStations.isHidden(s.name, s.displayName))
                 .toList();
           }
         }

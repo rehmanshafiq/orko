@@ -184,15 +184,6 @@ class HubcoChargingStations {
       longitude: 73.158801,
       status: true,
     ),
-    HubcoLocationEntity(
-      id: 41,
-      name: 'METRO Safari Store Gulshan-e-Iqbal',
-      address:
-          '190-219, OKEWARI, NA-Class, Main University Rd, near Safari Park, Gulshan-e-Iqbal, Karachi, 73500, Pakistan',
-      latitude: 24.92115,
-      longitude: 67.10563,
-      status: true,
-    ),
   ];
 
   /// Approximate centroids for the most common Pakistani cities the user can

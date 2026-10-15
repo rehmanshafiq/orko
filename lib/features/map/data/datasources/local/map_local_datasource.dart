@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:orko_hubco/core/error/exceptions.dart';
+import 'package:orko_hubco/core/utils/hidden_stations.dart';
 import 'package:orko_hubco/features/map/data/models/hubco_location_model.dart';
 
 abstract class MapLocalDataSource {
@@ -23,6 +24,7 @@ class MapLocalDataSourceImpl implements MapLocalDataSource {
         return decoded
             .whereType<Map<String, dynamic>>()
             .map(HubcoLocationModel.fromJson)
+            .where((s) => !HiddenStations.isHidden(s.name, s.displayName))
             .toList();
       }
 
