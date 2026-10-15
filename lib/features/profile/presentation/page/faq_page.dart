@@ -38,7 +38,6 @@ const List<_FaqSection> _sections = [
           '• Book charging sessions\n'
           '• Monitor charging progress\n'
           '• View charging history and receipts\n'
-          '• Make secure in-app payments\n'
           '• Plan long-distance trips with optimized charging stops',
     ),
     _Faq(
@@ -149,22 +148,22 @@ const List<_FaqSection> _sections = [
     ),
   ]),
   _FaqSection('Payments & Receipts', [
-    _Faq(
-      'What payment methods are accepted?',
-      'All HUBCO Green charging stations support multiple payment options for '
-          'your convenience. You can pay securely through the HUBCO Green App '
-          'using online payment or make your payment at the charging station '
-          'using a POS terminal or cash.',
-    ),
-    _Faq(
-      'Can I save my preferred payment method?',
-      'Yes. You can save and manage your preferred payment method for a faster '
-          'checkout experience.\n\n'
-          'Payment information is used only to process transactions, issue '
-          'receipts, manage refunds or billing queries, and meet financial record '
-          "requirements. HUBCO Green does not store customers' bank account "
-          'information.',
-    ),
+    // _Faq(
+    //   'What payment methods are accepted?',
+    //   'All HUBCO Green charging stations support multiple payment options for '
+    //       'your convenience. You can pay securely through the HUBCO Green App '
+    //       'using online payment or make your payment at the charging station '
+    //       'using a POS terminal or cash.',
+    // ),
+    // _Faq(
+    //   'Can I save my preferred payment method?',
+    //   'Yes. You can save and manage your preferred payment method for a faster '
+    //       'checkout experience.\n\n'
+    //       'Payment information is used only to process transactions, issue '
+    //       'receipts, manage refunds or billing queries, and meet financial record '
+    //       "requirements. HUBCO Green does not store customers' bank account "
+    //       'information.',
+    // ),
     _Faq(
       'Will I receive a receipt for my charging session?',
       'Yes. Once payment is completed, a digital receipt is automatically '
