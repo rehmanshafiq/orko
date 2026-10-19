@@ -154,10 +154,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 'countryCode': _countryCode,
               },
             );
-            AppHelpers.showSnackBar(
-              context,
-              'An OTP verification email has been sent to $email',
-            );
+            // AppHelpers.showSnackBar(
+            //   context,
+            //   'An OTP verification email has been sent to $email',
+            // );
           } else if (state is AuthAuthenticated) {
             context.go('/home');
           } else if (state is AuthError) {
