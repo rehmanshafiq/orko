@@ -60,7 +60,10 @@ abstract class AuthRemoteDataSource {
   ///
   /// Sends `{ "email": <email> }` and returns the `otp_id` the backend issues,
   /// which must be passed to [verifyResetOtp]. Throws [ServerException].
-  Future<int> loginWithOtp({required String email});
+  Future<int> loginWithOtp({
+    required String phoneNumber,
+    required String countryCode,
+  });
 
   /// Step 2 of the forgot-password flow — `verify_otp` endpoint (no auth).
   ///

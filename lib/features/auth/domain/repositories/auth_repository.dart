@@ -47,7 +47,10 @@ abstract class AuthRepository {
 
   /// Forgot-password step 1 — requests an OTP via `login_with_otp`. Returns the
   /// issued `otp_id` to use with [verifyResetOtp].
-  Future<Either<Failure, int>> loginWithOtp({required String email});
+  Future<Either<Failure, int>> loginWithOtp({
+    required String phoneNumber,
+    required String countryCode,
+  });
 
   /// Forgot-password step 2 — verifies the OTP via `verify_otp` and returns the
   /// short-lived access token that authorizes [resetPassword].

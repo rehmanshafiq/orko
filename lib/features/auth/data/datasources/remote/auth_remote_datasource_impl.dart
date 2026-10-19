@@ -316,7 +316,10 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   }
 
   @override
-  Future<int> loginWithOtp({required String email}) async {
+  Future<int> loginWithOtp({
+    required String phoneNumber,
+    required String countryCode,
+  }) async {
     try {
       final config = RemoteConfigService.config;
       if (config == null) {
@@ -333,7 +336,10 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       final url = _buildUrl(ApiClient.baseUrl, endpoint);
       AppLogger.d('[Auth] Login-with-OTP URL: $url');
 
-      final response = await apiClient.post(url, data: {'email': email});
+      final response = await apiClient.post(
+        url,
+        data: {'phone_number': phoneNumber, 'country_code': countryCode},
+      );
 
       final data = response.data;
       if (response.statusCode == 200 && data is Map<String, dynamic>) {

@@ -4,7 +4,7 @@ import 'package:orko_hubco/features/auth/domain/usecases/reset_password_usecase.
 import 'package:orko_hubco/features/auth/domain/usecases/verify_reset_otp_usecase.dart';
 import 'package:orko_hubco/features/auth/presentation/cubit/forgot_password_state.dart';
 
-/// Drives the forgot-password flow (email → verify OTP → reset password),
+/// Drives the forgot-password flow (phone → verify OTP → reset password),
 /// independent of [AuthCubit] so it can't interfere with the login screen's
 /// auth listener.
 class ForgotPasswordCubit extends Cubit<ForgotPasswordState> {
@@ -21,18 +21,29 @@ class ForgotPasswordCubit extends Cubit<ForgotPasswordState> {
         _resetPasswordUseCase = resetPasswordUseCase,
         super(const ForgotPasswordInitial());
 
-  /// Step 1 — request an OTP for [email]. On success emits
+  /// Step 1 — request an OTP for the phone number. On success emits
   /// [ForgotPasswordOtpSent] with the issued otp id.
-  Future<void> requestOtp(String email) async {
+  Future<void> requestOtp({
+    required String phoneNumber,
+    required String countryCode,
+  }) async {
     if (state is ForgotPasswordSendingOtp) return;
     emit(const ForgotPasswordSendingOtp());
 
-    final result = await _loginWithOtpUseCase(LoginWithOtpParams(email: email));
+    final result = await _loginWithOtpUseCase(
+      LoginWithOtpParams(phoneNumber: phoneNumber, countryCode: countryCode),
+    );
 
     if (isClosed) return;
     result.fold(
       (failure) => emit(ForgotPasswordError(failure.message)),
-      (otpId) => emit(ForgotPasswordOtpSent(otpId: otpId, email: email)),
+      (otpId) => emit(
+        ForgotPasswordOtpSent(
+          otpId: otpId,
+          phoneNumber: phoneNumber,
+          countryCode: countryCode,
+        ),
+      ),
     );
   }
 

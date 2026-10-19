@@ -1,8 +1,8 @@
 import 'package:equatable/equatable.dart';
 
 /// States for the self-contained forgot-password flow:
-/// email → verify OTP → reset password. The hosting sheet keeps the current
-/// step, otp id, email and access token locally; the cubit only drives the
+/// phone → verify OTP → reset password. The hosting sheet keeps the current
+/// step, otp id, phone number and access token locally; the cubit only drives the
 /// async work and these transient outcome states.
 abstract class ForgotPasswordState extends Equatable {
   const ForgotPasswordState();
@@ -15,20 +15,26 @@ class ForgotPasswordInitial extends ForgotPasswordState {
   const ForgotPasswordInitial();
 }
 
-/// Requesting the OTP (email step) is in flight.
+/// Requesting the OTP (phone step) is in flight.
 class ForgotPasswordSendingOtp extends ForgotPasswordState {
   const ForgotPasswordSendingOtp();
 }
 
-/// The OTP was sent — carries the issued [otpId] and the [email] it went to.
+/// The OTP was sent — carries the issued [otpId] and the phone number it went
+/// to.
 class ForgotPasswordOtpSent extends ForgotPasswordState {
-  const ForgotPasswordOtpSent({required this.otpId, required this.email});
+  const ForgotPasswordOtpSent({
+    required this.otpId,
+    required this.phoneNumber,
+    required this.countryCode,
+  });
 
   final int otpId;
-  final String email;
+  final String phoneNumber;
+  final String countryCode;
 
   @override
-  List<Object?> get props => [otpId, email];
+  List<Object?> get props => [otpId, phoneNumber, countryCode];
 }
 
 /// Verifying the entered OTP is in flight.

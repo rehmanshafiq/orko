@@ -55,6 +55,8 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _onLogin() {
+    // The button no longer greys out while busy, so guard against re-entry.
+    if (context.read<AuthCubit>().state is AuthLoading) return;
     FocusScope.of(context).unfocus();
     final isValid = _formKey.currentState?.validate() ?? false;
     if (!isValid) {
@@ -96,7 +98,7 @@ class _LoginScreenState extends State<LoginScreen> {
     context.read<AuthCubit>().loginWithApple();
   }
 
-  /// Opens the forgot-password flow (request OTP by email → reset password).
+  /// Opens the forgot-password flow (request OTP by phone → reset password).
   /// On success a confirmation snackbar is shown.
   Future<void> _onForgotPassword() async {
     FocusScope.of(context).unfocus();
@@ -408,9 +410,11 @@ class _LoginScreenState extends State<LoginScreen> {
         ],
       ),
       child: PrimaryButtonWidget(
-        text: state is AuthLoading ? 'Signing In...' : 'Sign In',
+        text: 'Sign In',
         onPress: _onLogin,
-        isEnabled: state is! AuthLoading,
+        // Spin only for phone login — a Google/Apple sign-in spins its own
+        // button (`_loadingProvider`) while this one just ignores taps.
+        isLoading: state is AuthLoading && _loadingProvider == null,
         buttonHeight: 38.h,
         cornerRadius: 24.r,
         gradientColors: const [

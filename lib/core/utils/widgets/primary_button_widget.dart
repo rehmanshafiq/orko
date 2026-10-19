@@ -18,6 +18,9 @@ class PrimaryButtonWidget extends StatelessWidget {
   final String? icon;
   final IconData? leadingIcon;
   final bool isEnabled;
+  /// Replaces the label with a spinner and ignores taps, while keeping the
+  /// normal (enabled) button colors.
+  final bool isLoading;
   final double? iconHeight;
   final double? iconWidth;
   final double? cornerRadius;
@@ -43,6 +46,7 @@ class PrimaryButtonWidget extends StatelessWidget {
     this.icon,
     this.leadingIcon,
     this.isEnabled = true,
+    this.isLoading = false,
     this.iconHeight,
     this.iconWidth,
     this.cornerRadius,
@@ -91,8 +95,19 @@ class PrimaryButtonWidget extends StatelessWidget {
               ? EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h)
               : null,
         ),
-        onPressed: isEnabled ? onPress : null,
-        child: Column(
+        // While loading, keep a no-op handler (not null) so the button keeps
+        // its enabled colors instead of switching to the disabled style.
+        onPressed: isEnabled ? (isLoading ? () {} : onPress) : null,
+        child: isLoading
+            ? SizedBox(
+                height: 20.r,
+                width: 20.r,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2.5,
+                  color: textColor ?? AppColors.whiteColor,
+                ),
+              )
+            : Column(
           mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [

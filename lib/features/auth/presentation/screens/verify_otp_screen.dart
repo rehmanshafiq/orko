@@ -104,6 +104,15 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
       _focusNodes[index + 1].requestFocus();
     }
     setState(() {});
+    _submitIfComplete();
+  }
+
+  /// Verifies automatically once every box is filled (last digit typed or a
+  /// full code pasted), unless a verification is already in flight.
+  void _submitIfComplete() {
+    if (!_isComplete) return;
+    if (context.read<AuthCubit>().state is OtpVerifying) return;
+    _onVerify();
   }
 
   void _distribute(String value) {
@@ -117,6 +126,7 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
       _focusNodes[lastIndex.clamp(0, _kOtpLength - 1)].requestFocus();
     }
     setState(() {});
+    _submitIfComplete();
   }
 
   KeyEventResult _onKey(int index, KeyEvent event) {
@@ -257,9 +267,9 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
                     ),
                     32.verticalSpace,
                     PrimaryButtonWidget(
-                      text: isVerifying ? 'Verifying...' : 'Verify',
+                      text: 'Verify',
                       onPress: _onVerify,
-                      isEnabled: _isComplete && !isVerifying,
+                      isLoading: isVerifying,
                       buttonHeight: 38.h,
                       cornerRadius: 24.r,
                       gradientColors: const [

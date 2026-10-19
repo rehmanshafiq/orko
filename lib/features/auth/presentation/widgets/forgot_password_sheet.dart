@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/di/injection_container.dart';
@@ -15,8 +16,11 @@ import 'package:orko_hubco/features/auth/presentation/cubit/forgot_password_stat
 
 const int _kOtpLength = 6;
 
+/// Dialing code sent with the phone number (Pakistan only, as on login).
+const String _kCountryCode = '+92';
+
 /// Three-step forgot-password flow shown as a modal sheet: request an OTP by
-/// email, verify the code, then choose a new password.
+/// phone number, verify the code, then choose a new password.
 class ForgotPasswordSheet {
   const ForgotPasswordSheet._();
 
@@ -35,7 +39,7 @@ class ForgotPasswordSheet {
   }
 }
 
-enum _Step { email, otp, password }
+enum _Step { phone, otp, password }
 
 class _ForgotPasswordView extends StatefulWidget {
   const _ForgotPasswordView();
@@ -45,10 +49,10 @@ class _ForgotPasswordView extends StatefulWidget {
 }
 
 class _ForgotPasswordViewState extends State<_ForgotPasswordView> {
-  final _emailFormKey = GlobalKey<FormState>();
+  final _phoneFormKey = GlobalKey<FormState>();
   final _passwordFormKey = GlobalKey<FormState>();
 
-  final _emailController = TextEditingController();
+  final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmController = TextEditingController();
 
@@ -57,12 +61,15 @@ class _ForgotPasswordViewState extends State<_ForgotPasswordView> {
   final List<FocusNode> _otpFocusNodes =
       List.generate(_kOtpLength, (_) => FocusNode());
 
-  _Step _step = _Step.email;
+  _Step _step = _Step.phone;
+  /// True while the in-flight request is an OTP verification (vs. a resend),
+  /// so only a rejected code clears the boxes.
+  bool _verifyingOtp = false;
   int? _otpId;
   String? _accessToken;
   bool _obscurePassword = true;
   bool _obscureConfirm = true;
-  AutovalidateMode _emailAutovalidate = AutovalidateMode.disabled;
+  AutovalidateMode _phoneAutovalidate = AutovalidateMode.disabled;
   AutovalidateMode _passwordAutovalidate = AutovalidateMode.disabled;
 
   static const int _resendSeconds = 120;
@@ -72,7 +79,7 @@ class _ForgotPasswordViewState extends State<_ForgotPasswordView> {
   @override
   void dispose() {
     _timer?.cancel();
-    _emailController.dispose();
+    _phoneController.dispose();
     _passwordController.dispose();
     _confirmController.dispose();
     for (final c in _otpControllers) {
@@ -106,6 +113,18 @@ class _ForgotPasswordViewState extends State<_ForgotPasswordView> {
     });
   }
 
+  /// Toast instead of a snackbar: the screen's Scaffold (where snackbars are
+  /// drawn) sits behind this modal sheet, so a snackbar would be hidden.
+  void _showToast(String message, {bool isError = false}) {
+    Fluttertoast.showToast(
+      msg: message,
+      toastLength: Toast.LENGTH_LONG,
+      gravity: ToastGravity.BOTTOM,
+      backgroundColor: isError ? AppColors.removeColor : Colors.green.shade700,
+      textColor: AppColors.whiteColor,
+    );
+  }
+
   void _clearOtp() {
     for (final c in _otpControllers) {
       c.clear();
@@ -113,32 +132,43 @@ class _ForgotPasswordViewState extends State<_ForgotPasswordView> {
     if (mounted) setState(() {});
   }
 
-  void _submitEmail() {
+  void _submitPhone() {
     FocusScope.of(context).unfocus();
-    final isValid = _emailFormKey.currentState?.validate() ?? false;
+    final isValid = _phoneFormKey.currentState?.validate() ?? false;
     if (!isValid) {
-      setState(() => _emailAutovalidate = AutovalidateMode.onUserInteraction);
+      setState(() => _phoneAutovalidate = AutovalidateMode.onUserInteraction);
       return;
     }
-    context.read<ForgotPasswordCubit>().requestOtp(_emailController.text.trim());
+    context.read<ForgotPasswordCubit>().requestOtp(
+          phoneNumber: _phoneController.text.trim(),
+          countryCode: _kCountryCode,
+        );
+  }
+
+  String? _validatePhoneNumber(String? value) {
+    final digits = (value ?? '').replaceAll(RegExp(r'\D'), '');
+    if (digits.isEmpty) return 'Phone number is required';
+    if (!RegExp(r'^3\d{9}$').hasMatch(digits)) {
+      return 'Enter a valid number, e.g. 3001234567';
+    }
+    return null;
   }
 
   void _verifyOtp() {
     FocusScope.of(context).unfocus();
     if (!_isOtpComplete) {
-      AppHelpers.showSnackBar(context, 'Please enter the 6-digit code',
-          isError: true);
+      _showToast('Please enter the 6-digit code', isError: true);
       return;
     }
     final otpId = _otpId;
     if (otpId == null) {
-      AppHelpers.showSnackBar(
-        context,
+      _showToast(
         'Something went wrong. Please request a new code.',
         isError: true,
       );
       return;
     }
+    _verifyingOtp = true;
     context.read<ForgotPasswordCubit>().verifyOtp(otpId: otpId, otp: _otp);
   }
 
@@ -147,7 +177,10 @@ class _ForgotPasswordViewState extends State<_ForgotPasswordView> {
     final cubit = context.read<ForgotPasswordCubit>();
     if (cubit.state is ForgotPasswordSendingOtp) return;
     FocusScope.of(context).unfocus();
-    cubit.requestOtp(_emailController.text.trim());
+    cubit.requestOtp(
+      phoneNumber: _phoneController.text.trim(),
+      countryCode: _kCountryCode,
+    );
   }
 
   void _submitReset() {
@@ -159,8 +192,7 @@ class _ForgotPasswordViewState extends State<_ForgotPasswordView> {
     }
     final token = _accessToken;
     if (token == null || token.isEmpty) {
-      AppHelpers.showSnackBar(
-        context,
+      _showToast(
         'Your verification expired. Please start again.',
         isError: true,
       );
@@ -184,12 +216,24 @@ class _ForgotPasswordViewState extends State<_ForgotPasswordView> {
         _otpFocusNodes[last.clamp(0, _kOtpLength - 1)].requestFocus();
       }
       setState(() {});
+      _submitOtpIfComplete();
       return;
     }
     if (value.isNotEmpty && index < _kOtpLength - 1) {
       _otpFocusNodes[index + 1].requestFocus();
     }
     setState(() {});
+    _submitOtpIfComplete();
+  }
+
+  /// Verifies automatically once every box is filled (last digit typed or a
+  /// full code pasted), unless a verification is already in flight.
+  void _submitOtpIfComplete() {
+    if (!_isOtpComplete) return;
+    if (context.read<ForgotPasswordCubit>().state is ForgotPasswordVerifyingOtp) {
+      return;
+    }
+    _verifyOtp();
   }
 
   KeyEventResult _onOtpKey(int index, KeyEvent event) {
@@ -215,11 +259,11 @@ class _ForgotPasswordViewState extends State<_ForgotPasswordView> {
           _clearOtp();
           setState(() => _step = _Step.otp);
           _startResendTimer();
-          AppHelpers.showSnackBar(
-            context,
-            'We sent a 6-digit code to ${state.email}',
+          _showToast(
+            'We sent a 6-digit code to ${state.countryCode} ${state.phoneNumber}',
           );
         } else if (state is ForgotPasswordOtpVerified) {
+          _verifyingOtp = false;
           _accessToken = state.accessToken;
           _timer?.cancel();
           setState(() => _step = _Step.password);
@@ -227,14 +271,20 @@ class _ForgotPasswordViewState extends State<_ForgotPasswordView> {
           // Hand the message back so the login screen can confirm it.
           Navigator.of(context).pop(state.message);
         } else if (state is ForgotPasswordError) {
-          AppHelpers.showSnackBar(context, state.message, isError: true);
+          _showToast(state.message, isError: true);
+          // A rejected code is useless — clear it so the user can re-enter.
+          if (_step == _Step.otp && _verifyingOtp) {
+            _clearOtp();
+            _otpFocusNodes.first.requestFocus();
+          }
+          _verifyingOtp = false;
         }
       },
       builder: (context, state) {
         final Widget body;
         switch (_step) {
-          case _Step.email:
-            body = _buildEmailStep(ui, state is ForgotPasswordSendingOtp);
+          case _Step.phone:
+            body = _buildPhoneStep(ui, state is ForgotPasswordSendingOtp);
             break;
           case _Step.otp:
             body = _buildOtpStep(ui, state is ForgotPasswordVerifyingOtp);
@@ -275,11 +325,11 @@ class _ForgotPasswordViewState extends State<_ForgotPasswordView> {
     );
   }
 
-  // ── Step 1: email ───────────────────────────────────────────────────────
-  Widget _buildEmailStep(AppUiColors ui, bool isSending) {
+  // ── Step 1: phone number ───────────────────────────────────────────────────────
+  Widget _buildPhoneStep(AppUiColors ui, bool isSending) {
     return Form(
-      key: _emailFormKey,
-      autovalidateMode: _emailAutovalidate,
+      key: _phoneFormKey,
+      autovalidateMode: _phoneAutovalidate,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisSize: MainAxisSize.min,
@@ -293,27 +343,29 @@ class _ForgotPasswordViewState extends State<_ForgotPasswordView> {
           ),
           6.verticalSpace,
           AppText(
-            'Enter the email linked to your account and we\'ll send you a code '
-            'to reset your password.',
+            'Enter the phone number linked to your account and we\'ll send you '
+            'a code to reset your password.',
             color: ui.textMuted,
             fontSize: FontSizes.font13Sp,
             fontWeight: FontWeights.weight400,
           ),
           20.verticalSpace,
           AppText(
-            'Email',
+            'Phone Number',
             color: ui.textPrimary,
             fontSize: FontSizes.font12Sp,
             fontWeight: FontWeights.weight500,
           ),
           8.verticalSpace,
           TextFormField(
-            controller: _emailController,
-            keyboardType: TextInputType.emailAddress,
+            controller: _phoneController,
+            keyboardType: TextInputType.phone,
             textInputAction: TextInputAction.done,
-            autofillHints: const [AutofillHints.email],
-            validator: AppHelpers.validateEmail,
-            onFieldSubmitted: (_) => _submitEmail(),
+            autofillHints: const [AutofillHints.telephoneNumberNational],
+            validator: _validatePhoneNumber,
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            maxLength: 10,
+            onFieldSubmitted: (_) => _submitPhone(),
             style: TextStyle(
               color: ui.textPrimary,
               fontSize: FontSizes.font14Sp,
@@ -321,16 +373,15 @@ class _ForgotPasswordViewState extends State<_ForgotPasswordView> {
             ),
             decoration: _inputDecoration(
               ui: ui,
-              hintText: 'you@example.com',
-              prefixIcon: const Icon(Icons.mail_outline,
-                  color: AppColors.hintColor, size: 20),
+              hintText: 'Phone Number',
+              prefixIcon: _buildPhonePrefix(ui),
             ),
           ),
           24.verticalSpace,
           _primaryButton(
-            text: isSending ? 'Sending...' : 'Send Code',
-            isEnabled: !isSending,
-            onPress: _submitEmail,
+            text: 'Send Code',
+            isLoading: isSending,
+            onPress: _submitPhone,
           ),
           8.verticalSpace,
         ],
@@ -349,7 +400,7 @@ class _ForgotPasswordViewState extends State<_ForgotPasswordView> {
           children: [
             GestureDetector(
               behavior: HitTestBehavior.opaque,
-              onTap: () => setState(() => _step = _Step.email),
+              onTap: () => setState(() => _step = _Step.phone),
               child: Icon(Icons.arrow_back, color: ui.textPrimary, size: 22.sp),
             ),
             10.horizontalSpace,
@@ -363,7 +414,8 @@ class _ForgotPasswordViewState extends State<_ForgotPasswordView> {
         ),
         6.verticalSpace,
         AppText(
-          'Enter the 6-digit code we sent to ${_emailController.text.trim()}.',
+          'Enter the 6-digit code we sent to $_kCountryCode '
+          '${_phoneController.text.trim()}.',
           color: ui.textMuted,
           fontSize: FontSizes.font13Sp,
           fontWeight: FontWeights.weight400,
@@ -396,8 +448,8 @@ class _ForgotPasswordViewState extends State<_ForgotPasswordView> {
         ),
         24.verticalSpace,
         _primaryButton(
-          text: isVerifying ? 'Verifying...' : 'Verify',
-          isEnabled: _isOtpComplete && !isVerifying,
+          text: 'Verify',
+          isLoading: isVerifying,
           onPress: _verifyOtp,
         ),
         8.verticalSpace,
@@ -509,11 +561,36 @@ class _ForgotPasswordViewState extends State<_ForgotPasswordView> {
           ),
           16.verticalSpace,
           _primaryButton(
-            text: isResetting ? 'Resetting...' : 'Reset Password',
-            isEnabled: !isResetting,
+            text: 'Reset Password',
+            isLoading: isResetting,
             onPress: _submitReset,
           ),
           8.verticalSpace,
+        ],
+      ),
+    );
+  }
+
+  /// `🇵🇰 +92 | ☎` prefix, matching the login screen's phone field.
+  Widget _buildPhonePrefix(AppUiColors ui) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 10.w),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Text('🇵🇰', style: TextStyle(fontSize: 14)),
+          6.horizontalSpace,
+          AppText(
+            _kCountryCode,
+            color: ui.textPrimary.withValues(alpha: 0.9),
+            fontSize: FontSizes.font12Sp,
+            fontWeight: FontWeights.weight500,
+          ),
+          10.horizontalSpace,
+          Container(height: 16.h, width: 1, color: ui.inputBorder),
+          10.horizontalSpace,
+          const Icon(Icons.phone_outlined,
+              color: AppColors.hintColor, size: 18),
         ],
       ),
     );
@@ -562,13 +639,13 @@ class _ForgotPasswordViewState extends State<_ForgotPasswordView> {
 
   Widget _primaryButton({
     required String text,
-    required bool isEnabled,
+    required bool isLoading,
     required VoidCallback onPress,
   }) {
     return PrimaryButtonWidget(
       text: text,
       onPress: onPress,
-      isEnabled: isEnabled,
+      isLoading: isLoading,
       buttonHeight: 40.h,
       cornerRadius: 24.r,
       gradientColors: const [

@@ -186,13 +186,19 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<Either<Failure, int>> loginWithOtp({required String email}) async {
+  Future<Either<Failure, int>> loginWithOtp({
+    required String phoneNumber,
+    required String countryCode,
+  }) async {
     if (!await networkInfo.isConnected) {
       return const Left(NetworkFailure());
     }
 
     try {
-      final otpId = await remoteDataSource.loginWithOtp(email: email);
+      final otpId = await remoteDataSource.loginWithOtp(
+        phoneNumber: phoneNumber,
+        countryCode: countryCode,
+      );
       return Right(otpId);
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
