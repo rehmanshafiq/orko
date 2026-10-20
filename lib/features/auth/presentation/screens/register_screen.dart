@@ -13,6 +13,7 @@ import 'package:orko_hubco/core/utils/widgets/image_view/app_image_view.dart';
 import 'package:orko_hubco/core/utils/widgets/primary_button_widget.dart';
 import 'package:orko_hubco/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:orko_hubco/features/auth/presentation/cubit/auth_state.dart';
+import 'package:orko_hubco/features/profile/presentation/utils/profile_actions.dart';
 
 /// Register screen.
 class RegisterScreen extends StatefulWidget {
@@ -346,9 +347,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 fontWeight: FontWeights.weight400,
                               ),
                               GestureDetector(
-                                onTap: () => AppHelpers.showSnackBar(
+                                onTap: () => openPrivacyPolicy(
                                   context,
-                                  'Coming Soon',
+                                  title: 'Terms and Conditions',
                                 ),
                                 child: AppText(
                                   'Terms and Conditions',

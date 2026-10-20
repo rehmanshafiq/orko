@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:go_router/go_router.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/storage_constants.dart';
@@ -9,12 +10,38 @@ import 'package:orko_hubco/core/di/injection_container.dart';
 import 'package:orko_hubco/core/global_bloc/bloc/user_bloc.dart';
 import 'package:orko_hubco/core/services/analytics_service.dart';
 import 'package:orko_hubco/core/services/local_storage_service.dart';
+import 'package:orko_hubco/core/utils/widgets/app_web_view_page.dart';
 import 'package:orko_hubco/core/utils/widgets/auth_required_dialog.dart';
 import 'package:orko_hubco/features/auth/data/models/user_model.dart';
 import 'package:orko_hubco/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:orko_hubco/features/auth/presentation/cubit/auth_state.dart';
 import 'package:orko_hubco/features/profile/presentation/cubit/profile_cubit.dart';
 import 'package:orko_hubco/features/profile/presentation/screens/edit_profile_screen.dart';
+import 'package:orko_hubco/features/remote_config/data/services/remote_config_service.dart';
+
+/// Opens the privacy policy (from Remote Config) in an in-app WebView, with
+/// [title] as the page header. Falls back to a toast when Remote Config carries
+/// no URL yet.
+void openPrivacyPolicy(
+  BuildContext context, {
+  String title = 'Privacy & Security',
+}) {
+  final url =
+      RemoteConfigService.config?.apiConstants.privacyPolicyUrl.trim() ?? '';
+  if (url.isEmpty) {
+    Fluttertoast.showToast(
+      msg: 'Privacy policy is currently unavailable',
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.BOTTOM,
+    );
+    return;
+  }
+  Navigator.of(context).push(
+    MaterialPageRoute<void>(
+      builder: (_) => AppWebViewPage(url: url, title: title),
+    ),
+  );
+}
 
 /// Handles the Sign out action.
 ///
