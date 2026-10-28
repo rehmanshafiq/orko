@@ -2,6 +2,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:get_it/get_it.dart';
 import 'package:orko_hubco/core/network/api_client.dart';
 import 'package:orko_hubco/core/network/network_info.dart';
+import 'package:orko_hubco/core/router/app_router.dart';
 import 'package:orko_hubco/core/services/analytics_service.dart';
 import 'package:orko_hubco/core/services/analytics_user_properties.dart';
 import 'package:orko_hubco/core/services/live_charging/live_charging_notification_controller.dart';
@@ -29,7 +30,9 @@ Future<void> initDependencies() async {
   // ── Core ──────────────────────────────────────────────────────────────
 
   // Network
-  sl.registerLazySingleton<ApiClient>(() => ApiClient());
+  sl.registerLazySingleton<ApiClient>(
+    () => ApiClient(onSessionExpired: AuthRouterActions.onSessionExpired),
+  );
   sl.registerLazySingleton<Connectivity>(() => Connectivity());
   sl.registerLazySingleton<NetworkInfo>(() => NetworkInfoImpl(sl()));
 

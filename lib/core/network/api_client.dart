@@ -14,7 +14,9 @@ class ApiClient {
 
   Dio get dio => _dio;
 
-  ApiClient() {
+  /// [onSessionExpired] runs when an authenticated request gets a 401. Only the
+  /// main app's client sets it; background clients leave it null.
+  ApiClient({Future<void> Function()? onSessionExpired}) {
     _dio = Dio(
       BaseOptions(
         // Resolved from Remote Config (falls back to ApiConstants.baseUrl until
@@ -41,7 +43,7 @@ class ApiClient {
 
     _dio.interceptors.addAll([
       AppHeadersInterceptor(),
-      AuthInterceptor(),
+      AuthInterceptor(onSessionExpired: onSessionExpired),
       // SECURITY: verbose request/response logging is debug-only. It must never
       // ship in release/profile builds, where it would leak bearer tokens,
       // passwords and OTPs to the device log (logcat/oslog).

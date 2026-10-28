@@ -5,7 +5,9 @@ import 'package:orko_hubco/core/di/injection_container.dart';
 import 'package:orko_hubco/core/global_bloc/bloc/user_bloc.dart';
 import 'package:orko_hubco/core/router/auth_notifier.dart';
 import 'package:orko_hubco/core/services/analytics_service.dart';
+import 'package:orko_hubco/core/services/analytics_user_properties.dart';
 import 'package:orko_hubco/core/services/local_storage_service.dart';
+import 'package:orko_hubco/core/utils/app_storage/app_storage.dart';
 import 'package:orko_hubco/features/auth/data/datasources/local/auth_local_datasource.dart';
 import 'package:orko_hubco/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:orko_hubco/features/auth/presentation/screens/login_screen.dart';
@@ -339,13 +341,19 @@ class AppRouter {
 class AuthRouterActions {
   AuthRouterActions._();
 
-  /// Called when the session is no longer valid: clears the auth flags, tells
-  /// the router to re-guard, and routes to login.
-  static void onSessionExpired() {
-    final storage = sl<LocalStorageService>();
-    storage.setLoggedIn(false);
-    storage.setGuest(false);
-    AuthNotifier.instance.authChanged();
-    AppRouter.router.go('/login');
+  /// Called when the session is no longer valid (401 on an authenticated
+  /// request): removes the tokens and cached user, resets session-scoped
+  /// state, and routes to login. The server-side device token is not deleted
+  /// here — that endpoint needs the session that just expired.
+  static Future<void> onSessionExpired() async {
+    try {
+      // Removes tokens + cached user, resets the flags and re-guards the router.
+      await sl<AuthLocalDataSource>().clearCache();
+      // So the next login re-registers this device for pushes.
+      await AppStorage.setFcmTokenRegistered('');
+      sl<AnalyticsUserProperties>().clear();
+    } finally {
+      AppRouter.router.go('/login');
+    }
   }
 }
