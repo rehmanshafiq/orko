@@ -2,7 +2,7 @@
 class ApiConstants {
   ApiConstants._();
 
-  static const String baseUrl = 'https://staging-python.orkofleet.com/'; // 'https://apis-py.orkofleet.com/'
+  static const String baseUrl = 'https://apis-py.orkofleet.com/'; // 'https://staging-python.orkofleet.com/'
 
   /// Google Places (Autocomplete + Details) API key.
   ///
