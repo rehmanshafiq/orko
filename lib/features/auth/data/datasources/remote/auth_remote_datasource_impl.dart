@@ -5,6 +5,7 @@ import 'package:orko_hubco/core/utils/app_logger.dart';
 import 'package:dio/dio.dart';
 import 'package:orko_hubco/core/error/exceptions.dart';
 import 'package:orko_hubco/core/network/api_client.dart';
+import 'package:orko_hubco/core/network/interceptors/error_interceptor.dart';
 import 'package:orko_hubco/core/utils/app_storage/app_storage.dart';
 import 'package:orko_hubco/features/auth/data/datasources/remote/auth_remote_datasource.dart';
 import 'package:orko_hubco/features/auth/data/models/signup_result_model.dart';
@@ -166,6 +167,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
           'password': password,
           'confirm_password': confirmPassword,
         },
+        // The register screen shows the failure itself; skip the global toast
+        // so the message isn't shown twice.
+        options: Options(extra: {ErrorInterceptor.silentKey: true}),
       );
 
       final data = response.data;
