@@ -281,11 +281,15 @@ class PushNotificationService {
     }
   }
 
-  /// True when a session access token is present (the device-token endpoints
-  /// require auth). Reads storage directly to avoid a core→feature dependency.
+  /// True when a verified session access token is present (the device-token
+  /// endpoints require auth). A token awaiting OTP verification is rejected by
+  /// the API, so it doesn't count. Reads storage directly to avoid a
+  /// core→feature dependency.
   bool get _isAuthenticated {
     final token = SecureStore.instance.read(StorageConstants.accessToken);
-    return token != null && token.isNotEmpty;
+    return token != null &&
+        token.isNotEmpty &&
+        !AppStorage.isPendingOtpVerification;
   }
 
   // ── Message handling ──────────────────────────────────────────────────────

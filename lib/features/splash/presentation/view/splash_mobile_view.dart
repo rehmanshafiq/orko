@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_images.dart';
 import 'package:orko_hubco/core/di/injection_container.dart';
@@ -86,25 +85,10 @@ class _SplashMobileViewState extends State<SplashMobileView>
     }
 
     // Signed up (or logged in unverified) but the OTP was never entered —
-    // e.g. the app was killed on the OTP screen. Resume verification instead
-    // of landing on home.
+    // e.g. the app was killed on the OTP screen. Drop the half-finished
+    // session and send the user to login; logging in again routes them to
+    // OTP verification if the API still reports `otp_verification_required`.
     if (AppStorage.isPendingOtpVerification) {
-      final userState = userBloc.state;
-      if (userState is UserLoaded) {
-        final user = userState.user;
-        context.go(
-          '/verify-otp',
-          extra: {
-            'phoneNumber': user.phoneNumber ?? '',
-            'countryCode': (user.countryCode?.isNotEmpty ?? false)
-                ? user.countryCode
-                : '+92',
-            'resendAvailable': true,
-          },
-        );
-        return;
-      }
-      // Nothing to verify against — drop the half-finished session.
       await sl<AuthLocalDataSource>().clearCache();
       if (!mounted) return;
       AppNavigations.navigateToLogin(context);

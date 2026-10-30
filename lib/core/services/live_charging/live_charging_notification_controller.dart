@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:orko_hubco/core/constants/storage_constants.dart';
+import 'package:orko_hubco/core/utils/app_storage/app_storage.dart';
 import 'package:orko_hubco/core/router/app_router.dart';
 import 'package:orko_hubco/core/services/live_charging/ios_live_activity.dart';
 import 'package:orko_hubco/core/services/live_charging/live_charging_keys.dart';
@@ -254,7 +255,18 @@ class LiveChargingNotificationController with WidgetsBindingObserver {
     try {
       await SecureStore.instance.init();
       final token = SecureStore.instance.read(StorageConstants.accessToken);
-      return token != null && token.isNotEmpty;
+      return token != null && token.isNotEmpty && !_isPendingOtpVerification;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// An unverified sign-up/login holds a token the API rejects ("verify your
+  /// phone number"), so it doesn't count as authenticated. Storage may be
+  /// unavailable in a background isolate — treat that as not pending.
+  bool get _isPendingOtpVerification {
+    try {
+      return AppStorage.isPendingOtpVerification;
     } catch (_) {
       return false;
     }
