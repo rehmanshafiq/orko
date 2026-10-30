@@ -39,6 +39,14 @@ class LocalStorageService {
   Future<void> setGuest(bool value) =>
       _box.write(StorageConstants.isGuest, value);
 
+  /// Whether a session is awaiting OTP verification (see
+  /// [StorageConstants.pendingOtpVerification]).
+  bool get isPendingOtpVerification =>
+      _box.read<bool>(StorageConstants.pendingOtpVerification) ?? false;
+
+  Future<void> setPendingOtpVerification(bool value) =>
+      _box.write(StorageConstants.pendingOtpVerification, value);
+
   // ── User (encrypted at rest) ────────────────────────────────────────
 
   String? get userId => _secure.read(StorageConstants.userId);

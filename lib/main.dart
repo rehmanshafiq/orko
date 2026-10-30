@@ -9,6 +9,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:orko_hubco/core/di/injection_container.dart';
 import 'package:orko_hubco/core/network/certificate_pinning.dart';
+import 'package:orko_hubco/core/network/interceptors/auth_interceptor.dart';
 import 'package:orko_hubco/core/router/app_router.dart';
 import 'package:orko_hubco/core/services/android_auto/android_auto_bridge.dart';
 import 'package:orko_hubco/core/services/live_charging/live_charging_notification_controller.dart';
@@ -62,6 +63,10 @@ Future<void> main() async {
 
   // Initialize all dependencies
   await initDependencies();
+
+  // A 401 on a logged-in session (token revoked/expired server-side) logs the
+  // user out and returns them to login.
+  AuthInterceptor.onSessionExpired = AuthRouterActions.onSessionExpired;
 
   // Wire up push notifications (permission, token, listeners). Best-effort and
   // non-blocking so it never delays first paint.

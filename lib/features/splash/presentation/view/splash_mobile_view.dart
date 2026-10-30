@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_images.dart';
 import 'package:orko_hubco/core/di/injection_container.dart';
@@ -16,6 +17,7 @@ import 'package:orko_hubco/core/global_bloc/bloc/user_bloc.dart'
 import 'package:orko_hubco/core/services/live_charging/live_charging_notification_controller.dart';
 import 'package:orko_hubco/core/services/push_notification_service.dart';
 import 'package:orko_hubco/core/usecase/usecase.dart';
+import 'package:orko_hubco/features/auth/data/datasources/local/auth_local_datasource.dart';
 import 'package:orko_hubco/features/auth/domain/usecases/get_user_usecase.dart';
 
 import '../../../../core/utils/app_routing/app_navigations.dart';
@@ -83,16 +85,43 @@ class _SplashMobileViewState extends State<SplashMobileView>
       return;
     }
 
+    // Signed up (or logged in unverified) but the OTP was never entered —
+    // e.g. the app was killed on the OTP screen. Resume verification instead
+    // of landing on home.
+    if (AppStorage.isPendingOtpVerification) {
+      final userState = userBloc.state;
+      if (userState is UserLoaded) {
+        final user = userState.user;
+        context.go(
+          '/verify-otp',
+          extra: {
+            'phoneNumber': user.phoneNumber ?? '',
+            'countryCode': (user.countryCode?.isNotEmpty ?? false)
+                ? user.countryCode
+                : '+92',
+            'resendAvailable': true,
+          },
+        );
+        return;
+      }
+      // Nothing to verify against — drop the half-finished session.
+      await sl<AuthLocalDataSource>().clearCache();
+      if (!mounted) return;
+      AppNavigations.navigateToLogin(context);
+      return;
+    }
+
     // A real cached session, or an explicit guest choice, both land on home.
-    if (userBloc.state is UserLoaded || AppStorage.isGuest) {
+    final hasSession = userBloc.state is UserLoaded && AppStorage.isLoggedIn;
+    if (hasSession || AppStorage.isGuest) {
       // Authenticated identity is set by UserBloc on UserLoaded; the guest
       // branch has no cached user, so set its properties here on relaunch.
-      if (AppStorage.isGuest && userBloc.state is! UserLoaded) {
+      if (AppStorage.isGuest && !hasSession) {
         sl<AnalyticsUserProperties>().setGuest();
       }
       // For a real logged-in session, refresh the cached user from the server
       // in the background (best-effort — failures keep the cached copy).
-      if (userBloc.state is UserLoaded && !AppStorage.isGuest) {
+      if (hasSession && !AppStorage.isGuest) {
         unawaited(_refreshUserFromServer(userBloc));
       }
       // If the app was launched (from a killed state) by tapping a

@@ -40,8 +40,14 @@ class AuthRepositoryImpl implements AuthRepository {
         password: password,
       );
 
-      // Persist the issued access token + user locally (same as sign-up).
-      if (result.accessToken.isNotEmpty) {
+      // Persist the issued access token + user locally. An account whose
+      // phone is not yet verified gets a pending session (not logged in) and
+      // is routed to OTP verification instead of home.
+      if (result.user.otpVerificationRequired) {
+        await localDataSource.cachePendingSession(
+          accessToken: result.accessToken,
+        );
+      } else if (result.accessToken.isNotEmpty) {
         await localDataSource.cacheTokens(accessToken: result.accessToken);
       }
       await localDataSource.cacheUser(result.user as UserModel);
@@ -110,10 +116,12 @@ class AuthRepositoryImpl implements AuthRepository {
         confirmPassword: confirmPassword,
       );
 
-      // Persist the issued access token + user locally.
-      if (result.accessToken.isNotEmpty) {
-        await localDataSource.cacheTokens(accessToken: result.accessToken);
-      }
+      // Persist the issued access token + user, but do NOT mark the user
+      // logged in until the OTP is verified — otherwise killing the app on the
+      // OTP screen lands them on home at the next launch.
+      await localDataSource.cachePendingSession(
+        accessToken: result.accessToken,
+      );
       await localDataSource.cacheUser(result.user as UserModel);
 
       return Right(result);
@@ -141,6 +149,7 @@ class AuthRepositoryImpl implements AuthRepository {
 
     try {
       await remoteDataSource.verifyOtp(otp: otp, accessToken: token);
+      await localDataSource.completePendingSession();
       return const Right(null);
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, statusCode: e.statusCode));

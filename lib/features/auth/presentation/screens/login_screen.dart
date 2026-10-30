@@ -130,6 +130,15 @@ class _LoginScreenState extends State<LoginScreen> {
           }
           if (state is AuthAuthenticated) {
             context.go('/home');
+          } else if (state is LoginOtpVerificationRequired) {
+            context.push(
+              '/verify-otp',
+              extra: {
+                'phoneNumber':
+                    _phoneController.text.replaceAll(RegExp(r'\s+'), ''),
+                'countryCode': _countryCode,
+              },
+            );
           } else if (state is AuthError) {
             AppHelpers.showSnackBar(context, state.message, isError: true);
           }

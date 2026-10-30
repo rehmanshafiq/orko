@@ -31,11 +31,17 @@ class VerifyOtpScreen extends StatefulWidget {
   /// authorizes with the saved access token instead of an id.
   final String? otpId;
 
+  /// When true, Resend is enabled immediately instead of after the countdown —
+  /// used when returning to a pending verification on a later app launch,
+  /// where the original code may already have expired.
+  final bool resendAvailable;
+
   const VerifyOtpScreen({
     super.key,
     required this.phoneNumber,
     this.countryCode = '+92',
     this.otpId,
+    this.resendAvailable = false,
   });
 
   @override
@@ -55,7 +61,11 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
   @override
   void initState() {
     super.initState();
-    _startResendTimer();
+    if (widget.resendAvailable) {
+      _secondsRemaining = 0;
+    } else {
+      _startResendTimer();
+    }
   }
 
   @override
@@ -178,6 +188,21 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
     context.read<AuthCubit>().resendOtp(otpId: widget.otpId);
   }
 
+  /// Leaving the screen abandons the pending verification (signup flow) so a
+  /// later launch doesn't bring the user back here; routes to login when there
+  /// is nothing to pop (e.g. opened from splash on relaunch).
+  Future<void> _onBack() async {
+    if (widget.otpId == null) {
+      await context.read<AuthCubit>().cancelOtpVerification();
+    }
+    if (!mounted) return;
+    if (context.canPop()) {
+      context.pop();
+    } else {
+      context.go('/login');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final ui = AppUiColors.of(context);
@@ -212,7 +237,7 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: GestureDetector(
-                  onTap: () => context.pop(),
+                  onTap: _onBack,
                   behavior: HitTestBehavior.opaque,
                   child: Icon(
                     Icons.arrow_back,

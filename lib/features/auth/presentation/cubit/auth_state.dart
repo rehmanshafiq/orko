@@ -45,6 +45,17 @@ class SignUpSuccess extends AuthState {
   List<Object?> get props => [result];
 }
 
+/// Login succeeded but the account's phone is not verified yet — a fresh OTP
+/// was requested; proceed to OTP verification instead of home.
+class LoginOtpVerificationRequired extends AuthState {
+  final UserEntity user;
+
+  const LoginOtpVerificationRequired(this.user);
+
+  @override
+  List<Object?> get props => [user];
+}
+
 /// OTP verification in progress.
 class OtpVerifying extends AuthState {
   const OtpVerifying();

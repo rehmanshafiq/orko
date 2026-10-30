@@ -39,11 +39,40 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
       await storageService.saveRefreshToken(refreshToken);
     }
     await storageService.setLoggedIn(true);
+    await storageService.setPendingOtpVerification(false);
     // A real session supersedes any guest mode.
     await storageService.setGuest(false);
     // Let the router re-evaluate its auth guard.
     AuthNotifier.instance.authChanged();
   }
+
+  @override
+  Future<void> cachePendingSession({required String accessToken}) async {
+    if (accessToken.isNotEmpty) {
+      await storageService.saveAccessToken(accessToken);
+    }
+    await storageService.setPendingOtpVerification(true);
+    await storageService.setLoggedIn(false);
+    await storageService.setGuest(false);
+    AuthNotifier.instance.authChanged();
+  }
+
+  @override
+  Future<void> completePendingSession() async {
+    await storageService.setPendingOtpVerification(false);
+    await storageService.setLoggedIn(true);
+    await storageService.setGuest(false);
+    // The cached user came from sign-up/login and still says verification is
+    // required; verify-otp returns no user, so clear the flag locally.
+    final user = await getCachedUser();
+    if (user != null && user.otpVerificationRequired) {
+      await cacheUser(user.copyWith(otpVerificationRequired: false));
+    }
+    AuthNotifier.instance.authChanged();
+  }
+
+  @override
+  bool get isPendingOtpVerification => storageService.isPendingOtpVerification;
 
   @override
   Future<void> clearCache() async {
@@ -54,6 +83,7 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
     await storageService.remove(StorageConstants.refreshToken);
     await storageService.remove(StorageConstants.userId);
     await storageService.setLoggedIn(false);
+    await storageService.setPendingOtpVerification(false);
     await storageService.setGuest(false);
     // Let the router re-evaluate its auth guard.
     AuthNotifier.instance.authChanged();

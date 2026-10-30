@@ -132,6 +132,7 @@ class AppRouter {
               phoneNumber: args['phoneNumber']?.toString() ?? '',
               countryCode: args['countryCode']?.toString() ?? '+92',
               otpId: args['otpId']?.toString(),
+              resendAvailable: args['resendAvailable'] == true,
             ),
           );
         },
@@ -339,13 +340,25 @@ class AppRouter {
 class AuthRouterActions {
   AuthRouterActions._();
 
-  /// Called when the session is no longer valid: clears the auth flags, tells
-  /// the router to re-guard, and routes to login.
-  static void onSessionExpired() {
-    final storage = sl<LocalStorageService>();
-    storage.setLoggedIn(false);
-    storage.setGuest(false);
-    AuthNotifier.instance.authChanged();
-    AppRouter.router.go('/login');
+  static bool _expiring = false;
+
+  /// Called when the session is no longer valid (a 401 from the API): clears
+  /// the cached session, tells the router to re-guard, and routes to login.
+  ///
+  /// Only acts on a real logged-in session — a pending OTP verification or a
+  /// guest is left alone — and collapses concurrent 401s into one logout.
+  static Future<void> onSessionExpired() async {
+    if (_expiring || !sl<LocalStorageService>().isLoggedIn) return;
+    _expiring = true;
+    try {
+      await sl<AuthLocalDataSource>().clearCache();
+      AppRouter.router.go('/login');
+    } catch (_) {
+      // Best-effort: never let session cleanup crash a network error path.
+      await sl<AuthLocalDataSource>().clearCache();
+      AppRouter.router.go('/login');
+    } finally {
+      _expiring = false;
+    }
   }
 }

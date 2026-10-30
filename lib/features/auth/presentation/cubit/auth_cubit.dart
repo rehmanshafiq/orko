@@ -73,15 +73,23 @@ class AuthCubit extends Cubit<AuthState> {
       ),
     );
 
-    result.fold(
-      (failure) {
+    await result.fold<Future<void>>(
+      (failure) async {
         _analytics.logEvent('login_failed', parameters: {
           'method': 'phone',
           'error_reason': _reason(failure.message),
         });
         emit(AuthError(failure.message));
       },
-      (loginResult) {
+      (loginResult) async {
+        if (loginResult.user.otpVerificationRequired) {
+          // Unverified account: send a fresh code (best-effort — the user can
+          // still tap Resend) and route to OTP verification, not home.
+          await _resendOtpUseCase(const ResendOtpParams());
+          if (isClosed) return;
+          emit(LoginOtpVerificationRequired(loginResult.user));
+          return;
+        }
         // Claim this device for the new session; the marker was cleared on the
         // last logout, so this re-registers the FCM token server-side.
         unawaited(_pushNotificationService.registerTokenForSession());
@@ -279,6 +287,12 @@ class AuthCubit extends Cubit<AuthState> {
       (failure) => emit(OtpResendFailure(failure.message)),
       (message) => emit(OtpResent(message)),
     );
+  }
+
+  /// Abandons a sign-up / login whose OTP was never verified: drops the pending
+  /// session so the next launch no longer returns to the OTP screen.
+  Future<void> cancelOtpVerification() async {
+    await _logoutUseCase(const NoParams());
   }
 
   /// Performs logout.

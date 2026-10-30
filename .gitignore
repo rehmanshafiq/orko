@@ -117,3 +117,5 @@ linux/flutter/generated_plugins.cmake
 
 # Local notes
 firebase_analytics_recommendations.md
+
+artifacts/mobile_security_review.md

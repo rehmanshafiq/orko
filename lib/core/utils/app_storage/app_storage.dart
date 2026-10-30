@@ -21,6 +21,14 @@ class AppStorage {
     return _storage.write(StorageConstants.isGuest, value);
   }
 
+  /// Whether a real login is in place (false while OTP is still pending).
+  static bool get isLoggedIn =>
+      _storage.read<bool>(StorageConstants.isLoggedIn) ?? false;
+
+  /// Whether the cached session still awaits OTP verification.
+  static bool get isPendingOtpVerification =>
+      _storage.read<bool>(StorageConstants.pendingOtpVerification) ?? false;
+
   /// Latest FCM device token (empty when not yet resolved). Read by the auth
   /// data source to attach `token` to the login request.
   static String get fcmToken =>

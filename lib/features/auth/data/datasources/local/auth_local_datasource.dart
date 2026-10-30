@@ -15,6 +15,17 @@ abstract class AuthLocalDataSource {
     String? refreshToken,
   });
 
+  /// Saves the token issued before OTP verification (sign-up, or login of an
+  /// unverified account) WITHOUT marking the user logged in. The token is only
+  /// usable for verify/resend OTP until [completePendingSession] is called.
+  Future<void> cachePendingSession({required String accessToken});
+
+  /// Promotes the pending session to a real login once the OTP is verified.
+  Future<void> completePendingSession();
+
+  /// Whether the cached session still awaits OTP verification.
+  bool get isPendingOtpVerification;
+
   /// Clears all cached auth data.
   Future<void> clearCache();
 

@@ -8,6 +8,11 @@ class StorageConstants {
   static const String cachedUser = 'cached_user';
   static const String isLoggedIn = 'is_logged_in';
   static const String isGuest = 'is_guest';
+
+  /// True between sign-up (or login of an unverified account) and a
+  /// successful OTP verification. While set, the user holds a token but is NOT
+  /// logged in, and every cold start routes back to the OTP screen.
+  static const String pendingOtpVerification = 'pending_otp_verification';
   static const String onboardingComplete = 'onboarding_complete';
   static const String themeMode = 'theme_mode';
   static const String appInstallTime = 'app_install_time';
