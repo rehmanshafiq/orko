@@ -4,6 +4,7 @@ import 'package:orko_hubco/core/constants/api_constants.dart';
 import 'package:orko_hubco/core/network/certificate_pinning.dart';
 import 'package:orko_hubco/core/network/interceptors/app_headers_interceptor.dart';
 import 'package:orko_hubco/core/network/interceptors/auth_interceptor.dart';
+import 'package:orko_hubco/core/network/interceptors/error_interceptor.dart';
 import 'package:orko_hubco/core/network/interceptors/logging_interceptor.dart';
 import 'package:orko_hubco/features/remote_config/data/services/remote_config_service.dart';
 
@@ -42,6 +43,9 @@ class ApiClient {
     _dio.interceptors.addAll([
       AppHeadersInterceptor(),
       AuthInterceptor(),
+      // Gives every failed request a clean `message` (backend text, else one
+      // generic fallback) before the datasources read it.
+      ErrorInterceptor(),
       // SECURITY: verbose request/response logging is debug-only. It must never
       // ship in release/profile builds, where it would leak bearer tokens,
       // passwords and OTPs to the device log (logcat/oslog).

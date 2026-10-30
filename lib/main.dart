@@ -10,6 +10,7 @@ import 'package:get_storage/get_storage.dart';
 import 'package:orko_hubco/core/di/injection_container.dart';
 import 'package:orko_hubco/core/network/certificate_pinning.dart';
 import 'package:orko_hubco/core/network/interceptors/auth_interceptor.dart';
+import 'package:orko_hubco/core/network/interceptors/error_interceptor.dart';
 import 'package:orko_hubco/core/router/app_router.dart';
 import 'package:orko_hubco/core/services/android_auto/android_auto_bridge.dart';
 import 'package:orko_hubco/core/services/live_charging/live_charging_notification_controller.dart';
@@ -17,6 +18,7 @@ import 'package:orko_hubco/core/services/push_notification_service.dart';
 import 'package:orko_hubco/core/services/secure_store.dart';
 import 'package:orko_hubco/core/theme/app_material_theme.dart';
 import 'package:orko_hubco/core/theme/theme_cubit.dart';
+import 'package:orko_hubco/core/utils/app_toast.dart';
 import 'package:orko_hubco/features/remote_config/data/services/remote_config_service.dart';
 
 import 'firebase_options.dart';
@@ -67,6 +69,8 @@ Future<void> main() async {
   // A 401 on a logged-in session (token revoked/expired server-side) logs the
   // user out and returns them to login.
   AuthInterceptor.onSessionExpired = AuthRouterActions.onSessionExpired;
+  // Every API error code surfaces its message as a toast.
+  ErrorInterceptor.onErrorMessage = AppToast.error;
 
   // Wire up push notifications (permission, token, listeners). Best-effort and
   // non-blocking so it never delays first paint.
