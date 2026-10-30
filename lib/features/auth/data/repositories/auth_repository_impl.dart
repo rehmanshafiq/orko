@@ -116,12 +116,17 @@ class AuthRepositoryImpl implements AuthRepository {
         confirmPassword: confirmPassword,
       );
 
-      // Persist the issued access token + user, but do NOT mark the user
-      // logged in until the OTP is verified — otherwise killing the app on the
-      // OTP screen lands them on home at the next launch.
-      await localDataSource.cachePendingSession(
-        accessToken: result.accessToken,
-      );
+      // Persist the issued access token + user. When the phone still needs
+      // verifying, do NOT mark the user logged in until the OTP is verified —
+      // otherwise killing the app on the OTP screen lands them on home at the
+      // next launch. Otherwise the account is ready and gets a full session.
+      if (result.user.otpVerificationRequired) {
+        await localDataSource.cachePendingSession(
+          accessToken: result.accessToken,
+        );
+      } else if (result.accessToken.isNotEmpty) {
+        await localDataSource.cacheTokens(accessToken: result.accessToken);
+      }
       await localDataSource.cacheUser(result.user as UserModel);
 
       return Right(result);

@@ -210,8 +210,9 @@ class AuthCubit extends Cubit<AuthState> {
   }
 
   /// Completes sign-up via the `sign_up_form` endpoint. On success the access
-  /// token is persisted locally and [SignUpSuccess] is emitted so the UI can
-  /// route to OTP verification.
+  /// token is persisted locally; [SignUpSuccess] is emitted when the user's
+  /// `otp_verification_required` is true so the UI routes to OTP verification,
+  /// otherwise [AuthAuthenticated] is emitted and the UI routes home.
   Future<void> signUp({
     required String name,
     required String phoneNumber,
@@ -243,7 +244,14 @@ class AuthCubit extends Cubit<AuthState> {
       },
       (signUpResult) {
         _analytics.logEvent('sign_up', parameters: {'method': 'phone'});
-        emit(SignUpSuccess(signUpResult));
+        if (signUpResult.user.otpVerificationRequired) {
+          emit(SignUpSuccess(signUpResult));
+          return;
+        }
+        // No verification needed — the session is live, so go straight home.
+        unawaited(_pushNotificationService.registerTokenForSession());
+        sl<AnalyticsUserProperties>().setAuthenticated(signUpResult.user);
+        emit(AuthAuthenticated(signUpResult.user));
       },
     );
   }
