@@ -13,6 +13,7 @@ import 'package:orko_hubco/core/utils/widgets/image_view/app_image_view.dart';
 import 'package:orko_hubco/core/utils/widgets/primary_button_widget.dart';
 import 'package:orko_hubco/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:orko_hubco/features/auth/presentation/cubit/auth_state.dart';
+import 'package:orko_hubco/features/auth/presentation/widgets/auth_social_button.dart';
 import 'package:orko_hubco/features/profile/presentation/utils/profile_actions.dart';
 
 /// Register screen.
@@ -378,6 +379,28 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       fontSize: FontSizes.font16Sp,
                       fontWeight: FontWeights.weight600,
                     ),
+                    18.verticalSpace,
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Divider(color: ui.dividerLine, thickness: 1),
+                        ),
+                        Padding(
+                          padding: AppUtils.horizontal14Padding,
+                          child: AppText(
+                            'or continue as',
+                            color: ui.textMuted,
+                            fontSize: FontSizes.font12Sp,
+                            fontWeight: FontWeights.weight400,
+                          ),
+                        ),
+                        Expanded(
+                          child: Divider(color: ui.dividerLine, thickness: 1),
+                        ),
+                      ],
+                    ),
+                    16.verticalSpace,
+                    GuestButton(enabled: state is! AuthLoading),
                     18.verticalSpace,
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
