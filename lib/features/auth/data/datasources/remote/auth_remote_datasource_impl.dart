@@ -50,6 +50,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
           // Omitted when unavailable (e.g. permission denied / no Play Services).
           if (AppStorage.fcmToken.isNotEmpty) 'token': AppStorage.fcmToken,
         },
+        // The login screen shows the failure itself; skip the global toast so
+        // the message isn't shown twice.
+        options: Options(extra: {ErrorInterceptor.silentKey: true}),
       );
 
       final data = response.data;
@@ -106,6 +109,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
           'email': email,
           if (AppStorage.fcmToken.isNotEmpty) 'token': AppStorage.fcmToken,
         },
+        // The login screen shows the failure itself; skip the global toast so
+        // the message isn't shown twice.
+        options: Options(extra: {ErrorInterceptor.silentKey: true}),
       );
 
       final data = response.data;
