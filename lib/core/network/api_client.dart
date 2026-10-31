@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:orko_hubco/core/constants/api_constants.dart';
 import 'package:orko_hubco/core/network/certificate_pinning.dart';
 import 'package:orko_hubco/core/network/interceptors/app_headers_interceptor.dart';
+import 'package:orko_hubco/core/network/interceptors/app_update_interceptor.dart';
 import 'package:orko_hubco/core/network/interceptors/auth_interceptor.dart';
 import 'package:orko_hubco/core/network/interceptors/error_interceptor.dart';
 import 'package:orko_hubco/core/network/interceptors/logging_interceptor.dart';
@@ -42,6 +43,9 @@ class ApiClient {
 
     _dio.interceptors.addAll([
       AppHeadersInterceptor(),
+      // Reads `update_available` from every response (and error) body to
+      // drive the soft/force update prompts. Runs in all build modes.
+      AppUpdateInterceptor(),
       AuthInterceptor(),
       // Gives every failed request a clean `message` (backend text, else one
       // generic fallback) before the datasources read it.

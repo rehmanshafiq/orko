@@ -41,4 +41,9 @@ class StorageConstants {
   /// still send `{name, email}` to the backend. Actual key:
   /// `apple_account_<userIdentifier>`.
   static const String appleAccountPrefix = 'apple_account_';
+
+  /// App version (e.g. `1.0.1`) the backend last marked as force-update
+  /// (`update_available: 2`). Restores the blocking update screen on a cold
+  /// start before any request completes; ignored once the app is updated.
+  static const String forceUpdateVersion = 'force_update_version';
 }

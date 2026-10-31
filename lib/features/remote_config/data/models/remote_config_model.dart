@@ -13,6 +13,8 @@ import 'package:equatable/equatable.dart';
 ///     "autocomplete_url": "https://maps.googleapis.com/maps/api/place/autocomplete/json",
 ///     "details_url": "https://maps.googleapis.com/maps/api/place/details/json",
 ///     "privacy_policy_url": "https://green.hubpower.com/privacy-policy/",
+///     "play_store_url": "https://play.google.com/store/apps/details?id=com.orko_hubco.mobile.orko_hubco2",
+///     "app_store_url": "https://apps.apple.com/us/app/hubco-green-limited-hgl/id6785873046",
 ///     "api_endpoints": {
 ///       "charging_station_map": "api/v1/charging-station/nearest?",
 ///       "charging_station_detail": "api/v1/charging-station/",
@@ -66,6 +68,8 @@ class ApiConstants extends Equatable {
     required this.autocompleteUrl,
     required this.detailsUrl,
     required this.privacyPolicyUrl,
+    this.playStoreUrl = '',
+    this.appStoreUrl = '',
     required this.apiEndpoints,
   });
 
@@ -76,6 +80,13 @@ class ApiConstants extends Equatable {
   final String autocompleteUrl;
   final String detailsUrl;
   final String privacyPolicyUrl;
+
+  /// Play Store listing opened by the update prompts on Android.
+  final String playStoreUrl;
+
+  /// App Store listing opened by the update prompts on iOS.
+  final String appStoreUrl;
+
   final ApiEndpoints apiEndpoints;
 
   /// Parses the inner `api_constants` object. This matches the value stored in
@@ -90,6 +101,8 @@ class ApiConstants extends Equatable {
       autocompleteUrl: json['autocomplete_url'] as String? ?? '',
       detailsUrl: json['details_url'] as String? ?? '',
       privacyPolicyUrl: json['privacy_policy_url'] as String? ?? '',
+      playStoreUrl: json['play_store_url'] as String? ?? '',
+      appStoreUrl: json['app_store_url'] as String? ?? '',
       apiEndpoints: ApiEndpoints.fromJson(
         rawEndpoints is Map
             ? Map<String, dynamic>.from(rawEndpoints)
@@ -107,6 +120,8 @@ class ApiConstants extends Equatable {
       'autocomplete_url': autocompleteUrl,
       'details_url': detailsUrl,
       'privacy_policy_url': privacyPolicyUrl,
+      'play_store_url': playStoreUrl,
+      'app_store_url': appStoreUrl,
       'api_endpoints': apiEndpoints.toJson(),
     };
   }
@@ -119,6 +134,8 @@ class ApiConstants extends Equatable {
     String? autocompleteUrl,
     String? detailsUrl,
     String? privacyPolicyUrl,
+    String? playStoreUrl,
+    String? appStoreUrl,
     ApiEndpoints? apiEndpoints,
   }) {
     return ApiConstants(
@@ -129,6 +146,8 @@ class ApiConstants extends Equatable {
       autocompleteUrl: autocompleteUrl ?? this.autocompleteUrl,
       detailsUrl: detailsUrl ?? this.detailsUrl,
       privacyPolicyUrl: privacyPolicyUrl ?? this.privacyPolicyUrl,
+      playStoreUrl: playStoreUrl ?? this.playStoreUrl,
+      appStoreUrl: appStoreUrl ?? this.appStoreUrl,
       apiEndpoints: apiEndpoints ?? this.apiEndpoints,
     );
   }
@@ -142,6 +161,8 @@ class ApiConstants extends Equatable {
         autocompleteUrl,
         detailsUrl,
         privacyPolicyUrl,
+        playStoreUrl,
+        appStoreUrl,
         apiEndpoints,
       ];
 }

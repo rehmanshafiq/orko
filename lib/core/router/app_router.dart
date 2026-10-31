@@ -4,8 +4,10 @@ import 'package:go_router/go_router.dart';
 import 'package:orko_hubco/core/di/injection_container.dart';
 import 'package:orko_hubco/core/global_bloc/bloc/user_bloc.dart';
 import 'package:orko_hubco/core/router/auth_notifier.dart';
+import 'package:orko_hubco/core/services/app_update/app_update_service.dart';
 import 'package:orko_hubco/core/services/analytics_service.dart';
 import 'package:orko_hubco/core/services/local_storage_service.dart';
+import 'package:orko_hubco/features/app_update/presentation/page/force_update_page.dart';
 import 'package:orko_hubco/features/auth/data/datasources/local/auth_local_datasource.dart';
 import 'package:orko_hubco/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:orko_hubco/features/auth/presentation/screens/login_screen.dart';
@@ -49,6 +51,12 @@ class AppRouter {
 
   static final _rootNavigatorKey = GlobalKey<NavigatorState>();
 
+  /// Root navigator, for UI shown from outside the widget tree (e.g. the soft
+  /// update prompt). Its state is null until the router's first build.
+  static GlobalKey<NavigatorState> get rootNavigatorKey => _rootNavigatorKey;
+
+  static const String _forceUpdatePath = '/force-update';
+
   /// Routes not reachable without a session at all. Guests DO have a (guest)
   /// session and may browse the whole app — every sensitive action is gated
   /// in-screen via [AuthRequiredDialog], the data cubits short-circuit for
@@ -68,11 +76,23 @@ class AppRouter {
     navigatorKey: _rootNavigatorKey,
     initialLocation: '/splash',
     debugLogDiagnostics: false,
-    refreshListenable: AuthNotifier.instance,
+    // Re-guard on session changes and when a force update starts or ends.
+    refreshListenable: Listenable.merge([
+      AuthNotifier.instance,
+      AppUpdateService.instance.forceUpdate,
+    ]),
     // Emits an automatic `screen_view` on every route change across all
     // named routes.
     observers: [sl<AnalyticsService>().observer],
     redirect: (context, state) {
+      // A force update (`update_available: 2`) pins every location to the
+      // blocking update screen; once lifted, restart the normal launch flow.
+      final onForceUpdate = state.matchedLocation == _forceUpdatePath;
+      if (AppUpdateService.instance.forceUpdate.value) {
+        return onForceUpdate ? null : _forceUpdatePath;
+      }
+      if (onForceUpdate) return '/splash';
+
       final storage = sl<LocalStorageService>();
       // A guest is a valid browsing session — do NOT bounce guests. Only a
       // user with neither a real login nor guest mode (post forced-logout) is
@@ -92,6 +112,13 @@ class AppRouter {
           create: (_) => UserBloc(localDataSource: sl<AuthLocalDataSource>()),
           child: const SplashPage(),
         ),
+      ),
+
+      // Blocking force-update screen; see the redirect above.
+      GoRoute(
+        path: _forceUpdatePath,
+        name: 'force-update',
+        builder: (context, state) => const ForceUpdatePage(),
       ),
 
       GoRoute(
