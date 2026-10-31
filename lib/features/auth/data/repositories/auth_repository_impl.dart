@@ -66,6 +66,7 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<Either<Failure, SignUpResultEntity>> loginWithGoogle({
     required String name,
     required String email,
+    required String token,
   }) async {
     if (!await networkInfo.isConnected) {
       return const Left(NetworkFailure());
@@ -75,6 +76,7 @@ class AuthRepositoryImpl implements AuthRepository {
       final result = await remoteDataSource.loginWithGoogle(
         name: name,
         email: email,
+        token: token,
       );
 
       // Persist the issued access token + user locally (same as login).

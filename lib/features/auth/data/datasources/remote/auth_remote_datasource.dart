@@ -18,6 +18,7 @@ abstract class AuthRemoteDataSource {
   Future<SignUpResultModel> loginWithGoogle({
     required String name,
     required String email,
+    required String token,
   });
 
   /// Calls the complete-signup API (`sign_up_form` endpoint from Remote Config).

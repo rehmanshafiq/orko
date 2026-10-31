@@ -85,6 +85,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   Future<SignUpResultModel> loginWithGoogle({
     required String name,
     required String email,
+    required String token,
   }) async {
     try {
       final config = RemoteConfigService.config;
@@ -107,7 +108,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         data: {
           'name': name,
           'email': email,
-          if (AppStorage.fcmToken.isNotEmpty) 'token': AppStorage.fcmToken,
+          // Firebase ID token (from Google / Apple), verified by the backend.
+          'token': token,
         },
         // The login screen shows the failure itself; skip the global toast so
         // the message isn't shown twice.

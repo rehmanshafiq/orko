@@ -21,6 +21,7 @@ abstract class AuthRepository {
   Future<Either<Failure, SignUpResultEntity>> loginWithGoogle({
     required String name,
     required String email,
+    required String token,
   });
 
   /// Completes sign-up via the `sign_up_form` endpoint, persisting the issued

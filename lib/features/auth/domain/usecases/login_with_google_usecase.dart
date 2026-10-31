@@ -18,6 +18,7 @@ class LoginWithGoogleUseCase
     return repository.loginWithGoogle(
       name: params.name,
       email: params.email,
+      token: params.token,
     );
   }
 }
@@ -26,5 +27,12 @@ class LoginWithGoogleParams {
   final String name;
   final String email;
 
-  const LoginWithGoogleParams({required this.name, required this.email});
+  /// Firebase ID token minted from the Google / Apple credential.
+  final String token;
+
+  const LoginWithGoogleParams({
+    required this.name,
+    required this.email,
+    required this.token,
+  });
 }

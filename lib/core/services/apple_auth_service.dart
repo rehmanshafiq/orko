@@ -1,3 +1,10 @@
+import 'dart:convert';
+import 'dart:math';
+
+import 'package:crypto/crypto.dart';
+import 'package:firebase_auth/firebase_auth.dart'
+    show AppleAuthProvider, AppleFullPersonName;
+import 'package:orko_hubco/core/services/firebase_token_exchange.dart';
 import 'package:orko_hubco/core/utils/app_storage/app_storage.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
@@ -18,10 +25,18 @@ class AppleEmailUnavailableException implements Exception {
 /// backend. Mirrors [GoogleAccountInfo] so the same `{ name, email }` payload /
 /// `login_with_google` endpoint can be reused for both providers.
 class AppleAccountInfo {
-  const AppleAccountInfo({required this.name, required this.email});
+  const AppleAccountInfo({
+    required this.name,
+    required this.email,
+    required this.firebaseIdToken,
+  });
 
   final String name;
   final String email;
+
+  /// Firebase ID token minted from the Apple credential; the backend verifies
+  /// it with Firebase Admin.
+  final String firebaseIdToken;
 }
 
 /// Thin wrapper around [SignInWithApple] that runs the native authorization
@@ -51,6 +66,9 @@ class AppleAuthService {
   /// [SignInWithAppleException] for genuine failures so the caller can surface
   /// a generic error.
   Future<AppleAccountInfo?> signIn() async {
+    // Firebase requires a nonce: Apple embeds its SHA-256 in the identity
+    // token, and Firebase checks it against the raw value.
+    final rawNonce = _generateNonce();
     final AuthorizationCredentialAppleID credential;
     try {
       credential = await SignInWithApple.getAppleIDCredential(
@@ -58,6 +76,7 @@ class AppleAuthService {
           AppleIDAuthorizationScopes.email,
           AppleIDAuthorizationScopes.fullName,
         ],
+        nonce: sha256.convert(utf8.encode(rawNonce)).toString(),
       );
     } on SignInWithAppleAuthorizationException catch (e) {
       // User dismissed / cancelled the sheet — treat like Google cancellation.
@@ -66,6 +85,10 @@ class AppleAuthService {
     }
 
     final userIdentifier = credential.userIdentifier ?? '';
+    final identityToken = credential.identityToken ?? '';
+    if (identityToken.isEmpty) {
+      throw StateError('Apple sign-in returned no identity token');
+    }
 
     // Apple returns the name only on the first authorization; build it from the
     // parts it gives us and fall back to the cache on later sign-ins.
@@ -88,8 +111,14 @@ class AppleAuthService {
 
     final cached = AppStorage.appleAccount(userIdentifier);
 
-    final resolvedEmail =
-        email.isNotEmpty ? email : (cached?.email?.trim() ?? '');
+    // Apple sends `credential.email` only on the first authorization, but the
+    // identity token carries the email claim on every sign-in — use it before
+    // the device cache (which is lost on reinstall).
+    final resolvedEmail = email.isNotEmpty
+        ? email
+        : (_emailFromIdentityToken(identityToken) ??
+            cached?.email?.trim() ??
+            '');
     if (resolvedEmail.isEmpty) {
       throw const AppleEmailUnavailableException(
         'We couldn\'t get your Apple email. In Settings → your name → '
@@ -105,6 +134,47 @@ class AppleAuthService {
             // matching the Google service's fallback.
             : resolvedEmail.split('@').first);
 
-    return AppleAccountInfo(name: resolvedName, email: resolvedEmail);
+    final firebaseIdToken = await firebaseIdTokenFor(
+      AppleAuthProvider.credentialWithIDToken(
+        identityToken,
+        rawNonce,
+        AppleFullPersonName(
+          givenName: credential.givenName,
+          familyName: credential.familyName,
+        ),
+      ),
+    );
+
+    return AppleAccountInfo(
+      name: resolvedName,
+      email: resolvedEmail,
+      firebaseIdToken: firebaseIdToken,
+    );
+  }
+
+  /// Reads the `email` claim from Apple's identity token (a JWT), or `null` if
+  /// it is missing or the token can't be decoded.
+  static String? _emailFromIdentityToken(String identityToken) {
+    try {
+      final payload = identityToken.split('.')[1];
+      final claims = jsonDecode(
+        utf8.decode(base64Url.decode(base64Url.normalize(payload))),
+      );
+      final email = claims is Map ? claims['email'] : null;
+      return email is String && email.trim().isNotEmpty ? email.trim() : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Cryptographically secure random nonce for the Apple / Firebase exchange.
+  static String _generateNonce([int length = 32]) {
+    const charset =
+        '0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._';
+    final random = Random.secure();
+    return List.generate(
+      length,
+      (_) => charset[random.nextInt(charset.length)],
+    ).join();
   }
 }

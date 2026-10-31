@@ -28,7 +28,7 @@ class LoggingInterceptor extends Interceptor {
     'new_password',
     'current_password',
     'otp',
-    'token',
+    'token'
     'access',
     'refresh',
     'access_token',

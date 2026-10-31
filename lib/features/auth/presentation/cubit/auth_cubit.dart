@@ -133,7 +133,11 @@ class AuthCubit extends Cubit<AuthState> {
     }
 
     final result = await _loginWithGoogleUseCase(
-      LoginWithGoogleParams(name: account.name, email: account.email),
+      LoginWithGoogleParams(
+        name: account.name,
+        email: account.email,
+        token: account.firebaseIdToken,
+      ),
     );
 
     result.fold(
@@ -190,7 +194,11 @@ class AuthCubit extends Cubit<AuthState> {
     }
 
     final result = await _loginWithGoogleUseCase(
-      LoginWithGoogleParams(name: account.name, email: account.email),
+      LoginWithGoogleParams(
+        name: account.name,
+        email: account.email,
+        token: account.firebaseIdToken,
+      ),
     );
 
     result.fold(

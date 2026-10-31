@@ -1,12 +1,22 @@
+import 'package:firebase_auth/firebase_auth.dart' show GoogleAuthProvider;
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:orko_hubco/core/services/firebase_token_exchange.dart';
 
 /// Minimal account info we need from a Google sign-in to authenticate with the
-/// backend (`login_with_google` expects `{ name, email }`).
+/// backend (`login_with_google` expects `{ name, email, token }`).
 class GoogleAccountInfo {
-  const GoogleAccountInfo({required this.name, required this.email});
+  const GoogleAccountInfo({
+    required this.name,
+    required this.email,
+    required this.firebaseIdToken,
+  });
 
   final String name;
   final String email;
+
+  /// Firebase ID token minted from the Google credential; the backend verifies
+  /// it with Firebase Admin.
+  final String firebaseIdToken;
 }
 
 /// Thin wrapper around [GoogleSignIn] that exposes the native account picker and
@@ -37,11 +47,27 @@ class GoogleAuthService {
     final email = account.email.trim();
     if (email.isEmpty) return null;
 
+    // On Android the ID token is only issued when a web OAuth client exists in
+    // google-services.json (used as the server client ID).
+    final googleAuth = await account.authentication;
+    final googleIdToken = googleAuth.idToken ?? '';
+    if (googleIdToken.isEmpty) {
+      throw StateError('Google sign-in returned no ID token');
+    }
+
+    final firebaseIdToken = await firebaseIdTokenFor(
+      GoogleAuthProvider.credential(
+        idToken: googleIdToken,
+        accessToken: googleAuth.accessToken,
+      ),
+    );
+
     final name = (account.displayName ?? '').trim();
     return GoogleAccountInfo(
       // Fall back to the local-part of the email if Google withholds the name.
       name: name.isNotEmpty ? name : email.split('@').first,
       email: email,
+      firebaseIdToken: firebaseIdToken,
     );
   }
 
