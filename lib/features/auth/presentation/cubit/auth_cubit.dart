@@ -10,6 +10,7 @@ import 'package:orko_hubco/core/services/apple_auth_service.dart';
 import 'package:orko_hubco/core/services/google_auth_service.dart';
 import 'package:orko_hubco/core/services/push_notification_service.dart';
 import 'package:orko_hubco/core/usecase/usecase.dart';
+import 'package:orko_hubco/features/auth/data/datasources/local/auth_local_datasource.dart';
 import 'package:orko_hubco/features/auth/domain/usecases/login_usecase.dart';
 import 'package:orko_hubco/features/auth/domain/usecases/login_with_google_usecase.dart';
 import 'package:orko_hubco/features/auth/domain/usecases/resend_otp_usecase.dart';
@@ -300,7 +301,9 @@ class AuthCubit extends Cubit<AuthState> {
   /// Abandons a sign-up / login whose OTP was never verified: drops the pending
   /// session so the next launch no longer returns to the OTP screen.
   Future<void> cancelOtpVerification() async {
-    await _logoutUseCase(const NoParams());
+    // Local-only: a pending verification has no authenticated server session,
+    // so the logout API would just 401 (and toast "Unauthenticated").
+    await sl<AuthLocalDataSource>().clearCache();
   }
 
   /// Performs logout.

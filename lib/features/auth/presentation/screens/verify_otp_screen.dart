@@ -191,15 +191,16 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
   /// Leaving the screen abandons the pending verification (signup flow) so a
   /// later launch doesn't bring the user back here; routes to login when there
   /// is nothing to pop (e.g. opened from splash on relaunch).
-  Future<void> _onBack() async {
-    if (widget.otpId == null) {
-      await context.read<AuthCubit>().cancelOtpVerification();
-    }
-    if (!mounted) return;
+  void _onBack() {
+    final cubit = context.read<AuthCubit>();
+    // Navigate first so leaving never waits on (or is blocked by) the cleanup.
     if (context.canPop()) {
       context.pop();
     } else {
       context.go('/login');
+    }
+    if (widget.otpId == null) {
+      unawaited(cubit.cancelOtpVerification());
     }
   }
 
