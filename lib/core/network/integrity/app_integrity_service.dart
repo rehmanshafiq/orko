@@ -81,13 +81,13 @@ class AppIntegrityService {
     );
   }
 
-  /// Whether the backend checks integrity for [options]: a Hubco request from
-  /// the mobile app (no `Request-Origin`) outside the attestation endpoints.
+  /// Whether to attach a proof to [options]: every API request except the
+  /// attestation endpoints themselves (they create the key that signs the
+  /// rest). Deliberately not narrowed to the backend's current rules (Domain,
+  /// Request-Origin, exempt paths) — those are the backend's to change, and a
+  /// proof it doesn't need is ignored.
   bool appliesTo(RequestOptions options) {
     if (!_isAndroid && !_isIos) return false;
-    final domain = _header(options, 'Domain');
-    if (domain == null || domain.trim().toLowerCase() != 'hubco') return false;
-    if (_header(options, 'Request-Origin') != null) return false;
     return !options.uri.path.contains(attestPathPrefix);
   }
 
@@ -169,13 +169,19 @@ class AppIntegrityService {
   /// The attested key id, attesting one first if needed. Single-flight: API
   /// calls queue behind one in-flight attestation. `null` when unavailable.
   Future<String?> _ensureAttestedKey(Dio dio) async {
-    if (_attestUnsupported) return null;
+    if (_attestUnsupported) {
+      AppLogger.d('[Integrity] App Attest unsupported on this device '
+          '(simulator?) — request sent without assertion');
+      return null;
+    }
     final cached = _attestedKeyId;
     if (cached != null) return cached;
 
     final failedAt = _attestFailedAt;
     if (failedAt != null &&
         DateTime.now().difference(failedAt) < _attestCooldown) {
+      AppLogger.d('[Integrity] attestation failed recently — request sent '
+          'without assertion (cooldown)');
       return null;
     }
 
@@ -184,7 +190,14 @@ class AppIntegrityService {
     });
     // Don't hold a request forever if Apple or the backend hangs; the
     // attestation itself keeps going for the requests after it.
-    return inFlight.timeout(_attestationWait, onTimeout: () => null);
+    return inFlight.timeout(
+      _attestationWait,
+      onTimeout: () {
+        AppLogger.d('[Integrity] attestation still running after '
+            '${_attestationWait.inSeconds}s — request sent without assertion');
+        return null;
+      },
+    );
   }
 
   Future<String?> _attest(Dio dio) async {
@@ -300,16 +313,6 @@ class AppIntegrityService {
       );
       return _AttestOutcome.rejected;
     }
-  }
-
-  static String? _header(RequestOptions options, String name) {
-    final lower = name.toLowerCase();
-    for (final entry in options.headers.entries) {
-      if (entry.key.toLowerCase() == lower && entry.value != null) {
-        return entry.value.toString();
-      }
-    }
-    return null;
   }
 }
 
