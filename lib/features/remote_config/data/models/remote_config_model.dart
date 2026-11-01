@@ -168,6 +168,8 @@ class ApiEndpoints extends Equatable {
     required this.deleteUserPicture,
     required this.changeEmail,
     required this.changeEmailVerify,
+    required this.changePhone,
+    required this.changePhoneVerify,
     required this.chargerDetails,
     required this.bookingSlots,
     required this.createBooking,
@@ -230,6 +232,8 @@ class ApiEndpoints extends Equatable {
   final String deleteUserPicture;
   final String changeEmail;
   final String changeEmailVerify;
+  final String changePhone;
+  final String changePhoneVerify;
   final String chargerDetails;
   final String bookingSlots;
   final String createBooking;
@@ -305,6 +309,14 @@ class ApiEndpoints extends Equatable {
       changeEmailVerify: _nonEmpty(
         json['change_email_verify'] as String?,
         'api/v1/core/user-profile/change-email/verify',
+      ),
+      changePhone: _nonEmpty(
+        json['change_phone'] as String?,
+        'api/v1/core/user-profile/change-phone',
+      ),
+      changePhoneVerify: _nonEmpty(
+        json['change_phone_verify'] as String?,
+        'api/v1/core/user-profile/change-phone/verify',
       ),
       chargerDetails: json['charger_details'] as String? ?? '',
       bookingSlots: json['booking_slots'] as String? ?? '',
@@ -400,6 +412,8 @@ class ApiEndpoints extends Equatable {
       'delete_user_picture': deleteUserPicture,
       'change_email': changeEmail,
       'change_email_verify': changeEmailVerify,
+      'change_phone': changePhone,
+      'change_phone_verify': changePhoneVerify,
       'charger_details': chargerDetails,
       'booking_slots': bookingSlots,
       'create_booking': createBooking,
@@ -464,6 +478,8 @@ class ApiEndpoints extends Equatable {
     String? deleteUserPicture,
     String? changeEmail,
     String? changeEmailVerify,
+    String? changePhone,
+    String? changePhoneVerify,
     String? chargerDetails,
     String? bookingSlots,
     String? createBooking,
@@ -531,6 +547,8 @@ class ApiEndpoints extends Equatable {
       deleteUserPicture: deleteUserPicture ?? this.deleteUserPicture,
       changeEmail: changeEmail ?? this.changeEmail,
       changeEmailVerify: changeEmailVerify ?? this.changeEmailVerify,
+      changePhone: changePhone ?? this.changePhone,
+      changePhoneVerify: changePhoneVerify ?? this.changePhoneVerify,
       chargerDetails: chargerDetails ?? this.chargerDetails,
       bookingSlots: bookingSlots ?? this.bookingSlots,
       createBooking: createBooking ?? this.createBooking,
@@ -602,6 +620,8 @@ class ApiEndpoints extends Equatable {
     deleteUserPicture,
     changeEmail,
     changeEmailVerify,
+    changePhone,
+    changePhoneVerify,
     chargerDetails,
     bookingSlots,
     createBooking,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:orko_hubco/core/di/injection_container.dart';
+import 'package:orko_hubco/core/network/chucker_config.dart';
 import 'package:orko_hubco/core/global_bloc/bloc/user_bloc.dart';
 import 'package:orko_hubco/core/router/auth_notifier.dart';
 import 'package:orko_hubco/core/services/app_update/app_update_service.dart';
@@ -49,7 +50,8 @@ import 'package:orko_hubco/features/trip/presentation/page/trip_planner_page.dar
 class AppRouter {
   AppRouter._();
 
-  static final _rootNavigatorKey = GlobalKey<NavigatorState>();
+  /// Shared with Chucker on Android debug builds (see [ChuckerConfig]).
+  static final _rootNavigatorKey = ChuckerConfig.rootNavigatorKey;
 
   /// Root navigator, for UI shown from outside the widget tree (e.g. the soft
   /// update prompt). Its state is null until the router's first build.

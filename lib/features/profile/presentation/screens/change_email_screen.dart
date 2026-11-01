@@ -1,28 +1,25 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/di/injection_container.dart';
+import 'package:orko_hubco/core/error/failures.dart';
 import 'package:orko_hubco/core/utils/app_ui.dart';
 import 'package:orko_hubco/core/utils/helpers.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
-import 'package:orko_hubco/core/utils/widgets/primary_button_widget.dart';
 import 'package:orko_hubco/features/auth/domain/entities/user_entity.dart';
 import 'package:orko_hubco/features/auth/domain/usecases/request_email_change_usecase.dart';
 import 'package:orko_hubco/features/auth/domain/usecases/verify_email_change_usecase.dart';
-
-/// Number of OTP digits emailed by the backend.
-const int _kOtpLength = 6;
+import 'package:orko_hubco/features/profile/presentation/widgets/contact_change_widgets.dart';
+import 'package:orko_hubco/features/profile/presentation/widgets/otp_code_field.dart';
 
 /// Two-step email-change flow:
 ///   1. Enter the new email → `change_email` sends an OTP to it.
 ///   2. Enter the OTP → `change_email_verify` updates the email.
 ///
-/// Pops the refreshed [UserEntity] on success (the cached user is already
-/// updated by the verify call).
+/// The code is valid for 2 minutes, a new request cancels the previous code,
+/// and 5 wrong tries cancel it. Pops the refreshed [UserEntity] on success
+/// (the cached user is already updated by the verify call).
 class ChangeEmailScreen extends StatefulWidget {
   const ChangeEmailScreen({required this.currentEmail, super.key});
 
@@ -36,63 +33,52 @@ enum _Phase { enterEmail, enterOtp }
 
 class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
   final _emailFormKey = GlobalKey<FormState>();
+  final _codeFieldKey = GlobalKey<OtpCodeFieldState>();
   final TextEditingController _emailController = TextEditingController();
 
-  final List<TextEditingController> _otpControllers =
-      List.generate(_kOtpLength, (_) => TextEditingController());
-  final List<FocusNode> _otpFocusNodes =
-      List.generate(_kOtpLength, (_) => FocusNode());
+  /// The backend has no resend throttle for email; the short client cooldown
+  /// only guards against accidental repeat taps.
+  final OtpRequestClock _clock = OtpRequestClock(
+    validFor: const Duration(minutes: 2),
+    resendAfter: const Duration(seconds: 30),
+  );
 
   _Phase _phase = _Phase.enterEmail;
   bool _busy = false;
   String _submittedEmail = '';
+  String _code = '';
 
-  static const int _resendSeconds = 120;
-  int _secondsRemaining = 0;
-  Timer? _timer;
+  /// Server-side rejection shown under the email field (e.g. already taken).
+  String? _emailError;
+
+  bool get _isCodeComplete => _code.length == kContactOtpLength;
 
   @override
   void dispose() {
-    _timer?.cancel();
+    _clock.dispose();
     _emailController.dispose();
-    for (final c in _otpControllers) {
-      c.dispose();
-    }
-    for (final f in _otpFocusNodes) {
-      f.dispose();
-    }
     super.dispose();
-  }
-
-  String get _code => _otpControllers.map((c) => c.text).join();
-  bool get _isCodeComplete => _code.length == _kOtpLength;
-
-  String get _formattedRemaining {
-    final m = _secondsRemaining ~/ 60;
-    final s = _secondsRemaining % 60;
-    return '$m:${s.toString().padLeft(2, '0')}';
-  }
-
-  void _startResendTimer() {
-    _timer?.cancel();
-    setState(() => _secondsRemaining = _resendSeconds);
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (_secondsRemaining <= 1) {
-        timer.cancel();
-        setState(() => _secondsRemaining = 0);
-      } else {
-        setState(() => _secondsRemaining--);
-      }
-    });
   }
 
   // ── Step 1: request the OTP ────────────────────────────────────────────────
 
   Future<void> _requestCode() async {
     FocusScope.of(context).unfocus();
+    setState(() => _emailError = null);
     if (!(_emailFormKey.currentState?.validate() ?? false)) return;
+    // The backend trims and lowercases too; match it so the OTP step shows
+    // exactly the address being verified.
+    await _sendCode(_emailController.text.trim().toLowerCase());
+  }
 
-    final email = _emailController.text.trim();
+  Future<void> _resendCode() async {
+    if (!_clock.canRequest || _busy) return;
+    await _sendCode(_submittedEmail);
+  }
+
+  /// Requests a code for [email]. Any earlier code stops working.
+  Future<void> _sendCode(String email) async {
+    if (_busy) return;
     setState(() => _busy = true);
 
     final result = await sl<RequestEmailChangeUseCase>()(
@@ -103,34 +89,25 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
     setState(() => _busy = false);
 
     result.fold(
-      (failure) => AppHelpers.showSnackBar(context, failure.message, isError: true),
+      (failure) {
+        AppHelpers.showSnackBar(context, failure.message, isError: true);
+        // 422s ("already registered", "must be different") belong to the
+        // email itself — show them under the field.
+        if (failure.statusCode == 422) _backToEmail(error: failure.message);
+      },
       (_) {
-        _clearCode();
+        final resent = _phase == _Phase.enterOtp;
+        _clock.codeSent();
+        _codeFieldKey.currentState?.clear();
         setState(() {
           _submittedEmail = email;
+          _code = '';
           _phase = _Phase.enterOtp;
         });
-        _startResendTimer();
-        AppHelpers.showSnackBar(context, 'We sent a code to $email.');
-      },
-    );
-  }
-
-  Future<void> _resendCode() async {
-    if (_secondsRemaining > 0 || _busy) return;
-    // Re-requesting sends a fresh single-use OTP to the same new email.
-    setState(() => _busy = true);
-    final result = await sl<RequestEmailChangeUseCase>()(
-      RequestEmailChangeParams(email: _submittedEmail),
-    );
-    if (!mounted) return;
-    setState(() => _busy = false);
-    result.fold(
-      (failure) => AppHelpers.showSnackBar(context, failure.message, isError: true),
-      (_) {
-        _clearCode();
-        _startResendTimer();
-        AppHelpers.showSnackBar(context, 'A new code was sent to $_submittedEmail.');
+        AppHelpers.showSnackBar(
+          context,
+          resent ? 'A new code was sent to $email.' : 'We sent a code to $email.',
+        );
       },
     );
   }
@@ -138,8 +115,21 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
   // ── Step 2: verify the OTP ─────────────────────────────────────────────────
 
   Future<void> _verifyCode() async {
+    if (_busy) return;
     if (!_isCodeComplete) {
-      AppHelpers.showSnackBar(context, 'Please enter the 6-digit code', isError: true);
+      AppHelpers.showSnackBar(
+        context,
+        'Please enter the $kContactOtpLength-digit code',
+        isError: true,
+      );
+      return;
+    }
+    if (_clock.isExpired) {
+      AppHelpers.showSnackBar(
+        context,
+        'This code has expired. Send a new code to continue.',
+        isError: true,
+      );
       return;
     }
     FocusScope.of(context).unfocus();
@@ -153,10 +143,7 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
     setState(() => _busy = false);
 
     result.fold(
-      (failure) {
-        AppHelpers.showSnackBar(context, failure.message, isError: true);
-        _clearCode();
-      },
+      _onVerifyFailed,
       (user) {
         AppHelpers.showSnackBar(context, 'Your email has been updated.');
         Navigator.of(context).pop(user);
@@ -164,96 +151,88 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
     );
   }
 
+  void _onVerifyFailed(Failure failure) {
+    AppHelpers.showSnackBar(context, failure.message, isError: true);
+    switch (OtpErrorKind.of(failure.message)) {
+      case OtpErrorKind.tooManyAttempts:
+        // The code is cancelled — a new one must be requested.
+        _backToEmail();
+      case OtpErrorKind.alreadyRegistered:
+        // Someone else took the email meanwhile — pick another.
+        _backToEmail(error: failure.message);
+      case OtpErrorKind.expired:
+        _clock.expireCode();
+        _clearCode();
+      case OtpErrorKind.invalidOtp:
+      case OtpErrorKind.throttled:
+      case OtpErrorKind.other:
+        // "Invalid OTP" also covers expired codes for email: retry or resend.
+        _clearCode();
+    }
+  }
+
   void _clearCode() {
-    for (final c in _otpControllers) {
-      c.clear();
-    }
-    setState(() {});
+    _codeFieldKey.currentState?.clear();
+    setState(() => _code = '');
   }
 
-  void _backToEmail() {
-    _timer?.cancel();
-    _clearCode();
+  /// Returns to the email input, keeping what was typed. The clock keeps
+  /// running so a quick re-send still respects the cooldown.
+  void _backToEmail({String? error}) {
     setState(() {
-      _secondsRemaining = 0;
+      _code = '';
       _phase = _Phase.enterEmail;
+      _emailError = error;
     });
-  }
-
-  // ── OTP box behaviour (mirrors the sign-up verify screen) ──────────────────
-
-  void _onOtpChanged(int index, String value) {
-    if (value.length > 1) {
-      _distribute(value);
-      return;
-    }
-    if (value.isNotEmpty && index < _kOtpLength - 1) {
-      _otpFocusNodes[index + 1].requestFocus();
-    }
-    setState(() {});
-  }
-
-  void _distribute(String value) {
-    final digits = value.replaceAll(RegExp(r'\D'), '');
-    for (var i = 0; i < _kOtpLength; i++) {
-      _otpControllers[i].text = i < digits.length ? digits[i] : '';
-    }
-    final lastIndex =
-        (digits.length >= _kOtpLength ? _kOtpLength : digits.length) - 1;
-    if (lastIndex >= 0) {
-      _otpFocusNodes[lastIndex.clamp(0, _kOtpLength - 1)].requestFocus();
-    }
-    setState(() {});
-  }
-
-  KeyEventResult _onOtpKey(int index, KeyEvent event) {
-    if (event is KeyDownEvent &&
-        event.logicalKey == LogicalKeyboardKey.backspace &&
-        _otpControllers[index].text.isEmpty &&
-        index > 0) {
-      _otpFocusNodes[index - 1].requestFocus();
-      _otpControllers[index - 1].clear();
-      setState(() {});
-      return KeyEventResult.handled;
-    }
-    return KeyEventResult.ignored;
   }
 
   @override
   Widget build(BuildContext context) {
     final ui = AppUiColors.of(context);
-    return Scaffold(
-      backgroundColor: ui.scaffoldBackground,
-      appBar: AppBar(
+    return PopScope(
+      // From the OTP step, back (app bar or system) returns to the email step.
+      canPop: _phase == _Phase.enterEmail && !_busy,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop || _busy) return;
+        _backToEmail();
+      },
+      child: Scaffold(
         backgroundColor: ui.scaffoldBackground,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_rounded, color: ui.textPrimary),
-          onPressed: () {
-            // From the OTP step, back returns to the email step; otherwise close.
-            if (_phase == _Phase.enterOtp) {
-              _backToEmail();
-            } else {
-              Navigator.of(context).maybePop();
-            }
-          },
+        appBar: AppBar(
+          backgroundColor: ui.scaffoldBackground,
+          elevation: 0,
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back_rounded, color: ui.textPrimary),
+            onPressed: () => Navigator.of(context).maybePop(),
+          ),
+          title: AppText(
+            'Change Email',
+            color: ui.textPrimary,
+            fontSize: FontSizes.font18Sp,
+            fontWeight: FontWeights.weight700,
+          ),
+          centerTitle: false,
         ),
-        title: AppText(
-          'Change Email',
-          color: ui.textPrimary,
-          fontSize: FontSizes.font18Sp,
-          fontWeight: FontWeights.weight700,
-        ),
-        centerTitle: false,
-      ),
-      body: SafeArea(
-        child: AbsorbPointer(
-          absorbing: _busy,
-          child: SingleChildScrollView(
-            padding: AppUtils.horizontal16Padding,
-            child: _phase == _Phase.enterEmail
-                ? _buildEmailStep(ui)
-                : _buildOtpStep(ui),
+        body: SafeArea(
+          child: AbsorbPointer(
+            absorbing: _busy,
+            child: SingleChildScrollView(
+              padding: AppUtils.horizontal16Padding,
+              child: _phase == _Phase.enterEmail
+                  ? _buildEmailStep(ui)
+                  : OtpStepView(
+                      target: _submittedEmail,
+                      codeFieldKey: _codeFieldKey,
+                      onCodeChanged: (code) => setState(() => _code = code),
+                      codeComplete: _isCodeComplete,
+                      busy: _busy,
+                      clock: _clock,
+                      onVerify: _verifyCode,
+                      onResend: _resendCode,
+                      changeTargetLabel: 'Use a different email',
+                      onChangeTarget: _backToEmail,
+                    ),
+            ),
           ),
         ),
       ),
@@ -287,6 +266,9 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
             keyboardType: TextInputType.emailAddress,
             textInputAction: TextInputAction.done,
             autocorrect: false,
+            onChanged: (_) {
+              if (_emailError != null) setState(() => _emailError = null);
+            },
             onFieldSubmitted: (_) => _requestCode(),
             validator: _validateNewEmail,
             style: TextStyle(
@@ -296,10 +278,14 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
               fontFamily: AppFonts.lexend,
             ),
             cursorColor: ui.brandPrimary,
-            decoration: _fieldDecoration(ui, hint: 'new@example.com'),
+            decoration: contactFieldDecoration(
+              ui,
+              hint: 'new@example.com',
+              errorText: _emailError,
+            ),
           ),
           28.verticalSpace,
-          _actionButton(
+          ContactChangeButton(
             label: _busy ? 'Sending…' : 'Send Verification Code',
             enabled: !_busy,
             onPress: _requestCode,
@@ -310,187 +296,14 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
     );
   }
 
-  Widget _buildOtpStep(AppUiColors ui) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        20.verticalSpace,
-        AppText(
-          'Enter the 6-digit code sent to',
-          color: ui.textSecondary,
-          fontSize: FontSizes.font13Sp,
-          fontWeight: FontWeights.weight400,
-        ),
-        4.verticalSpace,
-        AppText(
-          _submittedEmail,
-          color: ui.textPrimary,
-          fontSize: FontSizes.font14Sp,
-          fontWeight: FontWeights.weight700,
-        ),
-        28.verticalSpace,
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: List.generate(_kOtpLength, (i) => _buildOtpBox(ui, i)),
-        ),
-        28.verticalSpace,
-        _actionButton(
-          label: _busy ? 'Verifying…' : 'Verify & Update',
-          enabled: _isCodeComplete && !_busy,
-          onPress: _verifyCode,
-        ),
-        20.verticalSpace,
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            AppText(
-              "Didn't receive the code? ",
-              color: ui.textMuted,
-              fontSize: FontSizes.font12Sp,
-              fontWeight: FontWeights.weight400,
-            ),
-            GestureDetector(
-              onTap: (_secondsRemaining > 0 || _busy) ? null : _resendCode,
-              behavior: HitTestBehavior.opaque,
-              child: AppText(
-                _secondsRemaining > 0
-                    ? 'Resend in $_formattedRemaining'
-                    : 'Resend',
-                color: (_secondsRemaining > 0 || _busy)
-                    ? ui.textMuted
-                    : ui.brandPrimary,
-                fontSize: FontSizes.font12Sp,
-                fontWeight: FontWeights.weight600,
-              ),
-            ),
-          ],
-        ),
-        16.verticalSpace,
-        Center(
-          child: GestureDetector(
-            onTap: _busy ? null : _backToEmail,
-            behavior: HitTestBehavior.opaque,
-            child: AppText(
-              'Use a different email',
-              color: ui.brandPrimary,
-              fontSize: FontSizes.font12Sp,
-              fontWeight: FontWeights.weight600,
-            ),
-          ),
-        ),
-        24.verticalSpace,
-      ],
-    );
-  }
-
-  Widget _buildOtpBox(AppUiColors ui, int index) {
-    final filled = _otpControllers[index].text.isNotEmpty;
-    return SizedBox(
-      width: 46.w,
-      height: 54.h,
-      child: Focus(
-        onKeyEvent: (_, event) => _onOtpKey(index, event),
-        child: TextFormField(
-          controller: _otpControllers[index],
-          focusNode: _otpFocusNodes[index],
-          keyboardType: TextInputType.number,
-          textAlign: TextAlign.center,
-          maxLength: 1,
-          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-          onChanged: (value) => _onOtpChanged(index, value),
-          style: TextStyle(
-            color: ui.textPrimary,
-            fontSize: FontSizes.font20Sp,
-            fontWeight: FontWeights.weight700,
-          ),
-          decoration: InputDecoration(
-            counterText: '',
-            filled: true,
-            fillColor: ui.inputFill,
-            contentPadding: EdgeInsets.zero,
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12.r),
-              borderSide: BorderSide(
-                color: filled ? ui.brandPrimary : ui.inputBorder,
-              ),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12.r),
-              borderSide: BorderSide(color: ui.brandPrimary, width: 1.5),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _actionButton({
-    required String label,
-    required bool enabled,
-    required VoidCallback onPress,
-  }) {
-    return PrimaryButtonWidget(
-      text: label,
-      onPress: onPress,
-      isEnabled: enabled,
-      buttonWidth: double.infinity,
-      buttonHeight: 48.h,
-      cornerRadius: 24.r,
-      gradientColors: const [
-        AppColors.primaryDarkColor,
-        AppColors.primaryDarkButtonColor,
-      ],
-      textColor: AppColors.whiteColor,
-      fontSize: FontSizes.font14Sp,
-      fontWeight: FontWeights.weight700,
-    );
-  }
-
   String? _validateNewEmail(String? v) {
     final value = v?.trim() ?? '';
     if (value.isEmpty) return 'Email is required';
     final emailRegex = RegExp(r'^[\w.\-+]+@([\w\-]+\.)+[\w\-]{2,}$');
     if (!emailRegex.hasMatch(value)) return 'Enter a valid email address';
     if (value.toLowerCase() == widget.currentEmail.trim().toLowerCase()) {
-      return 'This is already your current email';
+      return 'New email must be different from your current email.';
     }
     return null;
-  }
-
-  InputDecoration _fieldDecoration(AppUiColors ui, {String? hint}) {
-    return InputDecoration(
-      filled: true,
-      fillColor: ui.inputFill,
-      isDense: true,
-      hintText: hint,
-      hintStyle: TextStyle(
-        color: AppColors.hintColor,
-        fontSize: FontSizes.font14Sp,
-        fontWeight: FontWeights.weight400,
-        fontFamily: AppFonts.lexend,
-      ),
-      contentPadding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12.r),
-        borderSide: BorderSide(color: ui.inputBorder),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12.r),
-        borderSide: BorderSide(color: ui.brandPrimary),
-      ),
-      errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12.r),
-        borderSide: const BorderSide(color: AppColors.redColor),
-      ),
-      focusedErrorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12.r),
-        borderSide: const BorderSide(color: AppColors.redColor),
-      ),
-      errorStyle: TextStyle(
-        color: AppColors.redColor,
-        fontSize: FontSizes.font10Sp,
-        fontWeight: FontWeights.weight400,
-      ),
-    );
   }
 }

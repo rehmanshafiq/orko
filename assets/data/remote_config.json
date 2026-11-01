@@ -22,6 +22,8 @@
       "delete_user_picture": "api/v1/core/user-profile/image",
       "change_email": "api/v1/core/user-profile/change-email",
       "change_email_verify": "api/v1/core/user-profile/change-email/verify",
+      "change_phone": "api/v1/core/user-profile/change-phone",
+      "change_phone_verify": "api/v1/core/user-profile/change-phone/verify",
       "charging_station_map": "api/v1/charging-station/nearest?",
       "charging_station_filter_options": "api/v1/charging-station/filter-options/",
       "charging_station_detail": "api/v1/charging-station/",

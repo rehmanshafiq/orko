@@ -10,6 +10,7 @@ import 'package:orko_hubco/core/utils/app_storage/app_storage.dart';
 import 'package:orko_hubco/features/auth/data/datasources/remote/auth_remote_datasource.dart';
 import 'package:orko_hubco/features/auth/data/models/signup_result_model.dart';
 import 'package:orko_hubco/features/auth/data/models/user_model.dart';
+import 'package:orko_hubco/features/remote_config/data/models/remote_config_model.dart';
 import 'package:orko_hubco/features/remote_config/data/services/remote_config_service.dart';
 
 /// Concrete implementation of [AuthRemoteDataSource] using Dio.
@@ -596,45 +597,116 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
   @override
   Future<int> requestEmailChange({required String email}) async {
+    final body = await _postContactChange(
+      tag: 'Change-email',
+      endpoint: (e) => e.changeEmail,
+      unavailableMessage: 'Changing your email is not available right now',
+      data: {'email': email.trim().toLowerCase()},
+      fallback: 'Could not send the verification code',
+    );
+    // Email verify doesn't need the id; a 200 means the code was sent.
+    return _otpIdOf(body) ?? 0;
+  }
+
+  @override
+  Future<UserModel> verifyEmailChange({required String otp}) async {
+    final body = await _postContactChange(
+      tag: 'Change-email-verify',
+      endpoint: (e) => e.changeEmailVerify,
+      unavailableMessage: 'Changing your email is not available right now',
+      data: {'otp': otp},
+      fallback: 'Could not verify the code',
+    );
+    return _userOf(body, fallback: 'Could not verify the code');
+  }
+
+  @override
+  Future<int> requestPhoneChange({
+    required String phoneNumber,
+    required String countryCode,
+  }) async {
+    final body = await _postContactChange(
+      tag: 'Change-phone',
+      endpoint: (e) => e.changePhone,
+      unavailableMessage: 'Changing your phone number is not available right now',
+      data: {'phone_number': phoneNumber, 'country_code': countryCode},
+      fallback: 'Could not send the verification code',
+    );
+    // Phone verify needs the id, so a 200 without one is unusable.
+    final otpId = _otpIdOf(body);
+    if (otpId == null) {
+      throw const ServerException(
+        message: 'Could not send the verification code',
+      );
+    }
+    return otpId;
+  }
+
+  @override
+  Future<UserModel> verifyPhoneChange({
+    required int otpId,
+    required String otp,
+  }) async {
+    final body = await _postContactChange(
+      tag: 'Change-phone-verify',
+      endpoint: (e) => e.changePhoneVerify,
+      unavailableMessage: 'Changing your phone number is not available right now',
+      data: {'otp_id': otpId, 'otp': otp},
+      fallback: 'Could not verify the code',
+    );
+    return _userOf(body, fallback: 'Could not verify the code');
+  }
+
+  /// Shared POST for the change-email / change-phone endpoints. Returns the
+  /// envelope `body`; throws [ServerException] with the backend `message`
+  /// (422/401), or a generic message for 400 "Request Failed".
+  Future<dynamic> _postContactChange({
+    required String tag,
+    required String Function(ApiEndpoints endpoints) endpoint,
+    required String unavailableMessage,
+    required Map<String, dynamic> data,
+    required String fallback,
+  }) async {
     try {
       final config = RemoteConfigService.config;
       if (config == null) {
         throw const ServerException(message: 'Remote config not initialized');
       }
 
-      final endpoint = config.apiConstants.apiEndpoints.changeEmail;
-      if (endpoint.trim().isEmpty) {
-        throw const ServerException(
-          message: 'Changing your email is not available right now',
-        );
+      final path = endpoint(config.apiConstants.apiEndpoints);
+      if (path.trim().isEmpty) {
+        throw ServerException(message: unavailableMessage);
       }
 
-      final url = _buildUrl(ApiClient.baseUrl, endpoint);
-      AppLogger.d('[Auth] Change-email URL: $url');
+      final url = _buildUrl(ApiClient.baseUrl, path);
+      AppLogger.d('[Auth] $tag URL: $url');
 
-      final response = await apiClient.post(url, data: {'email': email});
+      final response = await apiClient.post(
+        url,
+        data: data,
+        // The change-email/phone screens show the failure themselves; skip the
+        // global toast so the message isn't shown twice.
+        options: Options(extra: {ErrorInterceptor.silentKey: true}),
+      );
 
-      final data = response.data;
-      if (response.statusCode == 200 && data is Map<String, dynamic>) {
-        final body = data['body'];
-        final otpId = body is Map ? body['otp_id'] : null;
-        final parsed = otpId is num
-            ? otpId.toInt()
-            : int.tryParse(otpId?.toString() ?? '');
-        // The OTP id is informational; a 200 means the code was sent.
-        return parsed ?? 0;
+      final responseData = response.data;
+      if (response.statusCode == 200 && responseData is Map<String, dynamic>) {
+        return responseData['body'];
       }
 
       throw ServerException(
-        message: (data is Map<String, dynamic> && data['message'] != null)
-            ? data['message'].toString()
-            : 'Could not send the verification code',
+        message: (responseData is Map<String, dynamic> &&
+                responseData['message'] != null)
+            ? responseData['message'].toString()
+            : fallback,
         statusCode: response.statusCode,
       );
     } on DioException catch (e) {
+      final code = e.response?.statusCode;
       throw ServerException(
-        message: _dioMessage(e, fallback: 'Could not send the verification code'),
-        statusCode: e.response?.statusCode,
+        // 400 is an unexpected server error — its message isn't user-facing.
+        message: code == 400 ? _genericErrorMessage : _dioMessage(e, fallback: fallback),
+        statusCode: code,
         originalError: e,
       );
     } catch (e) {
@@ -643,55 +715,22 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     }
   }
 
-  @override
-  Future<UserModel> verifyEmailChange({required String otp}) async {
-    try {
-      final config = RemoteConfigService.config;
-      if (config == null) {
-        throw const ServerException(message: 'Remote config not initialized');
-      }
+  static const String _genericErrorMessage =
+      'Something went wrong. Please try again.';
 
-      final endpoint = config.apiConstants.apiEndpoints.changeEmailVerify;
-      if (endpoint.trim().isEmpty) {
-        throw const ServerException(
-          message: 'Changing your email is not available right now',
-        );
-      }
+  int? _otpIdOf(dynamic body) {
+    final otpId = body is Map ? body['otp_id'] : null;
+    return otpId is num ? otpId.toInt() : int.tryParse(otpId?.toString() ?? '');
+  }
 
-      final url = _buildUrl(ApiClient.baseUrl, endpoint);
-      AppLogger.d('[Auth] Change-email-verify URL: $url');
-
-      final response = await apiClient.post(url, data: {'otp': otp});
-
-      final data = response.data;
-      if (response.statusCode == 200 && data is Map<String, dynamic>) {
-        final body = data['body'];
-        // The updated profile may sit at `body.user` (like get_user) or be the
-        // body itself — accept either shape.
-        final user = body is Map
-            ? (body['user'] is Map ? body['user'] : body)
-            : null;
-        if (user is Map) {
-          return UserModel.fromJson(Map<String, dynamic>.from(user));
-        }
-      }
-
-      throw ServerException(
-        message: (data is Map<String, dynamic> && data['message'] != null)
-            ? data['message'].toString()
-            : 'Could not verify the code',
-        statusCode: response.statusCode,
-      );
-    } on DioException catch (e) {
-      throw ServerException(
-        message: _dioMessage(e, fallback: 'Could not verify the code'),
-        statusCode: e.response?.statusCode,
-        originalError: e,
-      );
-    } catch (e) {
-      if (e is ServerException) rethrow;
-      throw ServerException(message: e.toString(), originalError: e);
+  /// The updated profile sits at `body.user` (same shape as `get_user`); the
+  /// body itself is accepted too.
+  UserModel _userOf(dynamic body, {required String fallback}) {
+    final user = body is Map ? (body['user'] is Map ? body['user'] : body) : null;
+    if (user is Map) {
+      return UserModel.fromJson(Map<String, dynamic>.from(user));
     }
+    throw ServerException(message: fallback);
   }
 
   @override

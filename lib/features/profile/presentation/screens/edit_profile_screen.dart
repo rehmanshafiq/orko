@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
@@ -13,6 +12,7 @@ import 'package:orko_hubco/features/auth/domain/entities/login_method.dart';
 import 'package:orko_hubco/features/auth/domain/entities/user_entity.dart';
 import 'package:orko_hubco/features/auth/domain/usecases/edit_user_profile_usecase.dart';
 import 'package:orko_hubco/features/profile/presentation/screens/change_email_screen.dart';
+import 'package:orko_hubco/features/profile/presentation/screens/change_phone_screen.dart';
 
 /// Edit-profile form. Prefills from the cached [user], submits the
 /// `edit_user_profile` API, and pops `true` on success (after which the cached
@@ -32,15 +32,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   late final TextEditingController _emailController;
   late final TextEditingController _phoneController;
 
-  /// Fixed dial code shown as a prefix; defaults to Pakistan (+92).
-  late final String _countryCode;
+  /// Dial code shown as a prefix; defaults to Pakistan (+92). Updated when the
+  /// number is changed via the OTP flow.
+  late String _countryCode;
 
   bool _saving = false;
 
-  /// True once the email has been changed via the OTP flow. Even if the user
-  /// backs out without tapping "Save Changes", the profile view must refresh
-  /// (the cached user was already updated), so we pop `true` on exit.
-  bool _emailChanged = false;
+  /// True once the email or phone has been changed via its OTP flow. Even if
+  /// the user backs out without tapping "Save Changes", the profile view must
+  /// refresh (the cached user was already updated), so we pop `true` on exit.
+  bool _contactChanged = false;
 
   /// Set for Google / Apple sign-ins: the backend keys those accounts by the
   /// provider's email, so changing it would detach the account from future
@@ -53,8 +54,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   void initState() {
     super.initState();
     final u = widget.user;
-    final code = u.countryCode?.trim() ?? '';
-    _countryCode = code.isEmpty ? '+92' : code;
+    _countryCode = _dialCode(u.countryCode);
     _nameController = TextEditingController(text: u.name);
     _emailController = TextEditingController(text: u.email);
     _emailLockedBy = switch (sl<AuthLocalDataSource>().loginMethod) {
@@ -67,6 +67,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _phoneController = TextEditingController(
       text: _localPhone(u.phoneNumber ?? '', _countryCode),
     );
+  }
+
+  /// Stored dial code as `+NN`, defaulting to Pakistan (+92).
+  static String _dialCode(String? raw) {
+    final digits = (raw ?? '').replaceAll(RegExp(r'\D'), '');
+    return digits.isEmpty ? '+92' : '+$digits';
   }
 
   /// Removes a leading dial code / `0` so the editable portion is just the
@@ -108,8 +114,34 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     if (!mounted || updated == null) return;
     setState(() {
       _emailController.text = updated.email;
-      _emailChanged = true;
+      _contactChanged = true;
     });
+  }
+
+  /// Opens the OTP-based phone-change flow and reflects the verified number
+  /// (the cached user is already updated by the verify call).
+  Future<void> _onChangePhone() async {
+    if (_saving) return;
+    FocusScope.of(context).unfocus();
+    final updated = await Navigator.of(context).push<UserEntity>(
+      MaterialPageRoute<UserEntity>(
+        builder: (_) => ChangePhoneScreen(
+          currentPhone: _phoneController.text.trim(),
+          countryCode: _countryCode,
+        ),
+      ),
+    );
+    if (!mounted || updated == null) return;
+    setState(() {
+      _countryCode = _dialCode(updated.countryCode);
+      _phoneController.text = _localPhone(
+        updated.phoneNumber ?? '',
+        _countryCode,
+      );
+      _contactChanged = true;
+    });
+    // Clear a stale "required" error from an earlier save attempt.
+    _formKey.currentState?.validate();
   }
 
   Future<void> _save() async {
@@ -152,11 +184,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     return PopScope(
       // Intercept back so we can return whether anything changed. "Save Changes"
       // still pops `true` explicitly (bypassing this); this covers the case
-      // where only the email was changed and the user backs out.
+      // where only the email/phone was changed and the user backs out.
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
         if (didPop) return;
-        Navigator.of(context).pop(_emailChanged);
+        Navigator.of(context).pop(_contactChanged);
       },
       child: Scaffold(
       backgroundColor: ui.scaffoldBackground,
@@ -235,20 +267,28 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     ui: ui,
                     label: 'Phone',
                     controller: _phoneController,
-                    hintText: '3001234567',
+                    hintText: 'Add your phone number',
                     prefixText: '$_countryCode ',
-                    keyboardType: TextInputType.phone,
-                    textInputAction: TextInputAction.done,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.allow(RegExp(r'[0-9]')),
-                      LengthLimitingTextInputFormatter(10),
-                    ],
-                    validator: (v) {
-                      final value = v?.trim() ?? '';
-                      if (value.isEmpty) return 'Phone number is required';
-                      if (value.length < 7) return 'Enter a valid phone number';
-                      return null;
-                    },
+                    // Changed only through the OTP flow (`change_phone`).
+                    readOnly: true,
+                    suffix: GestureDetector(
+                      onTap: _saving ? null : _onChangePhone,
+                      behavior: HitTestBehavior.opaque,
+                      child: Padding(
+                        padding: EdgeInsets.only(right: 12.w),
+                        child: AppText(
+                          _phoneController.text.trim().isEmpty
+                              ? 'Add'
+                              : 'Change',
+                          color: ui.brandPrimary,
+                          fontSize: FontSizes.font12Sp,
+                          fontWeight: FontWeights.weight700,
+                        ),
+                      ),
+                    ),
+                    validator: (v) => (v?.trim() ?? '').isEmpty
+                        ? 'Phone number is required'
+                        : null,
                   ),
                   28.verticalSpace,
                   _saving
@@ -306,10 +346,8 @@ class _LabeledField extends StatelessWidget {
     required this.label,
     required this.controller,
     required this.hintText,
-    this.keyboardType,
     this.textInputAction,
     this.validator,
-    this.inputFormatters,
     this.readOnly = false,
     this.enabled = true,
     this.prefixText,
@@ -321,10 +359,8 @@ class _LabeledField extends StatelessWidget {
   final String label;
   final TextEditingController controller;
   final String hintText;
-  final TextInputType? keyboardType;
   final TextInputAction? textInputAction;
   final String? Function(String?)? validator;
-  final List<TextInputFormatter>? inputFormatters;
 
   /// When true the field is shown but cannot be edited (e.g. email).
   final bool readOnly;
@@ -355,10 +391,8 @@ class _LabeledField extends StatelessWidget {
         6.verticalSpace,
         TextFormField(
           controller: controller,
-          keyboardType: keyboardType,
           textInputAction: textInputAction,
           validator: validator,
-          inputFormatters: inputFormatters,
           maxLines: 1,
           readOnly: readOnly,
           enabled: enabled,

@@ -102,6 +102,21 @@ abstract class AuthRepository {
   /// the up-to-date [UserEntity] with the new email.
   Future<Either<Failure, UserEntity>> verifyEmailChange(String otp);
 
+  /// Step 1 of the phone-change flow: requests an OTP be sent to the new
+  /// number via the `change_phone` endpoint. Returns the `otp_id` that
+  /// [verifyPhoneChange] needs.
+  Future<Either<Failure, int>> requestPhoneChange({
+    required String phoneNumber,
+    required String countryCode,
+  });
+
+  /// Step 2 of the phone-change flow: verifies [otp] for [otpId] via the
+  /// `change_phone_verify` endpoint, then refreshes the cached user.
+  Future<Either<Failure, UserEntity>> verifyPhoneChange({
+    required int otpId,
+    required String otp,
+  });
+
   /// Uploads a new profile picture via the `upload_user_picture` endpoint,
   /// then re-fetches the user (`get_user`) and refreshes the cached user.
   /// Returns the up-to-date [UserEntity].

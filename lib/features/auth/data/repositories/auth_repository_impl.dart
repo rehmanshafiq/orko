@@ -381,39 +381,65 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<Either<Failure, int>> requestEmailChange(String newEmail) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure());
-    }
-    try {
-      final otpId = await remoteDataSource.requestEmailChange(email: newEmail);
-      return Right(otpId);
-    } on ServerException catch (e) {
-      if (e.statusCode == 401) {
-        return const Left(UnauthorizedFailure());
-      }
-      return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
-    } on UnauthorizedException catch (e) {
-      return Left(UnauthorizedFailure(message: e.message));
-    } catch (e) {
-      return Left(ServerFailure(message: e.toString()));
-    }
+  Future<Either<Failure, int>> requestEmailChange(String newEmail) {
+    return _runContactChange(
+      () => remoteDataSource.requestEmailChange(email: newEmail),
+    );
   }
 
   @override
-  Future<Either<Failure, UserEntity>> verifyEmailChange(String otp) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure());
-    }
-    try {
+  Future<Either<Failure, UserEntity>> verifyEmailChange(String otp) {
+    return _runContactChange(() async {
       // The verify response already carries the updated profile; cache it so
       // the app's cached user reflects the new email immediately.
       final user = await remoteDataSource.verifyEmailChange(otp: otp);
       await localDataSource.cacheUser(user);
-      return Right(user);
+      return user;
+    });
+  }
+
+  @override
+  Future<Either<Failure, int>> requestPhoneChange({
+    required String phoneNumber,
+    required String countryCode,
+  }) {
+    return _runContactChange(
+      () => remoteDataSource.requestPhoneChange(
+        phoneNumber: phoneNumber,
+        countryCode: countryCode,
+      ),
+    );
+  }
+
+  @override
+  Future<Either<Failure, UserEntity>> verifyPhoneChange({
+    required int otpId,
+    required String otp,
+  }) {
+    return _runContactChange(() async {
+      final user = await remoteDataSource.verifyPhoneChange(
+        otpId: otpId,
+        otp: otp,
+      );
+      await localDataSource.cacheUser(user);
+      return user;
+    });
+  }
+
+  /// Connectivity guard + error mapping for the change-email/phone calls. A
+  /// 401 keeps the backend message (e.g. "Please verify your phone number to
+  /// continue."); session expiry itself is handled by the auth interceptor.
+  Future<Either<Failure, T>> _runContactChange<T>(
+    Future<T> Function() action,
+  ) async {
+    if (!await networkInfo.isConnected) {
+      return const Left(NetworkFailure());
+    }
+    try {
+      return Right(await action());
     } on ServerException catch (e) {
       if (e.statusCode == 401) {
-        return const Left(UnauthorizedFailure());
+        return Left(UnauthorizedFailure(message: e.message));
       }
       return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
     } on UnauthorizedException catch (e) {

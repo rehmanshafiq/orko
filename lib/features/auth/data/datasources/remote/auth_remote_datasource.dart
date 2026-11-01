@@ -118,6 +118,24 @@ abstract class AuthRemoteDataSource {
   /// wrong or expired). The OTP is single-use.
   Future<UserModel> verifyEmailChange({required String otp});
 
+  /// Step 1 of the phone-change flow — `change_phone` endpoint (authenticated).
+  ///
+  /// Sends `{ "phone_number", "country_code" }`; on success the backend sends
+  /// an OTP to the new number and returns the `otp_id` that verify needs.
+  /// Throttled to one request per 60 seconds per user (422).
+  Future<int> requestPhoneChange({
+    required String phoneNumber,
+    required String countryCode,
+  });
+
+  /// Step 2 of the phone-change flow — `change_phone_verify` endpoint
+  /// (authenticated). Sends `{ "otp_id", "otp" }`; on success the number is
+  /// updated and the fresh [UserModel] is returned.
+  Future<UserModel> verifyPhoneChange({
+    required int otpId,
+    required String otp,
+  });
+
   /// Uploads a new profile picture via the `upload_user_picture` endpoint.
   ///
   /// [imagePath] is the absolute path of the picked image file, sent as
