@@ -560,7 +560,13 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       final url = _buildUrl(ApiClient.baseUrl, endpoint);
       AppLogger.d('[Auth] Edit-user-profile URL: $url');
 
-      final response = await apiClient.patch(url, data: data);
+      final response = await apiClient.patch(
+        url,
+        data: data,
+        // The edit-profile screen shows the failure itself; skip the global
+        // toast so the message isn't shown twice.
+        options: Options(extra: {ErrorInterceptor.silentKey: true}),
+      );
 
       final responseData = response.data;
       final isOk = (response.statusCode == 200 || response.statusCode == 201) &&
