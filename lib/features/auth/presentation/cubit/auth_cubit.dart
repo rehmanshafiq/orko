@@ -339,6 +339,15 @@ class AuthCubit extends Cubit<AuthState> {
     );
   }
 
+  /// Tears down the in-memory session after the account was deleted, matching
+  /// a successful [logout]. The repository already cleared the cached session
+  /// and the device token was unregistered before the delete call.
+  void onAccountDeleted() {
+    _analytics.logEvent('delete_account', parameters: {'user_type': 'registered'});
+    sl<AnalyticsUserProperties>().clear();
+    emit(const AuthUnauthenticated());
+  }
+
   /// Trims a failure message to GA4's 100-char parameter-value limit so a long
   /// server message can never cause the whole event to be dropped.
   String _reason(String message) {

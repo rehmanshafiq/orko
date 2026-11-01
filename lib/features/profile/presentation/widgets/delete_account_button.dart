@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
@@ -9,6 +10,7 @@ import 'package:orko_hubco/core/services/push_notification_service.dart';
 import 'package:orko_hubco/core/usecase/usecase.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
 import 'package:orko_hubco/features/auth/domain/usecases/delete_account_usecase.dart';
+import 'package:orko_hubco/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:orko_hubco/features/profile/presentation/utils/profile_actions.dart';
 import 'package:orko_hubco/features/profile/presentation/widgets/profile_confirm_dialog.dart';
 
@@ -59,8 +61,9 @@ class _DeleteAccountButtonState extends State<DeleteAccountButton> {
         showErrorSnackBar(context, failure.message);
       },
       (message) async {
-        // The repository already cleared the cached session; clear remaining
-        // user-specific local data and return to login.
+        // The repository already cleared the cached session; reset auth state
+        // and clear remaining user-specific local data, same as logout.
+        context.read<AuthCubit>().onAccountDeleted();
         await clearUserData(storage);
         await storage.setGuest(false);
         if (!mounted) return;

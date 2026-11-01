@@ -160,8 +160,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
             //   context,
             //   'An OTP verification email has been sent to $email',
             // );
-          } else if (state is AuthAuthenticated) {
-            context.go('/home');
           } else if (state is AuthError) {
             AppHelpers.showSnackBar(context, state.message, isError: true);
           }
