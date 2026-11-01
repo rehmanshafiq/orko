@@ -54,12 +54,13 @@ class _RatingBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ui = AppUiColors.of(context);
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         AppText(
           _formatRating(rating),
-          color: AppColors.whiteColor,
+          color: ui.textPrimary,
           fontSize: FontSizes.font22Sp,
           fontWeight: FontWeights.weight700,
         ),

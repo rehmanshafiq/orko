@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
+import 'package:orko_hubco/core/utils/extensions.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
 import 'package:orko_hubco/features/charging/presentation/models/review_model.dart';
 
@@ -17,6 +18,7 @@ class ChargingStationReviewCardWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final ui = AppUiColors.of(context);
     final r = review;
+    final name = r.name.toNameCase;
     return Container(
       width: 190.w,
       height: 108.h,
@@ -69,7 +71,7 @@ class ChargingStationReviewCardWidget extends StatelessWidget {
                         : null,
                 child: (r.profilePicture == null || r.profilePicture!.isEmpty)
                     ? AppText(
-                        r.name.isNotEmpty ? r.name[0].toUpperCase() : '?',
+                        name.isNotEmpty ? name[0] : '?',
                         color: ui.textPrimary,
                         fontSize: FontSizes.font12Sp,
                         fontWeight: FontWeights.weight700,
@@ -79,7 +81,7 @@ class ChargingStationReviewCardWidget extends StatelessWidget {
               10.horizontalSpace,
               Expanded(
                 child: AppText(
-                  r.name,
+                  name,
                   color: ui.textPrimary,
                   fontSize: FontSizes.font12Sp,
                   fontWeight: FontWeights.weight600,

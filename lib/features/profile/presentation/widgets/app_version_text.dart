@@ -5,7 +5,7 @@ import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
-/// Installed app version + build number (e.g. "Version 1.0.1 (7)") shown at the
+/// Installed app version (e.g. "Version 1.0.1") shown at the
 /// bottom of the Settings tab, so users can report it with support requests.
 class AppVersionText extends StatefulWidget {
   const AppVersionText({super.key});
@@ -28,7 +28,7 @@ class _AppVersionTextState extends State<AppVersionText> {
         return Padding(
           padding: EdgeInsets.only(top: 8.h),
           child: AppText(
-            'Version ${info.version} (${info.buildNumber})',
+            'Version ${info.version}',
             textAlign: TextAlign.center,
             color: ui.textMuted,
             fontSize: FontSizes.font12Sp,

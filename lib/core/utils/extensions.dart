@@ -6,6 +6,16 @@ extension StringExtensions on String {
     return '${this[0].toUpperCase()}${substring(1)}';
   }
 
+  /// Formats a person's name for display: trims, collapses extra spaces and
+  /// capitalizes each word ("jOHN  doe" → "John Doe").
+  String get toNameCase {
+    return trim()
+        .split(RegExp(r'\s+'))
+        .where((word) => word.isNotEmpty)
+        .map((word) => word.toLowerCase().capitalize)
+        .join(' ');
+  }
+
   /// Checks if the string is a valid email.
   bool get isValidEmail {
     return RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(this);
