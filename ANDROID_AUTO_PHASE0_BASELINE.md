@@ -11,7 +11,7 @@
 | AGP / Gradle / Kotlin / Java | 8.11.1 / 8.14 / 2.2.20 / 17 |
 | compileSdk / targetSdk / minSdk | 36 / 36 / 24 |
 | Flavors | none |
-| Maps key | `android/local.properties` → `MAPS_API_KEY` (present); injected via `scripts/flutter_maps.sh` |
+| Maps key | `android/local.properties` → `MAPS_API_KEY` (present); read by Gradle as a manifest placeholder |
 
 ## Baseline results
 

@@ -3,9 +3,11 @@ import 'package:orko_hubco/core/error/failures.dart';
 import 'package:orko_hubco/core/network/network_info.dart';
 import 'package:orko_hubco/core/usecase/usecase.dart';
 import 'package:orko_hubco/features/trip/data/datasources/remote/trip_remote_datasource.dart';
+import 'package:orko_hubco/features/trip/domain/entities/place_entity.dart';
 import 'package:orko_hubco/features/trip/domain/entities/saved_trip_entity.dart';
 import 'package:orko_hubco/features/trip/domain/entities/trip_plan_entity.dart';
 import 'package:orko_hubco/features/trip/domain/repositories/trip_repository.dart';
+import 'package:orko_hubco/features/trip/domain/usecases/place_search_params.dart';
 import 'package:orko_hubco/features/trip/domain/usecases/trip_plan_params.dart';
 
 class TripRepositoryImpl implements TripRepository {
@@ -48,6 +50,20 @@ class TripRepositoryImpl implements TripRepository {
     required TripPlanParams params,
   }) {
     return _run(() => remoteDataSource.editTrip(tripId: tripId, params: params));
+  }
+
+  @override
+  Future<Either<Failure, List<PlaceSuggestion>>> searchPlaces(
+    PlaceAutocompleteParams params,
+  ) {
+    return _run(() => remoteDataSource.searchPlaces(params));
+  }
+
+  @override
+  Future<Either<Failure, PlaceLocation>> getPlaceDetails(
+    PlaceDetailsParams params,
+  ) {
+    return _run(() => remoteDataSource.getPlaceDetails(params));
   }
 
   /// Shared connectivity guard + exception→failure mapping for every call.

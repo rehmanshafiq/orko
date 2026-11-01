@@ -15,7 +15,7 @@ class TripLocationFieldWidget extends StatelessWidget {
   final TextEditingController controller;
   final bool isStart;
 
-  /// Tapping the field opens the Google Places search sheet. When provided the
+  /// Tapping the field opens the place search sheet. When provided the
   /// text field becomes read-only so editing happens only via place selection.
   final VoidCallback? onTap;
 

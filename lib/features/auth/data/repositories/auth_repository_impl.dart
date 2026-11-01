@@ -5,6 +5,7 @@ import 'package:orko_hubco/core/usecase/usecase.dart';
 import 'package:orko_hubco/features/auth/data/datasources/local/auth_local_datasource.dart';
 import 'package:orko_hubco/features/auth/data/datasources/remote/auth_remote_datasource.dart';
 import 'package:orko_hubco/features/auth/data/models/user_model.dart';
+import 'package:orko_hubco/features/auth/domain/entities/login_method.dart';
 import 'package:orko_hubco/features/auth/domain/entities/signup_result_entity.dart';
 import 'package:orko_hubco/features/auth/domain/entities/user_entity.dart';
 import 'package:orko_hubco/features/auth/domain/repositories/auth_repository.dart';
@@ -67,6 +68,7 @@ class AuthRepositoryImpl implements AuthRepository {
     required String name,
     required String email,
     required String token,
+    LoginMethod loginMethod = LoginMethod.google,
   }) async {
     if (!await networkInfo.isConnected) {
       return const Left(NetworkFailure());
@@ -81,7 +83,10 @@ class AuthRepositoryImpl implements AuthRepository {
 
       // Persist the issued access token + user locally (same as login).
       if (result.accessToken.isNotEmpty) {
-        await localDataSource.cacheTokens(accessToken: result.accessToken);
+        await localDataSource.cacheTokens(
+          accessToken: result.accessToken,
+          loginMethod: loginMethod,
+        );
       }
       await localDataSource.cacheUser(result.user as UserModel);
 

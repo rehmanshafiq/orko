@@ -1,7 +1,9 @@
 import 'package:orko_hubco/core/error/failures.dart';
 import 'package:orko_hubco/core/usecase/usecase.dart';
+import 'package:orko_hubco/features/trip/domain/entities/place_entity.dart';
 import 'package:orko_hubco/features/trip/domain/entities/saved_trip_entity.dart';
 import 'package:orko_hubco/features/trip/domain/entities/trip_plan_entity.dart';
+import 'package:orko_hubco/features/trip/domain/usecases/place_search_params.dart';
 import 'package:orko_hubco/features/trip/domain/usecases/trip_plan_params.dart';
 
 abstract class TripRepository {
@@ -27,4 +29,14 @@ abstract class TripRepository {
     required int tripId,
     required TripPlanParams params,
   });
+
+  /// `GET /cvp/places/autocomplete/` — place predictions (empty when none).
+  Future<Either<Failure, List<PlaceSuggestion>>> searchPlaces(
+    PlaceAutocompleteParams params,
+  );
+
+  /// `GET /cvp/places/details/` — resolves a prediction to coordinates.
+  Future<Either<Failure, PlaceLocation>> getPlaceDetails(
+    PlaceDetailsParams params,
+  );
 }

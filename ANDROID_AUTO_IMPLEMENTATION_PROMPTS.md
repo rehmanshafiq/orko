@@ -31,7 +31,7 @@
 | Auth | `Authorization: Bearer <access_token>` injected by `AuthInterceptor`. Token read synchronously from `SecureStore` in‑memory mirror. **No refresh flow** — 401 → `UnauthorizedFailure` → logout |
 | Secure storage | `flutter_secure_storage` → Android **EncryptedSharedPreferences** (`aOptions: AndroidOptions(encryptedSharedPreferences: true)`). Keys: `access_token`, `refresh_token` (unused), `user_id`, `cached_user` |
 | TLS | Certificate pinning against bundled CA `assets/certs/api_ca_bundle.pem` (`CertificatePinning`). Off in debug; fail‑open if bundle missing |
-| Maps | `google_maps_flutter` (manifest key `${MAPS_API_KEY}` from `local.properties`); Google Places via `lib/core/services/google_places_service.dart` |
+| Maps | `google_maps_flutter` (manifest key `${MAPS_API_KEY}` from `local.properties`); place search via the backend Hubco Places API (`/api/v1/cvp/places/*`), no client-side Places key |
 | Location | `geolocator: ^14.0.2`; permissions `ACCESS_FINE_LOCATION` + `ACCESS_COARSE_LOCATION` |
 | Navigation hand‑off | `lib/core/utils/app_functions.dart` → `AppFunctions.openGoogleMapsDirections/openPreferredMapsDirections` via `url_launcher` (`https://www.google.com/maps/dir/?api=1&destination=lat,lng`). Deliberately avoids `google.navigation:` auto‑start |
 | Existing platform channels | Exactly **one**: `orko/live_charging_activity` — **iOS‑only** (`ios/Runner/LiveChargingActivityManager.swift`). **Android `MainActivity.kt` is the bare default** (`class MainActivity : FlutterActivity()`), no channel wiring |
@@ -222,7 +222,7 @@ CONTEXT
 - Repo: Flutter app `orko_hubco` (HUBCO Green EV). Flutter 3.41.9 / Dart 3.11.5.
 - Android: AGP 8.11.1, Gradle 8.14, Kotlin 2.2.20, Java 17, compileSdk/targetSdk 36, minSdk 24. No flavors.
 - Release uses R8 (minify + shrink) with keystore from android/key.properties.
-- Maps key comes from android/local.properties as MAPS_API_KEY (see scripts/flutter_maps.sh).
+- Maps key comes from android/local.properties as MAPS_API_KEY (read by Gradle as a manifest placeholder).
 
 EXISTING FILES (read only)
 - android/app/build.gradle.kts, android/app/src/main/AndroidManifest.xml
@@ -237,7 +237,7 @@ FILES TO MODIFY
 
 IMPLEMENTATION REQUIREMENTS
 1. Create branch `feature/android-auto` off the current branch.
-2. Run and record results of: `flutter pub get`, `flutter analyze`, `flutter test`, `flutter build apk --debug`, and `./gradlew :app:assembleDebug` (from android/). Use `scripts/flutter_maps.sh` if builds need MAPS_API_KEY.
+2. Run and record results of: `flutter pub get`, `flutter analyze`, `flutter test`, `flutter build apk --debug`, and `./gradlew :app:assembleDebug` (from android/).
 3. Do NOT change any code. Only capture the baseline.
 
 CONSTRAINTS

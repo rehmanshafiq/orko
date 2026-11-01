@@ -7,7 +7,9 @@ import 'package:orko_hubco/core/di/injection_container.dart';
 import 'package:orko_hubco/core/utils/app_ui.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
 import 'package:orko_hubco/core/utils/widgets/primary_button_widget.dart';
+import 'package:orko_hubco/features/auth/data/datasources/local/auth_local_datasource.dart';
 import 'package:orko_hubco/features/auth/data/models/user_model.dart';
+import 'package:orko_hubco/features/auth/domain/entities/login_method.dart';
 import 'package:orko_hubco/features/auth/domain/entities/user_entity.dart';
 import 'package:orko_hubco/features/auth/domain/usecases/edit_user_profile_usecase.dart';
 import 'package:orko_hubco/features/profile/presentation/screens/change_email_screen.dart';
@@ -40,6 +42,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   /// (the cached user was already updated), so we pop `true` on exit.
   bool _emailChanged = false;
 
+  /// Set for Google / Apple sign-ins: the backend keys those accounts by the
+  /// provider's email, so changing it would detach the account from future
+  /// social logins. `null` when the email can be changed.
+  late final String? _emailLockedBy;
+
+  bool get _emailLocked => _emailLockedBy != null;
+
   @override
   void initState() {
     super.initState();
@@ -48,6 +57,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _countryCode = code.isEmpty ? '+92' : code;
     _nameController = TextEditingController(text: u.name);
     _emailController = TextEditingController(text: u.email);
+    _emailLockedBy = switch (sl<AuthLocalDataSource>().loginMethod) {
+      LoginMethod.google => 'Google',
+      LoginMethod.apple => 'Apple',
+      LoginMethod.password || null => null,
+    };
     // Strip a leading dial code if the stored number embedded it, so the field
     // only holds the local number next to the fixed prefix.
     _phoneController = TextEditingController(
@@ -82,6 +96,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   /// refreshed user (its cached copy is already updated), so we just reflect
   /// the new email in the read-only field.
   Future<void> _onChangeEmail() async {
+    if (_emailLocked || _saving) return;
     FocusScope.of(context).unfocus();
     final updated = await Navigator.of(context).push<UserEntity>(
       MaterialPageRoute<UserEntity>(
@@ -188,19 +203,32 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     controller: _emailController,
                     hintText: 'Your email',
                     readOnly: true,
-                    suffix: GestureDetector(
-                      onTap: _saving ? null : _onChangeEmail,
-                      behavior: HitTestBehavior.opaque,
-                      child: Padding(
-                        padding: EdgeInsets.only(right: 12.w),
-                        child: AppText(
-                          'Change',
-                          color: ui.brandPrimary,
-                          fontSize: FontSizes.font12Sp,
-                          fontWeight: FontWeights.weight700,
-                        ),
-                      ),
-                    ),
+                    enabled: !_emailLocked,
+                    footnote: _emailLocked
+                        ? 'You signed in with $_emailLockedBy, so your email can\'t be changed.'
+                        : null,
+                    suffix: _emailLocked
+                        ? Padding(
+                            padding: EdgeInsets.only(right: 12.w),
+                            child: Icon(
+                              Icons.lock_outline_rounded,
+                              size: 16.sp,
+                              color: ui.textSecondary,
+                            ),
+                          )
+                        : GestureDetector(
+                            onTap: _saving ? null : _onChangeEmail,
+                            behavior: HitTestBehavior.opaque,
+                            child: Padding(
+                              padding: EdgeInsets.only(right: 12.w),
+                              child: AppText(
+                                'Change',
+                                color: ui.brandPrimary,
+                                fontSize: FontSizes.font12Sp,
+                                fontWeight: FontWeights.weight700,
+                              ),
+                            ),
+                          ),
                   ),
                   16.verticalSpace,
                   _LabeledField(
@@ -283,8 +311,10 @@ class _LabeledField extends StatelessWidget {
     this.validator,
     this.inputFormatters,
     this.readOnly = false,
+    this.enabled = true,
     this.prefixText,
     this.suffix,
+    this.footnote,
   });
 
   final AppUiColors ui;
@@ -299,11 +329,17 @@ class _LabeledField extends StatelessWidget {
   /// When true the field is shown but cannot be edited (e.g. email).
   final bool readOnly;
 
+  /// When false the field is fully disabled: not focusable or selectable.
+  final bool enabled;
+
   /// Fixed, non-editable text shown before the input (e.g. the dial code).
   final String? prefixText;
 
   /// Optional trailing widget inside the field (e.g. the email "Change" action).
   final Widget? suffix;
+
+  /// Optional note shown under the field (e.g. why it can't be edited).
+  final String? footnote;
 
   @override
   Widget build(BuildContext context) {
@@ -325,9 +361,10 @@ class _LabeledField extends StatelessWidget {
           inputFormatters: inputFormatters,
           maxLines: 1,
           readOnly: readOnly,
-          enableInteractiveSelection: !readOnly,
+          enabled: enabled,
+          enableInteractiveSelection: !readOnly && enabled,
           style: TextStyle(
-            color: readOnly ? ui.textSecondary : ui.textPrimary,
+            color: readOnly || !enabled ? ui.textSecondary : ui.textPrimary,
             fontSize: FontSizes.font14Sp,
             fontWeight: FontWeights.weight500,
             fontFamily: AppFonts.lexend,
@@ -335,7 +372,7 @@ class _LabeledField extends StatelessWidget {
           cursorColor: ui.brandPrimary,
           decoration: InputDecoration(
             filled: true,
-            fillColor: readOnly
+            fillColor: readOnly || !enabled
                 ? ui.inputFill.withValues(alpha: 0.5)
                 : ui.inputFill,
             isDense: true,
@@ -361,6 +398,10 @@ class _LabeledField extends StatelessWidget {
               borderRadius: BorderRadius.circular(12.r),
               borderSide: BorderSide(color: ui.inputBorder),
             ),
+            disabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12.r),
+              borderSide: BorderSide(color: ui.inputBorder),
+            ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12.r),
               borderSide: BorderSide(color: ui.brandPrimary),
@@ -380,6 +421,15 @@ class _LabeledField extends StatelessWidget {
             ),
           ),
         ),
+        if (footnote != null) ...[
+          6.verticalSpace,
+          AppText(
+            footnote!,
+            color: ui.textSecondary,
+            fontSize: FontSizes.font10Sp,
+            fontWeight: FontWeights.weight400,
+          ),
+        ],
       ],
     );
   }

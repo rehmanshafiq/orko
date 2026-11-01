@@ -9,9 +9,6 @@ import 'package:equatable/equatable.dart';
 ///     "base_url_live": "https://apis-py.orkofleet.com/",
 ///     "base_url_qa": "https://staging-python.orkofleet.com/",
 ///     "domain": "Hubco",
-///     "google_places_api_key": "AIza...",
-///     "autocomplete_url": "https://maps.googleapis.com/maps/api/place/autocomplete/json",
-///     "details_url": "https://maps.googleapis.com/maps/api/place/details/json",
 ///     "privacy_policy_url": "https://green.hubpower.com/privacy-policy/",
 ///     "play_store_url": "https://play.google.com/store/apps/details?id=com.orko_hubco.mobile.orko_hubco2",
 ///     "app_store_url": "https://apps.apple.com/us/app/hubco-green-limited-hgl/id6785873046",
@@ -64,9 +61,6 @@ class ApiConstants extends Equatable {
     required this.baseUrlLive,
     required this.baseUrlQa,
     required this.domain,
-    required this.googlePlacesApiKey,
-    required this.autocompleteUrl,
-    required this.detailsUrl,
     required this.privacyPolicyUrl,
     this.playStoreUrl = '',
     this.appStoreUrl = '',
@@ -76,9 +70,6 @@ class ApiConstants extends Equatable {
   final String baseUrlLive;
   final String baseUrlQa;
   final String domain;
-  final String googlePlacesApiKey;
-  final String autocompleteUrl;
-  final String detailsUrl;
   final String privacyPolicyUrl;
 
   /// Play Store listing opened by the update prompts on Android.
@@ -97,9 +88,6 @@ class ApiConstants extends Equatable {
       baseUrlLive: json['base_url_live'] as String? ?? '',
       baseUrlQa: json['base_url_qa'] as String? ?? '',
       domain: json['domain'] as String? ?? '',
-      googlePlacesApiKey: json['google_places_api_key'] as String? ?? '',
-      autocompleteUrl: json['autocomplete_url'] as String? ?? '',
-      detailsUrl: json['details_url'] as String? ?? '',
       privacyPolicyUrl: json['privacy_policy_url'] as String? ?? '',
       playStoreUrl: json['play_store_url'] as String? ?? '',
       appStoreUrl: json['app_store_url'] as String? ?? '',
@@ -116,9 +104,6 @@ class ApiConstants extends Equatable {
       'base_url_live': baseUrlLive,
       'base_url_qa': baseUrlQa,
       'domain': domain,
-      'google_places_api_key': googlePlacesApiKey,
-      'autocomplete_url': autocompleteUrl,
-      'details_url': detailsUrl,
       'privacy_policy_url': privacyPolicyUrl,
       'play_store_url': playStoreUrl,
       'app_store_url': appStoreUrl,
@@ -130,9 +115,6 @@ class ApiConstants extends Equatable {
     String? baseUrlLive,
     String? baseUrlQa,
     String? domain,
-    String? googlePlacesApiKey,
-    String? autocompleteUrl,
-    String? detailsUrl,
     String? privacyPolicyUrl,
     String? playStoreUrl,
     String? appStoreUrl,
@@ -142,9 +124,6 @@ class ApiConstants extends Equatable {
       baseUrlLive: baseUrlLive ?? this.baseUrlLive,
       baseUrlQa: baseUrlQa ?? this.baseUrlQa,
       domain: domain ?? this.domain,
-      googlePlacesApiKey: googlePlacesApiKey ?? this.googlePlacesApiKey,
-      autocompleteUrl: autocompleteUrl ?? this.autocompleteUrl,
-      detailsUrl: detailsUrl ?? this.detailsUrl,
       privacyPolicyUrl: privacyPolicyUrl ?? this.privacyPolicyUrl,
       playStoreUrl: playStoreUrl ?? this.playStoreUrl,
       appStoreUrl: appStoreUrl ?? this.appStoreUrl,
@@ -157,9 +136,6 @@ class ApiConstants extends Equatable {
         baseUrlLive,
         baseUrlQa,
         domain,
-        googlePlacesApiKey,
-        autocompleteUrl,
-        detailsUrl,
         privacyPolicyUrl,
         playStoreUrl,
         appStoreUrl,
@@ -228,6 +204,8 @@ class ApiEndpoints extends Equatable {
     required this.notificationsDeviceToken,
     required this.cvpSupportTicket,
     required this.cvpSupportTicketCategories,
+    required this.placesAutocomplete,
+    required this.placesDetails,
   });
 
   final String chargingStationMap;
@@ -288,6 +266,10 @@ class ApiEndpoints extends Equatable {
   final String notificationsDeviceToken;
   final String cvpSupportTicket;
   final String cvpSupportTicketCategories;
+
+  /// Backend proxy for Google Places (the app ships no Places key).
+  final String placesAutocomplete;
+  final String placesDetails;
 
   factory ApiEndpoints.fromJson(Map<String, dynamic> json) {
     return ApiEndpoints(
@@ -377,6 +359,14 @@ class ApiEndpoints extends Equatable {
         json['cvp_support_ticket_categories'] as String?,
         'api/v1/cvp/cvp-support-ticket/categories/',
       ),
+      placesAutocomplete: _nonEmpty(
+        json['places_autocomplete'] as String?,
+        'api/v1/cvp/places/autocomplete/',
+      ),
+      placesDetails: _nonEmpty(
+        json['places_details'] as String?,
+        'api/v1/cvp/places/details/',
+      ),
     );
   }
 
@@ -446,6 +436,8 @@ class ApiEndpoints extends Equatable {
       'notifications_device_token': notificationsDeviceToken,
       'cvp_support_ticket': cvpSupportTicket,
       'cvp_support_ticket_categories': cvpSupportTicketCategories,
+      'places_autocomplete': placesAutocomplete,
+      'places_details': placesDetails,
     };
   }
 
@@ -508,6 +500,8 @@ class ApiEndpoints extends Equatable {
     String? notificationsDeviceToken,
     String? cvpSupportTicket,
     String? cvpSupportTicketCategories,
+    String? placesAutocomplete,
+    String? placesDetails,
   }) {
     return ApiEndpoints(
       chargingStationMap: chargingStationMap ?? this.chargingStationMap,
@@ -579,6 +573,8 @@ class ApiEndpoints extends Equatable {
       cvpSupportTicket: cvpSupportTicket ?? this.cvpSupportTicket,
       cvpSupportTicketCategories:
           cvpSupportTicketCategories ?? this.cvpSupportTicketCategories,
+      placesAutocomplete: placesAutocomplete ?? this.placesAutocomplete,
+      placesDetails: placesDetails ?? this.placesDetails,
     );
   }
 
@@ -642,5 +638,7 @@ class ApiEndpoints extends Equatable {
     notificationsDeviceToken,
     cvpSupportTicket,
     cvpSupportTicketCategories,
+    placesAutocomplete,
+    placesDetails,
   ];
 }

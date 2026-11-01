@@ -270,7 +270,7 @@ class _TripPlannerMobileViewState extends State<TripPlannerMobileView> {
       );
   }
 
-  /// Opens the Google Places search sheet and stores the picked place on the
+  /// Opens the place search sheet and stores the picked place on the
   /// bloc so trip planning uses its exact coordinates.
   Future<void> _pickLocation(
     BuildContext context,

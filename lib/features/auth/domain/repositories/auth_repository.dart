@@ -1,5 +1,6 @@
 import 'package:orko_hubco/core/error/failures.dart';
 import 'package:orko_hubco/core/usecase/usecase.dart';
+import 'package:orko_hubco/features/auth/domain/entities/login_method.dart';
 import 'package:orko_hubco/features/auth/domain/entities/signup_result_entity.dart';
 import 'package:orko_hubco/features/auth/domain/entities/user_entity.dart';
 
@@ -18,10 +19,12 @@ abstract class AuthRepository {
   /// Authenticates with a Google account via the `login_with_google` endpoint.
   /// Sends `{ name, email }`, persists the issued access token + user, and
   /// returns the [SignUpResultEntity] on success or a [Failure] on error.
+  /// [loginMethod] records whether the token came from Google or Apple.
   Future<Either<Failure, SignUpResultEntity>> loginWithGoogle({
     required String name,
     required String email,
     required String token,
+    LoginMethod loginMethod = LoginMethod.google,
   });
 
   /// Completes sign-up via the `sign_up_form` endpoint, persisting the issued

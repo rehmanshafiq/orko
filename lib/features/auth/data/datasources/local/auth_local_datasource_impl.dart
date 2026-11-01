@@ -5,6 +5,7 @@ import 'package:orko_hubco/core/router/auth_notifier.dart';
 import 'package:orko_hubco/core/services/local_storage_service.dart';
 import 'package:orko_hubco/features/auth/data/datasources/local/auth_local_datasource.dart';
 import 'package:orko_hubco/features/auth/data/models/user_model.dart';
+import 'package:orko_hubco/features/auth/domain/entities/login_method.dart';
 
 /// Concrete implementation of [AuthLocalDataSource] using GetStorage.
 class AuthLocalDataSourceImpl implements AuthLocalDataSource {
@@ -33,11 +34,14 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
   Future<void> cacheTokens({
     required String accessToken,
     String? refreshToken,
+    LoginMethod loginMethod = LoginMethod.password,
   }) async {
     await storageService.saveAccessToken(accessToken);
     if (refreshToken != null) {
       await storageService.saveRefreshToken(refreshToken);
     }
+    // Overwrites any method left by a previous account on this device.
+    await storageService.write(StorageConstants.loginMethod, loginMethod.name);
     await storageService.setLoggedIn(true);
     await storageService.setPendingOtpVerification(false);
     // A real session supersedes any guest mode.
@@ -51,6 +55,11 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
     if (accessToken.isNotEmpty) {
       await storageService.saveAccessToken(accessToken);
     }
+    // OTP-pending sessions only come from password sign-up / login.
+    await storageService.write(
+      StorageConstants.loginMethod,
+      LoginMethod.password.name,
+    );
     await storageService.setPendingOtpVerification(true);
     await storageService.setLoggedIn(false);
     await storageService.setGuest(false);
@@ -75,6 +84,11 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
   bool get isPendingOtpVerification => storageService.isPendingOtpVerification;
 
   @override
+  LoginMethod? get loginMethod => LoginMethod.fromName(
+        storageService.read<String>(StorageConstants.loginMethod),
+      );
+
+  @override
   Future<void> clearCache() async {
     // Fully remove the encrypted secrets rather than blanking them, so nothing
     // sensitive lingers after logout.
@@ -82,6 +96,7 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
     await storageService.remove(StorageConstants.accessToken);
     await storageService.remove(StorageConstants.refreshToken);
     await storageService.remove(StorageConstants.userId);
+    await storageService.remove(StorageConstants.loginMethod);
     await storageService.setLoggedIn(false);
     await storageService.setPendingOtpVerification(false);
     await storageService.setGuest(false);

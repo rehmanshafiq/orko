@@ -9,6 +9,9 @@ class StorageConstants {
   static const String isLoggedIn = 'is_logged_in';
   static const String isGuest = 'is_guest';
 
+  /// [LoginMethod] name of the current session (`password`/`google`/`apple`).
+  static const String loginMethod = 'login_method';
+
   /// True between sign-up (or login of an unverified account) and a
   /// successful OTP verification. While set, the user holds a token but is NOT
   /// logged in, and every cold start routes back to the OTP screen.

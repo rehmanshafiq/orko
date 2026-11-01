@@ -3,11 +3,14 @@ import 'package:orko_hubco/core/utils/app_logger.dart';
 import 'package:dio/dio.dart';
 import 'package:orko_hubco/core/error/exceptions.dart';
 import 'package:orko_hubco/core/network/api_client.dart';
+import 'package:orko_hubco/core/network/interceptors/error_interceptor.dart';
 import 'package:orko_hubco/features/remote_config/data/models/remote_config_model.dart';
 import 'package:orko_hubco/features/remote_config/data/services/remote_config_service.dart';
 import 'package:orko_hubco/features/trip/data/datasources/remote/trip_remote_datasource.dart';
+import 'package:orko_hubco/features/trip/data/models/place_model.dart';
 import 'package:orko_hubco/features/trip/data/models/saved_trip_model.dart';
 import 'package:orko_hubco/features/trip/data/models/trip_plan_result_model.dart';
+import 'package:orko_hubco/features/trip/domain/usecases/place_search_params.dart';
 import 'package:orko_hubco/features/trip/domain/usecases/trip_plan_params.dart';
 
 class TripRemoteDataSourceImpl implements TripRemoteDataSource {
@@ -138,6 +141,63 @@ class TripRemoteDataSourceImpl implements TripRemoteDataSource {
       return SavedTripModel.fromJson(Map<String, dynamic>.from(body));
     });
   }
+
+  @override
+  Future<List<PlaceSuggestionModel>> searchPlaces(
+    PlaceAutocompleteParams params,
+  ) async {
+    return _guard('places-autocomplete', () async {
+      final url = _endpointUrl(
+        (e) => e.placesAutocomplete,
+        fallbackPath: 'api/v1/cvp/places/autocomplete/',
+        unavailableMessage: 'Location search is not available right now',
+      );
+
+      final response = await apiClient.get(
+        url,
+        queryParameters: params.toQuery(),
+        options: _silentErrors,
+      );
+      final body = _bodyOf(response, fallback: 'Request Failed');
+      final predictions = body is Map ? body['predictions'] : null;
+      if (predictions is! List) return const <PlaceSuggestionModel>[];
+      return predictions
+          .whereType<Map>()
+          .map((e) => PlaceSuggestionModel.fromJson(Map<String, dynamic>.from(e)))
+          .where((s) => s.placeId.isNotEmpty && s.primaryText.isNotEmpty)
+          .toList(growable: false);
+    });
+  }
+
+  @override
+  Future<PlaceLocationModel> getPlaceDetails(PlaceDetailsParams params) async {
+    return _guard('places-details', () async {
+      final url = _endpointUrl(
+        (e) => e.placesDetails,
+        fallbackPath: 'api/v1/cvp/places/details/',
+        unavailableMessage: 'Location search is not available right now',
+      );
+
+      final response = await apiClient.get(
+        url,
+        queryParameters: params.toQuery(),
+        options: _silentErrors,
+      );
+      final body = _bodyOf(response, fallback: 'Request Failed');
+      final place = body is Map
+          ? PlaceLocationModel.tryFromJson(Map<String, dynamic>.from(body))
+          : null;
+      if (place == null) {
+        throw const ServerException(message: 'Place not found.');
+      }
+      return place;
+    });
+  }
+
+  /// The search sheet shows Places errors inline (with retry), so skip the
+  /// global error toast for them. 401 handling still runs as usual.
+  static final Options _silentErrors =
+      Options(extra: {ErrorInterceptor.silentKey: true});
 
   // ── Helpers ───────────────────────────────────────────────────────────
 

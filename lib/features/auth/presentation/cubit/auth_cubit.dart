@@ -12,6 +12,7 @@ import 'package:orko_hubco/core/services/push_notification_service.dart';
 import 'package:orko_hubco/core/usecase/usecase.dart';
 import 'package:orko_hubco/features/auth/data/datasources/local/auth_local_datasource.dart';
 import 'package:orko_hubco/features/auth/domain/usecases/login_usecase.dart';
+import 'package:orko_hubco/features/auth/domain/entities/login_method.dart';
 import 'package:orko_hubco/features/auth/domain/usecases/login_with_google_usecase.dart';
 import 'package:orko_hubco/features/auth/domain/usecases/resend_otp_usecase.dart';
 import 'package:orko_hubco/features/auth/domain/usecases/signup_usecase.dart';
@@ -198,6 +199,7 @@ class AuthCubit extends Cubit<AuthState> {
         name: account.name,
         email: account.email,
         token: account.firebaseIdToken,
+        loginMethod: LoginMethod.apple,
       ),
     );
 

@@ -21,8 +21,8 @@ import 'package:flutter/services.dart' show rootBundle;
 ///     echo | openssl s_client -connect $H:443 -servername $H -showcerts; done
 ///   # save each intermediate (2nd cert) into assets/certs/api_ca_bundle.pem
 ///
-/// Only the API Dio uses this adapter; Google Places, Firebase and the receipt
-/// blob host use their own clients and keep default system trust.
+/// Only the API Dio uses this adapter; Firebase and the receipt blob host use
+/// their own clients and keep default system trust.
 class CertificatePinning {
   const CertificatePinning._();
 
