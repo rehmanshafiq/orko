@@ -88,12 +88,14 @@ Future<void> clearUserData(LocalStorageService storage) async {
 
 /// Opens the edit-profile screen (guests are prompted to sign in first) and
 /// refreshes the cached-user UI when changes are saved.
-Future<void> openEditProfile(
-  BuildContext context,
-  UserModel? cachedUser,
-  bool isGuest,
-) async {
-  if (isGuest || cachedUser == null) {
+///
+/// The cached user is read at tap time rather than taken from the caller, so a
+/// caller that hasn't rebuilt since the last edit (e.g. a `const` tab body)
+/// never prefills the form with stale data.
+Future<void> openEditProfile(BuildContext context) async {
+  final storage = sl<LocalStorageService>();
+  final cachedUser = readCachedUser(storage);
+  if (storage.isGuest || cachedUser == null) {
     AuthRequiredDialog.show(
       context,
       feature: 'profile',

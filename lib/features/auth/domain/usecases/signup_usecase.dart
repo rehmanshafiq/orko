@@ -26,7 +26,7 @@ class SignUpParams {
   final String name;
   final String phoneNumber;
   final String countryCode;
-  final String email;
+  final String? email;
   final String password;
   final String confirmPassword;
 
@@ -34,7 +34,7 @@ class SignUpParams {
     required this.name,
     required this.phoneNumber,
     required this.countryCode,
-    required this.email,
+    this.email,
     required this.password,
     required this.confirmPassword,
   });

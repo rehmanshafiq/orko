@@ -48,7 +48,7 @@ class PersonalInfoCard extends StatelessWidget {
               ),
               PrimaryButtonWidget(
                 text: 'Edit',
-                onPress: () => openEditProfile(context, cachedUser, isGuest),
+                onPress: () => openEditProfile(context),
                 buttonWidth: 88.w,
                 buttonHeight: 38.h,
                 cornerRadius: 24.r,

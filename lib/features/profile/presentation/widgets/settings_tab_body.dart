@@ -3,8 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
-import 'package:orko_hubco/core/di/injection_container.dart';
-import 'package:orko_hubco/core/services/local_storage_service.dart';
 import 'package:orko_hubco/core/theme/theme_cubit.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
 import 'package:orko_hubco/core/utils/widgets/primary_button_widget.dart';
@@ -20,9 +18,6 @@ class SettingsTabBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ui = AppUiColors.of(context);
-    final storage = sl<LocalStorageService>();
-    final cachedUser = readCachedUser(storage);
-    final isGuest = storage.isGuest || cachedUser == null;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -42,7 +37,7 @@ class SettingsTabBody extends StatelessWidget {
               AccountTile(
                 icon: Icons.person_outline_rounded,
                 label: 'Edit Profile',
-                onTap: () => openEditProfile(context, cachedUser, isGuest),
+                onTap: () => openEditProfile(context),
               ),
               const DividerLine(),
               AccountTile(

@@ -28,7 +28,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
-  final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   bool _obscurePassword = true;
@@ -40,7 +39,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   void dispose() {
     _nameController.dispose();
     _phoneController.dispose();
-    _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
@@ -63,7 +61,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
           name: _nameController.text.trim(),
           phoneNumber: _phoneController.text.trim(),
           countryCode: _countryCode,
-          email: _emailController.text.trim(),
           password: _passwordController.text,
           confirmPassword: _confirmPasswordController.text,
         );
@@ -147,7 +144,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
       body: BlocConsumer<AuthCubit, AuthState>(
         listener: (context, state) {
           if (state is SignUpSuccess) {
-            final email = _emailController.text.trim();
             context.push(
               '/verify-otp',
               extra: {
@@ -156,10 +152,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 'countryCode': _countryCode,
               },
             );
-            // AppHelpers.showSnackBar(
-            //   context,
-            //   'An OTP verification email has been sent to $email',
-            // );
           } else if (state is AuthError) {
             AppHelpers.showSnackBar(context, state.message, isError: true);
           }
@@ -252,15 +244,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     6.verticalSpace,
                     _buildPhoneField(ui),
                     6.verticalSpace,
-                    _buildField(
-                      ui,
-                      hintText: 'Email Address',
-                      controller: _emailController,
-                      keyboardType: TextInputType.emailAddress,
-                      validator: AppHelpers.validateEmail,
-                      prefixIcon: const Icon(Icons.mail_outline, color: AppColors.hintColor, size: 18),
-                    ),
-                    8.verticalSpace,
                     _buildField(
                       ui,
                       hintText: 'Password',

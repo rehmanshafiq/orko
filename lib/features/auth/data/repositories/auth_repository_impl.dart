@@ -100,7 +100,7 @@ class AuthRepositoryImpl implements AuthRepository {
     required String name,
     required String phoneNumber,
     required String countryCode,
-    required String email,
+    String? email,
     required String password,
     required String confirmPassword,
   }) async {

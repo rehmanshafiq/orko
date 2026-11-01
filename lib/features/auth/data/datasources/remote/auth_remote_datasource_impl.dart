@@ -148,7 +148,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     required String name,
     required String phoneNumber,
     required String countryCode,
-    required String email,
+    String? email,
     required String password,
     required String confirmPassword,
   }) async {
@@ -171,7 +171,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
           'name': name,
           'phone_number': phoneNumber,
           'country_code': countryCode,
-          'email': email,
+          if (email != null && email.isNotEmpty) 'email': email,
           'password': password,
           'confirm_password': confirmPassword,
         },
