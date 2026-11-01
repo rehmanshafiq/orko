@@ -151,12 +151,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     setState(() => _saving = true);
 
+    // Only the name is edited here; email and phone are updated through their
+    // own OTP flows, so they're left out of the payload.
     final result = await sl<EditUserProfileUseCase>()(
-      EditUserProfileParams(
-        name: _nameController.text,
-        phoneNumber: _phoneController.text.trim(),
-        countryCode: _countryCode,
-      ),
+      EditUserProfileParams(name: _nameController.text),
     );
 
     if (!mounted) return;
