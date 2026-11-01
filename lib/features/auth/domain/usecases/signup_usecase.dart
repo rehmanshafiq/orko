@@ -13,7 +13,7 @@ class SignUpUseCase implements UseCase<SignUpResultEntity, SignUpParams> {
   Future<Either<Failure, SignUpResultEntity>> call(SignUpParams params) {
     return repository.signUp(
       name: params.name,
-      phoneNumber: params.phoneNumber,
+      phoneNumberEmail: params.phoneNumberEmail,
       countryCode: params.countryCode,
       email: params.email,
       password: params.password,
@@ -24,7 +24,7 @@ class SignUpUseCase implements UseCase<SignUpResultEntity, SignUpParams> {
 
 class SignUpParams {
   final String name;
-  final String phoneNumber;
+  final String phoneNumberEmail;
   final String countryCode;
   final String? email;
   final String password;
@@ -32,7 +32,7 @@ class SignUpParams {
 
   const SignUpParams({
     required this.name,
-    required this.phoneNumber,
+    required this.phoneNumberEmail,
     required this.countryCode,
     this.email,
     required this.password,

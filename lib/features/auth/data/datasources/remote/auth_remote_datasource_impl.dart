@@ -21,7 +21,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
   @override
   Future<SignUpResultModel> login({
-    required String phoneNumber,
+    required String phoneNumberEmail,
     required String countryCode,
     required String password,
   }) async {
@@ -44,7 +44,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       final response = await apiClient.post(
         url,
         data: {
-          'phone_number': phoneNumber,
+          'phone_number_email': phoneNumberEmail,
           'country_code': countryCode,
           'password': password,
           // FCM device token so the backend can target push notifications.
@@ -147,7 +147,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   @override
   Future<SignUpResultModel> completeSignup({
     required String name,
-    required String phoneNumber,
+    required String phoneNumberEmail,
     required String countryCode,
     String? email,
     required String password,
@@ -170,7 +170,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         url,
         data: {
           'name': name,
-          'phone_number': phoneNumber,
+          'phone_number_email': phoneNumberEmail,
           'country_code': countryCode,
           if (email != null && email.isNotEmpty) 'email': email,
           'password': password,
@@ -330,7 +330,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
   @override
   Future<int> loginWithOtp({
-    required String phoneNumber,
+    required String phoneNumberEmail,
     required String countryCode,
   }) async {
     try {
@@ -351,7 +351,10 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
       final response = await apiClient.post(
         url,
-        data: {'phone_number': phoneNumber, 'country_code': countryCode},
+        data: {
+          'phone_number_email': phoneNumberEmail,
+          'country_code': countryCode,
+        },
       );
 
       final data = response.data;

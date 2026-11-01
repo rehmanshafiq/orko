@@ -12,7 +12,7 @@ class LoginUseCase implements UseCase<SignUpResultEntity, LoginParams> {
   @override
   Future<Either<Failure, SignUpResultEntity>> call(LoginParams params) {
     return repository.login(
-      phoneNumber: params.phoneNumber,
+      phoneNumberEmail: params.phoneNumberEmail,
       countryCode: params.countryCode,
       password: params.password,
     );
@@ -20,12 +20,12 @@ class LoginUseCase implements UseCase<SignUpResultEntity, LoginParams> {
 }
 
 class LoginParams {
-  final String phoneNumber;
+  final String phoneNumberEmail;
   final String countryCode;
   final String password;
 
   const LoginParams({
-    required this.phoneNumber,
+    required this.phoneNumberEmail,
     required this.countryCode,
     required this.password,
   });

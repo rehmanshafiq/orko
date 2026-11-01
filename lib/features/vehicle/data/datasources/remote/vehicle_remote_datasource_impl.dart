@@ -3,6 +3,7 @@ import 'package:orko_hubco/core/utils/app_logger.dart';
 import 'package:dio/dio.dart';
 import 'package:orko_hubco/core/error/exceptions.dart';
 import 'package:orko_hubco/core/network/api_client.dart';
+import 'package:orko_hubco/core/network/interceptors/error_interceptor.dart';
 import 'package:orko_hubco/features/remote_config/data/models/remote_config_model.dart';
 import 'package:orko_hubco/features/remote_config/data/services/remote_config_service.dart';
 import 'package:orko_hubco/features/vehicle/data/datasources/remote/vehicle_remote_datasource.dart';
@@ -79,6 +80,9 @@ class VehicleRemoteDataSourceImpl implements VehicleRemoteDataSource {
           if (vehicleRfid != null && vehicleRfid.isNotEmpty)
             'registration_no': vehicleRfid,
         },
+        // The add-vehicle dialog shows the failure itself; skip the global
+        // toast so the message isn't shown twice.
+        options: Options(extra: {ErrorInterceptor.silentKey: true}),
       );
 
       final body = _bodyOf(response, fallback: 'Failed to add vehicle');

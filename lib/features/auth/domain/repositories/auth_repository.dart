@@ -7,11 +7,11 @@ import 'package:orko_hubco/features/auth/domain/entities/user_entity.dart';
 /// Abstract repository contract — lives in the domain layer.
 /// The data layer provides the implementation.
 abstract class AuthRepository {
-  /// Logs in with phone number, country code and password via the `login_api`
+  /// Logs in with phone number or email, country code and password via the `login_api`
   /// endpoint. Persists the issued access token + user, and returns the
   /// [SignUpResultEntity] on success or a [Failure] on error.
   Future<Either<Failure, SignUpResultEntity>> login({
-    required String phoneNumber,
+    required String phoneNumberEmail,
     required String countryCode,
     required String password,
   });
@@ -31,7 +31,7 @@ abstract class AuthRepository {
   /// access token locally. Returns the [SignUpResultEntity] on success.
   Future<Either<Failure, SignUpResultEntity>> signUp({
     required String name,
-    required String phoneNumber,
+    required String phoneNumberEmail,
     required String countryCode,
     String? email,
     required String password,
@@ -52,7 +52,7 @@ abstract class AuthRepository {
   /// Forgot-password step 1 — requests an OTP via `login_with_otp`. Returns the
   /// issued `otp_id` to use with [verifyResetOtp].
   Future<Either<Failure, int>> loginWithOtp({
-    required String phoneNumber,
+    required String phoneNumberEmail,
     required String countryCode,
   });
 

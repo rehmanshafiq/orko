@@ -61,7 +61,7 @@ class AuthCubit extends Cubit<AuthState> {
   /// Performs login via the `login_api` endpoint. On success the access token +
   /// user are persisted and [AuthAuthenticated] is emitted.
   Future<void> login({
-    required String phoneNumber,
+    required String phoneNumberEmail,
     required String countryCode,
     required String password,
   }) async {
@@ -69,7 +69,7 @@ class AuthCubit extends Cubit<AuthState> {
 
     final result = await _loginUseCase(
       LoginParams(
-        phoneNumber: phoneNumber,
+        phoneNumberEmail: phoneNumberEmail,
         countryCode: countryCode,
         password: password,
       ),
@@ -226,7 +226,7 @@ class AuthCubit extends Cubit<AuthState> {
   /// otherwise [AuthAuthenticated] is emitted and the UI routes home.
   Future<void> signUp({
     required String name,
-    required String phoneNumber,
+    required String phoneNumberEmail,
     required String countryCode,
     String? email,
     required String password,
@@ -237,7 +237,7 @@ class AuthCubit extends Cubit<AuthState> {
     final result = await _signUpUseCase(
       SignUpParams(
         name: name,
-        phoneNumber: phoneNumber,
+        phoneNumberEmail: phoneNumberEmail,
         countryCode: countryCode,
         email: email,
         password: password,
