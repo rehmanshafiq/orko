@@ -222,6 +222,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     //   fontWeight: FontWeights.weight400,
                     // ),
                     16.verticalSpace,
+                    _buildFieldLabel(ui, 'Full Name'),
+                    8.verticalSpace,
                     _buildField(
                       ui,
                       hintText: 'Full Name',
@@ -234,20 +236,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ],
                       prefixIcon: const Icon(Icons.person_outline, color: AppColors.hintColor, size: 18),
                     ),
-                    4.verticalSpace,
-                    Row(
-                      children: [
-                        8.horizontalSpace,
-                        AppText(
-                          'Phone Number or Email Address',
-                          color: ui.textPrimary,
-                          fontSize: FontSizes.font12Sp,
-                          fontWeight: FontWeights.weight500,
-                        ),
-                      ],
-                    ),
-                    6.verticalSpace,
+                    8.verticalSpace,
+                    _buildFieldLabel(ui, 'Phone Number or Email Address'),
+                    8.verticalSpace,
                     _buildPhoneEmailField(ui),
+                    8.verticalSpace,
+                    _buildFieldLabel(ui, 'Password'),
                     6.verticalSpace,
                     _buildField(
                       ui,
@@ -285,6 +279,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                     ],
                     8.verticalSpace,
+                    _buildFieldLabel(ui, 'Confirm Password'),
+                    6.verticalSpace,
                     _buildField(
                       ui,
                       hintText: 'Confirm Password',
@@ -387,7 +383,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                     16.verticalSpace,
                     GuestButton(enabled: state is! AuthLoading),
-                    18.verticalSpace,
+                    14.verticalSpace,
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -419,6 +415,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
           );
         },
       ),
+    );
+  }
+
+  Widget _buildFieldLabel(AppUiColors ui, String label) {
+    return Row(
+      children: [
+        8.horizontalSpace,
+        AppText(
+          label,
+          color: ui.textPrimary,
+          fontSize: FontSizes.font12Sp,
+          fontWeight: FontWeights.weight500,
+        ),
+      ],
     );
   }
 
@@ -510,6 +520,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ),
         prefixIcon: prefixIcon,
         suffixIcon: suffixIcon,
+        counterText: '',
         filled: true,
         fillColor: ui.inputFill,
         enabledBorder: OutlineInputBorder(

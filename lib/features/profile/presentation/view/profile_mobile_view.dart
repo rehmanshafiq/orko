@@ -8,6 +8,7 @@ import 'package:orko_hubco/core/utils/widgets/app_text.dart';
 import 'package:orko_hubco/core/utils/widgets/primary_button_widget.dart';
 import 'package:orko_hubco/features/profile/presentation/cubit/profile_cubit.dart';
 import 'package:orko_hubco/features/profile/presentation/cubit/profile_state.dart';
+import 'package:orko_hubco/features/profile/presentation/widgets/app_version_text.dart';
 import 'package:orko_hubco/features/profile/presentation/widgets/delete_account_button.dart';
 import 'package:orko_hubco/features/profile/presentation/widgets/logout_button.dart';
 import 'package:orko_hubco/features/profile/presentation/widgets/profile_header.dart';
@@ -86,6 +87,7 @@ class _ProfileLoadedView extends StatelessWidget {
                   24.verticalSpace,
                   const LogoutButton(),
                   const DeleteAccountButton(),
+                  const AppVersionText(),
                 ],
                 16.verticalSpace,
               ],
