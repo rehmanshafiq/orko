@@ -13,6 +13,7 @@ import 'package:orko_hubco/features/auth/domain/entities/user_entity.dart';
 import 'package:orko_hubco/features/auth/domain/usecases/edit_user_profile_usecase.dart';
 import 'package:orko_hubco/features/profile/presentation/screens/change_email_screen.dart';
 import 'package:orko_hubco/features/profile/presentation/screens/change_phone_screen.dart';
+import 'package:orko_hubco/features/profile/presentation/widgets/contact_change_widgets.dart';
 
 /// Edit-profile form. Prefills from the cached [user], submits the
 /// `edit_user_profile` API, and pops `true` on success (after which the cached
@@ -268,7 +269,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     label: 'Phone',
                     controller: _phoneController,
                     hintText: 'Add your phone number',
-                    prefixText: '$_countryCode ',
+                    dialCode: _countryCode,
                     // Changed only through the OTP flow (`change_phone`).
                     readOnly: true,
                     suffix: GestureDetector(
@@ -350,7 +351,7 @@ class _LabeledField extends StatelessWidget {
     this.validator,
     this.readOnly = false,
     this.enabled = true,
-    this.prefixText,
+    this.dialCode,
     this.suffix,
     this.footnote,
   });
@@ -368,8 +369,8 @@ class _LabeledField extends StatelessWidget {
   /// When false the field is fully disabled: not focusable or selectable.
   final bool enabled;
 
-  /// Fixed, non-editable text shown before the input (e.g. the dial code).
-  final String? prefixText;
+  /// Fixed dial code shown before the input, visible even when empty.
+  final String? dialCode;
 
   /// Optional trailing widget inside the field (e.g. the email "Change" action).
   final Widget? suffix;
@@ -412,13 +413,9 @@ class _LabeledField extends StatelessWidget {
             isDense: true,
             suffixIcon: suffix,
             suffixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
-            prefixText: prefixText,
-            prefixStyle: TextStyle(
-              color: ui.textPrimary,
-              fontSize: FontSizes.font14Sp,
-              fontWeight: FontWeights.weight600,
-              fontFamily: AppFonts.lexend,
-            ),
+            prefixIcon: dialCode == null ? null : dialCodePrefix(ui, dialCode!),
+            prefixIconConstraints:
+                const BoxConstraints(minWidth: 0, minHeight: 0),
             hintText: hintText,
             hintStyle: TextStyle(
               color: AppColors.hintColor,
@@ -426,8 +423,12 @@ class _LabeledField extends StatelessWidget {
               fontWeight: FontWeights.weight400,
               fontFamily: AppFonts.lexend,
             ),
-            contentPadding:
-                EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
+            contentPadding: EdgeInsets.fromLTRB(
+              dialCode == null ? 14.w : 8.w,
+              12.h,
+              14.w,
+              12.h,
+            ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12.r),
               borderSide: BorderSide(color: ui.inputBorder),

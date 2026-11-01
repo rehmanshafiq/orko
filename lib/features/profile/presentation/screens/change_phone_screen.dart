@@ -334,7 +334,7 @@ class _ChangePhoneScreenState extends State<ChangePhoneScreen> {
                 decoration: contactFieldDecoration(
                   ui,
                   hint: '3001234567',
-                  prefixText: '${widget.countryCode} ',
+                  dialCode: widget.countryCode,
                   errorText: _phoneError,
                 ),
               ),

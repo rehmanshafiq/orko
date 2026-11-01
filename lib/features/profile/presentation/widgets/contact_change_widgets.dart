@@ -42,12 +42,29 @@ class ContactChangeButton extends StatelessWidget {
   }
 }
 
+/// Dial-code prefix (e.g. `+92`) drawn as an icon so it stays visible while
+/// the field is empty and unfocused — `prefixText` only shows once focused.
+Widget dialCodePrefix(AppUiColors ui, String dialCode) {
+  return Padding(
+    padding: EdgeInsets.only(left: 14.w),
+    child: Text(
+      dialCode,
+      style: TextStyle(
+        color: ui.textPrimary,
+        fontSize: FontSizes.font14Sp,
+        fontWeight: FontWeights.weight600,
+        fontFamily: AppFonts.lexend,
+      ),
+    ),
+  );
+}
+
 /// Input decoration for the new-email / new-phone field. [errorText] shows a
 /// server-side rejection (e.g. "already registered") under the field.
 InputDecoration contactFieldDecoration(
   AppUiColors ui, {
   String? hint,
-  String? prefixText,
+  String? dialCode,
   String? errorText,
 }) {
   return InputDecoration(
@@ -57,20 +74,20 @@ InputDecoration contactFieldDecoration(
     hintText: hint,
     errorText: errorText,
     errorMaxLines: 2,
-    prefixText: prefixText,
-    prefixStyle: TextStyle(
-      color: ui.textPrimary,
-      fontSize: FontSizes.font14Sp,
-      fontWeight: FontWeights.weight600,
-      fontFamily: AppFonts.lexend,
-    ),
+    prefixIcon: dialCode == null ? null : dialCodePrefix(ui, dialCode),
+    prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
     hintStyle: TextStyle(
       color: AppColors.hintColor,
       fontSize: FontSizes.font14Sp,
       fontWeight: FontWeights.weight400,
       fontFamily: AppFonts.lexend,
     ),
-    contentPadding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
+    contentPadding: EdgeInsets.fromLTRB(
+      dialCode == null ? 14.w : 8.w,
+      12.h,
+      14.w,
+      12.h,
+    ),
     enabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(12.r),
       borderSide: BorderSide(color: ui.inputBorder),
