@@ -1,0 +1,25 @@
+name: app_integrity
+description: >-
+  In-repo plugin exposing Google Play Integrity (Android) and Apple App Attest
+  (iOS) to Dart. Being a plugin, it is registered in every FlutterEngine the
+  app runs (phone UI, Android Auto, foreground-service isolate), not just the
+  one MainActivity/AppDelegate owns.
+version: 1.0.0
+publish_to: 'none'
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+  flutter: ">=3.3.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: com.orko_hubco.integrity
+        pluginClass: AppIntegrityPlugin
+      ios:
+        pluginClass: AppIntegrityPlugin

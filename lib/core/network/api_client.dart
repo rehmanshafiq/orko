@@ -8,6 +8,7 @@ import 'package:orko_hubco/core/network/interceptors/app_headers_interceptor.dar
 import 'package:orko_hubco/core/network/interceptors/app_update_interceptor.dart';
 import 'package:orko_hubco/core/network/interceptors/auth_interceptor.dart';
 import 'package:orko_hubco/core/network/interceptors/error_interceptor.dart';
+import 'package:orko_hubco/core/network/interceptors/integrity_interceptor.dart';
 import 'package:orko_hubco/core/network/interceptors/logging_interceptor.dart';
 import 'package:orko_hubco/features/remote_config/data/services/remote_config_service.dart';
 
@@ -49,6 +50,10 @@ class ApiClient {
       // drive the soft/force update prompts. Runs in all build modes.
       AppUpdateInterceptor(),
       AuthInterceptor(),
+      // Play Integrity token (Android) / App Attest assertion (iOS) on every
+      // Hubco call; retries once on an integrity 403. Before ErrorInterceptor
+      // so a request that passes on retry is never toasted.
+      IntegrityInterceptor(_dio),
       // Gives every failed request a clean `message` (backend text, else one
       // generic fallback) before the datasources read it.
       ErrorInterceptor(),
@@ -73,7 +78,7 @@ class ApiClient {
   /// Falls back to [ApiConstants.baseUrl] before Remote Config has resolved.
   static String get baseUrl {
     final config = RemoteConfigService.config;
-    final resolved = config?.apiConstants.baseUrlLive;
+    final resolved = config?.apiConstants.baseUrlQa;
     return (resolved == null || resolved.trim().isEmpty)
         ? ApiConstants.baseUrl
         : resolved;

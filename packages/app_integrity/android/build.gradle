@@ -1,0 +1,50 @@
+group 'com.orko_hubco.integrity'
+version '1.0'
+
+buildscript {
+    ext.kotlin_version = '2.2.20'
+
+    repositories {
+        google()
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath 'com.android.tools.build:gradle:8.11.1'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}
+
+rootProject.allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+
+android {
+    namespace 'com.orko_hubco.integrity'
+    compileSdk = flutter.compileSdkVersion
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = 17
+    }
+
+    defaultConfig {
+        minSdk 23
+    }
+
+    dependencies {
+        implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+        // Standard-request Play Integrity API (ships its own consumer R8 rules).
+        implementation 'com.google.android.play:integrity:1.4.0'
+    }
+}

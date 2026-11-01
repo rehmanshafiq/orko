@@ -1,5 +1,6 @@
 import Flutter
 import Foundation
+import app_integrity
 import firebase_core
 import firebase_remote_config
 import flutter_secure_storage
@@ -71,6 +72,8 @@ final class FlutterAutoBridge {
         add("GeolocatorPlugin") { GeolocatorPlugin.register(with: $0) }
         add("FPPPackageInfoPlusPlugin") { FPPPackageInfoPlusPlugin.register(with: $0) }
         add("PathProviderPlugin") { PathProviderPlugin.register(with: $0) }
+        // App Attest: every API call from this engine must carry an assertion.
+        add("AppIntegrityPlugin") { AppIntegrityPlugin.register(with: $0) }
     }
 
     /// Invokes a Dart method and returns its decoded result map. Never throws —

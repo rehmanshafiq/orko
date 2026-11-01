@@ -28,11 +28,14 @@ class LoggingInterceptor extends Interceptor {
     'new_password',
     'current_password',
     'otp',
-    'token'
+    'token',
     'access',
     'refresh',
     'access_token',
     'refresh_token',
+    'x-integrity-token',
+    'x-app-attest-assertion',
+    'attestation',
   };
 
   /// Returns a copy of [map] with sensitive values replaced by `***`,

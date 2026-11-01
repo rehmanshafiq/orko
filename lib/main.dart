@@ -9,6 +9,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:orko_hubco/core/di/injection_container.dart';
 import 'package:orko_hubco/core/network/certificate_pinning.dart';
+import 'package:orko_hubco/core/network/integrity/app_integrity_service.dart';
 import 'package:orko_hubco/core/network/interceptors/app_update_interceptor.dart';
 import 'package:orko_hubco/core/network/interceptors/auth_interceptor.dart';
 import 'package:orko_hubco/core/network/interceptors/error_interceptor.dart';
@@ -53,6 +54,10 @@ Future<void> main() async {
 
   // Load the pinned CA bundle before any API client is built (no-op in debug).
   await CertificatePinning.load();
+
+  // Start preparing the Play Integrity provider so the first API call doesn't
+  // wait on it (Android; no-op on iOS, which attests lazily on first call).
+  AppIntegrityService.instance.warmUp();
 
   // Initialize Firebase
   await Firebase.initializeApp(

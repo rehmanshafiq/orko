@@ -82,6 +82,10 @@ dependencies:
   firebase_auth: ^6.7.1
   crypto: ^3.0.8
   chucker_flutter: ^1.9.2
+  # Play Integrity (Android) / App Attest (iOS) bridge. In-repo plugin so it
+  # registers in every engine. See lib/core/network/integrity/.
+  app_integrity:
+    path: packages/app_integrity
 
 # Pin path_provider_foundation below 2.5.0: 2.5.0+ switched to an FFI
 # implementation backed by package:objective_c whose native framework fails
