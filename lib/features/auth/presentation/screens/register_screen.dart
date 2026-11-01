@@ -8,9 +8,11 @@ import 'package:orko_hubco/core/constants/app_images.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/utils/app_ui.dart';
 import 'package:orko_hubco/core/utils/helpers.dart';
+import 'package:orko_hubco/core/utils/phone_or_email_input_formatter.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
 import 'package:orko_hubco/core/utils/widgets/image_view/app_image_view.dart';
 import 'package:orko_hubco/core/utils/widgets/primary_button_widget.dart';
+import 'package:orko_hubco/features/auth/domain/entities/user_entity.dart';
 import 'package:orko_hubco/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:orko_hubco/features/auth/presentation/cubit/auth_state.dart';
 import 'package:orko_hubco/features/auth/presentation/widgets/auth_social_button.dart';
@@ -27,7 +29,7 @@ class RegisterScreen extends StatefulWidget {
 class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
-  final _phoneController = TextEditingController();
+  final _phoneEmailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   bool _obscurePassword = true;
@@ -38,7 +40,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   void dispose() {
     _nameController.dispose();
-    _phoneController.dispose();
+    _phoneEmailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
@@ -59,7 +61,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
     context.read<AuthCubit>().signUp(
           name: _nameController.text.trim(),
-          phoneNumber: _phoneController.text.trim(),
+          phoneNumberEmail:
+              AppHelpers.normalizePhoneOrEmail(_phoneEmailController.text),
           countryCode: _countryCode,
           password: _passwordController.text,
           confirmPassword: _confirmPasswordController.text,
@@ -78,13 +81,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return null;
   }
 
-  String? _validatePhone(String? value) {
-    final digits = (value ?? '').replaceAll(RegExp(r'\D'), '');
-    if (digits.isEmpty) return 'Phone number is required';
-    if (!RegExp(r'^3\d{9}$').hasMatch(digits)) {
-      return 'Enter a valid number, e.g. 3001234567';
+  /// OTP-screen args after sign-up: prefer the phone the backend returned,
+  /// otherwise fall back to what was typed (no country code for an email).
+  Map<String, String> _otpTarget(UserEntity user) {
+    final phone = user.phoneNumber?.trim() ?? '';
+    if (phone.isNotEmpty) {
+      final code = user.countryCode?.trim() ?? '';
+      return {
+        'phoneNumber': phone,
+        'countryCode': code.isNotEmpty ? code : _countryCode,
+      };
     }
-    return null;
+    final input = _phoneEmailController.text;
+    return {
+      'phoneNumber': AppHelpers.normalizePhoneOrEmail(input),
+      'countryCode': AppHelpers.isEmailInput(input) ? '' : _countryCode,
+    };
   }
 
   String? _validatePassword(String? value) {
@@ -144,14 +156,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       body: BlocConsumer<AuthCubit, AuthState>(
         listener: (context, state) {
           if (state is SignUpSuccess) {
-            context.push(
-              '/verify-otp',
-              extra: {
-                'phoneNumber':
-                    _phoneController.text.replaceAll(RegExp(r'\s+'), ''),
-                'countryCode': _countryCode,
-              },
-            );
+            context.push('/verify-otp', extra: _otpTarget(state.result.user));
           } else if (state is AuthError) {
             AppHelpers.showSnackBar(context, state.message, isError: true);
           }
@@ -234,7 +239,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       children: [
                         8.horizontalSpace,
                         AppText(
-                          'Phone Number',
+                          'Phone Number or Email Address',
                           color: ui.textPrimary,
                           fontSize: FontSizes.font12Sp,
                           fontWeight: FontWeights.weight500,
@@ -242,7 +247,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ],
                     ),
                     6.verticalSpace,
-                    _buildPhoneField(ui),
+                    _buildPhoneEmailField(ui),
                     6.verticalSpace,
                     _buildField(
                       ui,
@@ -417,52 +422,36 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  Widget _buildPhoneField(AppUiColors ui) {
+  Widget _buildPhoneEmailField(AppUiColors ui) {
     return TextFormField(
-      controller: _phoneController,
-      keyboardType: TextInputType.phone,
+      controller: _phoneEmailController,
+      // Email keyboard still has digits, so it suits both inputs.
+      keyboardType: TextInputType.emailAddress,
       textInputAction: TextInputAction.next,
-      validator: _validatePhone,
-      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-      maxLength: 10,
+      autocorrect: false,
+      enableSuggestions: false,
+      autofillHints: const [AutofillHints.email, AutofillHints.telephoneNumber],
+      validator: AppHelpers.validatePhoneOrEmail,
+      inputFormatters: [
+        FilteringTextInputFormatter.deny(RegExp(r'\s')),
+        PhoneOrEmailInputFormatter(),
+      ],
+      maxLength: PhoneOrEmailInputFormatter.hardEmailLength,
       style: TextStyle(
         color: ui.textPrimary,
         fontSize: FontSizes.font14Sp,
         fontWeight: FontWeights.weight500,
       ),
       decoration: InputDecoration(
-        hintText: 'Phone Number',
+        hintText: 'Phone number or email',
         hintStyle: TextStyle(
           color: AppColors.hintColor,
           fontSize: FontSizes.font14Sp,
           fontWeight: FontWeights.weight400,
         ),
+        counterText: '',
         filled: true,
         fillColor: ui.inputFill,
-        contentPadding: EdgeInsets.zero,
-        prefixIconConstraints: BoxConstraints(minWidth: 0.w, minHeight: 0.h),
-        prefixIcon: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 10.w),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text('🇵🇰', style: TextStyle(fontSize: 14)),
-              6.horizontalSpace,
-              AppText(
-                '+92',
-                color: ui.textPrimary.withValues(alpha: 0.9),
-                fontSize: FontSizes.font12Sp,
-                fontWeight: FontWeights.weight500,
-              ),
-              10.horizontalSpace,
-              Container(
-                height: 16.h,
-                width: 1,
-                color: ui.inputBorder,
-              ),
-            ],
-          ),
-        ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12.r),
           borderSide: BorderSide(color: ui.inputBorder),

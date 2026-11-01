@@ -3,7 +3,7 @@ import 'package:orko_hubco/core/usecase/usecase.dart';
 import 'package:orko_hubco/features/auth/domain/repositories/auth_repository.dart';
 
 /// Starts the forgot-password flow: requests an OTP for the given phone number
-/// and returns the issued `otp_id`.
+/// or email and returns the issued `otp_id`.
 class LoginWithOtpUseCase implements UseCase<int, LoginWithOtpParams> {
   final AuthRepository repository;
 
@@ -12,7 +12,7 @@ class LoginWithOtpUseCase implements UseCase<int, LoginWithOtpParams> {
   @override
   Future<Either<Failure, int>> call(LoginWithOtpParams params) {
     return repository.loginWithOtp(
-      phoneNumber: params.phoneNumber,
+      phoneNumberEmail: params.phoneNumberEmail,
       countryCode: params.countryCode,
     );
   }
@@ -20,12 +20,12 @@ class LoginWithOtpUseCase implements UseCase<int, LoginWithOtpParams> {
 
 class LoginWithOtpParams {
   const LoginWithOtpParams({
-    required this.phoneNumber,
+    required this.phoneNumberEmail,
     required this.countryCode,
   });
 
-  /// National number without the dialing code, e.g. `3112208527`.
-  final String phoneNumber;
+  /// Phone number in local format (e.g. `03112208527`) or an email address.
+  final String phoneNumberEmail;
 
   /// Dialing code, e.g. `+92`.
   final String countryCode;

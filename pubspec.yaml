@@ -80,6 +80,7 @@ dependencies:
   flutter_foreground_task: ^10.0.0
   sign_in_with_apple: ^8.1.0
   firebase_auth: ^6.7.1
+  firebase_crashlytics: ^5.4.1
   crypto: ^3.0.8
   chucker_flutter: ^1.9.2
 

@@ -50,6 +50,61 @@ class AppHelpers {
     return null;
   }
 
+  static final RegExp _emailRegex = RegExp(
+    r"^[A-Za-z0-9!#$%&'*+/=?^_`{|}~-]+(\.[A-Za-z0-9!#$%&'*+/=?^_`{|}~-]+)*"
+    r'@[A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?(\.[A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?)*\.[A-Za-z]{2,}$',
+  );
+
+  /// Whether a "phone number or email" input should be treated as an email —
+  /// anything with an `@` or a letter. Pure digits / `+ - ( )` is a phone.
+  static bool isEmailInput(String value) =>
+      RegExp(r'[@A-Za-z]').hasMatch(value.trim());
+
+  /// Normalizes a "phone number or email" input for the API.
+  ///
+  /// - Email → trimmed and lower-cased.
+  /// - Phone → local `03XXXXXXXXX` format. Accepts `03123456789`,
+  ///   `3123456789`, `923123456789`, `+923123456789`, `00923123456789`, with
+  ///   or without spaces / dashes / brackets. Input that can't be mapped is
+  ///   returned with separators stripped (the validator rejects it).
+  static String normalizePhoneOrEmail(String value) {
+    final input = value.trim();
+    if (isEmailInput(input)) return input.toLowerCase();
+
+    final digits = input.replaceAll(RegExp(r'\D'), '');
+    if (RegExp(r'^03\d{9}$').hasMatch(digits)) return digits;
+    if (RegExp(r'^3\d{9}$').hasMatch(digits)) return '0$digits';
+    if (RegExp(r'^923\d{9}$').hasMatch(digits)) return '0${digits.substring(2)}';
+    if (RegExp(r'^00923\d{9}$').hasMatch(digits)) return '0${digits.substring(4)}';
+    return digits;
+  }
+
+  /// Validates a "phone number or email" input (see [normalizePhoneOrEmail]).
+  static String? validatePhoneOrEmail(String? value) {
+    final input = value?.trim() ?? '';
+    if (input.isEmpty) return 'Phone number or email address is required';
+
+    final normalized = normalizePhoneOrEmail(input);
+    if (isEmailInput(input)) {
+      if (!input.contains('@')) {
+        return 'Enter a valid phone number or email address';
+      }
+      if (normalized.length > 60) {
+        return 'Email must be 60 characters or fewer';
+      }
+      if (!_emailRegex.hasMatch(normalized)) {
+        return 'Enter a valid email address';
+      }
+      return null;
+    }
+
+    if (!RegExp(r'^\+?[\d\-()\s]+$').hasMatch(input) ||
+        !RegExp(r'^03\d{9}$').hasMatch(normalized)) {
+      return 'Enter a valid phone number, e.g. 03123456789';
+    }
+    return null;
+  }
+
   /// Simple password validation.
   static String? validatePassword(String? value) {
     if (value == null || value.isEmpty) return 'Password is required';

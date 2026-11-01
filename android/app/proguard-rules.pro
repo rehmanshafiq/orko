@@ -19,6 +19,13 @@
 -dontwarn com.google.firebase.**
 -dontwarn com.google.android.gms.**
 
+# ── Firebase Crashlytics ─────────────────────────────────────────────────────
+# Keep file names / line numbers so deobfuscated native stack traces point at
+# real source lines, and keep custom exceptions intact. R8 mapping files are
+# uploaded automatically by the Crashlytics Gradle plugin on release builds.
+-keepattributes SourceFile,LineNumberTable
+-keep public class * extends java.lang.Exception
+
 # ── flutter_local_notifications (uses Gson + scheduled receivers) ────────────
 -keep class com.dexterous.** { *; }
 -keep class com.google.gson.** { *; }

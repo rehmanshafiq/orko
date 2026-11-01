@@ -26,7 +26,7 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<Either<Failure, SignUpResultEntity>> login({
-    required String phoneNumber,
+    required String phoneNumberEmail,
     required String countryCode,
     required String password,
   }) async {
@@ -36,7 +36,7 @@ class AuthRepositoryImpl implements AuthRepository {
 
     try {
       final result = await remoteDataSource.login(
-        phoneNumber: phoneNumber,
+        phoneNumberEmail: phoneNumberEmail,
         countryCode: countryCode,
         password: password,
       );
@@ -103,7 +103,7 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<Either<Failure, SignUpResultEntity>> signUp({
     required String name,
-    required String phoneNumber,
+    required String phoneNumberEmail,
     required String countryCode,
     String? email,
     required String password,
@@ -116,7 +116,7 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       final result = await remoteDataSource.completeSignup(
         name: name,
-        phoneNumber: phoneNumber,
+        phoneNumberEmail: phoneNumberEmail,
         countryCode: countryCode,
         email: email,
         password: password,
@@ -208,7 +208,7 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<Either<Failure, int>> loginWithOtp({
-    required String phoneNumber,
+    required String phoneNumberEmail,
     required String countryCode,
   }) async {
     if (!await networkInfo.isConnected) {
@@ -217,7 +217,7 @@ class AuthRepositoryImpl implements AuthRepository {
 
     try {
       final otpId = await remoteDataSource.loginWithOtp(
-        phoneNumber: phoneNumber,
+        phoneNumberEmail: phoneNumberEmail,
         countryCode: countryCode,
       );
       return Right(otpId);

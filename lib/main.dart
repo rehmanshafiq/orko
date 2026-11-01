@@ -15,6 +15,7 @@ import 'package:orko_hubco/core/network/interceptors/error_interceptor.dart';
 import 'package:orko_hubco/core/router/app_router.dart';
 import 'package:orko_hubco/core/services/android_auto/android_auto_bridge.dart';
 import 'package:orko_hubco/core/services/app_update/app_update_service.dart';
+import 'package:orko_hubco/core/services/crash_reporting_service.dart';
 import 'package:orko_hubco/core/services/live_charging/live_charging_notification_controller.dart';
 import 'package:orko_hubco/core/services/push_notification_service.dart';
 import 'package:orko_hubco/core/services/secure_store.dart';
@@ -58,6 +59,9 @@ Future<void> main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  // Route uncaught Flutter and async errors to Crashlytics (off in debug).
+  await CrashReportingService.initialize();
 
   // Register the FCM background/terminated handler before runApp.
   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);

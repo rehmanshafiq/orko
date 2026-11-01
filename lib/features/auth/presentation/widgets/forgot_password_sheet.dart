@@ -9,6 +9,7 @@ import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/di/injection_container.dart';
 import 'package:orko_hubco/core/utils/helpers.dart';
+import 'package:orko_hubco/core/utils/phone_or_email_input_formatter.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
 import 'package:orko_hubco/core/utils/widgets/primary_button_widget.dart';
 import 'package:orko_hubco/features/auth/presentation/cubit/forgot_password_cubit.dart';
@@ -16,11 +17,11 @@ import 'package:orko_hubco/features/auth/presentation/cubit/forgot_password_stat
 
 const int _kOtpLength = 6;
 
-/// Dialing code sent with the phone number (Pakistan only, as on login).
+/// Dialing code sent with the request (Pakistan only, as on login).
 const String _kCountryCode = '+92';
 
 /// Three-step forgot-password flow shown as a modal sheet: request an OTP by
-/// phone number, verify the code, then choose a new password.
+/// phone number or email, verify the code, then choose a new password.
 class ForgotPasswordSheet {
   const ForgotPasswordSheet._();
 
@@ -140,19 +141,14 @@ class _ForgotPasswordViewState extends State<_ForgotPasswordView> {
       return;
     }
     context.read<ForgotPasswordCubit>().requestOtp(
-          phoneNumber: _phoneController.text.trim(),
+          phoneNumberEmail: _otpTarget,
           countryCode: _kCountryCode,
         );
   }
 
-  String? _validatePhoneNumber(String? value) {
-    final digits = (value ?? '').replaceAll(RegExp(r'\D'), '');
-    if (digits.isEmpty) return 'Phone number is required';
-    if (!RegExp(r'^3\d{9}$').hasMatch(digits)) {
-      return 'Enter a valid number, e.g. 3001234567';
-    }
-    return null;
-  }
+  /// The entered phone number (as `03XXXXXXXXX`) or email (lower-cased).
+  String get _otpTarget =>
+      AppHelpers.normalizePhoneOrEmail(_phoneController.text);
 
   void _verifyOtp() {
     FocusScope.of(context).unfocus();
@@ -178,7 +174,7 @@ class _ForgotPasswordViewState extends State<_ForgotPasswordView> {
     if (cubit.state is ForgotPasswordSendingOtp) return;
     FocusScope.of(context).unfocus();
     cubit.requestOtp(
-      phoneNumber: _phoneController.text.trim(),
+      phoneNumberEmail: _otpTarget,
       countryCode: _kCountryCode,
     );
   }
@@ -260,7 +256,7 @@ class _ForgotPasswordViewState extends State<_ForgotPasswordView> {
           setState(() => _step = _Step.otp);
           _startResendTimer();
           _showToast(
-            'We sent a 6-digit code to ${state.countryCode} ${state.phoneNumber}',
+            'We sent a 6-digit code to ${state.phoneNumber}',
           );
         } else if (state is ForgotPasswordOtpVerified) {
           _verifyingOtp = false;
@@ -325,7 +321,7 @@ class _ForgotPasswordViewState extends State<_ForgotPasswordView> {
     );
   }
 
-  // ── Step 1: phone number ───────────────────────────────────────────────────────
+  // ── Step 1: phone number or email ───────────────────────────────────────────────────────
   Widget _buildPhoneStep(AppUiColors ui, bool isSending) {
     return Form(
       key: _phoneFormKey,
@@ -343,7 +339,8 @@ class _ForgotPasswordViewState extends State<_ForgotPasswordView> {
           ),
           6.verticalSpace,
           AppText(
-            'Enter the phone number linked to your account and we\'ll send you '
+            'Enter the phone number or email linked to your account and we\'ll '
+            'send you '
             'a code to reset your password.',
             color: ui.textMuted,
             fontSize: FontSizes.font13Sp,
@@ -351,7 +348,7 @@ class _ForgotPasswordViewState extends State<_ForgotPasswordView> {
           ),
           20.verticalSpace,
           AppText(
-            'Phone Number',
+            'Phone Number or Email Address',
             color: ui.textPrimary,
             fontSize: FontSizes.font12Sp,
             fontWeight: FontWeights.weight500,
@@ -359,12 +356,21 @@ class _ForgotPasswordViewState extends State<_ForgotPasswordView> {
           8.verticalSpace,
           TextFormField(
             controller: _phoneController,
-            keyboardType: TextInputType.phone,
+            // Email keyboard still has digits, so it suits both inputs.
+            keyboardType: TextInputType.emailAddress,
             textInputAction: TextInputAction.done,
-            autofillHints: const [AutofillHints.telephoneNumberNational],
-            validator: _validatePhoneNumber,
-            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-            maxLength: 10,
+            autocorrect: false,
+            enableSuggestions: false,
+            autofillHints: const [
+              AutofillHints.email,
+              AutofillHints.telephoneNumber,
+            ],
+            validator: AppHelpers.validatePhoneOrEmail,
+            inputFormatters: [
+              FilteringTextInputFormatter.deny(RegExp(r'\s')),
+              PhoneOrEmailInputFormatter(),
+            ],
+            maxLength: PhoneOrEmailInputFormatter.hardEmailLength,
             onFieldSubmitted: (_) => _submitPhone(),
             style: TextStyle(
               color: ui.textPrimary,
@@ -373,9 +379,8 @@ class _ForgotPasswordViewState extends State<_ForgotPasswordView> {
             ),
             decoration: _inputDecoration(
               ui: ui,
-              hintText: 'Phone Number',
-              prefixIcon: _buildPhonePrefix(ui),
-            ),
+              hintText: 'Phone number or email',
+            ).copyWith(counterText: ''),
           ),
           24.verticalSpace,
           _primaryButton(
@@ -414,8 +419,7 @@ class _ForgotPasswordViewState extends State<_ForgotPasswordView> {
         ),
         6.verticalSpace,
         AppText(
-          'Enter the 6-digit code we sent to $_kCountryCode '
-          '${_phoneController.text.trim()}.',
+          'Enter the 6-digit code we sent to $_otpTarget.',
           color: ui.textMuted,
           fontSize: FontSizes.font13Sp,
           fontWeight: FontWeights.weight400,
@@ -566,31 +570,6 @@ class _ForgotPasswordViewState extends State<_ForgotPasswordView> {
             onPress: _submitReset,
           ),
           8.verticalSpace,
-        ],
-      ),
-    );
-  }
-
-  /// `🇵🇰 +92 | ☎` prefix, matching the login screen's phone field.
-  Widget _buildPhonePrefix(AppUiColors ui) {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 10.w),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Text('🇵🇰', style: TextStyle(fontSize: 14)),
-          6.horizontalSpace,
-          AppText(
-            _kCountryCode,
-            color: ui.textPrimary.withValues(alpha: 0.9),
-            fontSize: FontSizes.font12Sp,
-            fontWeight: FontWeights.weight500,
-          ),
-          10.horizontalSpace,
-          Container(height: 16.h, width: 1, color: ui.inputBorder),
-          10.horizontalSpace,
-          const Icon(Icons.phone_outlined,
-              color: AppColors.hintColor, size: 18),
         ],
       ),
     );

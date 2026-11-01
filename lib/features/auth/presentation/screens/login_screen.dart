@@ -9,10 +9,12 @@ import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_images.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/utils/helpers.dart';
+import 'package:orko_hubco/core/utils/phone_or_email_input_formatter.dart';
 import 'package:orko_hubco/core/utils/app_ui.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
 import 'package:orko_hubco/core/utils/widgets/image_view/app_image_view.dart';
 import 'package:orko_hubco/core/utils/widgets/primary_button_widget.dart';
+import 'package:orko_hubco/features/auth/domain/entities/user_entity.dart';
 import 'package:orko_hubco/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:orko_hubco/features/auth/presentation/cubit/auth_state.dart';
 import 'package:orko_hubco/features/auth/presentation/widgets/auth_social_button.dart';
@@ -28,7 +30,7 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _phoneController = TextEditingController();
+  final _phoneEmailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
   AutovalidateMode _autovalidateMode = AutovalidateMode.disabled;
@@ -46,7 +48,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   void dispose() {
-    _phoneController.dispose();
+    _phoneEmailController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
@@ -61,19 +63,30 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
     context.read<AuthCubit>().login(
-          phoneNumber: _phoneController.text.trim(),
+          phoneNumberEmail:
+              AppHelpers.normalizePhoneOrEmail(_phoneEmailController.text),
           countryCode: _countryCode,
           password: _passwordController.text,
         );
   }
 
-  String? _validatePhoneNumber(String? value) {
-    final digits = (value ?? '').replaceAll(RegExp(r'\D'), '');
-    if (digits.isEmpty) return 'Phone number is required';
-    if (!RegExp(r'^3\d{9}$').hasMatch(digits)) {
-      return 'Enter a valid number, e.g. 3001234567';
+  /// OTP-screen args for an unverified login: prefer the phone the backend
+  /// returned, otherwise fall back to what was typed (no country code for an
+  /// email).
+  Map<String, String> _otpTarget(UserEntity user) {
+    final phone = user.phoneNumber?.trim() ?? '';
+    if (phone.isNotEmpty) {
+      final code = user.countryCode?.trim() ?? '';
+      return {
+        'phoneNumber': phone,
+        'countryCode': code.isNotEmpty ? code : _countryCode,
+      };
     }
-    return null;
+    final input = _phoneEmailController.text;
+    return {
+      'phoneNumber': AppHelpers.normalizePhoneOrEmail(input),
+      'countryCode': AppHelpers.isEmailInput(input) ? '' : _countryCode,
+    };
   }
 
   /// Starts the Google sign-in flow. The cubit drives the rest: success emits
@@ -118,14 +131,7 @@ class _LoginScreenState extends State<LoginScreen> {
           if (state is AuthAuthenticated) {
             context.go('/home');
           } else if (state is LoginOtpVerificationRequired) {
-            context.push(
-              '/verify-otp',
-              extra: {
-                'phoneNumber':
-                    _phoneController.text.replaceAll(RegExp(r'\s+'), ''),
-                'countryCode': _countryCode,
-              },
-            );
+            context.push('/verify-otp', extra: _otpTarget(state.user));
           } else if (state is AuthError) {
             AppHelpers.showSnackBar(context, state.message, isError: true);
           }
@@ -143,7 +149,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     26.verticalSpace,
                     _buildHeader(ui),
                     24.verticalSpace,
-                    _buildPhoneNumberField(ui),
+                    _buildPhoneEmailField(ui),
                     14.verticalSpace,
                     _buildPasswordField(ui),
                     8.verticalSpace,
@@ -231,81 +237,43 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildPhoneNumberField(AppUiColors ui) {
+  Widget _buildPhoneEmailField(AppUiColors ui) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         AppText(
-          'Phone Number',
+          'Phone Number or Email Address',
           color: ui.textPrimary,
           fontSize: FontSizes.font12Sp,
           fontWeight: FontWeights.weight500,
         ),
         8.verticalSpace,
         TextFormField(
-          controller: _phoneController,
-          keyboardType: TextInputType.phone,
+          controller: _phoneEmailController,
+          // Email keyboard still has digits, so it suits both inputs.
+          keyboardType: TextInputType.emailAddress,
           textInputAction: TextInputAction.next,
-          validator: _validatePhoneNumber,
-          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-          maxLength: 10,
+          autocorrect: false,
+          enableSuggestions: false,
+          autofillHints: const [
+            AutofillHints.email,
+            AutofillHints.telephoneNumber,
+          ],
+          validator: AppHelpers.validatePhoneOrEmail,
+          inputFormatters: [
+            FilteringTextInputFormatter.deny(RegExp(r'\s')),
+            PhoneOrEmailInputFormatter(),
+          ],
+          maxLength: PhoneOrEmailInputFormatter.hardEmailLength,
           style: TextStyle(
             color: ui.textPrimary,
             fontSize: FontSizes.font14Sp,
             fontWeight: FontWeights.weight500,
           ),
-          decoration: InputDecoration(
-            filled: true,
-            fillColor: ui.inputFill,
-            contentPadding: EdgeInsets.zero,
-            prefixIconConstraints: BoxConstraints(minWidth: 0.w, minHeight: 0.h),
-            prefixIcon: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 10.w),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text('🇵🇰', style: TextStyle(fontSize: 14)),
-                  6.horizontalSpace,
-                  AppText(
-                    '+92',
-                    color: ui.textPrimary.withValues(alpha: 0.9),
-                    fontSize: FontSizes.font12Sp,
-                    fontWeight: FontWeights.weight500,
-                  ),
-                  10.horizontalSpace,
-                  Container(
-                    height: 16.h,
-                    width: 1,
-                    color: ui.inputBorder,
-                  ),
-                  10.horizontalSpace,
-                  const Icon(Icons.phone_outlined, color: AppColors.hintColor, size: 18),
-                ],
-              ),
-            ),
-            hintText: 'Phone Number',
-            hintStyle: TextStyle(
-              color: AppColors.hintColor,
-              fontSize: FontSizes.font14Sp,
-              fontWeight: FontWeights.weight400,
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: ui.inputBorder),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: ui.brandPrimary),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.redColor),
-            ),
-            focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.redColor),
-            ),
-          ),
+          decoration: _inputDecoration(
+            ui: ui,
+            hintText: 'Phone number or email',
+          ).copyWith(counterText: ''),
         ),
       ],
     );

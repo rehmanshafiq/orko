@@ -21,17 +21,20 @@ class ForgotPasswordCubit extends Cubit<ForgotPasswordState> {
         _resetPasswordUseCase = resetPasswordUseCase,
         super(const ForgotPasswordInitial());
 
-  /// Step 1 — request an OTP for the phone number. On success emits
+  /// Step 1 — request an OTP for the phone number or email. On success emits
   /// [ForgotPasswordOtpSent] with the issued otp id.
   Future<void> requestOtp({
-    required String phoneNumber,
+    required String phoneNumberEmail,
     required String countryCode,
   }) async {
     if (state is ForgotPasswordSendingOtp) return;
     emit(const ForgotPasswordSendingOtp());
 
     final result = await _loginWithOtpUseCase(
-      LoginWithOtpParams(phoneNumber: phoneNumber, countryCode: countryCode),
+      LoginWithOtpParams(
+        phoneNumberEmail: phoneNumberEmail,
+        countryCode: countryCode,
+      ),
     );
 
     if (isClosed) return;
@@ -40,7 +43,7 @@ class ForgotPasswordCubit extends Cubit<ForgotPasswordState> {
       (otpId) => emit(
         ForgotPasswordOtpSent(
           otpId: otpId,
-          phoneNumber: phoneNumber,
+          phoneNumber: phoneNumberEmail,
           countryCode: countryCode,
         ),
       ),

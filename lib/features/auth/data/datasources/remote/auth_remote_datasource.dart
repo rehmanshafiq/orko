@@ -7,7 +7,7 @@ abstract class AuthRemoteDataSource {
   /// Returns the access token and user on success.
   /// Throws [ServerException] on failure.
   Future<SignUpResultModel> login({
-    required String phoneNumber,
+    required String phoneNumberEmail,
     required String countryCode,
     required String password,
   });
@@ -26,7 +26,7 @@ abstract class AuthRemoteDataSource {
   /// Throws [ServerException] on failure.
   Future<SignUpResultModel> completeSignup({
     required String name,
-    required String phoneNumber,
+    required String phoneNumberEmail,
     required String countryCode,
     String? email,
     required String password,
@@ -62,7 +62,7 @@ abstract class AuthRemoteDataSource {
   /// Sends `{ "email": <email> }` and returns the `otp_id` the backend issues,
   /// which must be passed to [verifyResetOtp]. Throws [ServerException].
   Future<int> loginWithOtp({
-    required String phoneNumber,
+    required String phoneNumberEmail,
     required String countryCode,
   });
 

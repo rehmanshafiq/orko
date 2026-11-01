@@ -264,7 +264,10 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
                     ),
                     24.verticalSpace,
                     AppText(
-                      'Verify Your Number',
+                      // The OTP target is an email when sign-up / login used one.
+                      AppHelpers.isEmailInput(widget.phoneNumber)
+                          ? 'Verify Your Email'
+                          : 'Verify Your Number',
                       textAlign: TextAlign.center,
                       color: ui.textPrimary,
                       fontSize: FontSizes.font28Sp,
@@ -280,7 +283,7 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
                     ),
                     4.verticalSpace,
                     AppText(
-                      '${widget.countryCode} ${widget.phoneNumber}',
+                      '${widget.countryCode} ${widget.phoneNumber}'.trim(),
                       textAlign: TextAlign.center,
                       color: ui.textPrimary,
                       fontSize: FontSizes.font14Sp,
