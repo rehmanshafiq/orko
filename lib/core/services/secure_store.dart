@@ -53,19 +53,7 @@ class SecureStore {
     }
 
     await _migrateLegacyPlaintext();
-    await _dropOrphanedSecrets();
     _initialized = true;
-  }
-
-  /// The iOS Keychain outlives an uninstall while the GetStorage box does not,
-  /// so a reinstall finds the previous install's token with no session flag.
-  /// Sent as `Bearer` on login/sign-up, a stale token makes the backend answer
-  /// 401, and `AuthInterceptor` never clears it because no one is logged in.
-  Future<void> _dropOrphanedSecrets() async {
-    final box = GetStorage();
-    final hasSession = box.read<bool>(StorageConstants.isLoggedIn) == true ||
-        box.read<bool>(StorageConstants.pendingOtpVerification) == true;
-    if (!hasSession && _mirror.isNotEmpty) await clear();
   }
 
   /// One-time upgrade path: move any secret still sitting in the unencrypted
