@@ -1,15 +1,18 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
+import 'package:orko_hubco/core/utils/otp_input_formatter.dart';
 
-/// Row of single-digit boxes for the change-email / change-phone OTP. Handles
-/// auto-advance, backspace to the previous box and pasting a whole code.
+/// Row of digit boxes for the change-email / change-phone OTP. A single
+/// invisible text field holds the whole code and the boxes only render it:
+/// moving focus between per-digit fields makes iOS tear down and re-attach the
+/// input connection, which bounces the keyboard on every key. Pasting or SMS
+/// autofill of a full code fills every box.
 ///
-/// Reports the joined code through [onChanged]; clear it via
+/// Reports the code through [onChanged]; clear it via
 /// `GlobalKey<OtpCodeFieldState>().currentState?.clear()`.
 class OtpCodeField extends StatefulWidget {
   const OtpCodeField({
@@ -26,120 +29,100 @@ class OtpCodeField extends StatefulWidget {
 }
 
 class OtpCodeFieldState extends State<OtpCodeField> {
-  late final List<TextEditingController> _controllers =
-      List.generate(widget.length, (_) => TextEditingController());
-  late final List<FocusNode> _focusNodes =
-      List.generate(widget.length, (_) => FocusNode());
+  final TextEditingController _controller = TextEditingController();
+  final FocusNode _focusNode = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    _focusNode.addListener(_onFocusChange);
+  }
 
   @override
   void dispose() {
-    for (final c in _controllers) {
-      c.dispose();
-    }
-    for (final f in _focusNodes) {
-      f.dispose();
-    }
+    _focusNode.removeListener(_onFocusChange);
+    _controller.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 
-  String get _code => _controllers.map((c) => c.text).join();
+  void _onFocusChange() {
+    if (mounted) setState(() {});
+  }
 
-  /// Empties every box and (optionally) focuses the first one for re-entry.
+  /// Empties every box and (optionally) focuses the field for re-entry.
   void clear({bool focus = true}) {
-    for (final c in _controllers) {
-      c.clear();
-    }
-    if (focus) _focusNodes.first.requestFocus();
+    _controller.clear();
+    if (focus) _focusNode.requestFocus();
     _notify();
   }
 
   void _notify() {
     setState(() {});
-    widget.onChanged(_code);
-  }
-
-  void _onChanged(int index, String value) {
-    if (value.length > 1) {
-      _distribute(value);
-      return;
-    }
-    if (value.isNotEmpty && index < widget.length - 1) {
-      _focusNodes[index + 1].requestFocus();
-    }
-    _notify();
-  }
-
-  void _distribute(String value) {
-    final digits = value.replaceAll(RegExp(r'\D'), '');
-    for (var i = 0; i < widget.length; i++) {
-      _controllers[i].text = i < digits.length ? digits[i] : '';
-    }
-    final lastIndex =
-        (digits.length >= widget.length ? widget.length : digits.length) - 1;
-    if (lastIndex >= 0) {
-      _focusNodes[lastIndex.clamp(0, widget.length - 1)].requestFocus();
-    }
-    _notify();
-  }
-
-  KeyEventResult _onKey(int index, KeyEvent event) {
-    if (event is KeyDownEvent &&
-        event.logicalKey == LogicalKeyboardKey.backspace &&
-        _controllers[index].text.isEmpty &&
-        index > 0) {
-      _focusNodes[index - 1].requestFocus();
-      _controllers[index - 1].clear();
-      _notify();
-      return KeyEventResult.handled;
-    }
-    return KeyEventResult.ignored;
+    widget.onChanged(_controller.text);
   }
 
   @override
   Widget build(BuildContext context) {
     final ui = AppUiColors.of(context);
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: List.generate(widget.length, (i) => _buildBox(ui, i)),
+    return Stack(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: List.generate(widget.length, (i) => _buildBox(ui, i)),
+        ),
+        Positioned.fill(
+          child: Opacity(
+            opacity: 0,
+            child: TextField(
+              controller: _controller,
+              focusNode: _focusNode,
+              keyboardType: TextInputType.number,
+              autofillHints: const [AutofillHints.oneTimeCode],
+              inputFormatters: [OtpInputFormatter(widget.length)],
+              showCursor: false,
+              enableSuggestions: false,
+              autocorrect: false,
+              onChanged: (_) => _notify(),
+              // Keep the caret at the end so typing always fills the next box.
+              onTap: () => _controller.selection =
+                  TextSelection.collapsed(offset: _controller.text.length),
+              decoration: const InputDecoration(
+                border: InputBorder.none,
+                counterText: '',
+                contentPadding: EdgeInsets.zero,
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
   Widget _buildBox(AppUiColors ui, int index) {
-    final filled = _controllers[index].text.isNotEmpty;
-    return SizedBox(
+    final code = _controller.text;
+    final filled = index < code.length;
+    final activeIndex =
+        code.length < widget.length ? code.length : widget.length - 1;
+    final active = _focusNode.hasFocus && index == activeIndex;
+    return Container(
       width: 46.w,
       height: 54.h,
-      child: Focus(
-        onKeyEvent: (_, event) => _onKey(index, event),
-        child: TextFormField(
-          controller: _controllers[index],
-          focusNode: _focusNodes[index],
-          keyboardType: TextInputType.number,
-          textAlign: TextAlign.center,
-          maxLength: 1,
-          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-          onChanged: (value) => _onChanged(index, value),
-          style: TextStyle(
-            color: ui.textPrimary,
-            fontSize: FontSizes.font20Sp,
-            fontWeight: FontWeights.weight700,
-          ),
-          decoration: InputDecoration(
-            counterText: '',
-            filled: true,
-            fillColor: ui.inputFill,
-            contentPadding: EdgeInsets.zero,
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12.r),
-              borderSide: BorderSide(
-                color: filled ? ui.brandPrimary : ui.inputBorder,
-              ),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12.r),
-              borderSide: BorderSide(color: ui.brandPrimary, width: 1.5),
-            ),
-          ),
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: ui.inputFill,
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(
+          color: (filled || active) ? ui.brandPrimary : ui.inputBorder,
+          width: active ? 1.5 : 1,
+        ),
+      ),
+      child: Text(
+        filled ? code[index] : '',
+        style: TextStyle(
+          color: ui.textPrimary,
+          fontSize: FontSizes.font20Sp,
+          fontWeight: FontWeights.weight700,
         ),
       ),
     );

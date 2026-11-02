@@ -9,6 +9,7 @@ import 'package:orko_hubco/core/constants/app_colors.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/di/injection_container.dart';
 import 'package:orko_hubco/core/utils/helpers.dart';
+import 'package:orko_hubco/core/utils/otp_input_formatter.dart';
 import 'package:orko_hubco/core/utils/phone_or_email_input_formatter.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
 import 'package:orko_hubco/core/utils/widgets/primary_button_widget.dart';
@@ -57,10 +58,11 @@ class _ForgotPasswordViewState extends State<_ForgotPasswordView> {
   final _passwordController = TextEditingController();
   final _confirmController = TextEditingController();
 
-  final List<TextEditingController> _otpControllers =
-      List.generate(_kOtpLength, (_) => TextEditingController());
-  final List<FocusNode> _otpFocusNodes =
-      List.generate(_kOtpLength, (_) => FocusNode());
+  // A single hidden field holds the whole code and the six boxes only render
+  // it. Moving focus between separate fields per digit makes iOS tear down and
+  // re-attach the input connection, which bounces the keyboard on every key.
+  final TextEditingController _otpController = TextEditingController();
+  final FocusNode _otpFocusNode = FocusNode();
 
   _Step _step = _Step.phone;
   /// True while the in-flight request is an OTP verification (vs. a resend),
@@ -78,21 +80,28 @@ class _ForgotPasswordViewState extends State<_ForgotPasswordView> {
   Timer? _timer;
 
   @override
+  void initState() {
+    super.initState();
+    _otpFocusNode.addListener(_onOtpFocusChange);
+  }
+
+  @override
   void dispose() {
     _timer?.cancel();
     _phoneController.dispose();
     _passwordController.dispose();
     _confirmController.dispose();
-    for (final c in _otpControllers) {
-      c.dispose();
-    }
-    for (final f in _otpFocusNodes) {
-      f.dispose();
-    }
+    _otpFocusNode.removeListener(_onOtpFocusChange);
+    _otpController.dispose();
+    _otpFocusNode.dispose();
     super.dispose();
   }
 
-  String get _otp => _otpControllers.map((c) => c.text).join();
+  void _onOtpFocusChange() {
+    if (mounted) setState(() {});
+  }
+
+  String get _otp => _otpController.text;
   bool get _isOtpComplete => _otp.length == _kOtpLength;
 
   String get _formattedRemaining {
@@ -127,9 +136,7 @@ class _ForgotPasswordViewState extends State<_ForgotPasswordView> {
   }
 
   void _clearOtp() {
-    for (final c in _otpControllers) {
-      c.clear();
-    }
+    _otpController.clear();
     if (mounted) setState(() {});
   }
 
@@ -201,23 +208,7 @@ class _ForgotPasswordViewState extends State<_ForgotPasswordView> {
         );
   }
 
-  void _onOtpChanged(int index, String value) {
-    if (value.length > 1) {
-      final digits = value.replaceAll(RegExp(r'\D'), '');
-      for (var i = 0; i < _kOtpLength; i++) {
-        _otpControllers[i].text = i < digits.length ? digits[i] : '';
-      }
-      final last = (digits.length >= _kOtpLength ? _kOtpLength : digits.length) - 1;
-      if (last >= 0) {
-        _otpFocusNodes[last.clamp(0, _kOtpLength - 1)].requestFocus();
-      }
-      setState(() {});
-      _submitOtpIfComplete();
-      return;
-    }
-    if (value.isNotEmpty && index < _kOtpLength - 1) {
-      _otpFocusNodes[index + 1].requestFocus();
-    }
+  void _onOtpChanged(String value) {
     setState(() {});
     _submitOtpIfComplete();
   }
@@ -230,19 +221,6 @@ class _ForgotPasswordViewState extends State<_ForgotPasswordView> {
       return;
     }
     _verifyOtp();
-  }
-
-  KeyEventResult _onOtpKey(int index, KeyEvent event) {
-    if (event is KeyDownEvent &&
-        event.logicalKey == LogicalKeyboardKey.backspace &&
-        _otpControllers[index].text.isEmpty &&
-        index > 0) {
-      _otpFocusNodes[index - 1].requestFocus();
-      _otpControllers[index - 1].clear();
-      setState(() {});
-      return KeyEventResult.handled;
-    }
-    return KeyEventResult.ignored;
   }
 
   @override
@@ -271,7 +249,7 @@ class _ForgotPasswordViewState extends State<_ForgotPasswordView> {
           // A rejected code is useless — clear it so the user can re-enter.
           if (_step == _Step.otp && _verifyingOtp) {
             _clearOtp();
-            _otpFocusNodes.first.requestFocus();
+            _otpFocusNode.requestFocus();
           }
           _verifyingOtp = false;
         }
@@ -425,10 +403,7 @@ class _ForgotPasswordViewState extends State<_ForgotPasswordView> {
           fontWeight: FontWeights.weight400,
         ),
         24.verticalSpace,
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: List.generate(_kOtpLength, (i) => _buildOtpBox(ui, i)),
-        ),
+        _buildOtpInput(ui),
         14.verticalSpace,
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -575,42 +550,67 @@ class _ForgotPasswordViewState extends State<_ForgotPasswordView> {
     );
   }
 
-  Widget _buildOtpBox(AppUiColors ui, int index) {
-    final filled = _otpControllers[index].text.isNotEmpty;
-    return SizedBox(
-      width: 44.w,
-      height: 54.h,
-      child: Focus(
-        onKeyEvent: (_, event) => _onOtpKey(index, event),
-        child: TextFormField(
-          controller: _otpControllers[index],
-          focusNode: _otpFocusNodes[index],
-          keyboardType: TextInputType.number,
-          textAlign: TextAlign.center,
-          maxLength: 1,
-          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-          onChanged: (value) => _onOtpChanged(index, value),
-          style: TextStyle(
-            color: ui.textPrimary,
-            fontSize: FontSizes.font20Sp,
-            fontWeight: FontWeights.weight700,
-          ),
-          decoration: InputDecoration(
-            counterText: '',
-            filled: true,
-            fillColor: ui.inputFill,
-            contentPadding: EdgeInsets.zero,
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12.r),
-              borderSide: BorderSide(
-                color: filled ? ui.brandPrimary : ui.inputBorder,
+  /// Six display boxes with one invisible text field stretched over them, so
+  /// a tap anywhere on the row focuses the field and opens the keyboard.
+  Widget _buildOtpInput(AppUiColors ui) {
+    return Stack(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: List.generate(_kOtpLength, (i) => _buildOtpBox(ui, i)),
+        ),
+        Positioned.fill(
+          child: Opacity(
+            opacity: 0,
+            child: TextField(
+              controller: _otpController,
+              focusNode: _otpFocusNode,
+              keyboardType: TextInputType.number,
+              autofillHints: const [AutofillHints.oneTimeCode],
+              inputFormatters: [OtpInputFormatter(_kOtpLength)],
+              showCursor: false,
+              enableSuggestions: false,
+              autocorrect: false,
+              onChanged: _onOtpChanged,
+              // Keep the caret at the end so typing always fills the next box.
+              onTap: () => _otpController.selection =
+                  TextSelection.collapsed(offset: _otpController.text.length),
+              decoration: const InputDecoration(
+                border: InputBorder.none,
+                counterText: '',
+                contentPadding: EdgeInsets.zero,
               ),
             ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12.r),
-              borderSide: BorderSide(color: ui.brandPrimary, width: 1.5),
-            ),
           ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildOtpBox(AppUiColors ui, int index) {
+    final code = _otp;
+    final filled = index < code.length;
+    final activeIndex =
+        code.length < _kOtpLength ? code.length : _kOtpLength - 1;
+    final active = _otpFocusNode.hasFocus && index == activeIndex;
+    return Container(
+      width: 44.w,
+      height: 54.h,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: ui.inputFill,
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(
+          color: (filled || active) ? ui.brandPrimary : ui.inputBorder,
+          width: active ? 1.5 : 1,
+        ),
+      ),
+      child: Text(
+        filled ? code[index] : '',
+        style: TextStyle(
+          color: ui.textPrimary,
+          fontSize: FontSizes.font20Sp,
+          fontWeight: FontWeights.weight700,
         ),
       ),
     );

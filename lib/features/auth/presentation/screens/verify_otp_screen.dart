@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
@@ -10,6 +9,7 @@ import 'package:orko_hubco/core/constants/app_images.dart';
 import 'package:orko_hubco/core/constants/app_sizes.dart';
 import 'package:orko_hubco/core/utils/app_ui.dart';
 import 'package:orko_hubco/core/utils/helpers.dart';
+import 'package:orko_hubco/core/utils/otp_input_formatter.dart';
 import 'package:orko_hubco/core/utils/widgets/app_text.dart';
 import 'package:orko_hubco/core/utils/widgets/image_view/app_image_view.dart';
 import 'package:orko_hubco/core/utils/widgets/primary_button_widget.dart';
@@ -331,7 +331,7 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
               autofocus: true,
               keyboardType: TextInputType.number,
               autofillHints: const [AutofillHints.oneTimeCode],
-              inputFormatters: [_OtpInputFormatter()],
+              inputFormatters: [OtpInputFormatter(_kOtpLength)],
               showCursor: false,
               enableSuggestions: false,
               autocorrect: false,
@@ -379,58 +379,5 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
         ),
       ),
     );
-  }
-}
-
-/// Keeps the OTP field to at most [_kOtpLength] digits.
-///
-/// When a paste or SMS autofill inserts a whole code at once, the code
-/// replaces whatever was already typed instead of being appended to it, and
-/// it is extracted from surrounding text such as "Your code is 123456".
-class _OtpInputFormatter extends TextInputFormatter {
-  static final RegExp _nonDigit = RegExp(r'\D');
-  static final RegExp _fullCode = RegExp('(?<!\\d)\\d{$_kOtpLength}(?!\\d)');
-
-  @override
-  TextEditingValue formatEditUpdate(
-    TextEditingValue oldValue,
-    TextEditingValue newValue,
-  ) {
-    final inserted = _insertedText(oldValue, newValue);
-    String digits;
-    if (inserted.length > 1 &&
-        inserted.replaceAll(_nonDigit, '').length >= _kOtpLength) {
-      // Prefer a standalone 6-digit run; fall back to the first 6 digits.
-      digits = _fullCode.firstMatch(inserted)?.group(0) ??
-          inserted.replaceAll(_nonDigit, '').substring(0, _kOtpLength);
-    } else {
-      digits = newValue.text.replaceAll(_nonDigit, '');
-      if (digits.length > _kOtpLength) {
-        digits = digits.substring(0, _kOtpLength);
-      }
-    }
-    return TextEditingValue(
-      text: digits,
-      selection: TextSelection.collapsed(offset: digits.length),
-    );
-  }
-
-  /// Text added by this edit, worked out from the unchanged prefix and suffix
-  /// around the old selection. Empty for deletions.
-  static String _insertedText(
-    TextEditingValue oldValue,
-    TextEditingValue newValue,
-  ) {
-    final oldText = oldValue.text;
-    final newText = newValue.text;
-    final sel = oldValue.selection;
-    final start =
-        sel.isValid ? sel.start.clamp(0, oldText.length) : oldText.length;
-    final end =
-        sel.isValid ? sel.end.clamp(start, oldText.length) : oldText.length;
-    final suffixLength = oldText.length - end;
-    final insertedEnd = newText.length - suffixLength;
-    if (insertedEnd <= start) return '';
-    return newText.substring(start, insertedEnd);
   }
 }
