@@ -302,12 +302,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                       ),
                     ),
-                    8.verticalSpace,
+                    16.verticalSpace,
                     Row(
                       children: [
                         SizedBox(
-                          height: 16,
-                          width: 16,
+                          height: 18,
+                          width: 19,
                           child: Checkbox(
                             value: _isTermsAccepted,
                             onChanged: (value) => setState(() => _isTermsAccepted = value ?? false),
