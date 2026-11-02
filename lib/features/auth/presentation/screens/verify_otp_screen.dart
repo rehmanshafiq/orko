@@ -49,10 +49,11 @@ class VerifyOtpScreen extends StatefulWidget {
 }
 
 class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
-  final List<TextEditingController> _controllers =
-      List.generate(_kOtpLength, (_) => TextEditingController());
-  final List<FocusNode> _focusNodes =
-      List.generate(_kOtpLength, (_) => FocusNode());
+  // A single hidden field holds the whole code and the six boxes only render
+  // it. Moving focus between separate fields per digit makes iOS tear down and
+  // re-attach the input connection, which bounces the keyboard on every key.
+  final TextEditingController _controller = TextEditingController();
+  final FocusNode _focusNode = FocusNode();
 
   static const int _resendSeconds = 120;
   int _secondsRemaining = _resendSeconds;
@@ -61,6 +62,7 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
   @override
   void initState() {
     super.initState();
+    _focusNode.addListener(_onFocusChange);
     if (widget.resendAvailable) {
       _secondsRemaining = 0;
     } else {
@@ -71,16 +73,17 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
   @override
   void dispose() {
     _timer?.cancel();
-    for (final c in _controllers) {
-      c.dispose();
-    }
-    for (final f in _focusNodes) {
-      f.dispose();
-    }
+    _focusNode.removeListener(_onFocusChange);
+    _controller.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 
-  String get _code => _controllers.map((c) => c.text).join();
+  void _onFocusChange() {
+    if (mounted) setState(() {});
+  }
+
+  String get _code => _controller.text;
 
   bool get _isComplete => _code.length == _kOtpLength;
 
@@ -104,15 +107,7 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
     });
   }
 
-  void _onChanged(int index, String value) {
-    if (value.length > 1) {
-      // Handle paste of full code into a single box.
-      _distribute(value);
-      return;
-    }
-    if (value.isNotEmpty && index < _kOtpLength - 1) {
-      _focusNodes[index + 1].requestFocus();
-    }
+  void _onChanged(String value) {
     setState(() {});
     _submitIfComplete();
   }
@@ -123,33 +118,6 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
     if (!_isComplete) return;
     if (context.read<AuthCubit>().state is OtpVerifying) return;
     _onVerify();
-  }
-
-  void _distribute(String value) {
-    final digits = value.replaceAll(RegExp(r'\D'), '');
-    for (var i = 0; i < _kOtpLength; i++) {
-      _controllers[i].text = i < digits.length ? digits[i] : '';
-    }
-    final lastIndex =
-        (digits.length >= _kOtpLength ? _kOtpLength : digits.length) - 1;
-    if (lastIndex >= 0) {
-      _focusNodes[lastIndex.clamp(0, _kOtpLength - 1)].requestFocus();
-    }
-    setState(() {});
-    _submitIfComplete();
-  }
-
-  KeyEventResult _onKey(int index, KeyEvent event) {
-    if (event is KeyDownEvent &&
-        event.logicalKey == LogicalKeyboardKey.backspace &&
-        _controllers[index].text.isEmpty &&
-        index > 0) {
-      _focusNodes[index - 1].requestFocus();
-      _controllers[index - 1].clear();
-      setState(() {});
-      return KeyEventResult.handled;
-    }
-    return KeyEventResult.ignored;
   }
 
   void _onVerify() {
@@ -171,11 +139,9 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
   }
 
   void _clearCode() {
-    for (final c in _controllers) {
-      c.clear();
-    }
+    _controller.clear();
     if (mounted) {
-      _focusNodes.first.requestFocus();
+      _focusNode.requestFocus();
       setState(() {});
     }
   }
@@ -230,165 +196,241 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
           final isVerifying = state is OtpVerifying;
           final isResending = state is OtpResending;
           return SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Padding(
-              padding: EdgeInsets.only(left: 24.w, top: 4.h, right: 24.w),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: GestureDetector(
-                  onTap: _onBack,
-                  behavior: HitTestBehavior.opaque,
-                  child: Icon(
-                    Icons.arrow_back,
-                    color: ui.textPrimary,
-                    size: 24,
-                  ),
-                ),
-              ),
-            ),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: AppUtils.horizontal24Padding.copyWith(top: 4.h),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Center(
-                      child: AppPngImageView(
-                        appImagePath: ui.isLight
-                            ? AppImages.hubcoLogoLight
-                            : AppImages.hubcoLogo,
-                        width: MediaQuery.sizeOf(context).width * 0.45,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding: EdgeInsets.only(left: 24.w, top: 4.h, right: 24.w),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: GestureDetector(
+                      onTap: _onBack,
+                      behavior: HitTestBehavior.opaque,
+                      child: Icon(
+                        Icons.arrow_back,
+                        color: ui.textPrimary,
+                        size: 24,
                       ),
                     ),
-                    24.verticalSpace,
-                    AppText(
-                      // The OTP target is an email when sign-up / login used one.
-                      AppHelpers.isEmailInput(widget.phoneNumber)
-                          ? 'Verify Your Email'
-                          : 'Verify Your Number',
-                      textAlign: TextAlign.center,
-                      color: ui.textPrimary,
-                      fontSize: FontSizes.font28Sp,
-                      fontWeight: FontWeights.weight700,
-                    ),
-                    8.verticalSpace,
-                    AppText(
-                      'Enter the 6-digit code sent to',
-                      textAlign: TextAlign.center,
-                      color: ui.textMuted,
-                      fontSize: FontSizes.font14Sp,
-                      fontWeight: FontWeights.weight400,
-                    ),
-                    4.verticalSpace,
-                    AppText(
-                      '${widget.countryCode} ${widget.phoneNumber}'.trim(),
-                      textAlign: TextAlign.center,
-                      color: ui.textPrimary,
-                      fontSize: FontSizes.font14Sp,
-                      fontWeight: FontWeights.weight600,
-                    ),
-                    32.verticalSpace,
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: List.generate(_kOtpLength, _buildOtpBox),
-                    ),
-                    32.verticalSpace,
-                    PrimaryButtonWidget(
-                      text: 'Verify',
-                      onPress: _onVerify,
-                      isLoading: isVerifying,
-                      buttonHeight: 38.h,
-                      cornerRadius: 24.r,
-                      gradientColors: const [
-                        AppColors.primaryDarkColor,
-                        AppColors.primaryDarkButtonColor,
-                      ],
-                      textColor: AppColors.whiteColor,
-                      fontSize: FontSizes.font16Sp,
-                      fontWeight: FontWeights.weight600,
-                    ),
-                    24.verticalSpace,
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                  ),
+                ),
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: AppUtils.horizontal24Padding.copyWith(top: 4.h),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        AppText(
-                          "Didn't receive the code? ",
-                          color: ui.textMuted,
-                          fontSize: FontSizes.font12Sp,
-                          fontWeight: FontWeights.weight400,
-                        ),
-                        GestureDetector(
-                          onTap: (_secondsRemaining > 0 || isResending)
-                              ? null
-                              : _onResend,
-                          child: AppText(
-                            isResending
-                                ? 'Sending...'
-                                : _secondsRemaining > 0
-                                    ? 'Resend in $_formattedRemaining'
-                                    : 'Resend',
-                            color: (_secondsRemaining > 0 || isResending)
-                                ? ui.textMuted
-                                : ui.brandPrimary,
-                            fontSize: FontSizes.font12Sp,
-                            fontWeight: FontWeights.weight600,
+                        Center(
+                          child: AppPngImageView(
+                            appImagePath: ui.isLight
+                                ? AppImages.hubcoLogoLight
+                                : AppImages.hubcoLogo,
+                            width: MediaQuery.sizeOf(context).width * 0.45,
                           ),
                         ),
+                        24.verticalSpace,
+                        AppText(
+                          // The OTP target is an email when sign-up / login used one.
+                          AppHelpers.isEmailInput(widget.phoneNumber)
+                              ? 'Verify Your Email'
+                              : 'Verify Your Number',
+                          textAlign: TextAlign.center,
+                          color: ui.textPrimary,
+                          fontSize: FontSizes.font28Sp,
+                          fontWeight: FontWeights.weight700,
+                        ),
+                        8.verticalSpace,
+                        AppText(
+                          'Enter the 6-digit code sent to',
+                          textAlign: TextAlign.center,
+                          color: ui.textMuted,
+                          fontSize: FontSizes.font14Sp,
+                          fontWeight: FontWeights.weight400,
+                        ),
+                        4.verticalSpace,
+                        AppText(
+                          '${widget.countryCode} ${widget.phoneNumber}'.trim(),
+                          textAlign: TextAlign.center,
+                          color: ui.textPrimary,
+                          fontSize: FontSizes.font14Sp,
+                          fontWeight: FontWeights.weight600,
+                        ),
+                        32.verticalSpace,
+                        _buildOtpInput(),
+                        32.verticalSpace,
+                        PrimaryButtonWidget(
+                          text: 'Verify',
+                          onPress: _onVerify,
+                          isLoading: isVerifying,
+                          buttonHeight: 38.h,
+                          cornerRadius: 24.r,
+                          gradientColors: const [
+                            AppColors.primaryDarkColor,
+                            AppColors.primaryDarkButtonColor,
+                          ],
+                          textColor: AppColors.whiteColor,
+                          fontSize: FontSizes.font16Sp,
+                          fontWeight: FontWeights.weight600,
+                        ),
+                        24.verticalSpace,
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            AppText(
+                              "Didn't receive the code? ",
+                              color: ui.textMuted,
+                              fontSize: FontSizes.font12Sp,
+                              fontWeight: FontWeights.weight400,
+                            ),
+                            GestureDetector(
+                              onTap: (_secondsRemaining > 0 || isResending)
+                                  ? null
+                                  : _onResend,
+                              child: AppText(
+                                isResending
+                                    ? 'Sending...'
+                                    : _secondsRemaining > 0
+                                        ? 'Resend in $_formattedRemaining'
+                                        : 'Resend',
+                                color: (_secondsRemaining > 0 || isResending)
+                                    ? ui.textMuted
+                                    : ui.brandPrimary,
+                                fontSize: FontSizes.font12Sp,
+                                fontWeight: FontWeights.weight600,
+                              ),
+                            ),
+                          ],
+                        ),
                       ],
                     ),
-                  ],
+                  ),
                 ),
-              ),
+              ],
             ),
-          ],
-        ),
           );
         },
       ),
     );
   }
 
-  Widget _buildOtpBox(int index) {
-    final ui = AppUiColors.of(context);
-    final bool filled = _controllers[index].text.isNotEmpty;
-    return SizedBox(
-      width: 48.w,
-      height: 56.h,
-      child: Focus(
-        onKeyEvent: (_, event) => _onKey(index, event),
-        child: TextFormField(
-          controller: _controllers[index],
-          focusNode: _focusNodes[index],
-          keyboardType: TextInputType.number,
-          textAlign: TextAlign.center,
-          maxLength: 1,
-          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-          onChanged: (value) => _onChanged(index, value),
-          style: TextStyle(
-            color: ui.textPrimary,
-            fontSize: FontSizes.font20Sp,
-            fontWeight: FontWeights.weight700,
-          ),
-          decoration: InputDecoration(
-            counterText: '',
-            filled: true,
-            fillColor: ui.inputFill,
-            contentPadding: EdgeInsets.zero,
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12.r),
-              borderSide: BorderSide(
-                color: filled ? ui.brandPrimary : ui.inputBorder,
+  /// Six display boxes with one invisible text field stretched over them, so
+  /// a tap anywhere on the row focuses the field and opens the keyboard.
+  Widget _buildOtpInput() {
+    return Stack(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: List.generate(_kOtpLength, _buildOtpBox),
+        ),
+        Positioned.fill(
+          child: Opacity(
+            opacity: 0,
+            child: TextField(
+              controller: _controller,
+              focusNode: _focusNode,
+              autofocus: true,
+              keyboardType: TextInputType.number,
+              autofillHints: const [AutofillHints.oneTimeCode],
+              inputFormatters: [_OtpInputFormatter()],
+              showCursor: false,
+              enableSuggestions: false,
+              autocorrect: false,
+              onChanged: _onChanged,
+              // Keep the caret at the end so typing always fills the next box.
+              onTap: () => _controller.selection =
+                  TextSelection.collapsed(offset: _controller.text.length),
+              decoration: const InputDecoration(
+                border: InputBorder.none,
+                counterText: '',
+                contentPadding: EdgeInsets.zero,
               ),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12.r),
-              borderSide: BorderSide(color: ui.brandPrimary, width: 1.5),
             ),
           ),
         ),
+      ],
+    );
+  }
+
+  Widget _buildOtpBox(int index) {
+    final ui = AppUiColors.of(context);
+    final code = _code;
+    final bool filled = index < code.length;
+    final int activeIndex =
+        code.length < _kOtpLength ? code.length : _kOtpLength - 1;
+    final bool active = _focusNode.hasFocus && index == activeIndex;
+    return Container(
+      width: 48.w,
+      height: 56.h,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: ui.inputFill,
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(
+          color: (filled || active) ? ui.brandPrimary : ui.inputBorder,
+          width: active ? 1.5 : 1,
+        ),
+      ),
+      child: Text(
+        filled ? code[index] : '',
+        style: TextStyle(
+          color: ui.textPrimary,
+          fontSize: FontSizes.font20Sp,
+          fontWeight: FontWeights.weight700,
+        ),
       ),
     );
+  }
+}
+
+/// Keeps the OTP field to at most [_kOtpLength] digits.
+///
+/// When a paste or SMS autofill inserts a whole code at once, the code
+/// replaces whatever was already typed instead of being appended to it, and
+/// it is extracted from surrounding text such as "Your code is 123456".
+class _OtpInputFormatter extends TextInputFormatter {
+  static final RegExp _nonDigit = RegExp(r'\D');
+  static final RegExp _fullCode = RegExp('(?<!\\d)\\d{$_kOtpLength}(?!\\d)');
+
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    final inserted = _insertedText(oldValue, newValue);
+    String digits;
+    if (inserted.length > 1 &&
+        inserted.replaceAll(_nonDigit, '').length >= _kOtpLength) {
+      // Prefer a standalone 6-digit run; fall back to the first 6 digits.
+      digits = _fullCode.firstMatch(inserted)?.group(0) ??
+          inserted.replaceAll(_nonDigit, '').substring(0, _kOtpLength);
+    } else {
+      digits = newValue.text.replaceAll(_nonDigit, '');
+      if (digits.length > _kOtpLength) {
+        digits = digits.substring(0, _kOtpLength);
+      }
+    }
+    return TextEditingValue(
+      text: digits,
+      selection: TextSelection.collapsed(offset: digits.length),
+    );
+  }
+
+  /// Text added by this edit, worked out from the unchanged prefix and suffix
+  /// around the old selection. Empty for deletions.
+  static String _insertedText(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    final oldText = oldValue.text;
+    final newText = newValue.text;
+    final sel = oldValue.selection;
+    final start =
+        sel.isValid ? sel.start.clamp(0, oldText.length) : oldText.length;
+    final end =
+        sel.isValid ? sel.end.clamp(start, oldText.length) : oldText.length;
+    final suffixLength = oldText.length - end;
+    final insertedEnd = newText.length - suffixLength;
+    if (insertedEnd <= start) return '';
+    return newText.substring(start, insertedEnd);
   }
 }

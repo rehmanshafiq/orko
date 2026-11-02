@@ -36,6 +36,10 @@ class ApiClient {
         headers: {
           'Accept': 'application/json',
           'Domain': _resolveDomain(),
+          // Never serve API responses from a device/proxy cache (Android and
+          // iOS) — every call must hit the server fresh.
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache',
         },
       ),
     );
